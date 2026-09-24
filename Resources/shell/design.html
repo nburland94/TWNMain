@@ -209,6 +209,7 @@ body.resizing,body.resizing *{cursor:ns-resize!important;user-select:none}
 .still{position:relative;flex-shrink:0;border-radius:5px;overflow:hidden;background:#e9d3c4;cursor:pointer;outline-offset:1px}
 .still img{display:block;width:100%;height:100%;object-fit:cover;-webkit-user-drag:none;pointer-events:none}
 .still.on{outline:2.5px solid #F05A22}
+.still .gifb{position:absolute;left:5px;bottom:5px;font-family:'Courier Prime',monospace;font-size:9.5px;letter-spacing:0.1em;color:#fff;background:rgba(0,0,0,0.5);border-radius:4px;padding:1px 5px;pointer-events:none}
 .still.used::after{content:'';position:absolute;right:5px;top:5px;width:7px;height:7px;border-radius:50%;background:#F05A22;box-shadow:0 0 0 1.5px #fff}
 .traygrid.list{flex-direction:column;flex-wrap:nowrap;gap:2px}
 .traygrid.list .still{display:flex;align-items:center;gap:10px;width:100%!important;height:44px!important;background:transparent;border-radius:8px;padding:3px 6px}
@@ -1030,7 +1031,7 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
     const h = TRAY_H[traySize] || 100;
     g.innerHTML = list.length ? list.map((s, i) => traySize === 'List'
       ? `<div class="still${trayPick.has(s.id) ? ' on' : ''}${used.has(s.id) ? ' used' : ''}" data-id="${esc(s.id)}" data-i="${i}" draggable="false"><img alt="" loading="lazy" src="vault/${esc(encodeURI(s.thumb))}"><span>${esc(s.title || 'Still')}</span><small>${esc(s.project)}</small></div>`
-      : `<div class="still${trayPick.has(s.id) ? ' on' : ''}${used.has(s.id) ? ' used' : ''}" data-id="${esc(s.id)}" data-i="${i}" draggable="false" title="${esc(s.title)}" style="height:${h}px;width:${Math.round(h * clamp(s.a || 1.5, 0.4, 3))}px"><img alt="" loading="lazy" src="vault/${esc(encodeURI(s.thumb))}"></div>`).join('')
+      : `<div class="still${trayPick.has(s.id) ? ' on' : ''}${used.has(s.id) ? ' used' : ''}" data-id="${esc(s.id)}" data-i="${i}" draggable="false" title="${esc(s.title)}" style="height:${h}px;width:${Math.round(h * clamp(s.a || 1.5, 0.4, 3))}px"><img alt="" loading="lazy" src="vault/${esc(encodeURI(s.thumb))}">${s.kind === 'gif' ? '<span class="gifb">GIF</span>' : ''}</div>`).join('')
       : `<div class="empty" style="padding:14px 0">${scope === 'project' ? `No stills in ${esc(project)} yet — grab some, add references in the Vault, or drop pictures right here.` : 'No stills in the vault yet.'}</div>`;
   }
   // The stills window: drag its top edge, or Bigger / Smaller.
@@ -1065,7 +1066,7 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
   const stillById = id => stills.find(s => s.id === id) || projStills.find(s => s.id === id);
   // A still coming onto a page is wanted again, if it had been taken off.
   const picFrom = s => { if (doc && doc.off && doc.off.includes(s.id)) doc.off = doc.off.filter(x => x !== s.id); return picFromRaw(s); };
-  const picFromRaw = s => ({ id: s.id, file: s.file, thumb: s.thumb, a: s.a || 1.5, palette: (s.palette || []).slice(0, 6), title: s.title || '', project: s.project || '', crop: { x: 50, y: 50, z: 1 }, opacity: 1, featured: false });
+  const picFromRaw = s => ({ id: s.id, kind: s.kind === 'gif' ? 'gif' : undefined, file: s.file, thumb: s.thumb, a: s.a || 1.5, palette: (s.palette || []).slice(0, 6), title: s.title || '', project: s.project || '', crop: { x: 50, y: 50, z: 1 }, opacity: 1, featured: false });
 
   /* ---------------------------------------------------------------- the start: pick Mood or Treatment */
   function drawStart() {

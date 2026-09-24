@@ -116,7 +116,7 @@ enum Designs {
         let fm = FileManager.default
         let usable: (URL) -> Bool = { u in
             let e = u.pathExtension.lowercased()
-            return Shell.imageExt.contains(e) && e != "gif"
+            return Shell.imageExt.contains(e)
         }
         var out: [URL] = []
         for u in urls {
@@ -139,7 +139,8 @@ enum Designs {
         guard let base = Shared.vault else { return [] }
         VaultStore.shared.load()
         let all = VaultStore.shared.items.filter { (it: [String: Any]) -> Bool in
-            guard (it["kind"] as? String) == "still" else { return false }
+            let kind = (it["kind"] as? String) ?? ""
+            guard kind == "still" || kind == "gif" else { return false }       // GIFs too: they play on the page
             return scope == "vault" || ((it["project"] as? String) ?? "Unsorted") == project
         }.sorted { ($0["created"] as? String ?? "") > ($1["created"] as? String ?? "") }
         var out: [[String: Any]] = []
@@ -157,7 +158,7 @@ enum Designs {
                 a = r; aspects[id] = a
             }
             let src = it["source"] as? [String: Any]
-            var row: [String: Any] = ["id": id, "file": file, "thumb": thumb, "a": a]
+            var row: [String: Any] = ["id": id, "file": file, "thumb": thumb, "a": a, "kind": (it["kind"] as? String) ?? "still"]
             row["palette"] = (it["palette"] as? [String]) ?? [String]()
             row["project"] = (it["project"] as? String) ?? "Unsorted"
             row["title"] = (src?["title"] as? String) ?? ""
@@ -407,11 +408,13 @@ extension Shell {
             return
         }
         let v = vaultHost
-        guard let folder = v.outputFolder("Stills", project: project, area: "References") else { return }
+        guard let stillsFolder = v.outputFolder("Stills", project: project, area: "References") else { return }
+        let gifsFolder = v.outputFolder("GIFs", project: project, area: "References") ?? stillsFolder
         // Where each goes, planned first, so two photos with the same name each keep their own.
         var planned = Set<String>()
         var jobs: [(from: URL, to: URL)] = []
         for u in files {
+            let folder = u.pathExtension.lowercased() == "gif" ? gifsFolder : stillsFolder
             var target = v.uniqueURL(in: folder, name: u.lastPathComponent)
             var n = 2
             while planned.contains(target.path) {
@@ -475,7 +478,8 @@ extension Shell {
             while at < end {
                 let u = files[at]
                 let meta: [String: Any] = ["source": ["type": "file", "title": u.deletingPathExtension().lastPathComponent], "origin": "reference"]
-                if let id = VaultStore.shared.register(kind: "still", file: u, meta: meta, project: project)["id"] as? String { ids.append(id) }
+                let kind = u.pathExtension.lowercased() == "gif" ? "gif" : "still"
+                if let id = VaultStore.shared.register(kind: kind, file: u, meta: meta, project: project)["id"] as? String { ids.append(id) }
                 at += 1
             }
             let f = 0.4 + 0.6 * Double(at) / Double(max(1, files.count))
