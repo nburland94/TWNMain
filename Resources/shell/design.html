@@ -767,13 +767,13 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
       const pickedN = doc.from === 'picked' ? (doc.fromIds || []).length : trayPick.size, offN = (doc.off || []).length;
       h += `
         <div class="psec"><span class="cap">Pictures on this page</span>
-          ${isDealt(p, cur) ? `${range('perPage', '', perFor(p), 1, 12, 1)}
-          <span class="empty" id="dealInfo" style="margin-top:-4px">${esc(dealInfo())}</span>
-          <button class="tbtn" id="perAll" style="align-self:flex-start;padding-left:0" title="Every page, and new ones">Use ${perFor(p)} on every page</button>`
+          ${isDealt(p, cur) ? `${range('perPage', '', Math.min(12, p.pics.length), 0, 12, 1)}
+          <span class="empty" id="dealInfo" style="margin-top:-4px">${esc(pageInfo())}</span>
+          <button class="tbtn" id="perAll" style="align-self:flex-start;padding-left:0" title="Fills or trims every page to this many">Make every page ${Math.min(12, p.pics.length)}</button>`
           : `<span class="empty">${p.layout === 'free' ? 'A Free page keeps the pictures you placed.' : cur === 0 && p.layout === 'bleed' ? 'The cover keeps its picture.' : 'A page of words only.'}</span>`}
           <span class="cap" style="margin-top:4px">From</span>
           <div class="seg"><button data-from="project" class="${doc.from !== 'picked' ? 'on' : ''}">The project</button><button data-from="picked" class="${doc.from === 'picked' ? 'on' : ''}" title="The stills picked in the tray">Picked${pickedN ? ` (${pickedN})` : ''}</button></div>
-          ${offN ? `<button class="tbtn" id="unOff" style="align-self:flex-start;padding-left:0">Bring back the ${offN} taken off</button>` : ''}</div>`;
+          ${offN ? `<button class="tbtn" id="unOff" style="align-self:flex-start;padding-left:0" title="Stills you took off are skipped when the slider adds more">Let the ${offN} taken off back in</button>` : ''}</div>`;
       h += mood ? `
         <div class="psec"><span class="cap">Title — top left of every page</span><div class="prow"><input type="text" id="moodTitle" value="${esc(doc.title || '')}" placeholder="Optional" style="flex-grow:1"></div></div>`
       : `
@@ -873,7 +873,7 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
       <h1>Needed Design</h1>
       <p class="lead">Pages from your stills, for ${esc(project || 'this project')}. A mood board is just pictures. A treatment is pictures and words: the pictures lay themselves out, the words go wherever you put them.</p>
       <div class="choices">
-        <button class="g choice" data-new="mood"><div class="pv">${miniPreview('mood')}</div><b>Mood board</b><span>Just pictures, in tight rows. Filled from the project, up to 12 a page — set page by page. Saves as a mood board.</span></button>
+        <button class="g choice" data-new="mood"><div class="pv">${miniPreview('mood')}</div><b>Mood board</b><span>Just pictures, in tight rows. Up to 12 a page — slide to fill each page from the project. Saves as a mood board.</span></button>
         <button class="g choice" data-new="treatment"><div class="pv">${miniPreview('treatment')}</div><b>Treatment</b><span>Pictures laid out for you, text boxes you drag anywhere. Saves as a treatment.</span></button>
       </div>
       ${recent.length ? `<span class="cap">Carry on with</span><div class="recent">${recent.map(d => `<button class="rec g" data-open="${esc(d.rel)}">${d.cover ? `<img alt="" src="vault/${esc(encodeURI(d.cover))}">` : '<div class="ph"></div>'}<b>${esc(d.name)}</b><small>${d.mode === 'mood' ? 'Mood' : 'Treatment'} · ${d.pages} page${d.pages === 1 ? '' : 's'}</small></button>`).join('')}</div>` : ''}`;
@@ -963,6 +963,15 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
     sel.clear();
     return pool.length;
   }
+  // The slider: this page, and only this page, holds this many. Up takes the next stills used on no page; down takes the last off this page.
+  const dealSource = () => doc.from === 'picked' ? (doc.fromIds || []).map(stillById).filter(Boolean) : projStills;
+  const unusedCount = () => { const used = usedIds(), off = new Set(doc.off || []); return dealSource().filter(st => !used.has(st.id) && !off.has(st.id)).length; };
+  function fillPage(pg, n) {
+    if (pg.pics.length > n) { pg.pics = pg.pics.slice(0, n); return; }
+    const used = usedIds(), off = new Set(doc.off || []);
+    for (const st of dealSource()) { if (pg.pics.length >= n) break; if (!used.has(st.id) && !off.has(st.id)) { pg.pics.push(picFromRaw(st)); used.add(st.id); } }
+  }
+  const pageInfo = () => { const n = page().pics.length, u = unusedCount(); return `${n} on this page · ${u} ${doc.from === 'picked' ? 'picked' : 'still'}${u === 1 ? '' : 's'} not used yet`; };
   const dealInfo = () => { const n = dealPool().length, pages = doc.pages.filter((pg, i) => isDealt(pg, i) && pg.pics.length).length; return `${n} still${n === 1 ? '' : 's'} across ${pages} page${pages === 1 ? '' : 's'} — only this page changes as you slide`; };
 
   async function makeNew(mode, ids) {
@@ -979,22 +988,19 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
       const at = stackIn(G, L.text, items.map(([k, v]) => ({ st: preset(k), text: v })), 'bottom');
       cover.boxes = items.map(([k, v], i) => newBox(k, at[i].x / G.W, at[i].y / G.H, at[i].w / G.W, v));
     }
-    // It fills itself: the stills you picked, or else all of the project's.
+    // It starts empty, unless it came with stills you picked (from the Vault, or a right-click): those arrive placed.
     if (!projStills.length) await loadProjStills();
     if (ids && ids.length) {
       if (scope !== 'vault' && ids.some(id => !stillById(id))) { scope = 'vault'; await loadStills(); }
       doc.from = 'picked'; doc.fromIds = ids.filter(id => stillById(id));
-    }
-    if (mode === 'treatment') {
-      const first = (doc.from === 'picked' ? doc.fromIds.map(stillById) : projStills).filter(Boolean)[0];
-      if (first) doc.pages[0].pics = [picFromRaw(first)];
-    }
-    redeal();
+      if (mode === 'treatment') { const first = stillById(doc.fromIds[0]); if (first) doc.pages[0].pics = [picFromRaw(first)]; }
+      redeal();
+    } else if (mode === 'treatment') doc.pages.push(newPage('left'));
     cur = 0;
     persist(); draw();
     if (!pref('guideSeen', '')) setTimeout(() => openGuide(0), 350);
     const count = doc.pages.reduce((a, p) => a + p.pics.length, 0);
-    toast(count ? `${count} still${count === 1 ? '' : 's'} on ${doc.pages.length} page${doc.pages.length === 1 ? '' : 's'} — Pictures on this page changes the one you\u2019re on` : (mode === 'mood' ? 'A new mood board — no stills in this project yet' : 'A new treatment — the cover is from the project. T adds text'));
+    toast(count ? `${count} still${count === 1 ? '' : 's'} on ${doc.pages.length} page${doc.pages.length === 1 ? '' : 's'} ` : (mode === 'mood' ? 'A new mood board — slide Pictures on this page to fill it, or double-click stills' : 'A new treatment — the cover is from the project. Slide Pictures on this page to fill a page'));
   }
 
   // Deal stills into pages: mood boards N a page; treatments alternate layouts.
@@ -1318,18 +1324,18 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
       if (d.from === 'picked') {
         const ids = trayPick.size ? [...trayPick] : (doc.fromIds || []);
         if (!ids.length) return toast('Pick some stills in the tray first — ⌘-click, or drag across them');
-        change(() => { doc.from = 'picked'; doc.fromIds = ids; redeal(); });
-        return toast(`Just the ${ids.length} you picked, ${perOf()} a page`);
+        change(() => { doc.from = 'picked'; doc.fromIds = ids; });
+        return toast(`The slider now adds from the ${ids.length} you picked`);
       }
-      change(() => { doc.from = 'project'; redeal(); });
-      return toast(`All of ${project}'s stills, ${perOf()} a page`);
+      change(() => { doc.from = 'project'; });
+      return toast(`The slider now adds from all of ${project}'s stills`);
     }
     if (t.id === 'perAll') {
-      const n = perFor(page());
-      change(() => { if (doc.mode === 'mood') doc.perPage = n; else doc.tPerPage = n; doc.pages.forEach(pg => { delete pg.per; }); redeal(); });
-      return toast(`${n} a page, on every page`);
+      const n = page().pics.length;
+      change(() => doc.pages.forEach((pg, i) => { if (isDealt(pg, i)) fillPage(pg, n); }));
+      return toast(`Every page filled or trimmed to ${n}`);
     }
-    if (t.id === 'unOff') { change(() => { doc.off = []; redeal(); }); return toast('They\u2019re back'); }
+    if (t.id === 'unOff') { change(() => { doc.off = []; }); return toast('They can be added again'); }
     if (t.id === 'featTog') return toggleFeature();
     if (t.id === 'reframeBtn') { reframe = reframe == null ? [...sel][0] : null; drawStage(); return drawPanel(); }
     if (t.id === 'reframeReset') { const k = [...sel][0]; change(() => { page().pics[k].crop = { x: 50, y: 50, z: 1 }; }); return; }
@@ -1461,7 +1467,7 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
       return;
     }
     const bx = boxById(bsel) || {};
-    const liveRange = { perPage: v => { page().per = +v; redeal(); }, fadeStr: v => { page().fade.strength = +v; },
+    const liveRange = { perPage: v => { fillPage(page(), +v); sel.clear(); }, fadeStr: v => { page().fade.strength = +v; },
       picOp: v => { [...sel].forEach(k => { page().pics[k].opacity = +v; }); },
       pRadius: v => { [...sel].forEach(k => { page().pics[k].radius = +v; }); },
       bSize: v => { bx.size = +v; }, bTrack: v => { bx.tracking = +v; }, bLead: v => { bx.leading = +v; }, bOp: v => { bx.opacity = +v; } }[t.id];
@@ -1473,7 +1479,9 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
       const v = t.parentElement.querySelector('.val'); if (v) v.textContent = /Op|Str/.test(t.id) ? Math.round(t.value * 100) + '%' : /Track|Lead/.test(t.id) ? (+t.value).toFixed(2) : /Radius/.test(t.id) ? t.value + ' pt' : t.value;
       if (t.id === 'bSize') { const pb = $('panel').querySelector('.seg [data-preset].on'); if (pb) pb.classList.remove('on'); }
       if (t.id !== 'perPage') { drawStage(); clearTimeout(drawStrip.t); drawStrip.t = setTimeout(drawStrip, 250); }
-      else { drawStage(); drawStrip(); const di = $('dealInfo'); if (di) di.textContent = dealInfo(); const pa = $('perAll'); if (pa) pa.textContent = `Use ${t.value} on every page`; }
+      else { drawStage(); drawStrip(); const di = $('dealInfo'); if (di) di.textContent = pageInfo(); const pa = $('perAll'); if (pa) pa.textContent = `Make every page ${page().pics.length}`;
+        if (page().pics.length < +t.value) { t.value = page().pics.length; const v2 = t.parentElement.querySelector('.val'); if (v2) v2.textContent = t.value; }   // no more stills to add
+      }
     }
     if (t.id === 'bgPick') { const all = !page().bg; change(() => { if (all) doc.bg = t.value; else page().bg = t.value; }, { quiet: true }); drawStage(); drawStrip(); }
     if (t.id === 'bFillPick') { const b = boxById(bsel); if (b) { change(() => { b.fill = t.value; }, { quiet: true }); drawStage(); } return; }
@@ -1924,7 +1932,7 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
   const art = (inner, bg) => `<div class="gart" style="background:${bg || '#f4f1ec'}">${inner}</div>`;
   const blk = (l, t, w, h, c, extra) => `<i style="left:${l}%;top:${t}%;width:${w}%;height:${h}%;background:${c};${extra || ''}"></i>`;
   const GUIDE = [
-    ['Start with your stills', 'Pick a <b>mood board</b> (just pictures) or a <b>treatment</b> (pictures and words) — it fills itself with the project\u2019s stills straight away, and <b>Pictures on this page</b> in the panel sets how many go on the page you\u2019re on (1 to 12) — the other pages keep theirs, and <b>Use it on every page</b> makes them all the same. Stills you take off stay off. More stills wait in the tray at the bottom; drag its top edge to make it bigger. <b>+ Photos</b> brings in more, whole folders at once.',
+    ['Start with your stills', 'Pick a <b>mood board</b> (just pictures) or a <b>treatment</b> (pictures and words) . Slide <b>Pictures on this page</b> in the panel and the page you\u2019re on fills with the project\u2019s stills (up to 12) — slide back and they come off. Only that page changes; <b>Make every page</b> does them all. More stills wait in the tray at the bottom; drag its top edge to make it bigger. <b>+ Photos</b> brings in more, whole folders at once.',
       art(blk(4, 8, 58, 64, '#fff', 'box-shadow:0 4px 14px rgba(0,0,0,.12)') + blk(4, 78, 12, 16, '#3b2a22') + blk(18, 78, 18, 16, '#b8461c') + blk(38, 78, 12, 16, '#1e2227') + blk(52, 78, 16, 16, '#e0a24a') + blk(70, 78, 10, 16, '#6d2a18') + blk(66, 8, 30, 64, 'rgba(255,255,255,.6)'))],
     ['Put pictures on the page', '<b>Double-click</b> a still, or <b>drag it</b> onto the page. Pick several (⌘-click, or drag across them) and <b>right-click</b>: this page, a new page, or laid out on new pages. You can drop photos straight from Finder too.',
       art(blk(8, 10, 84, 60, '#fff', 'box-shadow:0 4px 14px rgba(0,0,0,.12)') + blk(14, 18, 34, 44, '#3b2a22') + blk(52, 18, 34, 44, '#b8461c', 'outline:2px dashed #F05A22;outline-offset:3px') + blk(60, 78, 16, 16, '#b8461c', 'opacity:.45') + '<b class="garrow" style="left:66%;top:62%">↑</b>')],

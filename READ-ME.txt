@@ -441,3 +441,9 @@ ROUND 9 — DESIGN, SIMPLER AND FILLED FOR YOU
   • The guide (? in Design), the start screen and the welcome now describe
     "Pictures on this page" page by page, and the key list includes
     right-click.
+  • Round 9.3: the slider only ever touches the page it's on. "Pictures on
+    this page" is how many that page holds (0–12): slide up and it adds the
+    next stills used on no page; slide down and the last ones come off (back
+    to unused). No other page moves. New designs start empty — slide to fill
+    a page. Stills picked in the Vault or with right-click still arrive
+    placed. "Make every page N" fills or trims them all, on purpose.
