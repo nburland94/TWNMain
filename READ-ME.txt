@@ -389,3 +389,27 @@ NEEDED DESIGN, EASIER (like Keynote)
     onto this page and lots go onto new pages after it. ⌘Z takes them off.
   • Treatments made before this open with their words as text boxes, where
     they were.
+
+ROUND 8 — DESIGN LIKE KEYNOTE, AND A CLEAN LOGO
+  • Drag photos onto the slide: from the stills tray, or straight from
+    Finder (whole folders too). Drags from inside the app now always reach
+    the page — they were being mistaken for Finder drops.
+  • Free layout (the sixth layout): Keynote-style. Drop a photo where you
+    want it, drag it anywhere (it snaps to the edges, the middle and the
+    other pictures), sides and bottom stretch it, the corner sizes it.
+    ← → nudge, ⌥ + any arrow nudges, ↑ ↓ still swap it through your stills
+    and it keeps its place. Switching a page to Free keeps every picture
+    exactly where it was.
+  • The inspector is laid out like Keynote's Format panel:
+      Text  — paragraph style (Title/Heading/Body/Caption), font, weight,
+              size in pt, B I U S and caps, text colour, left / centre /
+              right / justify, line and letter spacing.
+      Style — fill, border, shadow, opacity (pictures: border, shadow,
+              rounded corners, opacity).
+      Arrange — Back, Front, Backward, Forward; align to the page; size
+              and position in points.
+  • How it works: a seven-step guide opens the first time you use Design,
+    and any time from the ? button or the ? key. "All the keys" is in it.
+  • The logo: redrawn from a clean trace at four times the size, so it's
+    sharp everywhere — the bar, welcome, sign-in, every tool, and the
+    exports. In dark mode it's plain white.

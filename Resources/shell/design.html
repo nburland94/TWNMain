@@ -84,6 +84,9 @@ select.sel{appearance:none;-webkit-appearance:none;border:1px solid rgba(28,28,2
 .boxsel .h[data-h=r]{right:-6px;top:50%;margin-top:-6px;cursor:ew-resize}
 .boxsel .h[data-h=br]{right:-6px;bottom:-6px;cursor:nwse-resize}
 .boxsel.editing .h{display:none}
+.boxsel .h[data-h=b]{left:50%;bottom:-6px;margin-left:-6px;cursor:ns-resize;display:none}
+.boxsel.pic .h[data-h=b]{display:block}
+.pagewrap.free .pic{cursor:move}
 .guide{position:absolute;background:#F05A22;pointer-events:none;z-index:7}
 .guide[hidden]{display:none}
 .guide.v{width:1px}
@@ -100,8 +103,27 @@ select.sel{appearance:none;-webkit-appearance:none;border:1px solid rgba(28,28,2
 .panel .phead{display:flex;align-items:baseline;justify-content:space-between;gap:8px}
 .panel .phead b{font-weight:300;font-size:22px}
 .light.small{padding:7px 12px;font-size:12.5px}
+.ktabs{display:grid;grid-template-columns:repeat(auto-fit,minmax(0,1fr))}
+.ktabs button{text-align:center}
+.klabel{font-size:12.5px;font-weight:500;color:#2a2926}
+.kselect{width:100%;border:1px solid rgba(28,28,28,0.12);border-radius:8px;padding:6px 8px;font-size:13px;background:#fff}
+.kpair{display:grid;grid-template-columns:1fr 1fr;gap:8px;align-items:center}
+.kpair.klbl span{font-size:11px;color:#6b6964;text-align:center;margin-top:-4px}
+.knum{display:flex;align-items:center;border:1px solid rgba(28,28,28,0.12);border-radius:8px;background:#fff;padding:0 8px 0 4px;min-width:0}
+.knum input{border:none;background:transparent;width:100%;min-width:0;font-size:13px;padding:6px 2px;text-align:right;outline:none;color:#141414}
+.knum input:disabled{color:#9a9894}
+.knum i{font-style:normal;font-size:11.5px;color:#6b6964;margin-left:3px;white-space:nowrap}
+.kgrid4,.kgrid5,.kgrid6{display:grid;gap:0;border:1px solid rgba(28,28,28,0.1);border-radius:8px;overflow:hidden;background:rgba(255,255,255,0.7)}
+.kgrid4{grid-template-columns:repeat(4,1fr)}.kgrid5{grid-template-columns:repeat(5,1fr)}.kgrid6{grid-template-columns:repeat(6,1fr)}
+.kbtn,.kicon{border:none;border-right:1px solid rgba(28,28,28,0.08);background:transparent;padding:7px 0;font-size:13px;display:flex;align-items:center;justify-content:center;gap:4px;flex-direction:column;color:#2a2926}
+.kgrid4>:last-child,.kgrid5>:last-child,.kgrid6>:last-child{border-right:none}
+.kbtn span{font-size:11.5px}
+.kbtn.on,.kicon.on{background:#141414;color:#fff}
+.kicon svg{width:16px;height:14px;fill:none;stroke:currentColor;stroke-width:1.4}
+@media (hover:hover) and (pointer:fine){.kbtn:hover:not(.on),.kicon:hover:not(.on){background:rgba(240,90,34,0.1)}}
+.sw button.none{background:linear-gradient(135deg,#fff 46%,#d2440f 46%,#d2440f 54%,#fff 54%)}
 .sw button.auto{background:linear-gradient(135deg,#141414 50%,#ffffff 50%)}
-.laynames{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-top:-2px}
+.laynames{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin-top:-2px}
 .laynames span{font-size:10px;color:#6b6964;text-align:center;line-height:1.2}
 .psec{display:flex;flex-direction:column;gap:8px}
 .prow{display:flex;align-items:center;gap:8px;font-size:12.5px;min-width:0}
@@ -110,7 +132,7 @@ select.sel{appearance:none;-webkit-appearance:none;border:1px solid rgba(28,28,2
 .prow input[type=range]{flex-grow:1;accent-color:#F05A22;min-width:0}
 .prow select,.prow input[type=text],.prow input[type=number]{border:1px solid rgba(28,28,28,0.12);border-radius:8px;padding:5px 7px;font-size:12.5px;background:#fff;min-width:0}
 .prow input[type=color]{width:34px;height:26px;border:1px solid rgba(28,28,28,0.12);border-radius:6px;padding:1px;background:#fff}
-.lays{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+.lays{display:grid;grid-template-columns:repeat(6,1fr);gap:6px}
 .lay{border:1.5px solid rgba(28,28,28,0.1);border-radius:8px;background:rgba(255,255,255,0.6);padding:6px;height:42px;position:relative}
 .lay.on{border-color:#F05A22;background:#fff}
 .lay i{position:absolute;background:#8a7a72;border-radius:1px}
@@ -200,6 +222,19 @@ body.resizing,body.resizing *{cursor:ns-resize!important;user-select:none}
 .drow .x{margin-left:auto;border:none;background:none;color:#a08a7e;font-size:15px;opacity:0}
 .drow:hover .x{opacity:1}
 
+/* the guide */
+.gstep{display:grid;grid-template-columns:300px minmax(0,1fr);gap:24px;align-items:center}
+.gstep p{margin:0;font-size:15px;line-height:1.65;color:#2a2926}
+.gstep b{font-weight:500;color:#141414}
+.gart{position:relative;height:170px;border-radius:14px;overflow:hidden;box-shadow:0 0 0 0.5px rgba(0,0,0,0.12)}
+.gart i{position:absolute;border-radius:3px}
+.garrow{position:absolute;font-size:20px;color:#F05A22;font-weight:600}
+.gdot{position:absolute;width:8px;height:8px;margin:-4px 0 0 -4px;border-radius:50%;background:#fff;border:1.5px solid #F05A22}
+.gdots{display:flex;gap:6px;align-items:center}
+.gd{width:8px;height:8px;border-radius:50%;border:none;padding:0;background:rgba(28,28,28,0.18)}
+.gd.on{background:#F05A22;width:20px;border-radius:5px}
+@media (max-width:760px){.gstep{grid-template-columns:1fr}}
+
 /* play */
 .play{position:fixed;inset:0;z-index:80;background:#050505;display:none;align-items:center;justify-content:center}
 .play.on{display:flex}
@@ -221,7 +256,7 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
   <header class="bar" id="bar"></header>
   <div class="strip" id="strip"></div>
   <div class="work" id="work">
-    <div class="stage" id="stage"><div class="pagewrap" id="pagewrap"></div><div class="boxsel" id="boxsel" hidden><i class="h" data-h="l"></i><i class="h" data-h="r"></i><i class="h" data-h="br"></i></div><div class="guide v" id="guideX" hidden></div><div class="guide hz" id="guideY" hidden></div><div class="swapbar g" id="swapbar" hidden></div><div class="stagehint" id="stagehint"></div></div>
+    <div class="stage" id="stage"><div class="pagewrap" id="pagewrap"></div><div class="boxsel" id="boxsel" hidden><i class="h" data-h="l"></i><i class="h" data-h="r"></i><i class="h" data-h="br"></i><i class="h" data-h="b"></i></div><div class="guide v" id="guideX" hidden></div><div class="guide hz" id="guideY" hidden></div><div class="swapbar g" id="swapbar" hidden></div><div class="stagehint" id="stagehint"></div></div>
     <aside class="panel" id="panel"></aside>
   </div>
   <div class="tray" id="tray">
@@ -251,7 +286,7 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
   /* ================================================================ the page model */
   const SIZES = { '16:9': [1920, 1080], '2:1': [2160, 1080], '4:3': [1440, 1080], 'A4': [1754, 1240], '1:1': [1080, 1080], '4:5': [1080, 1350], '9:16': [1080, 1920] };
   const SIZE_NAMES = { '16:9': '16:9 · 1920 × 1080', '2:1': '2:1 wide', '4:3': '4:3', 'A4': 'A4 landscape', '1:1': '1:1 square', '4:5': '4:5 portrait', '9:16': '9:16 vertical' };
-  const LAYOUTS = [['rows', 'Rows of pictures'], ['left', 'Pictures left, words right'], ['right', 'Words left, pictures right'], ['bleed', 'Full bleed, words on it'], ['text', 'Words only']];
+  const LAYOUTS = [['rows', 'Rows of pictures'], ['left', 'Pictures left, words right'], ['right', 'Words left, pictures right'], ['bleed', 'Full bleed, words on it'], ['text', 'Words only'], ['free', 'Free — place pictures anywhere, like Keynote']];
   // Words are text boxes, like Keynote: put one anywhere, drag it, size it. Helvetica unless you say otherwise.
   const HELV = 'Helvetica Neue';
   const BUNDLED = ['Helvetica Neue', 'Helvetica', 'Raleway', 'Oswald', 'Cormorant Garamond', 'Inter', 'Courier Prime'];
@@ -352,6 +387,11 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
       const b = boundsOf(rects);
       if (!page.pics.length) hole = { x: px, y: top, w: pw, h: H - top - bottom };
       text = { x: tx, y: b ? b.y : top, w: cw - pw - m, h: b ? b.h : H - top - bottom };
+    } else if (lay === 'free') {
+      // Free: every picture where you put it — x, y, w, h as fractions of the page.
+      rects = page.pics.map((p, k) => { const b = p.box || defaultBox(G, p, k); return { x: b.x * W, y: b.y * H, w: b.w * W, h: b.h * H }; });
+      if (!page.pics.length) hole = { x: m, y: top, w: W - 2 * m, h: H - top - bottom };
+      text = { x: m, y: top, w: Math.round((W - 2 * m) * 0.5), h: H - top - bottom };
     } else {
       const bleed = !!page.bleed;
       const x0 = bleed ? 0 : m, y0 = bleed ? 0 : top;
@@ -359,6 +399,12 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
       if (!page.pics.length) hole = { x: m, y: top, w: W - 2 * m, h: H - top - bottom };
     }
     return { G, lay, rects, text, hole, top, bottom };
+  }
+
+  // Where a picture lands on a Free page when it has no place yet: 40% wide, a little down and right of the one before.
+  function defaultBox(G, p, k) {
+    const w = 0.4, h = Math.min(0.8, w * G.W / (p.a || 1.5) / G.H);
+    return { x: G.m / G.W + 0.04 * (k % 8), y: G.m / G.H + 0.05 * (k % 8), w, h };
   }
 
   /* ---------------------------------------------------------------- colour */
@@ -386,7 +432,8 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
       const c = p.crop || { x: 50, y: 50, z: 1 };
       const src = 'vault/' + encodeURI(opt.thumbs ? (p.thumb || p.file) : p.file);
       const cls = 'pic' + (sel.has(k) ? ' sel' : '') + (opt.reframe === k ? ' reframe' : '') + (opt.edit && p.featured ? ' feat' : '');
-      h += `<div class="${cls}" data-k="${k}"${opt.edit ? ' draggable="true"' : ''} style="left:${r.x.toFixed(1)}px;top:${r.y.toFixed(1)}px;width:${r.w.toFixed(1)}px;height:${r.h.toFixed(1)}px;opacity:${p.opacity == null ? 1 : p.opacity}${opt.edit ? `;outline-width:${Math.max(2, 3 / (opt.scale || 1))}px` : ''}">`
+      const deco = (p.border ? `;border:${(p.border.w || 2) * u}px solid ${esc(p.border.c || '#ffffff')}` : '') + (p.shadow ? `;box-shadow:0 ${14 * u}px ${44 * u}px rgba(0,0,0,0.38)` : '') + (p.radius ? `;border-radius:${p.radius * u}px` : '');
+      h += `<div class="${cls}" data-k="${k}"${opt.edit && L.lay !== 'free' ? ' draggable="true"' : ''} style="left:${r.x.toFixed(1)}px;top:${r.y.toFixed(1)}px;width:${r.w.toFixed(1)}px;height:${r.h.toFixed(1)}px;opacity:${p.opacity == null ? 1 : p.opacity}${deco}${opt.edit ? `;outline-width:${Math.max(2, 3 / (opt.scale || 1))}px` : ''}">`
         + `<img alt="" draggable="false" src="${esc(src)}" style="object-position:${c.x}% ${c.y}%;transform:scale(${c.z});transform-origin:${c.x}% ${c.y}%"></div>`;
     });
     // The fade: from the side the words are on, to black or to the page colour.
@@ -404,7 +451,7 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
     }
     if (doc.mark && opt.mark !== false) {
       const mh = Math.round(22 * u);
-      h += `<img class="mark" alt="" src="mark.png" style="right:${m}px;bottom:${Math.round((L.bottom - mh) / 2)}px;height:${mh}px;${dark ? 'filter:brightness(0) invert(1)' : ''}">`;
+      h += `<img class="mark" alt="" src="mark.png" style="right:${m}px;bottom:${Math.round((L.bottom - mh) / 2)}px;height:${mh}px;${dark ? 'filter:brightness(0) invert(1)' : ''}">`;   // the mark, all white on dark pages
     }
     return h + '</div>';
   }
@@ -412,7 +459,11 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
     const colour = b.colour || (dark ? '#f4f3f1' : '#141414');
     return `left:${(b.x * G.W).toFixed(1)}px;top:${(b.y * G.H).toFixed(1)}px;width:${(b.w * G.W).toFixed(1)}px;font-family:${esc(fontStack(b.font))};font-size:${(b.size * G.u).toFixed(1)}px;`
       + `font-weight:${b.weight || 400};font-style:${b.italic ? 'italic' : 'normal'};color:${esc(colour)};letter-spacing:${b.tracking || 0}em;line-height:${b.leading || 1.3};`
-      + `text-align:${b.align || 'left'};text-transform:${b.upper ? 'uppercase' : 'none'};opacity:${b.opacity == null ? 1 : b.opacity}`;
+      + `text-align:${b.align || 'left'};text-transform:${b.upper ? 'uppercase' : 'none'};opacity:${b.opacity == null ? 1 : b.opacity}`
+      + (b.under || b.strike ? `;text-decoration:${[b.under ? 'underline' : '', b.strike ? 'line-through' : ''].join(' ').trim()}` : '')
+      + (b.fill ? `;background:${esc(b.fill)}` : '') + (b.border ? `;border:${(b.border.w || 1) * G.u}px solid ${esc(b.border.c || '#141414')}` : '')
+      + (b.fill || b.border ? `;padding:${(0.5 * b.size * G.u).toFixed(1)}px ${(0.7 * b.size * G.u).toFixed(1)}px` : '')
+      + (b.shadow ? (b.fill ? `;box-shadow:0 ${10 * G.u}px ${34 * G.u}px rgba(0,0,0,0.35)` : `;text-shadow:0 ${2 * G.u}px ${12 * G.u}px rgba(0,0,0,0.55)`) : '');
   }
   function boxesHTML(page, G, dark, opt) {
     return (page.boxes || []).map(b => {
@@ -506,7 +557,7 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
       <span class="vsep"></span>
       <select class="sel" id="sizeSel" aria-label="Page size">${Object.keys(SIZES).map(k => `<option value="${k}"${k === doc.size ? ' selected' : ''}>${esc(SIZE_NAMES[k])}</option>`).join('')}</select>
       <button class="tbtn" id="playBtn" title="Play through the pages — Space">▶ Play</button>
-      <button class="tbtn hidenarrow" id="keysBtn" title="Keys — ?">?</button>
+      <button class="tbtn" id="keysBtn" title="How it works — ?">?</button>
       <button class="dark" id="exportBtn">Export</button>`;
   }
 
@@ -543,6 +594,7 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
     $('stagehint').textContent = reframe != null ? 'Drag to reframe · scroll to zoom · Esc when done'
       : editing ? 'Typing · Esc when done'
       : b ? 'Drag to move · pull the handles to size · Return to type · ⌫ deletes it'
+      : sel.size === 1 && layoutOf(doc, p) === 'free' && doc.mode !== 'mood' ? 'Drag it anywhere · pull the corner to size it · ↑ ↓ swap it through your stills · ⌫ remove'
       : sel.size === 1 ? '↑ ↓ swap it through your stills · ← → move · ⌘← → another page · F feature · ⌫ remove'
       : sel.size > 1 ? `${sel.size} picked · ⌘← → another page · ⌫ remove`
       : doc.mode === 'mood' ? 'Double-click stills below to add them · drag to reorder' : 'Click a picture, then ↑ ↓ to swap it · T or double-click the page for text';
@@ -550,12 +602,17 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
     drawSwap();
   }
   // The frame around the picked text box, with its handles — drawn over the page, the same size at any zoom.
+  // The picked picture on a Free page, if there is one.
+  const freeK = () => (doc && doc.mode !== 'mood' && !bsel && reframe == null && sel.size === 1 && layoutOf(doc, page()) === 'free') ? [...sel][0] : null;
   function drawBoxSel() {
-    const f = $('boxsel'), el = bsel && boxEl(bsel);
+    const f = $('boxsel'), k = freeK();
+    const el = bsel ? boxEl(bsel) : k != null ? $('pagewrap').querySelector(`.pic[data-k="${k}"]`) : null;
+    $('pagewrap').classList.toggle('free', !!doc && layoutOf(doc, page()) === 'free' && doc.mode !== 'mood');
+    f.classList.toggle('pic', !bsel && k != null);
     if (!el) { f.hidden = true; return; }
     const st = $('stage').getBoundingClientRect(), r = el.getBoundingClientRect();
     Object.assign(f.style, { left: (r.left - st.left - 5) + 'px', top: (r.top - st.top - 5) + 'px', width: (r.width + 10) + 'px', height: (Math.max(r.height, 10) + 10) + 'px' });
-    f.classList.toggle('editing', editing === bsel);
+    f.classList.toggle('editing', !!bsel && editing === bsel);
     f.hidden = false;
   }
   function guides(x, y) {
@@ -582,8 +639,101 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
     right: '<i style="right:6px;top:6px;width:52%;bottom:6px"></i><b style="left:6px;top:10px;width:28%"></b><b style="left:6px;top:16px;width:22%"></b><b style="left:6px;top:22px;width:26%"></b>',
     bleed: '<i style="inset:3px;background:#6b5d55"></i><b style="left:9px;bottom:10px;width:40%;background:#fff"></b><b style="left:9px;bottom:6px;width:26%;background:#fff"></b>',
     text: '<b style="left:8px;top:9px;width:50%"></b><b style="left:8px;top:15px;width:62%"></b><b style="left:8px;top:21px;width:44%"></b><b style="left:8px;top:27px;width:56%"></b>',
+    free: '<i style="left:5px;top:5px;width:40%;height:15px;transform:rotate(-4deg)"></i><i style="right:6px;top:11px;width:34%;height:12px"></i><i style="left:30%;bottom:5px;width:38%;height:11px;background:#6b5d55"></i>',
   }[k]);
+  // Small drawn icons for the inspector, Keynote's own shapes.
+  const ICON = {
+    left: '<svg viewBox="0 0 16 12"><path d="M1 1h14M1 4.3h9M1 7.6h14M1 11h9"/></svg>', center: '<svg viewBox="0 0 16 12"><path d="M1 1h14M3.5 4.3h9M1 7.6h14M3.5 11h9"/></svg>',
+    right: '<svg viewBox="0 0 16 12"><path d="M1 1h14M6 4.3h9M1 7.6h14M6 11h9"/></svg>', justify: '<svg viewBox="0 0 16 12"><path d="M1 1h14M1 4.3h14M1 7.6h14M1 11h14"/></svg>',
+    al: '<svg viewBox="0 0 16 14"><path d="M1.5 0v14"/><rect x="3" y="2.5" width="10" height="3.5"/><rect x="3" y="8" width="6" height="3.5"/></svg>',
+    ac: '<svg viewBox="0 0 16 14"><path d="M8 0v14"/><rect x="2.5" y="2.5" width="11" height="3.5"/><rect x="4.5" y="8" width="7" height="3.5"/></svg>',
+    ar: '<svg viewBox="0 0 16 14"><path d="M14.5 0v14"/><rect x="3" y="2.5" width="10" height="3.5"/><rect x="7" y="8" width="6" height="3.5"/></svg>',
+    at: '<svg viewBox="0 0 14 16"><path d="M0 1.5h14"/><rect x="2.5" y="3" width="3.5" height="10"/><rect x="8" y="3" width="3.5" height="6"/></svg>',
+    am: '<svg viewBox="0 0 14 16"><path d="M0 8h14"/><rect x="2.5" y="2.5" width="3.5" height="11"/><rect x="8" y="4.5" width="3.5" height="7"/></svg>',
+    ab: '<svg viewBox="0 0 14 16"><path d="M0 14.5h14"/><rect x="2.5" y="3" width="3.5" height="10"/><rect x="8" y="7" width="3.5" height="6"/></svg>',
+  };
   const paletteOf = pics => { const seen = new Set(), out = []; pics.forEach(p => (p.palette || []).slice(0, 4).forEach(c => { const k = String(c).toLowerCase(); if (!seen.has(k)) { seen.add(k); out.push(c); } })); return out.slice(0, 14); };
+
+  // The inspector for what's picked, laid out like Keynote's Format panel: Style · Text (or Picture) · Arrange.
+  let inspTab = { text: 'text', pic: 'pic' };
+  const num = (id, v, unit, step, dis) => `<span class="knum"><input type="number" id="${id}" value="${v}" step="${step || 1}"${dis ? ' disabled' : ''}><i>${unit || ''}</i></span>`;
+  const colourRow = (attr, now, pal, pickId, auto) => `<div class="sw">${auto ? `<button data-${attr}="auto" class="auto${now ? '' : ' on'}" title="Automatic — black on light pages, white on dark"></button>` : ''}${['#141414', '#3a3836', '#8a8784', '#ffffff', '#F05A22'].map(c => `<button data-${attr}="${c}" class="${now === c ? 'on' : ''}" style="background:${c}" title="${c}"></button>`).join('')}<input type="color" id="${pickId}" value="${esc(now && now !== 'auto' ? now : '#141414')}" title="Any colour"></div>`
+    + (pal.length ? `<div class="sw" style="margin-top:2px">${pal.map(c => `<button data-${attr}="${esc(c)}" class="pal${now === c ? ' on' : ''}" style="background:${esc(c)}" title="From these stills — ${esc(c)}"></button>`).join('')}</div>` : '');
+  // What the Arrange tab moves: a text box, or a picture on a Free page.
+  function arrangeTarget() {
+    const p = page(); if (!p) return null;
+    const b = bsel && boxById(bsel); if (b) return { kind: 'box', o: b };
+    if (sel.size === 1 && layoutOf(doc, p) === 'free') { const k = [...sel][0]; return p.pics[k] ? { kind: 'pic', o: p.pics[k], k } : null; }
+    return null;
+  }
+  function inspector(ctx, p, b, pal, range, pct) {
+    const G = geometry(doc), pt = v => Math.round(v * 10) / 10;
+    const tabs = ctx === 'text' ? [['style', 'Style'], ['text', 'Text'], ['arrange', 'Arrange']] : doc.mode === 'mood' ? [['pic', 'Picture'], ['style', 'Style']] : [['pic', 'Picture'], ['style', 'Style'], ['arrange', 'Arrange']];
+    const tab = tabs.some(t => t[0] === inspTab[ctx]) ? inspTab[ctx] : ctx === 'text' ? 'text' : 'pic';
+    let h = `<div class="seg ktabs">${tabs.map(([k, n]) => `<button data-itab="${k}" class="${tab === k ? 'on' : ''}">${n}</button>`).join('')}</div>`;
+    const ks = [...sel], one = ctx === 'pic' && ks.length === 1 ? p.pics[ks[0]] : null, free = layoutOf(doc, p) === 'free';
+    if (tab === 'arrange') {
+      const t = arrangeTarget();
+      if (!t) return h + `<div class="psec"><span class="empty">${ks.length > 1 ? 'Pick one picture to arrange it.' : 'Pictures on this page lay themselves out — that’s the quick way. To place them by hand, like Keynote, make the page Free.'}</span>
+        ${ks.length > 1 ? '' : '<button class="light small" id="makeFree" style="align-self:flex-start">Make this page Free</button>'}</div>
+        <div class="hintk"><kbd>←</kbd> <kbd>→</kbd> move it along the row<br><kbd>⌘</kbd><kbd>←</kbd> <kbd>→</kbd> to the page before or after</div>`;
+      const o = t.o, r = t.kind === 'box' ? { x: o.x, y: o.y, w: o.w, h: null } : (o.box || defaultBox(G, o, t.k));
+      const el = t.kind === 'box' ? boxEl(o.id) : null;
+      const hPx = t.kind === 'box' ? (el ? el.offsetHeight : 0) : r.h * G.H;
+      return h + `
+        <div class="kgrid4">${[['back', 'Back'], ['front', 'Front'], ['backward', 'Backward'], ['forward', 'Forward']].map(([k, n]) => `<button class="kbtn" data-z="${k}"><span>${n}</span></button>`).join('')}</div>
+        <div class="psec"><span class="klabel">Align to the page</span><div class="kgrid6">${[['l', 'al', 'Left'], ['c', 'ac', 'Centre'], ['r', 'ar', 'Right'], ['t', 'at', 'Top'], ['m', 'am', 'Middle'], ['b', 'ab', 'Bottom']].map(([k, i, n]) => `<button class="kicon" data-al="${k}" title="${n}">${ICON[i]}</button>`).join('')}</div></div>
+        <div class="psec"><span class="klabel">Size</span><div class="kpair">${num('aW', pt(r.w * G.W), 'pt')}${num('aH', pt(hPx), 'pt', 1, t.kind === 'box')}</div><div class="kpair klbl"><span>Width</span><span>Height${t.kind === 'box' ? ' · fits the words' : ''}</span></div></div>
+        <div class="psec"><span class="klabel">Position</span><div class="kpair">${num('aX', pt(r.x * G.W), 'pt')}${num('aY', pt(r.y * G.H), 'pt')}</div><div class="kpair klbl"><span>X</span><span>Y</span></div></div>
+        <div class="psec"><div style="display:flex;gap:6px;flex-wrap:wrap"><button class="light small" id="aDup">Duplicate · ⌘D</button><button class="light small" id="aDel">Delete · ⌫</button></div></div>`;
+    }
+    if (ctx === 'text' && tab === 'text') {
+      const fontList = BUNDLED.concat(fonts.filter(f => !BUNDLED.includes(f)));
+      const weights = WEIGHTS.some(w => w[0] === +b.weight) ? WEIGHTS : WEIGHTS.concat([[+b.weight, String(b.weight)]]);
+      const now = presetOf(b);
+      return h + `
+        <div class="psec"><select id="bPreset" class="kselect">${now ? '' : '<option value="" selected>Free Form</option>'}${PRESETS.map(([k, n]) => `<option value="${k}"${now === k ? ' selected' : ''}>${n}</option>`).join('')}</select></div>
+        <div class="psec"><span class="klabel">Font</span>
+          <select id="bFont" class="kselect">${fontList.map(f => `<option${f === b.font ? ' selected' : ''}>${esc(f)}</option>`).join('')}${fontList.includes(b.font) ? '' : `<option selected>${esc(b.font)}</option>`}</select>
+          <div class="kpair"><select id="bWeight" class="kselect">${weights.map(([w, n]) => `<option value="${w}"${w === +b.weight ? ' selected' : ''}>${n}</option>`).join('')}</select>${num('bPt', pt(b.size * G.u), 'pt', 0.5)}</div>
+          <div class="kgrid5">${[['bold', '<b>B</b>', +b.weight >= 600], ['italic', '<i>I</i>', b.italic], ['under', '<u>U</u>', b.under], ['strike', '<s>S</s>', b.strike], ['caps', 'AA', b.upper]].map(([k, l, on]) => `<button class="kbtn${on ? ' on' : ''}" data-kb="${k}" title="${k === 'caps' ? 'Capitals' : k[0].toUpperCase() + k.slice(1)}">${l}</button>`).join('')}</div></div>
+        <div class="psec"><span class="klabel">Text colour</span>${colourRow('bcolour', b.colour, pal, 'bColourPick', true)}</div>
+        <div class="psec"><div class="kgrid4">${['left', 'center', 'right', 'justify'].map(a => `<button class="kicon${(b.align || 'left') === a ? ' on' : ''}" data-balign="${a}" title="${a === 'center' ? 'Centre' : a[0].toUpperCase() + a.slice(1)}">${ICON[a]}</button>`).join('')}</div></div>
+        <div class="psec"><span class="klabel">Spacing</span><div class="kpair">${num('bLeadN', (b.leading || 1.3).toFixed(2), 'lines', 0.05)}${num('bTrackN', Math.round((b.tracking || 0) * 1000), 'letters', 10)}</div></div>`;
+    }
+    if (ctx === 'text') {      // Style
+      const br = b.border || null;
+      return h + `
+        <div class="psec"><span class="klabel">Fill</span>${colourRow('bfill', b.fill || null, pal, 'bFillPick', false).replace('<div class="sw">', '<div class="sw"><button data-bfill="none" class="none' + (b.fill ? '' : ' on') + '" title="No fill"></button>')}</div>
+        <div class="psec"><div class="prow"><span class="klabel">Border</span><span style="flex-grow:1"></span><button class="tog${br ? ' on' : ''}" id="bBorderTog"></button></div>
+          ${br ? `<div class="kpair"><input type="color" id="bBorderPick" value="${esc(br.c || '#141414')}">${num('bBorderW', br.w || 1, 'pt', 0.5)}</div>` : ''}</div>
+        <div class="psec"><div class="prow"><span class="klabel">Shadow</span><span style="flex-grow:1"></span><button class="tog${b.shadow ? ' on' : ''}" id="bShadowTog"></button></div></div>
+        <div class="psec"><span class="klabel">Opacity</span>${range('bOp', '', b.opacity == null ? 1 : b.opacity, 0.1, 1, 0.05, pct)}</div>
+        <div class="psec"><button class="light small" id="bAll" style="align-self:flex-start" title="Every text box, on every page">This font and colour on all text</button></div>`;
+    }
+    const first = p.pics[ks[0]] || {};
+    if (tab === 'style') {
+      const br = first.border || null, op = first.opacity == null ? 1 : first.opacity;
+      return h + `
+        <div class="psec"><div class="prow"><span class="klabel">Border</span><span style="flex-grow:1"></span><button class="tog${br ? ' on' : ''}" id="pBorderTog"></button></div>
+          ${br ? `<div class="kpair"><input type="color" id="pBorderPick" value="${esc(br.c || '#ffffff')}">${num('pBorderW', br.w || 2, 'pt', 0.5)}</div>` : ''}</div>
+        <div class="psec"><div class="prow"><span class="klabel">Shadow</span><span style="flex-grow:1"></span><button class="tog${first.shadow ? ' on' : ''}" id="pShadowTog"></button></div></div>
+        <div class="psec"><span class="klabel">Rounded corners</span>${range('pRadius', '', first.radius || 0, 0, 60, 1, v => v + ' pt')}</div>
+        <div class="psec"><span class="klabel">Opacity</span>${range('picOp', '', op, 0.1, 1, 0.05, pct)}</div>`;
+    }
+    // Picture
+    return h + `<div class="psec">${one ? `<span class="empty">${esc(one.title || 'A still')}${one.project && one.project !== project ? ' · ' + esc(one.project) : ''}</span>` : ''}
+        <div class="hintk"><kbd>↑</kbd> <kbd>↓</kbd> swap it through your stills — <kbd>Return</kbd> keeps it</div>
+        ${one && !free ? `<div class="prow"><label>Feature it — the hero of its row</label><span style="flex-grow:1"></span><button class="tog${one.featured ? ' on' : ''}" id="featTog" aria-pressed="${!!one.featured}" title="F"></button></div>` : ''}</div>
+      ${one ? `<div class="psec"><span class="klabel">Frame</span><div style="display:flex;gap:6px">
+        <button class="light small" id="reframeBtn">${reframe != null ? 'Done reframing' : 'Reframe'}</button>
+        ${one.crop && (one.crop.z !== 1 || one.crop.x !== 50 || one.crop.y !== 50) ? '<button class="light small" id="reframeReset">Centre it</button>' : ''}</div>
+        <span class="empty">Or double-click the picture: drag inside it, scroll to zoom.</span></div>` : ''}
+      ${one && (one.palette || []).length ? `<div class="psec"><span class="klabel">Its colours — for the background</span><div class="sw">${one.palette.slice(0, 6).map(c => `<button data-bg="${esc(c)}" class="pal" style="background:${esc(c)}" title="${esc(c)}"></button>`).join('')}</div></div>` : ''}
+      <div class="psec"><div style="display:flex;gap:6px;flex-wrap:wrap">
+        ${one && ks[0] > 0 && !free ? '<button class="light small" id="breakBtn" title="This picture and the ones after it go onto a new page">New page from here</button>' : ''}
+        <button class="light small" id="removePics">Take ${ks.length > 1 ? 'them' : 'it'} off · ⌫</button></div></div>`;
+  }
 
   function drawPanel() {
     const p = page(), mood = doc.mode === 'mood';
@@ -602,7 +752,8 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
         <div class="psec"><span class="cap">Title — top left of every page</span><div class="prow"><input type="text" id="moodTitle" value="${esc(doc.title || '')}" placeholder="Optional" style="flex-grow:1"></div></div>`
       : `
         <div class="psec"><span class="cap">Where the pictures go</span><div class="lays">${LAYOUTS.map(([k, n]) => `<button class="lay${p.layout === k ? ' on' : ''}" data-lay="${k}" title="${esc(n)}" aria-label="${esc(n)}">${layIcon(k)}</button>`).join('')}</div>
-          <div class="laynames">${['Rows', 'Left', 'Right', 'Full', 'None'].map(n => `<span>${n}</span>`).join('')}</div>
+          <div class="laynames">${['Rows', 'Left', 'Right', 'Full', 'None', 'Free'].map(n => `<span>${n}</span>`).join('')}</div>
+          ${p.layout === 'free' ? '<span class="empty">Free: drop pictures where you want them, drag them about, pull a corner to size them.</span>' : ''}
           ${p.layout === 'rows' ? `<div class="prow"><label>Run off the page edge</label><span style="flex-grow:1"></span><button class="tog${p.bleed ? ' on' : ''}" id="bleedTog" aria-pressed="${!!p.bleed}"></button></div>` : ''}
           ${p.layout === 'bleed' && p.pics.length > 1 ? '<span class="empty">Full bleed shows the first picture — the others wait on this page.</span>' : ''}</div>`;
       h += `
@@ -621,45 +772,8 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
           ${mood ? '' : '<button class="light small" id="addText">Add text · T</button>'}
           <button class="light small" id="dupPage">Duplicate · ⌘D</button>
           ${doc.pages.length > 1 ? '<button class="light small" id="delPage">Remove page</button>' : ''}</div></div>`;
-    } else if (ctx === 'pic') {
-      const ks = [...sel], one = ks.length === 1 ? p.pics[ks[0]] : null;
-      const op = ks.length ? (p.pics[ks[0]].opacity == null ? 1 : p.pics[ks[0]].opacity) : 1;
-      h += `<div class="psec">${one ? `<span class="empty">${esc(one.title || 'A still')}${one.project && one.project !== project ? ' · ' + esc(one.project) : ''}</span>` : ''}
-        <div class="hintk"><kbd>↑</kbd> <kbd>↓</kbd> swap it through your stills — <kbd>Return</kbd> keeps it</div>
-        ${one ? `<div class="prow"><label>Feature it — the hero of its row</label><span style="flex-grow:1"></span><button class="tog${one.featured ? ' on' : ''}" id="featTog" aria-pressed="${!!one.featured}" title="F"></button></div>` : ''}
-        ${range('picOp', 'Opacity', op, 0.1, 1, 0.05, pct)}</div>
-        ${one ? `<div class="psec"><span class="cap">Frame</span><div style="display:flex;gap:6px">
-          <button class="light small" id="reframeBtn">${reframe != null ? 'Done reframing' : 'Reframe'}</button>
-          ${one.crop && (one.crop.z !== 1 || one.crop.x !== 50 || one.crop.y !== 50) ? '<button class="light small" id="reframeReset">Centre it</button>' : ''}</div>
-          <span class="empty">Or double-click the picture: drag inside it, scroll to zoom.</span></div>` : ''}
-        ${one && (one.palette || []).length ? `<div class="psec"><span class="cap">Its colours — for the background</span><div class="sw">${one.palette.slice(0, 6).map(c => `<button data-bg="${esc(c)}" class="pal" style="background:${esc(c)}" title="${esc(c)}"></button>`).join('')}</div></div>` : ''}
-        <div class="psec"><div style="display:flex;gap:6px;flex-wrap:wrap">
-          ${one && ks[0] > 0 ? '<button class="light small" id="breakBtn" title="This picture and the ones after it go onto a new page">New page from here</button>' : ''}
-          <button class="light small" id="removePics">Take ${ks.length > 1 ? 'them' : 'it'} off · ⌫</button></div></div>
-        <div class="hintk"><kbd>←</kbd> <kbd>→</kbd> move it along<br><kbd>⌘</kbd><kbd>←</kbd> <kbd>→</kbd> to the page before or after</div>`;
     } else {
-      const fontList = BUNDLED.concat(fonts.filter(f => !BUNDLED.includes(f)));
-      const weights = WEIGHTS.some(w => w[0] === +b.weight) ? WEIGHTS : WEIGHTS.concat([[+b.weight, String(b.weight)]]);
-      const now = presetOf(b);
-      h += `
-        <div class="psec"><div class="seg" style="flex-wrap:wrap">${PRESETS.map(([k, n]) => `<button data-preset="${k}" class="${now === k ? 'on' : ''}">${n}</button>`).join('')}</div></div>
-        <div class="psec"><span class="cap">Font</span>
-          <div class="prow"><select id="bFont" style="flex-grow:1">${fontList.map(f => `<option${f === b.font ? ' selected' : ''}>${esc(f)}</option>`).join('')}${fontList.includes(b.font) ? '' : `<option selected>${esc(b.font)}</option>`}</select></div>
-          <div class="prow"><select id="bWeight">${weights.map(([w, n]) => `<option value="${w}"${w === +b.weight ? ' selected' : ''}>${n}</option>`).join('')}</select>
-            <label style="margin-left:auto">Italic</label><button class="tog${b.italic ? ' on' : ''}" id="bItalic"></button></div>
-          ${range('bSize', 'Size', b.size, 6, 240, 0.5)}
-          <div class="prow"><div class="seg">${[['left', 'Left'], ['center', 'Centre'], ['right', 'Right']].map(([a, n]) => `<button data-balign="${a}" class="${(b.align || 'left') === a ? 'on' : ''}">${n}</button>`).join('')}</div>
-            <label style="margin-left:auto">Caps</label><button class="tog${b.upper ? ' on' : ''}" id="bUpper"></button></div>
-          ${range('bTrack', 'Letters', b.tracking || 0, -0.05, 0.4, 0.01, v => (+v).toFixed(2))}
-          ${range('bLead', 'Lines', b.leading || 1.3, 0.8, 2.4, 0.05, v => (+v).toFixed(2))}</div>
-        <div class="psec"><span class="cap">Colour</span>
-          <div class="sw"><button data-bcolour="auto" class="auto${b.colour ? '' : ' on'}" title="Automatic — black on light pages, white on dark"></button>${['#141414', '#3a3836', '#8a8784', '#ffffff'].map(c => `<button data-bcolour="${c}" class="${b.colour === c ? 'on' : ''}" style="background:${c}" title="${c}"></button>`).join('')}<input type="color" id="bColourPick" value="${esc(b.colour || '#141414')}" title="Any colour"></div>
-          ${pal.length ? `<span class="cap" style="margin-top:4px">From these stills</span><div class="sw">${pal.map(c => `<button data-bcolour="${esc(c)}" class="pal${b.colour === c ? ' on' : ''}" style="background:${esc(c)}" title="${esc(c)}"></button>`).join('')}</div>` : ''}
-          ${range('bOp', 'Opacity', b.opacity == null ? 1 : b.opacity, 0.1, 1, 0.05, pct)}</div>
-        <div class="psec"><div style="display:flex;gap:6px;flex-wrap:wrap">
-          <button class="light small" id="bAll" title="Every text box, on every page">This font and colour everywhere</button>
-          <button class="light small" id="bDup">Duplicate · ⌘D</button>
-          <button class="light small" id="bDelete">Delete · ⌫</button></div></div>`;
+      h += inspector(ctx, p, b, pal, range, pct);
     }
     $('panel').innerHTML = h;
   }
@@ -744,6 +858,7 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
     doc = normalise(res.doc); rel = r; cur = 0; sel.clear(); bsel = null; editing = null; reframe = null; undo = []; redo = [];
     setPref('last:' + project, r);
     closeSheet(); draw();
+    if (!pref('guideSeen', '')) setTimeout(() => openGuide(0), 350);
   }
   function normalise(d) {
     if (!SIZES[d.size]) d.size = '16:9';
@@ -793,6 +908,7 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
       deal(picks, mode === 'treatment');
     }
     persist(); draw();
+    if (!pref('guideSeen', '')) setTimeout(() => openGuide(0), 350);
     toast(mode === 'mood' ? 'A new mood board — double-click stills to add them' : 'A new treatment — the cover is from the project. T adds text');
   }
 
@@ -939,14 +1055,68 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
   }
   const editBox = fn => { const b = boxById(bsel); if (b) change(() => fn(b)); };
   // Where a box snaps as you drag it: the margins, the middle, the pictures' edges, the other boxes.
-  function snapTo(x, y, w, h, id) {
+  function snapTo(x, y, w, h, id, pk) {
     const G = geometry(doc), L = layout(doc, page()), tol = 7 / scale;
-    const xs = [G.m, G.W / 2, G.W - G.m], ys = [G.m, G.H / 2, G.H - L.bottom];
-    L.rects.forEach(r => { if (r) { xs.push(r.x, r.x + r.w); ys.push(r.y, r.y + r.h); } });
+    const xs = [0, G.m, G.W / 2, G.W - G.m, G.W], ys = [0, G.m, G.H / 2, G.H - L.bottom, G.H];
+    L.rects.forEach((r, k) => { if (r && k !== pk) { xs.push(r.x, r.x + r.w); ys.push(r.y, r.y + r.h); } });
     (page().boxes || []).forEach(o => { if (o.id === id) return; const el = boxEl(o.id); xs.push(o.x * G.W, (o.x + o.w) * G.W); ys.push(o.y * G.H); if (el) ys.push(o.y * G.H + el.offsetHeight); });
     const near = (pairs, lines) => { let best = null; pairs.forEach(([v, off]) => lines.forEach(c => { const d = Math.abs(v - c); if (d <= tol && (!best || d < best.d)) best = { d, pos: c - off, line: c }; })); return best; };
     const sx = near([[x, 0], [x + w / 2, w / 2], [x + w, w]], xs), sy = near([[y, 0], [y + h / 2, h / 2], [y + h, h]], ys);
     return { x: sx ? sx.pos : x, y: sy ? sy.pos : y, gx: sx ? sx.line : null, gy: sy ? sy.line : null };
+  }
+
+  /* ---------------------------------------------------------------- layouts, and arranging by hand */
+  // Going Free keeps every picture exactly where it was; after that they're yours to move.
+  function setLayout(lay) {
+    const p = page(); if (!p || doc.mode === 'mood') return;
+    change(() => {
+      if (lay === 'free' && p.layout !== 'free') {
+        const L = layout(doc, p), G = L.G;
+        p.pics.forEach((x, k) => { const r = L.rects[k]; x.box = r ? { x: r.x / G.W, y: r.y / G.H, w: r.w / G.W, h: r.h / G.H } : defaultBox(G, x, k); });
+      }
+      p.layout = lay;
+    });
+  }
+  const editPics = fn => { if (sel.size) change(() => [...sel].forEach(k => { const x = page().pics[k]; if (x) fn(x); })); };
+  function ensureBox(k) { const p = page(), x = p.pics[k]; if (x && !x.box) x.box = defaultBox(geometry(doc), x, k); return x && x.box; }
+  function arrangeZ(dir) {
+    const t = arrangeTarget(); if (!t) return;
+    const p = page(), list = t.kind === 'box' ? p.boxes : p.pics, i = list.indexOf(t.o);
+    const to = dir === 'back' ? 0 : dir === 'front' ? list.length - 1 : clamp(i + (dir === 'forward' ? 1 : -1), 0, list.length - 1);
+    if (to === i) return toast(dir === 'back' || dir === 'backward' ? 'Already at the back' : 'Already at the front');
+    change(() => { list.splice(i, 1); list.splice(to, 0, t.o); if (t.kind === 'pic') sel = new Set([to]); });
+    if (t.kind === 'box') toast('Words always sit above the pictures — this moves it among the other text');
+  }
+  function alignTo(a) {
+    const t = arrangeTarget(); if (!t) return;
+    const G = geometry(doc), L = layout(doc, page());
+    change(() => {
+      const r = t.kind === 'box' ? t.o : ensureBox(t.k);
+      const h = t.kind === 'box' ? ((boxEl(t.o.id) || {}).offsetHeight || 0) / G.H : r.h;
+      const mx = G.m / G.W, my = G.m / G.H, mb = L.bottom / G.H;
+      if (a === 'l') r.x = mx; if (a === 'c') r.x = (1 - r.w) / 2; if (a === 'r') r.x = 1 - mx - r.w;
+      if (a === 't') r.y = my; if (a === 'm') r.y = (1 - h) / 2; if (a === 'b') r.y = 1 - mb - h;
+    });
+  }
+  // Numbers typed in the Arrange tab, in points on the page.
+  function arrangeSet(key, v) {
+    const t = arrangeTarget(); if (!t) return;
+    const G = geometry(doc);
+    change(() => {
+      const r = t.kind === 'box' ? t.o : ensureBox(t.k);
+      if (key === 'X') r.x = clamp(v, -G.W, G.W * 2) / G.W;
+      if (key === 'Y') r.y = clamp(v, -G.H, G.H * 2) / G.H;
+      if (key === 'W') { const nw = clamp(v, 20, G.W * 2) / G.W; if (t.kind === 'pic') r.h = r.h * nw / r.w; r.w = nw; }
+      if (key === 'H' && t.kind === 'pic') { const nh = clamp(v, 20, G.H * 2) / G.H; r.w = r.w * nh / r.h; r.h = nh; }
+    });
+  }
+  function dupPic() {
+    const k = [...sel][0], p = page(); if (k == null || !p.pics[k]) return;
+    change(() => {
+      const c = clone(p.pics[k]);
+      if (layoutOf(doc, p) === 'free') { const b = ensureBox(k); c.box = Object.assign({}, b, { x: b.x + 0.03, y: b.y + 0.04 }); }
+      p.pics.splice(k + 1, 0, c); sel = new Set([k + 1]);
+    });
   }
 
   /* ---------------------------------------------------------------- photos in bulk */
@@ -988,7 +1158,7 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
     }
     swap.i = (swap.i + d + swap.list.length) % swap.list.length;
     const s = swap.list[swap.i];
-    p.pics[k] = Object.assign(picFrom(s), { opacity: swap.original.opacity, featured: swap.original.featured });
+    p.pics[k] = Object.assign(picFrom(s), { opacity: swap.original.opacity, featured: swap.original.featured, box: swap.original.box, border: swap.original.border, shadow: swap.original.shadow, radius: swap.original.radius });
     drawStage(); drawStrip(); drawPanel();
   }
   function swapEnd(keep) {
@@ -1020,12 +1190,12 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
     if (t.id === 'addPage' || t.id === 'addPage2') { change(() => { doc.pages.splice(t.id === 'addPage2' ? doc.pages.length : cur + 1, 0, newPage(doc.mode === 'mood' ? 'rows' : 'left')); cur = t.id === 'addPage2' ? doc.pages.length - 1 : cur + 1; sel.clear(); }); return; }
     if (t.id === 'breakBtn') return breakHere();
     if (t.id === 'playBtn') return play(true);
-    if (t.id === 'keysBtn') return openKeys();
+    if (t.id === 'keysBtn') return openGuide(0);
     if (t.id === 'exportBtn') return openExport();
     if (d.delpage != null) { e.stopPropagation(); return removePage(+d.delpage); }
     if (d.page != null && t.classList.contains('thumb')) { stopEditing(); cur = +d.page; sel.clear(); bsel = null; reframe = null; return draw(); }
     // panel
-    if (d.lay) { change(() => { page().layout = d.lay; }); return; }
+    if (d.lay) return setLayout(d.lay);
     if (t.id === 'bleedTog') { change(() => { page().bleed = !page().bleed; }); return; }
     if (d.bg) {
       const all = !page().bg;
@@ -1049,6 +1219,19 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
     if (d.balign) return editBox(b => { b.align = d.balign; });
     if (d.bcolour) return editBox(b => { b.colour = d.bcolour === 'auto' ? null : d.bcolour; });
     if (t.id === 'bDelete') return deleteBox(bsel);
+    // the inspector
+    if (d.itab) { inspTab[bsel ? 'text' : 'pic'] = d.itab; return drawPanel(); }
+    if (t.id === 'makeFree') { setLayout('free'); return toast('Free: drag pictures anywhere, pull a corner to size them'); }
+    if (d.kb) return editBox(b => { if (d.kb === 'bold') b.weight = +b.weight >= 600 ? 400 : 700; else if (d.kb === 'italic') b.italic = !b.italic; else if (d.kb === 'under') b.under = !b.under; else if (d.kb === 'strike') b.strike = !b.strike; else b.upper = !b.upper; });
+    if (d.bfill) return editBox(b => { b.fill = d.bfill === 'none' ? null : d.bfill; });
+    if (t.id === 'bBorderTog') return editBox(b => { b.border = b.border ? null : { c: b.colour || '#141414', w: 1 }; });
+    if (t.id === 'bShadowTog') return editBox(b => { b.shadow = !b.shadow; });
+    if (t.id === 'pBorderTog') return editPics(x => { x.border = x.border ? null : { c: '#ffffff', w: 2 }; });
+    if (t.id === 'pShadowTog') { const on = !(page().pics[[...sel][0]] || {}).shadow; return editPics(x => { x.shadow = on; }); }
+    if (d.z) return arrangeZ(d.z);
+    if (d.al) return alignTo(d.al);
+    if (t.id === 'aDup') return bsel ? dupBox(bsel) : dupPic();
+    if (t.id === 'aDel') return bsel ? deleteBox(bsel) : removePics([...sel]);
     if (t.id === 'bDup') return dupBox(bsel);
     if (t.id === 'bAll') {
       const b = boxById(bsel); if (!b) return;
@@ -1103,18 +1286,22 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
     const bx = boxById(bsel) || {};
     const liveRange = { perPage: v => { doc.perPage = +v; }, fadeStr: v => { page().fade.strength = +v; },
       picOp: v => { [...sel].forEach(k => { page().pics[k].opacity = +v; }); },
+      pRadius: v => { [...sel].forEach(k => { page().pics[k].radius = +v; }); },
       bSize: v => { bx.size = +v; }, bTrack: v => { bx.tracking = +v; }, bLead: v => { bx.leading = +v; }, bOp: v => { bx.opacity = +v; } }[t.id];
     if (liveRange) {
       const last = rangeBurst.id === t.id && Date.now() - rangeBurst.at < 1500;
       change(() => liveRange(t.value), { quiet: true });
       if (last) undo.pop();
       rangeBurst = { id: t.id, at: Date.now() };
-      const v = t.parentElement.querySelector('.val'); if (v) v.textContent = /Op|Str/.test(t.id) ? Math.round(t.value * 100) + '%' : /Track|Lead/.test(t.id) ? (+t.value).toFixed(2) : t.value;
+      const v = t.parentElement.querySelector('.val'); if (v) v.textContent = /Op|Str/.test(t.id) ? Math.round(t.value * 100) + '%' : /Track|Lead/.test(t.id) ? (+t.value).toFixed(2) : /Radius/.test(t.id) ? t.value + ' pt' : t.value;
       if (t.id === 'bSize') { const pb = $('panel').querySelector('.seg [data-preset].on'); if (pb) pb.classList.remove('on'); }
       if (t.id !== 'perPage') { drawStage(); clearTimeout(drawStrip.t); drawStrip.t = setTimeout(drawStrip, 250); }
       else { const b = $('deal'); if (b) b.textContent = `Deal them out again, ${t.value} a page`; }
     }
     if (t.id === 'bgPick') { const all = !page().bg; change(() => { if (all) doc.bg = t.value; else page().bg = t.value; }, { quiet: true }); drawStage(); drawStrip(); }
+    if (t.id === 'bFillPick') { const b = boxById(bsel); if (b) { change(() => { b.fill = t.value; }, { quiet: true }); drawStage(); } return; }
+    if (t.id === 'bBorderPick') { const b = boxById(bsel); if (b && b.border) { change(() => { b.border.c = t.value; }, { quiet: true }); drawStage(); } return; }
+    if (t.id === 'pBorderPick') { change(() => [...sel].forEach(k => { const x = page().pics[k]; if (x && x.border) x.border.c = t.value; }), { quiet: true }); drawStage(); return; }
     if (t.id === 'bColourPick') { const b = boxById(bsel); if (b) { change(() => { b.colour = t.value; }, { quiet: true }); drawStage(); } }
   });
   let typing = { k: '', at: 0 }, rangeBurst = { id: '', at: 0 };
@@ -1123,6 +1310,14 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
     const t = e.target; if (!doc) return;
     if (t.id === 'sizeSel') { change(() => { doc.size = t.value; }); return toast(`${SIZE_NAMES[t.value]} — every page re-flows to fit`); }
     if (t.id === 'bFont') return editBox(b => { b.font = t.value; });
+    if (t.id === 'bPreset' && t.value) return editBox(b => Object.assign(b, preset(t.value)));
+    const G = geometry(doc), n = parseFloat(t.value);
+    if (t.id === 'bPt' && n > 0) return editBox(b => { b.size = clamp(n / G.u, 3, 400); });
+    if (t.id === 'bLeadN' && n > 0) return editBox(b => { b.leading = clamp(n, 0.6, 4); });
+    if (t.id === 'bTrackN' && !isNaN(n)) return editBox(b => { b.tracking = clamp(n / 1000, -0.1, 1); });
+    if (t.id === 'bBorderW' && n > 0) return editBox(b => { if (b.border) b.border.w = n; });
+    if (t.id === 'pBorderW' && n > 0) return editPics(x => { if (x.border) x.border.w = n; });
+    if (/^a[XYWH]$/.test(t.id) && !isNaN(n)) return arrangeSet(t.id[1], n);
     if (t.id === 'bWeight') return editBox(b => { b.weight = +t.value; });
     if (t.id === 'docName') { if (rel) { const r = await call('designRename', { rel, name: t.value }).catch(() => null); if (r && r.ok) rel = r.rel; else if (r && r.error) toast(r.error); } }
   });
@@ -1155,6 +1350,12 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
       drag = { kind: 'size', h: handle.dataset.h, id: bsel, x0: e.clientX, b: clone(b), before: JSON.stringify(doc), moved: false };
       return;
     }
+    if (handle && freeK() != null) {        // a picture's handles: sides and bottom stretch the frame, the corner keeps its shape
+      const k = freeK(), before = JSON.stringify(doc);
+      e.preventDefault();
+      drag = { kind: 'psize', h: handle.dataset.h, k, x0: e.clientX, y0: e.clientY, b: clone(ensureBox(k)), before, moved: false };
+      return;
+    }
     if (tb) {                               // a text box: pick it, drag it; click it again to type
       const id = tb.dataset.b;
       if (editing === id) return;
@@ -1184,6 +1385,11 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
       if (reframe != null) { reframe = null; }
       if (e.metaKey || e.ctrlKey || e.shiftKey) { sel.has(k) ? sel.delete(k) : sel.add(k); }
       else if (!sel.has(k)) sel = new Set([k]);
+      if (layoutOf(doc, page()) === 'free' && sel.size === 1 && doc.mode !== 'mood') {   // Free: drag it where you want it
+        const before = JSON.stringify(doc);
+        drag = { kind: 'pmove', k, x0: e.clientX, y0: e.clientY, b: clone(ensureBox(k)), before, moved: false };
+        e.preventDefault();
+      }
       drawStage(); drawPanel(); drawBar();
       return;
     }
@@ -1218,6 +1424,7 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
     $('pagewrap').querySelectorAll('.pic').forEach(p => p.classList.toggle('sel', sel.has(+p.dataset.k)));
   });
   function boxDrag(e) {
+    if (drag.kind === 'pmove' || drag.kind === 'psize') return picDrag(e);
     const b = boxById(drag.id), el = boxEl(drag.id); if (!b || !el) return;
     if (!drag.moved && Math.abs(e.clientX - drag.x0) + Math.abs(e.clientY - (drag.y0 || e.clientY)) < 4) return;
     drag.moved = true;
@@ -1236,6 +1443,25 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
     }
     Object.assign(el.style, { left: (b.x * G.W).toFixed(1) + 'px', top: (b.y * G.H).toFixed(1) + 'px', width: (b.w * G.W).toFixed(1) + 'px', fontSize: (b.size * G.u).toFixed(1) + 'px' });
     drawBoxSel();
+  }
+  function picDrag(e) {
+    const x = page().pics[drag.k], el = $('pagewrap').querySelector(`.pic[data-k="${drag.k}"]`); if (!x || !el) return;
+    if (!drag.moved && Math.abs(e.clientX - drag.x0) + Math.abs(e.clientY - drag.y0) < 4) return;
+    drag.moved = true;
+    const G = geometry(doc), dx = (e.clientX - drag.x0) / scale, dy = (e.clientY - drag.y0) / scale, b = drag.b;
+    let X = b.x * G.W, Y = b.y * G.H, W = b.w * G.W, H = b.h * G.H, gx = null, gy = null;
+    const min = 40 * G.u;
+    if (drag.kind === 'pmove') {
+      X += dx; Y += dy;
+      if (!(e.metaKey || e.ctrlKey)) { const sn = snapTo(X, Y, W, H, null, drag.k); X = sn.x; Y = sn.y; gx = sn.gx; gy = sn.gy; }
+      X = clamp(X, 0, Math.max(0, G.W - W)); Y = clamp(Y, 0, Math.max(0, G.H - H));
+    } else if (drag.h === 'r') W = clamp(W + dx, min, G.W - X);
+    else if (drag.h === 'l') { const nx = clamp(X + dx, 0, X + W - min); W = X + W - nx; X = nx; }
+    else if (drag.h === 'b') H = clamp(H + dy, min, G.H - Y);
+    else { const f = clamp((W + dx) / W, 0.1, Math.min((G.W - X) / W, (G.H - Y) / H)); W = Math.max(min, W * f); H = Math.max(min, H * f); }
+    x.box = { x: X / G.W, y: Y / G.H, w: W / G.W, h: H / G.H };
+    Object.assign(el.style, { left: X.toFixed(1) + 'px', top: Y.toFixed(1) + 'px', width: W.toFixed(1) + 'px', height: H.toFixed(1) + 'px' });
+    guides(gx, gy); drawBoxSel();
   }
   document.addEventListener('mouseup', () => {
     if (drag && drag.kind) {
@@ -1311,6 +1537,22 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
       change(() => { const pics = takePics(); doc.pages[to].pics.push(...pics); sel.clear(); });
       return toast(`Onto page ${to + 1}`);
     }
+    // onto a Free page: right where you let go
+    if (layoutOf(doc, page()) === 'free' && doc.mode !== 'mood') {
+      const w = $('pagewrap').getBoundingClientRect(), G = geometry(doc);
+      const px = (e.clientX - w.left) / scale, py = (e.clientY - w.top) / scale;
+      change(() => {
+        const pics = takePics(), p = page();
+        pics.forEach((x, i) => {
+          const bw = pics.length > 1 ? 0.3 : 0.42, bh = Math.min(0.85, bw * G.W / (x.a || 1.5) / G.H);
+          x.box = { x: clamp(px / G.W - bw / 2 + i * 0.03, 0, 1 - bw), y: clamp(py / G.H - bh / 2 + i * 0.04, 0, 1 - bh), w: bw, h: bh };
+          p.pics.push(x);
+        });
+        sel = new Set(pics.map(x => p.pics.indexOf(x)));
+      });
+      if (dd.from === 'tray') { trayPick.clear(); drawTray(); }
+      return;
+    }
     // onto this page: before the picture it's dropped on, or at the end
     change(() => {
       const target = pic ? page().pics[+pic.dataset.k] : null;
@@ -1354,7 +1596,7 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
     if (doc.mode === 'mood') return;
     const i = LAYOUTS.findIndex(l => l[0] === page().layout);
     const next = LAYOUTS[(i + 1) % LAYOUTS.length];
-    change(() => { page().layout = next[0]; });
+    setLayout(next[0]);
     toast(next[1]);
   }
   function toggleFeature() {
@@ -1383,7 +1625,7 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
     const cmd = e.metaKey || e.ctrlKey;
     if (cmd && e.key.toLowerCase() === 'z') { if (typingIn && t.isContentEditable === false) return; e.preventDefault(); if (t.isContentEditable) t.blur(); return undoIt(!e.shiftKey); }
     if (cmd && e.key.toLowerCase() === 's') { e.preventDefault(); return keepVersion(); }
-    if (cmd && e.key.toLowerCase() === 'd') { e.preventDefault(); if (editing) return; return bsel ? dupBox(bsel) : dupPage(); }
+    if (cmd && e.key.toLowerCase() === 'd') { e.preventDefault(); if (editing) return; return bsel ? dupBox(bsel) : sel.size === 1 ? dupPic() : dupPage(); }
     if (typingIn) { if (e.key === 'Escape' && t.isContentEditable) { e.preventDefault(); stopEditing(); drawStage(); drawPanel(); } return; }
     if (swap) {
       if (e.key === 'ArrowUp' || e.key === 'ArrowDown') { e.preventDefault(); return swapStep(e.key === 'ArrowDown' ? 1 : -1); }
@@ -1394,7 +1636,7 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
     if (e.key === 'Escape') { if (reframe != null) { reframe = null; } else { sel.clear(); bsel = null; } drawStage(); drawPanel(); drawBar(); return; }
     if (e.key === ' ') { e.preventDefault(); return play(true); }
     if (e.key === 'Tab') { e.preventDefault(); $('work').classList.toggle('nopanel'); setTimeout(drawStage, 30); return; }
-    if (e.key === '?') { e.preventDefault(); return openKeys(); }
+    if (e.key === '?') { e.preventDefault(); return openGuide(0); }
     if (bsel && boxById(bsel)) {           // a picked text box: nudge, type, delete
       const b = boxById(bsel), G = geometry(doc);
       if (e.key.startsWith('Arrow')) {
@@ -1410,7 +1652,18 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
       if (e.key === 'Backspace' || e.key === 'Delete') { e.preventDefault(); return deleteBox(b.id); }
     }
     if (sel.size) {
-      const ks = [...sel];
+      const ks = [...sel], fk = freeK();
+      // Free: ← → nudge it (⌥ with any arrow too); ↑ ↓ still swap it through your stills.
+      if (fk != null && !cmd && (e.altKey ? e.key.startsWith('Arrow') : (e.key === 'ArrowLeft' || e.key === 'ArrowRight'))) {
+        e.preventDefault();
+        const G = geometry(doc), n = (e.shiftKey ? 10 : 1) / scale;
+        change(() => {
+          const b = ensureBox(fk);
+          if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') b.x = clamp(b.x * G.W + (e.key === 'ArrowRight' ? n : -n), 0, G.W - b.w * G.W) / G.W;
+          else b.y = clamp(b.y * G.H + (e.key === 'ArrowDown' ? n : -n), 0, G.H - b.h * G.H) / G.H;
+        });
+        return;
+      }
       if (e.key === 'ArrowUp' || e.key === 'ArrowDown') { e.preventDefault(); if (sel.size === 1) swapStep(e.key === 'ArrowDown' ? 1 : -1); return; }
       if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') { e.preventDefault(); const d = e.key === 'ArrowRight' ? 1 : -1; return cmd ? toPage(ks, d) : sel.size === 1 ? movePics(ks, d) : null; }
       if (e.key === 'Backspace' || e.key === 'Delete') { e.preventDefault(); return removePics(ks); }
@@ -1484,10 +1737,42 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
       ['F', 'Feature it — the hero of its row'], ['⌫', 'Take it off the page'], ['Double-click', 'A picture: reframe it (drag inside, scroll to zoom) · the page: a text box there'],
       ['T', 'A new text box'], ['Text box', 'Drag it anywhere · handles for width, the corner for size · click again, or Return, to type · arrows nudge · ⌘ while dragging stops the snapping'],
       ['L', 'Next layout for this page'], ['Paste', 'Words pasted onto the page become a text box'],
-      ['⌘D', 'Duplicate the page'], ['⌘Z  ⇧⌘Z', 'Undo, redo — everything'], ['⌘S', 'Keep a version'], ['Space', 'Play through the pages'], ['Tab', 'Hide the panel — just the page'], ['?', 'These keys']];
-    openSheet('keys', `<div class="shead"><div class="grow"><h2>Keys</h2><span class="empty">The same few moves everywhere.</span></div>${closeX}</div>
+      ['Free page', 'Drag a picture anywhere · sides and bottom stretch it, the corner sizes it · ← → nudge (⌥ + any arrow) · ↑ ↓ still swap'],
+      ['⌘D', 'Duplicate what\u2019s picked — or the page'], ['⌘Z  ⇧⌘Z', 'Undo, redo — everything'], ['⌘S', 'Keep a version'], ['Space', 'Play through the pages'], ['Tab', 'Hide the panel — just the page'], ['?', 'How it works']];
+    openSheet('keys', `<div class="shead"><div class="grow"><h2>Keys</h2><span class="empty">The same few moves everywhere. <a href="#" data-guide="0">How it works ›</a></span></div>${closeX}</div>
       <div class="keys">${k.map(([a, b]) => `<kbd>${esc(a)}</kbd><span>${esc(b)}</span>`).join('')}</div>`);
   }
+  /* ---------------------------------------------------------------- the guide: how it works, a step at a time */
+  const art = (inner, bg) => `<div class="gart" style="background:${bg || '#f4f1ec'}">${inner}</div>`;
+  const blk = (l, t, w, h, c, extra) => `<i style="left:${l}%;top:${t}%;width:${w}%;height:${h}%;background:${c};${extra || ''}"></i>`;
+  const GUIDE = [
+    ['Start with your stills', 'Pick a <b>mood board</b> (just pictures) or a <b>treatment</b> (pictures and words). Your project’s stills wait in the tray at the bottom — drag its top edge to make it bigger. <b>+ Photos</b> brings in more, whole folders at once.',
+      art(blk(4, 8, 58, 64, '#fff', 'box-shadow:0 4px 14px rgba(0,0,0,.12)') + blk(4, 78, 12, 16, '#3b2a22') + blk(18, 78, 18, 16, '#b8461c') + blk(38, 78, 12, 16, '#1e2227') + blk(52, 78, 16, 16, '#e0a24a') + blk(70, 78, 10, 16, '#6d2a18') + blk(66, 8, 30, 64, 'rgba(255,255,255,.6)'))],
+    ['Put pictures on the page', '<b>Double-click</b> a still, or <b>drag it</b> onto the page. You can drop photos straight from Finder too. A few go on this page; lots go onto new pages, laid out for you.',
+      art(blk(8, 10, 84, 60, '#fff', 'box-shadow:0 4px 14px rgba(0,0,0,.12)') + blk(14, 18, 34, 44, '#3b2a22') + blk(52, 18, 34, 44, '#b8461c', 'outline:2px dashed #F05A22;outline-offset:3px') + blk(60, 78, 16, 16, '#b8461c', 'opacity:.45') + '<b class="garrow" style="left:66%;top:62%">↑</b>')],
+    ['Tidy, or place by hand', 'In the panel, <b>Rows, Left, Right, Full</b> and <b>None</b> lay the pictures out for you — one margin, one gutter, always even. <b>Free</b> is Keynote: drop them where you want, drag them about, pull a corner to size them.',
+      art(blk(6, 12, 40, 70, '#fff', 'box-shadow:0 4px 14px rgba(0,0,0,.12)') + blk(9, 17, 17, 28, '#3b2a22') + blk(28, 17, 15, 28, '#1e2227') + blk(9, 48, 34, 28, '#b8461c') + blk(54, 12, 40, 70, '#fff', 'box-shadow:0 4px 14px rgba(0,0,0,.12)') + blk(58, 20, 20, 30, '#3b2a22', 'transform:rotate(-3deg)') + blk(72, 44, 18, 30, '#e0a24a', 'outline:2px solid #F05A22'))],
+    ['Swap a picture in a second', 'Click a picture, then <b>↑ ↓</b> runs it through your stills, right there on the page. <b>Return</b> keeps the one you like; <b>Esc</b> puts the first one back.',
+      art(blk(8, 10, 84, 62, '#fff', 'box-shadow:0 4px 14px rgba(0,0,0,.12)') + blk(14, 18, 36, 46, '#1e2227', 'outline:2px solid #F05A22') + blk(54, 18, 32, 46, '#b8461c') + blk(20, 78, 10, 16, '#3b2a22', 'opacity:.5') + blk(32, 76, 12, 20, '#1e2227', 'outline:2px solid #F05A22') + blk(46, 78, 10, 16, '#e0a24a', 'opacity:.5') + '<b class="garrow" style="left:62%;top:78%">↑↓</b>')],
+    ['Words, like Keynote', 'Press <b>T</b> — or double-click the page — for a text box. <b>Drag</b> it anywhere; it snaps to the margins and the pictures. The side handles set its width, the corner its size. <b>Click it again</b> to type. It starts in Helvetica, black or white to suit the page.',
+      art(blk(0, 0, 100, 100, '#1b1b1b') + blk(10, 20, 38, 9, '#fff', 'opacity:.95') + blk(10, 34, 34, 3.5, '#fff', 'opacity:.7') + blk(10, 40, 36, 3.5, '#fff', 'opacity:.7') + blk(10, 46, 30, 3.5, '#fff', 'opacity:.7') + blk(8, 16, 42, 36, 'transparent', 'outline:1.5px solid #F05A22') + '<b class="gdot" style="left:49%;top:33%"></b><b class="gdot" style="left:49%;top:51%"></b>', '#1b1b1b')],
+    ['The inspector', 'Pick anything and the panel shows it, the way Keynote’s does: <b>Style</b> (fill, border, shadow, opacity), <b>Text</b> (font, size, B I U, colour, alignment, spacing) and <b>Arrange</b> (front and back, align, size and position in points). <b>Esc</b> takes you back to the page.',
+      art(blk(6, 10, 56, 72, '#fff', 'box-shadow:0 4px 14px rgba(0,0,0,.12)') + blk(66, 10, 28, 80, '#fff', 'box-shadow:0 4px 14px rgba(0,0,0,.08)') + blk(68, 14, 7, 6, '#ece6dc') + blk(76, 14, 8, 6, '#141414') + blk(85, 14, 7, 6, '#ece6dc') + blk(68, 26, 24, 5, '#ece6dc') + blk(68, 35, 24, 5, '#ece6dc') + blk(68, 44, 11, 5, '#ece6dc') + blk(81, 44, 11, 5, '#ece6dc') + blk(68, 55, 24, 5, '#F05A22', 'opacity:.8'))],
+    ['Play, keep, export', '<b>Space</b> plays it full screen. Everything saves as you go; <b>⌘S</b> keeps a version. <b>Export</b> makes a PDF, page images for Keynote, or both — a new version every time, in the project’s Design folder.',
+      art(blk(0, 0, 100, 100, '#0b0b0b') + blk(14, 14, 72, 58, '#3b2a22') + blk(20, 50, 30, 6, '#fff', 'opacity:.9') + blk(40, 80, 20, 8, '#F05A22', 'border-radius:20px'), '#0b0b0b')],
+  ];
+  function openGuide(i) {
+    i = clamp(i || 0, 0, GUIDE.length - 1);
+    const [title, body, pic] = GUIDE[i];
+    setPref('guideSeen', '1');
+    openSheet('guide', `<div class="shead"><div class="grow"><span class="cap">How Needed Design works · ${i + 1} of ${GUIDE.length}</span><h2>${title}</h2></div>${closeX}</div>
+      <div class="gstep">${pic}<p>${body}</p></div>
+      <div class="foot"><span class="grow gdots">${GUIDE.map((_, k) => `<button class="gd${k === i ? ' on' : ''}" data-guide="${k}" aria-label="Step ${k + 1}"></button>`).join('')}</span>
+        <button class="light" data-keys>All the keys</button>
+        ${i > 0 ? `<button class="light" data-guide="${i - 1}">Back</button>` : ''}
+        ${i < GUIDE.length - 1 ? `<button class="dark" data-guide="${i + 1}">Next</button>` : '<button class="dark" data-close>Start</button>'}</div>`);
+  }
+
   let ex = { kind: 'both', pages: 'all', range: '', mark: true };
   function openExport() {
     if (!doc) return;
@@ -1518,9 +1803,11 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
     return doc.pages.map((_, i) => i);
   }
   $('sheet').addEventListener('click', async e => {
-    const t = e.target.closest('button, [data-sopen]'); if (!t) return;
+    const t = e.target.closest('button, [data-sopen], [data-guide]'); if (!t) return;
     const d = t.dataset;
     if (d.close != null) return closeSheet();
+    if (d.guide != null) { e.preventDefault(); return openGuide(+d.guide); }
+    if (d.keys != null) return openKeys();
     if (d.snew) { closeSheet(); return makeNew(d.snew, []); }
     if (d.sdel) {
       e.stopPropagation();

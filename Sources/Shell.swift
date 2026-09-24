@@ -281,6 +281,8 @@ final class DropWebView: WKWebView {
     /// Which file drops to take; the rest go to the page as usual (a single film in the Vault's player).
     var accepts: (([URL]) -> Bool)?
     private func files(_ info: NSDraggingInfo) -> [URL] {
+        // A drag that started inside the app (a still from the tray onto the page) is the page's own: leave it to WebKit.
+        if info.draggingSource != nil { return [] }
         let all = (info.draggingPasteboard.readObjects(forClasses: [NSURL.self],
                                                        options: [.urlReadingFileURLsOnly: true]) as? [URL]) ?? []
         if let ok = accepts, !ok(all) { return [] }

@@ -8,7 +8,7 @@
   if (window.__neededTheme) return;
   const DARK = 'dark';
   // What keeps its true colours: designs, pictures, palettes and swatches.
-  const KEEP = 'video, canvas, .pg, #render, .sw, .swatch, .swatches, .colours, .pal, .palette, .strip .thumb, [data-true-colour], #play, .moodpage, .mpage';
+  const KEEP = 'video, canvas, .pg, .gart, #render, .sw, .swatch, .swatches, .colours, .pal, .palette, .strip .thumb, [data-true-colour], #play, .moodpage, .mpage';
   const PROPS = ['color', 'background-color', 'background-image', 'background', 'border-color', 'border-top-color', 'border-right-color', 'border-bottom-color',
     'border-left-color', 'outline-color', 'box-shadow', 'text-shadow', 'fill', 'stroke', 'caret-color', 'text-decoration-color', 'accent-color', 'border'];
   const COLOUR = /#([0-9a-f]{8}|[0-9a-f]{6}|[0-9a-f]{3,4})\b|rgba?\(\s*([\d.]+)[\s,]+([\d.]+)[\s,]+([\d.]+)(?:[\s,/]+([\d.]+%?))?\s*\)|\b(white|black)\b/gi;
