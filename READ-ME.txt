@@ -369,3 +369,23 @@ PAY, QUIETER
     due, green for paid. ‹ • › moves through the months; click a day to
     see what's due on it.
   • The year so far, as small monthly bars.
+
+NEEDED DESIGN, EASIER (like Keynote)
+  • Words are text boxes now. T, the Text button, or double-click the page
+    puts one there. Drag it anywhere — it snaps to the margins, the middle,
+    the pictures' edges and the other boxes (hold ⌘ to place it freely).
+    The side handles set its width, the corner sets its size. Click it again,
+    or press Return, to type. Arrows nudge it, ⌫ deletes it, ⌘D copies it.
+  • Every box starts in Helvetica — black on light pages, white on dark ones,
+    never red. Title / Heading / Body / Caption set the size in one click;
+    font, weight, colour (from the stills too), spacing and opacity are
+    all yours in the panel. "This font and colour everywhere" does the lot.
+  • The panel shows just what you've picked: the page, a picture, or text.
+  • ↑ ↓ still swaps a picture through your stills.
+  • The stills window: drag the bar above it to make it bigger, or press
+    Bigger. It's remembered.
+  • Photos in bulk: + Photos (or drop them — whole folders too). They're
+    copied into <Project>_Vault as references with their colours, a few go
+    onto this page and lots go onto new pages after it. ⌘Z takes them off.
+  • Treatments made before this open with their words as text boxes, where
+    they were.

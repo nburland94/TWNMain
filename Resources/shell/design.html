@@ -15,12 +15,8 @@
 .pg .pic{position:absolute;overflow:hidden;background:#d9cfc4}
 .pg .pic img{display:block;width:100%;height:100%;object-fit:cover;-webkit-user-drag:none;user-select:none}
 .pg .fade{position:absolute;inset:0;pointer-events:none}
-.pg .txt{position:absolute;display:flex;flex-direction:column}
-.pg .tb{white-space:pre-wrap;word-wrap:break-word;flex-shrink:0}
-.pg .tb.section,.pg .tb.heading{margin-bottom:0.55em}
-.pg .tb.body{margin-bottom:0.9em}
-.pg .spacer{flex-grow:1}
-.pg .ttl{position:absolute;font-family:Raleway,serif;font-weight:200;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pg .tb{position:absolute;white-space:pre-wrap;word-wrap:break-word;margin:0;box-sizing:border-box}
+.pg .ttl{position:absolute;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;font-weight:400;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .pg .mark{position:absolute;display:block}
 .pg .hole{position:absolute;border:2px dashed rgba(120,55,20,0.25);display:flex;align-items:center;justify-content:center;color:rgba(120,55,20,0.45);font-family:Raleway,serif}
 </style>
@@ -76,11 +72,22 @@ select.sel{appearance:none;-webkit-appearance:none;border:1px solid rgba(28,28,2
 .pagewrap .pic.reframe{cursor:grab;outline:dashed #F05A22;z-index:3}
 .pagewrap .pic.feat::after{content:'★';position:absolute;right:0.4em;top:0.2em;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,0.5)}
 .pagewrap .pic.dropbefore{box-shadow:inset 6px 0 0 #F05A22}
-.pagewrap .tb[contenteditable]{outline:none;cursor:text;border-radius:3px;-webkit-user-select:text;user-select:text}
-.pagewrap .tb[contenteditable]:hover{box-shadow:0 0 0 1px rgba(240,90,34,0.4)}
-.pagewrap .tb[contenteditable]:focus{box-shadow:0 0 0 1.5px #F05A22}
-.pagewrap .tb:empty::before{content:attr(data-ph);opacity:0.3}
-.pagewrap .tb.tsel{box-shadow:0 0 0 1.5px rgba(240,90,34,0.7)}
+.pagewrap .tb{cursor:move;-webkit-user-select:none;user-select:none;min-height:0.9em}
+@media (hover:hover) and (pointer:fine){.pagewrap .tb:hover{outline:1px solid rgba(240,90,34,0.45);outline-offset:2px}}
+.pagewrap .tb[contenteditable]{outline:none;cursor:text;-webkit-user-select:text;user-select:text}
+.pagewrap .tb:empty::before{content:attr(data-ph);opacity:0.35}
+.boxsel[hidden]{display:none}
+.boxsel{position:absolute;border:1.5px solid #F05A22;border-radius:3px;pointer-events:none;z-index:6;box-sizing:border-box}
+.boxsel.editing{border-style:dashed}
+.boxsel .h{position:absolute;width:11px;height:11px;box-sizing:border-box;background:#fff;border:1.5px solid #F05A22;border-radius:50%;pointer-events:auto}
+.boxsel .h[data-h=l]{left:-6px;top:50%;margin-top:-6px;cursor:ew-resize}
+.boxsel .h[data-h=r]{right:-6px;top:50%;margin-top:-6px;cursor:ew-resize}
+.boxsel .h[data-h=br]{right:-6px;bottom:-6px;cursor:nwse-resize}
+.boxsel.editing .h{display:none}
+.guide{position:absolute;background:#F05A22;pointer-events:none;z-index:7}
+.guide[hidden]{display:none}
+.guide.v{width:1px}
+.guide.hz{height:1px}
 .pagewrap.drop{box-shadow:0 0 0 3px #F05A22,0 20px 60px rgba(80,30,10,0.16)}
 .marquee{position:absolute;border:1px solid #F05A22;background:rgba(240,90,34,0.1);pointer-events:none;z-index:9}
 .stagehint{position:absolute;left:50%;bottom:12px;transform:translateX(-50%);font-size:12px;color:#8a6a58;white-space:nowrap;pointer-events:none}
@@ -90,7 +97,12 @@ select.sel{appearance:none;-webkit-appearance:none;border:1px solid rgba(28,28,2
 .swapbar img.cur{opacity:1;outline:2px solid #F05A22;outline-offset:1px}
 .swapbar .k{font-size:11.5px;color:#6b6964;padding:0 8px;white-space:nowrap}
 .panel{border-left:1px solid rgba(28,28,28,0.05);overflow-y:auto;padding:14px 16px 20px;display:flex;flex-direction:column;gap:16px;min-width:0}
-.panel .tabs{display:flex;gap:2px}
+.panel .phead{display:flex;align-items:baseline;justify-content:space-between;gap:8px}
+.panel .phead b{font-weight:300;font-size:22px}
+.light.small{padding:7px 12px;font-size:12.5px}
+.sw button.auto{background:linear-gradient(135deg,#141414 50%,#ffffff 50%)}
+.laynames{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-top:-2px}
+.laynames span{font-size:10px;color:#6b6964;text-align:center;line-height:1.2}
 .psec{display:flex;flex-direction:column;gap:8px}
 .prow{display:flex;align-items:center;gap:8px;font-size:12.5px;min-width:0}
 .prow label{flex-shrink:0;color:#4a4945}
@@ -115,8 +127,11 @@ select.sel{appearance:none;-webkit-appearance:none;border:1px solid rgba(28,28,2
 .empty{font-size:12.5px;color:#6b6964;line-height:1.5}
 
 /* tray */
-.tray{border-top:1px solid rgba(28,28,28,0.06);display:flex;flex-direction:column;min-height:0;height:210px}
-.tray.tall{height:300px}
+.tray{position:relative;border-top:1px solid rgba(28,28,28,0.06);display:flex;flex-direction:column;min-height:0;height:230px}
+.traygrip{position:absolute;left:0;right:0;top:-6px;height:12px;cursor:ns-resize;z-index:4;display:flex;align-items:center;justify-content:center}
+.traygrip::before{content:'';width:46px;height:4px;border-radius:4px;background:rgba(28,28,28,0.2);transition:background .15s}
+@media (hover:hover) and (pointer:fine){.traygrip:hover::before{background:#F05A22}}
+body.resizing,body.resizing *{cursor:ns-resize!important;user-select:none}
 .trayhead{display:flex;align-items:center;gap:8px;padding:8px 20px;flex-wrap:nowrap;min-width:0}
 .trayhead .q{border:1px solid rgba(28,28,28,0.1);border-radius:100px;padding:6px 12px;font-size:12.5px;background:rgba(255,255,255,0.75);outline:none;width:160px;min-width:80px}
 .trayhead .q:focus{border-color:var(--accent)}
@@ -206,10 +221,11 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
   <header class="bar" id="bar"></header>
   <div class="strip" id="strip"></div>
   <div class="work" id="work">
-    <div class="stage" id="stage"><div class="pagewrap" id="pagewrap"></div><div class="swapbar g" id="swapbar" hidden></div><div class="stagehint" id="stagehint"></div></div>
+    <div class="stage" id="stage"><div class="pagewrap" id="pagewrap"></div><div class="boxsel" id="boxsel" hidden><i class="h" data-h="l"></i><i class="h" data-h="r"></i><i class="h" data-h="br"></i></div><div class="guide v" id="guideX" hidden></div><div class="guide hz" id="guideY" hidden></div><div class="swapbar g" id="swapbar" hidden></div><div class="stagehint" id="stagehint"></div></div>
     <aside class="panel" id="panel"></aside>
   </div>
   <div class="tray" id="tray">
+    <div class="traygrip" id="traygrip" title="Drag to make the stills bigger or smaller — double-click to switch"></div>
     <div class="trayhead" id="trayhead"></div>
     <div class="traygrid" id="traygrid"></div>
   </div>
@@ -217,7 +233,7 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
 </div>
 <div class="veil" id="veil"><section class="sheet" id="sheet" role="dialog" aria-modal="true"></section></div>
 <div class="play" id="play"></div>
-<div class="dropveil" id="dropveil">Drop to add them to the page</div>
+<div class="dropveil" id="dropveil">Drop photos or folders — as many as you like</div>
 <div class="toast" id="toast"></div>
 <script src="load.js"></script>
 <script>
@@ -236,19 +252,30 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
   const SIZES = { '16:9': [1920, 1080], '2:1': [2160, 1080], '4:3': [1440, 1080], 'A4': [1754, 1240], '1:1': [1080, 1080], '4:5': [1080, 1350], '9:16': [1080, 1920] };
   const SIZE_NAMES = { '16:9': '16:9 · 1920 × 1080', '2:1': '2:1 wide', '4:3': '4:3', 'A4': 'A4 landscape', '1:1': '1:1 square', '4:5': '4:5 portrait', '9:16': '9:16 vertical' };
   const LAYOUTS = [['rows', 'Rows of pictures'], ['left', 'Pictures left, words right'], ['right', 'Words left, pictures right'], ['bleed', 'Full bleed, words on it'], ['text', 'Words only']];
-  const STYLE_KEYS = [['number', 'Number'], ['section', 'Section'], ['heading', 'Heading'], ['body', 'Body'], ['caption', 'Caption']];
-  const PH = { number: '01', section: 'Section', heading: 'A heading, in a line', body: 'The words — just type. Paste a paragraph and the first line becomes the heading.', caption: 'Caption · reference' };
-  const BUNDLED = ['Raleway', 'Oswald', 'Cormorant Garamond', 'Inter', 'Courier Prime'];
-  const defaultStyles = () => ({
+  // Words are text boxes, like Keynote: put one anywhere, drag it, size it. Helvetica unless you say otherwise.
+  const HELV = 'Helvetica Neue';
+  const BUNDLED = ['Helvetica Neue', 'Helvetica', 'Raleway', 'Oswald', 'Cormorant Garamond', 'Inter', 'Courier Prime'];
+  const PRESETS = [
+    ['title', 'Title', { size: 64, weight: 500, italic: false, upper: false, tracking: -0.01, leading: 1.05 }],
+    ['heading', 'Heading', { size: 30, weight: 500, italic: false, upper: false, tracking: 0, leading: 1.15 }],
+    ['body', 'Body', { size: 15, weight: 400, italic: false, upper: false, tracking: 0, leading: 1.5 }],
+    ['caption', 'Caption', { size: 11, weight: 400, italic: false, upper: true, tracking: 0.08, leading: 1.4 }],
+  ];
+  const WEIGHTS = [[300, 'Light'], [400, 'Regular'], [500, 'Medium'], [700, 'Bold']];
+  const preset = k => Object.assign({}, (PRESETS.find(p => p[0] === k) || PRESETS[2])[2]);
+  const presetOf = b => (PRESETS.find(([, , v]) => v.size === b.size && v.weight === +b.weight && v.upper === !!b.upper) || [''])[0];
+  // x, y and w are fractions of the page, so a box keeps its place when the page size changes. colour null: dark on light pages, white on dark.
+  const newBox = (kind, x, y, w, text) => Object.assign({ id: uid(), x, y, w, text: text || '', font: HELV, colour: null, align: 'left', opacity: 1 }, preset(kind));
+  // The old type styles — only to bring earlier treatments across.
+  const oldStyles = () => ({
     number: { font: 'Raleway', size: 100, weight: 200, italic: false, colour: '#b3262b', tracking: 0, leading: 1, align: 'left', upper: false },
     section: { font: 'Oswald', size: 40, weight: 500, italic: false, colour: '#b3262b', tracking: 0.02, leading: 1.05, align: 'left', upper: true },
     heading: { font: 'Cormorant Garamond', size: 32, weight: 400, italic: true, colour: '#141414', tracking: 0, leading: 1.2, align: 'left', upper: false },
     body: { font: 'Raleway', size: 15, weight: 400, italic: false, colour: '#3a3836', tracking: 0, leading: 1.6, align: 'left', upper: false },
     caption: { font: 'Courier Prime', size: 11.5, weight: 400, italic: false, colour: '#6b6964', tracking: 0.1, leading: 1.4, align: 'left', upper: true },
   });
-  const newPage = (layout) => ({ id: uid(), layout: layout || 'rows', pics: [], text: { number: '', section: '', heading: '', body: '', caption: '' },
-    bg: null, textColour: null, bleed: false, textOpacity: 1, fade: { on: false, strength: 0.6, to: 'black' } });
-  const newDoc = (mode, name) => ({ v: 1, name: name || '', mode, size: '16:9', bg: '#f4f1ec', title: '', mark: true, perPage: 6, styles: defaultStyles(), pages: [newPage(mode === 'mood' ? 'rows' : 'left')] });
+  const newPage = (layout) => ({ id: uid(), layout: layout || 'rows', pics: [], boxes: [], bg: null, bleed: false, fade: { on: false, strength: 0.6, to: 'black' } });
+  const newDoc = (mode, name) => ({ v: 2, name: name || '', mode, size: '16:9', bg: '#f4f1ec', title: '', mark: true, perPage: 6, pages: [newPage(mode === 'mood' ? 'rows' : 'left')] });
 
   // Metrics: one unit is 1/1600 of a 16:9 page's width, so every size keeps the same proportions.
   function geometry(doc) {
@@ -291,7 +318,16 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
     return { x, y, w: Math.max(...r.map(a => a.x + a.w)) - x, h: Math.max(...r.map(a => a.y + a.h)) - y };
   };
   const layoutOf = (doc, page) => doc.mode === 'mood' ? 'rows' : (page.layout || 'rows');
-  const hasWords = page => Object.values(page.text || {}).some(v => (v || '').trim());
+  const hasWords = page => (page.boxes || []).some(b => (b.text || '').trim());
+  // Boxes one under another in an area, from the top — or sitting on its bottom edge.
+  function stackIn(G, T, items, anchor) {
+    const hs = items.map(it => { const px = it.st.size * G.u, per = Math.max(1, Math.floor(T.w / (px * 0.5)));
+      return String(it.text).split('\n').reduce((n, l) => n + Math.max(1, Math.ceil(l.length / per)), 0) * px * (it.st.leading || 1.3); });
+    const gap = items.map(it => it.st.size * G.u * 0.6);
+    const total = hs.reduce((a, h, i) => a + h + (i < items.length - 1 ? gap[i] : 0), 0);
+    let y = anchor === 'bottom' ? T.y + T.h - total : T.y;
+    return items.map((it, i) => { const r = { x: T.x, y, w: T.w }; y += hs[i] + gap[i]; return r; });
+  }
 
   // Where everything goes on one page. Text keeps one margin and one gutter, and
   // lives on the picture lines: it starts on the top edge of the first row.
@@ -332,7 +368,8 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
   // On a dark page, dark greys turn light; colours keep their colour.
   const onDark = (c, dark) => dark && lum(c) < 0.5 && sat(c) < 0.35 ? (lum(c) < 0.3 ? '#f4f3f1' : '#d9d5cf') : c;
   const rgba = (h, a) => { const [r, g, b] = hexRgb(h); return `rgba(${r},${g},${b},${a})`; };
-  const fontStack = f => `'${String(f).replace(/'/g, '')}', ${/courier|mono/i.test(f) ? 'monospace' : /garamond|serif|baskerville|didot|bodoni|times|georgia/i.test(f) ? 'Georgia, serif' : 'Raleway, sans-serif'}`;
+  const HELV_STACK = "'Helvetica Neue', Helvetica, Arial, sans-serif";
+  const fontStack = f => /^helvetica/i.test(f || HELV) ? HELV_STACK : `'${String(f).replace(/'/g, '')}', ${/courier|mono/i.test(f) ? 'monospace' : /garamond|serif|baskerville|didot|bodoni|times|georgia/i.test(f) ? 'Georgia, serif' : HELV_STACK}`;
 
   /* ---------------------------------------------------------------- one page, as markup */
   function pageHTML(doc, page, opt) {
@@ -353,7 +390,6 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
         + `<img alt="" draggable="false" src="${esc(src)}" style="object-position:${c.x}% ${c.y}%;transform:scale(${c.z});transform-origin:${c.x}% ${c.y}%"></div>`;
     });
     // The fade: from the side the words are on, to black or to the page colour.
-    const words = !mood && L.text && (hasWords(page) || opt.edit);
     const fade = page.fade || {};
     const autoFade = L.lay === 'bleed' && hasWords(page);
     if (!mood && (fade.on || autoFade) && L.rects.length) {
@@ -361,7 +397,7 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
       const dir = L.lay === 'left' ? 'to left' : L.lay === 'right' ? 'to right' : 'to top';
       h += `<div class="fade" style="background:linear-gradient(${dir}, ${rgba(to, s)} 0%, ${rgba(to, s * 0.55)} 32%, ${rgba(to, 0)} 64%)"></div>`;
     }
-    if (words) h += textHTML(doc, page, L, dark, opt);
+    if (!mood) h += boxesHTML(page, L.G, dark, opt);
     if (mood && (doc.title || '').trim()) {
       const tc = onDark('#141414', lum(bg) < 0.42);
       h += `<div class="ttl" style="left:${m}px;top:${Math.round(34 * u)}px;right:${m}px;font-size:${Math.round(30 * u)}px;line-height:1.2;color:${tc}">${esc(doc.title)}</div>`;
@@ -372,20 +408,18 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
     }
     return h + '</div>';
   }
-  function textHTML(doc, page, L, dark, opt) {
-    const T = L.text, u = L.G.u, st = doc.styles || defaultStyles();
-    const colourFor = k => page.textColour && k !== 'number' && k !== 'section' ? page.textColour : onDark(st[k].colour, dark);
-    const css = k => { const s = st[k] || defaultStyles()[k];
-      return `font-family:${esc(fontStack(s.font))};font-size:${(s.size * u).toFixed(1)}px;font-weight:${s.weight};font-style:${s.italic ? 'italic' : 'normal'};color:${colourFor(k)};letter-spacing:${s.tracking || 0}em;line-height:${s.leading};text-align:${s.align || 'left'};text-transform:${s.upper ? 'uppercase' : 'none'}${k === 'body' ? ';max-width:32em' : ''}`; };
-    const block = k => {
-      const v = (page.text || {})[k] || '';
-      if (!v && !opt.edit) return '';
-      const tsel = opt.tsel === k ? ' tsel' : '';
-      return `<div class="tb ${k}${tsel}" data-t="${k}"${opt.edit ? ` contenteditable="plaintext-only" spellcheck="false" data-ph="${esc(PH[k])}"` : ''} style="${css(k)}">${esc(v)}</div>`;
-    };
-    const stack = ['section', 'heading', 'body', 'caption'].map(block).join('');
-    const inner = T.anchor === 'bottom' ? `<div class="spacer"></div>${block('number')}${stack}` : `${stack}<div class="spacer"></div>${block('number')}`;
-    return `<div class="txt" style="left:${T.x}px;top:${T.y}px;width:${T.w}px;height:${T.h}px;opacity:${page.textOpacity == null ? 1 : page.textOpacity}">${inner}</div>`;
+  function boxCss(b, G, dark) {
+    const colour = b.colour || (dark ? '#f4f3f1' : '#141414');
+    return `left:${(b.x * G.W).toFixed(1)}px;top:${(b.y * G.H).toFixed(1)}px;width:${(b.w * G.W).toFixed(1)}px;font-family:${esc(fontStack(b.font))};font-size:${(b.size * G.u).toFixed(1)}px;`
+      + `font-weight:${b.weight || 400};font-style:${b.italic ? 'italic' : 'normal'};color:${esc(colour)};letter-spacing:${b.tracking || 0}em;line-height:${b.leading || 1.3};`
+      + `text-align:${b.align || 'left'};text-transform:${b.upper ? 'uppercase' : 'none'};opacity:${b.opacity == null ? 1 : b.opacity}`;
+  }
+  function boxesHTML(page, G, dark, opt) {
+    return (page.boxes || []).map(b => {
+      if (!(b.text || '').trim() && !opt.edit) return '';
+      const ed = opt.editing === b.id;
+      return `<div class="tb" data-b="${esc(b.id)}"${ed ? ' contenteditable="plaintext-only" spellcheck="false"' : ''}${opt.edit ? ' data-ph="Type here"' : ''} style="${boxCss(b, G, dark)}">${esc(b.text)}</div>`;
+    }).join('');
   }
 
   /* ================================================================ export draws here */
@@ -410,11 +444,11 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
   const setPref = (k, v) => { try { localStorage.setItem('design.' + k, v); } catch (e) {} };
 
   let doc = null, rel = null, cur = 0;                 // the design, its file, the page you're on
-  let sel = new Set(), tsel = null, reframe = null;     // selected pictures (on this page), text style, picture being reframed
+  let sel = new Set(), bsel = null, editing = null, reframe = null;   // picked pictures (this page), the picked text box, the box being typed in, the picture being reframed
   let stills = [], scope = pref('scope', 'project'), traySize = pref('size', 'M'), trayQ = '', trayPick = new Set();
-  let fonts = [], project = '', panelTab = 'page', designs = [];
+  let fonts = [], project = '', designs = [];
   let undo = [], redo = [], swap = null;
-  let armed = false;                                   // clicked on the page itself: typing goes into the words
+  let trayH = +pref('trayH', 230) || 230;
 
   /* ---------------------------------------------------------------- saving and undo */
   let saveT = null;
@@ -441,10 +475,13 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
     to.push(JSON.stringify(doc));
     doc = JSON.parse(from.pop());
     cur = clamp(cur, 0, doc.pages.length - 1);
-    sel.clear(); reframe = null; swap = null;
+    sel.clear(); reframe = null; swap = null; editing = null;
+    if (bsel && !boxById(bsel)) bsel = null;
     persist(); draw();
   }
   const page = () => doc && doc.pages[cur];
+  const boxById = id => { const p = page(); return p && (p.boxes || []).find(b => b.id === id); };
+  const boxEl = id => $('pagewrap').querySelector(`.tb[data-b="${id}"]`);
 
   /* ---------------------------------------------------------------- drawing */
   function draw() {
@@ -464,8 +501,8 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
       <div class="seg" role="group" aria-label="Mood or treatment"><button data-mode="mood" class="${mood ? 'on' : ''}" title="Just pictures">Mood</button><button data-mode="treatment" class="${mood ? '' : 'on'}" title="Pictures and words">Treatment</button></div>
       <span class="sp"></span>
       <button class="tbtn" id="addPage" title="A new page after this one">+ Page</button>
-      ${mood ? '' : `<button class="tbtn" id="layBtn" title="Next layout — or press L">Layout · ${esc((LAYOUTS.find(l => l[0] === page().layout) || LAYOUTS[0])[1])}</button>`}
-      <button class="tbtn hidenarrow" id="breakBtn" ${sel.size === 1 && [...sel][0] > 0 ? '' : 'disabled'} title="The selected picture and the ones after it go onto a new page">Break here</button>
+      ${mood ? '' : '<button class="tbtn" id="textBtn" title="A text box — or press T, or double-click the page"><b style="font-family:Georgia,serif;font-size:15px;line-height:1">T</b> Text</button>'}
+      <button class="tbtn" id="photosBtn" title="Photos, or whole folders of them, from your Mac">+ Photos</button>
       <span class="vsep"></span>
       <select class="sel" id="sizeSel" aria-label="Page size">${Object.keys(SIZES).map(k => `<option value="${k}"${k === doc.size ? ' selected' : ''}>${esc(SIZE_NAMES[k])}</option>`).join('')}</select>
       <button class="tbtn" id="playBtn" title="Play through the pages — Space">▶ Play</button>
@@ -498,13 +535,35 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
     const wrap = $('pagewrap');
     wrap.style.width = Math.round(W * scale) + 'px';
     wrap.style.height = Math.round(H * scale) + 'px';
-    wrap.innerHTML = pageHTML(doc, p, { edit: doc.mode !== 'mood' || true, sel, tsel, reframe, scale }).replace('class="pg"', `class="pg" style-scale="1"`);
+    if (doc.mode === 'mood') { bsel = null; editing = null; }
+    wrap.innerHTML = pageHTML(doc, p, { edit: true, sel, editing, reframe, scale });
     const pg = wrap.querySelector('.pg'); pg.style.transform = `scale(${scale})`;
-    if (doc.mode === 'mood') wrap.querySelectorAll('.tb').forEach(x => x.remove());
+    if (editing) { const el = boxEl(editing); if (el && document.activeElement !== el) { el.focus(); placeCaretEnd(el); } }
+    const b = bsel && boxById(bsel);
     $('stagehint').textContent = reframe != null ? 'Drag to reframe · scroll to zoom · Esc when done'
+      : editing ? 'Typing · Esc when done'
+      : b ? 'Drag to move · pull the handles to size · Return to type · ⌫ deletes it'
       : sel.size === 1 ? '↑ ↓ swap it through your stills · ← → move · ⌘← → another page · F feature · ⌫ remove'
-      : sel.size > 1 ? `${sel.size} picked · ⌘← → another page · ⌫ remove` : (doc.mode === 'mood' ? 'Double-click stills below to add them · drag to reorder' : armed ? 'Just type — the heading first, then the words' : 'Click the page and just type · L for layouts · Space to play');
+      : sel.size > 1 ? `${sel.size} picked · ⌘← → another page · ⌫ remove`
+      : doc.mode === 'mood' ? 'Double-click stills below to add them · drag to reorder' : 'Click a picture, then ↑ ↓ to swap it · T or double-click the page for text';
+    drawBoxSel();
     drawSwap();
+  }
+  // The frame around the picked text box, with its handles — drawn over the page, the same size at any zoom.
+  function drawBoxSel() {
+    const f = $('boxsel'), el = bsel && boxEl(bsel);
+    if (!el) { f.hidden = true; return; }
+    const st = $('stage').getBoundingClientRect(), r = el.getBoundingClientRect();
+    Object.assign(f.style, { left: (r.left - st.left - 5) + 'px', top: (r.top - st.top - 5) + 'px', width: (r.width + 10) + 'px', height: (Math.max(r.height, 10) + 10) + 'px' });
+    f.classList.toggle('editing', editing === bsel);
+    f.hidden = false;
+  }
+  function guides(x, y) {
+    const st = $('stage').getBoundingClientRect(), w = $('pagewrap').getBoundingClientRect();
+    const gx = $('guideX'), gy = $('guideY');
+    gx.hidden = x == null; gy.hidden = y == null;
+    if (x != null) Object.assign(gx.style, { left: (w.left - st.left + x * scale) + 'px', top: (w.top - st.top) + 'px', height: w.height + 'px' });
+    if (y != null) Object.assign(gy.style, { top: (w.top - st.top + y * scale) + 'px', left: (w.left - st.left) + 'px', width: w.width + 'px' });
   }
 
   function drawSwap() {
@@ -528,69 +587,79 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
 
   function drawPanel() {
     const p = page(), mood = doc.mode === 'mood';
-    const tabs = [['page', 'Page']].concat(sel.size ? [['pic', sel.size > 1 ? `Pictures · ${sel.size}` : 'Picture']] : []).concat(mood ? [] : [['text', 'Text']]);
-    if (!tabs.some(t => t[0] === panelTab)) panelTab = sel.size ? 'pic' : 'page';
-    let h = `<div class="seg tabs">${tabs.map(([k, n]) => `<button data-ptab="${k}" class="${panelTab === k ? 'on' : ''}">${esc(n)}</button>`).join('')}</div>`;
+    const b = !mood && bsel ? boxById(bsel) : null;
+    const ctx = b ? 'text' : sel.size ? 'pic' : 'page';
     const range = (id, label, v, min, max, step, fmt) => `<div class="prow"><label for="${id}">${label}</label><input type="range" id="${id}" min="${min}" max="${max}" step="${step}" value="${v}"><span class="val">${fmt ? fmt(v) : v}</span></div>`;
-    if (panelTab === 'page') {
+    const pct = v => Math.round(v * 100) + '%';
+    const pal = paletteOf(p.pics);
+    let h = `<div class="phead"><b>${ctx === 'text' ? 'Text' : ctx === 'pic' ? (sel.size > 1 ? `${sel.size} pictures` : 'Picture') : `Page ${cur + 1}`}</b>${ctx !== 'page' ? '<button class="tbtn" id="panelPage" title="Esc">Page ›</button>' : ''}</div>`;
+    if (ctx === 'page') {
       const bgNow = p.bg || doc.bg;
-      const pal = paletteOf(p.pics);
       const presets = ['#f4f1ec', '#ffffff', '#ece6dc', '#141414', '#0a0a0a', '#1e2227'];
       h += mood ? `
         <div class="psec"><span class="cap">Pictures a page</span>${range('perPage', '', doc.perPage || 6, 1, 12, 1)}
-          <button class="light" id="deal" style="align-self:flex-start;padding:7px 13px;font-size:12.5px">Deal them out again, ${doc.perPage || 6} a page</button></div>
+          <button class="light small" id="deal" style="align-self:flex-start">Deal them out again, ${doc.perPage || 6} a page</button></div>
         <div class="psec"><span class="cap">Title — top left of every page</span><div class="prow"><input type="text" id="moodTitle" value="${esc(doc.title || '')}" placeholder="Optional" style="flex-grow:1"></div></div>`
       : `
-        <div class="psec"><span class="cap">Layout · L for the next</span><div class="lays">${LAYOUTS.map(([k, n]) => `<button class="lay${p.layout === k ? ' on' : ''}" data-lay="${k}" title="${esc(n)}" aria-label="${esc(n)}">${layIcon(k)}</button>`).join('')}</div>
-          ${p.layout === 'rows' ? `<div class="prow"><label>Pictures run off the page edge</label><span style="flex-grow:1"></span><button class="tog${p.bleed ? ' on' : ''}" id="bleedTog" aria-pressed="${!!p.bleed}"></button></div>` : ''}
+        <div class="psec"><span class="cap">Where the pictures go</span><div class="lays">${LAYOUTS.map(([k, n]) => `<button class="lay${p.layout === k ? ' on' : ''}" data-lay="${k}" title="${esc(n)}" aria-label="${esc(n)}">${layIcon(k)}</button>`).join('')}</div>
+          <div class="laynames">${['Rows', 'Left', 'Right', 'Full', 'None'].map(n => `<span>${n}</span>`).join('')}</div>
+          ${p.layout === 'rows' ? `<div class="prow"><label>Run off the page edge</label><span style="flex-grow:1"></span><button class="tog${p.bleed ? ' on' : ''}" id="bleedTog" aria-pressed="${!!p.bleed}"></button></div>` : ''}
           ${p.layout === 'bleed' && p.pics.length > 1 ? '<span class="empty">Full bleed shows the first picture — the others wait on this page.</span>' : ''}</div>`;
       h += `
         <div class="psec"><span class="cap">Background</span>
           <div class="sw">${presets.map(c => `<button data-bg="${c}" class="${bgNow === c ? 'on' : ''}" style="background:${c}" title="${c}"></button>`).join('')}<input type="color" id="bgPick" value="${esc(bgNow)}" title="Any colour"></div>
-          ${pal.length ? `<span class="cap" style="margin-top:4px">From these stills</span><div class="sw">${pal.map(c => `<button data-bg="${esc(c)}" data-textc="${esc(c)}" class="pal${bgNow === c ? ' on' : ''}" style="background:${esc(c)}" title="${esc(c)} — click for the background${mood ? '' : ', ⌥-click for the words'}"></button>`).join('')}</div>` : ''}
+          ${pal.length ? `<span class="cap" style="margin-top:4px">From these stills</span><div class="sw">${pal.map(c => `<button data-bg="${esc(c)}" class="pal${bgNow === c ? ' on' : ''}" style="background:${esc(c)}" title="${esc(c)}"></button>`).join('')}</div>` : ''}
           <div class="prow"><label>Every page</label><span style="flex-grow:1"></span><button class="tog${p.bg ? '' : ' on'}" id="bgAll" aria-pressed="${!p.bg}" title="On: the whole design's background. Off: just this page"></button></div></div>`;
       if (!mood) {
         const f = p.fade || {};
         h += `
         <div class="psec"><span class="cap">Fade</span>
           <div class="prow"><label>Fade the pictures</label><span style="flex-grow:1"></span><button class="tog${f.on ? ' on' : ''}" id="fadeTog" aria-pressed="${!!f.on}"></button></div>
-          ${f.on ? range('fadeStr', 'Strength', f.strength == null ? 0.6 : f.strength, 0.1, 1, 0.05, v => Math.round(v * 100) + '%') + `<div class="prow"><label>To</label><div class="seg"><button data-fadeto="black" class="${f.to !== 'page' ? 'on' : ''}">Black</button><button data-fadeto="page" class="${f.to === 'page' ? 'on' : ''}">Page colour</button></div></div>` : ''}
-          ${range('textOp', 'Words', p.textOpacity == null ? 1 : p.textOpacity, 0.1, 1, 0.05, v => Math.round(v * 100) + '%')}
-          ${p.textColour ? `<div class="prow"><label>Words in ${esc(p.textColour)}</label><span style="flex-grow:1"></span><button class="tbtn" id="textColourOff">Reset</button></div>` : ''}</div>`;
+          ${f.on ? range('fadeStr', 'Strength', f.strength == null ? 0.6 : f.strength, 0.1, 1, 0.05, pct) + `<div class="prow"><label>To</label><div class="seg"><button data-fadeto="black" class="${f.to !== 'page' ? 'on' : ''}">Black</button><button data-fadeto="page" class="${f.to === 'page' ? 'on' : ''}">Page colour</button></div></div>` : ''}</div>`;
       }
       h += `<div class="psec"><span class="cap">This page</span><div style="display:flex;gap:6px;flex-wrap:wrap">
-          <button class="light" id="dupPage" style="padding:7px 12px;font-size:12.5px">Duplicate · ⌘D</button>
-          ${doc.pages.length > 1 ? '<button class="light" id="delPage" style="padding:7px 12px;font-size:12.5px">Remove page</button>' : ''}</div></div>`;
-    } else if (panelTab === 'pic') {
+          ${mood ? '' : '<button class="light small" id="addText">Add text · T</button>'}
+          <button class="light small" id="dupPage">Duplicate · ⌘D</button>
+          ${doc.pages.length > 1 ? '<button class="light small" id="delPage">Remove page</button>' : ''}</div></div>`;
+    } else if (ctx === 'pic') {
       const ks = [...sel], one = ks.length === 1 ? p.pics[ks[0]] : null;
       const op = ks.length ? (p.pics[ks[0]].opacity == null ? 1 : p.pics[ks[0]].opacity) : 1;
       h += `<div class="psec">${one ? `<span class="empty">${esc(one.title || 'A still')}${one.project && one.project !== project ? ' · ' + esc(one.project) : ''}</span>` : ''}
+        <div class="hintk"><kbd>↑</kbd> <kbd>↓</kbd> swap it through your stills — <kbd>Return</kbd> keeps it</div>
         ${one ? `<div class="prow"><label>Feature it — the hero of its row</label><span style="flex-grow:1"></span><button class="tog${one.featured ? ' on' : ''}" id="featTog" aria-pressed="${!!one.featured}" title="F"></button></div>` : ''}
-        ${range('picOp', 'Fade', op, 0.1, 1, 0.05, v => Math.round(v * 100) + '%')}</div>
+        ${range('picOp', 'Opacity', op, 0.1, 1, 0.05, pct)}</div>
         ${one ? `<div class="psec"><span class="cap">Frame</span><div style="display:flex;gap:6px">
-          <button class="light" id="reframeBtn" style="padding:7px 12px;font-size:12.5px">${reframe != null ? 'Done reframing' : 'Reframe'}</button>
-          ${one.crop && (one.crop.z !== 1 || one.crop.x !== 50 || one.crop.y !== 50) ? '<button class="light" id="reframeReset" style="padding:7px 12px;font-size:12.5px">Centre it</button>' : ''}</div>
-          <span class="empty">Or double-click the picture: drag to move what's in the frame, scroll to zoom.</span></div>` : ''}
-        ${one && (one.palette || []).length ? `<div class="psec"><span class="cap">Its colours</span><div class="sw">${one.palette.slice(0, 6).map(c => `<button data-bg="${esc(c)}" data-textc="${esc(c)}" class="pal" style="background:${esc(c)}" title="Click: the page's background${mood ? '' : ' · ⌥-click: the words'}"></button>`).join('')}</div></div>` : ''}
-        <div class="psec"><button class="light" id="removePics" style="align-self:flex-start;padding:7px 12px;font-size:12.5px">Take ${ks.length > 1 ? 'them' : 'it'} off the page · ⌫</button></div>
-        <div class="hintk"><kbd>↑</kbd> <kbd>↓</kbd> swap through your stills<br><kbd>←</kbd> <kbd>→</kbd> move it along<br><kbd>⌘</kbd><kbd>←</kbd> <kbd>→</kbd> to the page before or after</div>`;
+          <button class="light small" id="reframeBtn">${reframe != null ? 'Done reframing' : 'Reframe'}</button>
+          ${one.crop && (one.crop.z !== 1 || one.crop.x !== 50 || one.crop.y !== 50) ? '<button class="light small" id="reframeReset">Centre it</button>' : ''}</div>
+          <span class="empty">Or double-click the picture: drag inside it, scroll to zoom.</span></div>` : ''}
+        ${one && (one.palette || []).length ? `<div class="psec"><span class="cap">Its colours — for the background</span><div class="sw">${one.palette.slice(0, 6).map(c => `<button data-bg="${esc(c)}" class="pal" style="background:${esc(c)}" title="${esc(c)}"></button>`).join('')}</div></div>` : ''}
+        <div class="psec"><div style="display:flex;gap:6px;flex-wrap:wrap">
+          ${one && ks[0] > 0 ? '<button class="light small" id="breakBtn" title="This picture and the ones after it go onto a new page">New page from here</button>' : ''}
+          <button class="light small" id="removePics">Take ${ks.length > 1 ? 'them' : 'it'} off · ⌫</button></div></div>
+        <div class="hintk"><kbd>←</kbd> <kbd>→</kbd> move it along<br><kbd>⌘</kbd><kbd>←</kbd> <kbd>→</kbd> to the page before or after</div>`;
     } else {
-      const k = tsel || 'heading', s = doc.styles[k];
       const fontList = BUNDLED.concat(fonts.filter(f => !BUNDLED.includes(f)));
-      h += `<div class="psec"><div class="seg" style="flex-wrap:wrap">${STYLE_KEYS.map(([sk, n]) => `<button data-style="${sk}" class="${k === sk ? 'on' : ''}">${n}</button>`).join('')}</div>
-          <span class="empty">Changes this style on every page. Click the words on the page to type.</span></div>
-        <div class="psec">
-          <div class="prow"><label>Font</label><select id="stFont" style="flex-grow:1">${fontList.map(f => `<option${f === s.font ? ' selected' : ''}>${esc(f)}</option>`).join('')}${fontList.includes(s.font) ? '' : `<option selected>${esc(s.font)}</option>`}</select></div>
-          ${range('stSize', 'Size', s.size, 6, 220, 0.5)}
-          <div class="prow"><label>Weight</label><select id="stWeight">${[100, 200, 300, 400, 500, 600, 700, 800].map(w => `<option${w === +s.weight ? ' selected' : ''}>${w}</option>`).join('')}</select>
-            <label style="margin-left:auto">Italic</label><button class="tog${s.italic ? ' on' : ''}" id="stItalic"></button></div>
-          <div class="prow"><label>Colour</label><input type="color" id="stColour" value="${esc(s.colour)}"><div class="sw">${['#141414', '#3a3836', '#6b6964', '#b3262b', '#F05A22', '#f4f3f1'].map(c => `<button data-stcolour="${c}" style="background:${c}"></button>`).join('')}</div></div>
-          ${range('stTrack', 'Letters', s.tracking || 0, -0.05, 0.4, 0.01, v => (+v).toFixed(2))}
-          ${range('stLead', 'Lines', s.leading, 0.8, 2.4, 0.05, v => (+v).toFixed(2))}
-          <div class="prow"><label>Align</label><div class="seg">${['left', 'center', 'right'].map(a => `<button data-align="${a}" class="${(s.align || 'left') === a ? 'on' : ''}">${a[0].toUpperCase() + a.slice(1)}</button>`).join('')}</div>
-            <label style="margin-left:auto">Caps</label><button class="tog${s.upper ? ' on' : ''}" id="stUpper"></button></div>
-          <button class="tbtn" id="stReset" style="align-self:flex-start;color:#d2440f">Back to the house style</button>
-        </div>`;
+      const weights = WEIGHTS.some(w => w[0] === +b.weight) ? WEIGHTS : WEIGHTS.concat([[+b.weight, String(b.weight)]]);
+      const now = presetOf(b);
+      h += `
+        <div class="psec"><div class="seg" style="flex-wrap:wrap">${PRESETS.map(([k, n]) => `<button data-preset="${k}" class="${now === k ? 'on' : ''}">${n}</button>`).join('')}</div></div>
+        <div class="psec"><span class="cap">Font</span>
+          <div class="prow"><select id="bFont" style="flex-grow:1">${fontList.map(f => `<option${f === b.font ? ' selected' : ''}>${esc(f)}</option>`).join('')}${fontList.includes(b.font) ? '' : `<option selected>${esc(b.font)}</option>`}</select></div>
+          <div class="prow"><select id="bWeight">${weights.map(([w, n]) => `<option value="${w}"${w === +b.weight ? ' selected' : ''}>${n}</option>`).join('')}</select>
+            <label style="margin-left:auto">Italic</label><button class="tog${b.italic ? ' on' : ''}" id="bItalic"></button></div>
+          ${range('bSize', 'Size', b.size, 6, 240, 0.5)}
+          <div class="prow"><div class="seg">${[['left', 'Left'], ['center', 'Centre'], ['right', 'Right']].map(([a, n]) => `<button data-balign="${a}" class="${(b.align || 'left') === a ? 'on' : ''}">${n}</button>`).join('')}</div>
+            <label style="margin-left:auto">Caps</label><button class="tog${b.upper ? ' on' : ''}" id="bUpper"></button></div>
+          ${range('bTrack', 'Letters', b.tracking || 0, -0.05, 0.4, 0.01, v => (+v).toFixed(2))}
+          ${range('bLead', 'Lines', b.leading || 1.3, 0.8, 2.4, 0.05, v => (+v).toFixed(2))}</div>
+        <div class="psec"><span class="cap">Colour</span>
+          <div class="sw"><button data-bcolour="auto" class="auto${b.colour ? '' : ' on'}" title="Automatic — black on light pages, white on dark"></button>${['#141414', '#3a3836', '#8a8784', '#ffffff'].map(c => `<button data-bcolour="${c}" class="${b.colour === c ? 'on' : ''}" style="background:${c}" title="${c}"></button>`).join('')}<input type="color" id="bColourPick" value="${esc(b.colour || '#141414')}" title="Any colour"></div>
+          ${pal.length ? `<span class="cap" style="margin-top:4px">From these stills</span><div class="sw">${pal.map(c => `<button data-bcolour="${esc(c)}" class="pal${b.colour === c ? ' on' : ''}" style="background:${esc(c)}" title="${esc(c)}"></button>`).join('')}</div>` : ''}
+          ${range('bOp', 'Opacity', b.opacity == null ? 1 : b.opacity, 0.1, 1, 0.05, pct)}</div>
+        <div class="psec"><div style="display:flex;gap:6px;flex-wrap:wrap">
+          <button class="light small" id="bAll" title="Every text box, on every page">This font and colour everywhere</button>
+          <button class="light small" id="bDup">Duplicate · ⌘D</button>
+          <button class="light small" id="bDelete">Delete · ⌫</button></div></div>`;
     }
     $('panel').innerHTML = h;
   }
@@ -604,7 +673,7 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
   function usedIds() { const u = new Set(); if (doc) doc.pages.forEach(p => p.pics.forEach(x => u.add(x.id))); return u; }
   function drawTray() {
     const list = trayList(), used = usedIds();
-    $('tray').classList.toggle('tall', traySize === 'L');
+    sizeTray();
     $('trayhead').innerHTML = `
       <span class="cap">Stills</span>
       <div class="seg"><button data-scope="project" class="${scope === 'project' ? 'on' : ''}">${esc(project || 'This project')}</button><button data-scope="vault" class="${scope === 'vault' ? 'on' : ''}">Entire vault</button></div>
@@ -613,7 +682,9 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
       <span style="flex-grow:1"></span>
       ${doc ? `<button class="tbtn" id="addPicked" ${trayPick.size ? '' : 'disabled'} title="Or double-click, or drag them onto the page">Add to page</button>
         <button class="tbtn" id="autoDraft" title="Lays the picked stills — or all of them — out into pages for you, grouped by colour">Lay them out for me</button>` : ''}
-      <div class="seg">${['XS', 'S', 'M', 'L', 'List'].map(k => `<button data-tsize="${k}" class="${traySize === k ? 'on' : ''}">${k}</button>`).join('')}</div>`;
+      <button class="tbtn" id="photosBtn2" title="Photos, or whole folders of them, from your Mac">+ Photos</button>
+      <div class="seg">${['XS', 'S', 'M', 'L', 'List'].map(k => `<button data-tsize="${k}" class="${traySize === k ? 'on' : ''}">${k}</button>`).join('')}</div>
+      <button class="tbtn" id="trayBig" title="Drag the bar above, or double-click it">${trayH > innerHeight * 0.45 ? 'Smaller ⌄' : 'Bigger ⌃'}</button>`;
     const g = $('traygrid');
     g.classList.toggle('list', traySize === 'List');
     const h = TRAY_H[traySize] || 100;
@@ -622,6 +693,22 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
       : `<div class="still${trayPick.has(s.id) ? ' on' : ''}${used.has(s.id) ? ' used' : ''}" data-id="${esc(s.id)}" data-i="${i}" draggable="true" title="${esc(s.title)}" style="height:${h}px;width:${Math.round(h * clamp(s.a || 1.5, 0.4, 3))}px"><img alt="" loading="lazy" src="vault/${esc(encodeURI(s.thumb))}"></div>`).join('')
       : `<div class="empty" style="padding:14px 0">${scope === 'project' ? `No stills in ${esc(project)} yet — grab some, add references in the Vault, or drop pictures right here.` : 'No stills in the vault yet.'}</div>`;
   }
+  // The stills window: drag its top edge, or Bigger / Smaller.
+  const trayMax = () => Math.max(160, innerHeight - 260);
+  function sizeTray() { $('tray').style.height = clamp(trayH, 120, trayMax()) + 'px'; }
+  function setTray(h, keep) {
+    trayH = Math.round(clamp(h, 120, trayMax())); sizeTray();
+    if (keep !== false) setPref('trayH', trayH);
+    const b = $('trayBig'); if (b) b.textContent = trayH > innerHeight * 0.45 ? 'Smaller ⌄' : 'Bigger ⌃';
+    if (doc) drawStage();
+  }
+  const trayToggle = () => setTray(trayH > innerHeight * 0.45 ? 230 : innerHeight * 0.62);
+  let grip = null;
+  $('traygrip').addEventListener('mousedown', e => { if (e.button !== 0) return; e.preventDefault(); grip = { y: e.clientY, h: $('tray').getBoundingClientRect().height }; document.body.classList.add('resizing'); });
+  $('traygrip').addEventListener('dblclick', trayToggle);
+  document.addEventListener('mousemove', e => { if (grip) setTray(grip.h - (e.clientY - grip.y), false); });
+  document.addEventListener('mouseup', () => { if (grip) { grip = null; document.body.classList.remove('resizing'); setPref('trayH', trayH); } });
+
   async function loadStills() {
     const r = await call('designStills', { scope }).catch(() => null);
     stills = (r && r.stills) || [];
@@ -635,10 +722,10 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
     const recent = designs.slice(0, 8);
     $('start').innerHTML = `
       <h1>Needed Design</h1>
-      <p class="lead">Pages from your stills, for ${esc(project || 'this project')}. A mood board is just pictures. A treatment is pictures and words, on one grid — the spacing takes care of itself.</p>
+      <p class="lead">Pages from your stills, for ${esc(project || 'this project')}. A mood board is just pictures. A treatment is pictures and words: the pictures lay themselves out, the words go wherever you put them.</p>
       <div class="choices">
         <button class="g choice" data-new="mood"><div class="pv">${miniPreview('mood')}</div><b>Mood board</b><span>Just pictures, in tight rows. A title, the mark, up to 12 a page. Saves as a mood board.</span></button>
-        <button class="g choice" data-new="treatment"><div class="pv">${miniPreview('treatment')}</div><b>Treatment</b><span>Pictures and words: layouts, type, fades. Saves as a treatment.</span></button>
+        <button class="g choice" data-new="treatment"><div class="pv">${miniPreview('treatment')}</div><b>Treatment</b><span>Pictures laid out for you, text boxes you drag anywhere. Saves as a treatment.</span></button>
       </div>
       ${recent.length ? `<span class="cap">Carry on with</span><div class="recent">${recent.map(d => `<button class="rec g" data-open="${esc(d.rel)}">${d.cover ? `<img alt="" src="vault/${esc(encodeURI(d.cover))}">` : '<div class="ph"></div>'}<b>${esc(d.name)}</b><small>${d.mode === 'mood' ? 'Mood' : 'Treatment'} · ${d.pages} page${d.pages === 1 ? '' : 's'}</small></button>`).join('')}</div>` : ''}`;
   }
@@ -654,28 +741,50 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
   async function openDesign(r) {
     const res = await call('designLoad', { rel: r }).catch(() => null);
     if (!res || !res.ok) return toast((res && res.error) || "Couldn't open that one");
-    doc = normalise(res.doc); rel = r; cur = 0; sel.clear(); tsel = null; reframe = null; undo = []; redo = [];
+    doc = normalise(res.doc); rel = r; cur = 0; sel.clear(); bsel = null; editing = null; reframe = null; undo = []; redo = [];
     setPref('last:' + project, r);
     closeSheet(); draw();
   }
   function normalise(d) {
-    d.styles = Object.assign(defaultStyles(), d.styles || {});
-    d.pages = (d.pages && d.pages.length ? d.pages : [newPage()]).map(p => Object.assign(newPage(), p, { text: Object.assign(newPage().text, p.text || {}) }));
     if (!SIZES[d.size]) d.size = '16:9';
+    d.pages = (d.pages && d.pages.length ? d.pages : [newPage()]).map(p => {
+      const q = Object.assign(newPage(), p);
+      if (!Array.isArray(p.boxes)) q.boxes = boxesFromOld(d, q);
+      delete q.text; delete q.textColour; delete q.textOpacity;
+      return q;
+    });
+    delete d.styles; d.v = 2;
     return d;
+  }
+  // An earlier treatment's words (number, section, heading, body, caption) become text boxes where they were.
+  // Words left in the old house type become Helvetica; anything you'd chosen stays.
+  function boxesFromOld(d, p) {
+    const t = p.text || {}, olds = oldStyles(), st = Object.assign(oldStyles(), d.styles || {});
+    const keys = ['number', 'section', 'heading', 'body', 'caption'].filter(k => (t[k] || '').trim());
+    if (!keys.length) return [];
+    const L = layout(d, p), G = L.G;
+    const T = L.text || { x: G.m, y: G.m, w: (G.W - 2 * G.m) * 0.5, h: G.H - 2 * G.m };
+    const at = stackIn(G, T, keys.map(k => ({ st: st[k], text: t[k] })), T.anchor);
+    return keys.map((k, i) => {
+      const s = st[k], o = olds[k], house = s.font === o.font;
+      return { id: uid(), x: at[i].x / G.W, y: at[i].y / G.H, w: at[i].w / G.W, text: t[k], font: house ? HELV : s.font, size: s.size, weight: +s.weight || 400,
+        italic: house ? false : !!s.italic, upper: !!s.upper, tracking: s.tracking || 0, leading: s.leading || 1.3, align: s.align || 'left',
+        colour: p.textColour || (s.colour === o.colour ? null : s.colour), opacity: p.textOpacity == null ? 1 : p.textOpacity };
+    });
   }
   async function makeNew(mode, ids) {
     const info = await call('designProject').catch(() => ({}));
     const title = (info && info.title) || project;
     doc = newDoc(mode, `${title} ${mode === 'mood' ? 'mood' : 'treatment'}`);
-    rel = null; cur = 0; sel.clear(); tsel = null; undo = []; redo = [];
+    rel = null; cur = 0; sel.clear(); bsel = null; editing = null; undo = []; redo = [];
     if (mode === 'treatment') {
       // It starts from the project: its title on the cover, the client and the director with it.
       const cover = doc.pages[0];
       cover.layout = 'bleed';
-      cover.text.section = (info && info.client) || '';
-      cover.text.heading = title;
-      cover.text.caption = info && info.director ? `Dir. ${info.director}` : '';
+      const G = geometry(doc), L = layout(doc, cover);
+      const items = [['caption', (info && info.client) || ''], ['title', title], ['caption', info && info.director ? `Dir. ${info.director}` : '']].filter(x => x[1]);
+      const at = stackIn(G, L.text, items.map(([k, v]) => ({ st: preset(k), text: v })), 'bottom');
+      cover.boxes = items.map(([k, v], i) => newBox(k, at[i].x / G.W, at[i].y / G.H, at[i].w / G.W, v));
       doc.pages.push(newPage('left'));
     }
     if (ids && ids.length) {
@@ -684,7 +793,7 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
       deal(picks, mode === 'treatment');
     }
     persist(); draw();
-    toast(mode === 'mood' ? 'A new mood board — double-click stills to add them' : 'A new treatment — the cover is from the project');
+    toast(mode === 'mood' ? 'A new mood board — double-click stills to add them' : 'A new treatment — the cover is from the project. T adds text');
   }
 
   // Deal stills into pages: mood boards N a page; treatments alternate layouts.
@@ -784,6 +893,85 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
     toast('A new page, from that picture on');
   }
 
+  /* ---------------------------------------------------------------- text boxes */
+  // A new box: where you double-clicked, or in the page's space for words, under what's there.
+  function addBox(at, text) {
+    if (!doc || doc.mode === 'mood') return;
+    const p = page(), L = layout(doc, p), G = L.G;
+    const T = L.text || { x: G.m, y: G.m, w: (G.W - 2 * G.m) * 0.5, h: G.H - 2 * G.m };
+    const kind = (p.boxes || []).length ? 'body' : 'heading';
+    let x, y, w = T.w;
+    if (at) { x = at.x; y = at.y; w = Math.max(160 * G.u, Math.min(T.w, G.W - G.m - x)); }
+    else {
+      x = T.x; y = L.lay === 'bleed' ? T.y + T.h * 0.55 : T.y;
+      (p.boxes || []).forEach(b => { const el = boxEl(b.id), bx = b.x * G.W; if (el && Math.abs(bx - x) < T.w * 0.5) y = Math.max(y, b.y * G.H + el.offsetHeight + 18 * G.u); });
+      if (y > G.H - G.m - 40 * G.u) y = T.y + 30 * G.u * ((p.boxes || []).length % 6);
+    }
+    x = clamp(x, 0, G.W - w);
+    const b = newBox(kind, x / G.W, clamp(y, 0, G.H - 20 * G.u) / G.H, w / G.W, text || '');
+    change(() => { p.boxes = p.boxes || []; p.boxes.push(b); bsel = b.id; sel.clear(); reframe = null; editing = text ? null : b.id; }, { quiet: true });
+    draw();
+    return b;
+  }
+  function startEditing(id, pt) {
+    if (!boxById(id)) return;
+    bsel = id; editing = id; sel.clear();
+    drawStage(); drawPanel();
+    const el = boxEl(id); if (!el) return;
+    el.focus();
+    const r = pt && document.caretRangeFromPoint ? document.caretRangeFromPoint(pt.x, pt.y) : null;
+    if (r && el.contains(r.startContainer)) { const sl = getSelection(); sl.removeAllRanges(); sl.addRange(r); } else placeCaretEnd(el);
+  }
+  // Done typing. A box left empty goes away.
+  function stopEditing() {
+    if (!editing) return;
+    const id = editing, el = boxEl(id); editing = null;
+    if (el) { el.removeAttribute('contenteditable'); el.blur(); }
+    const b = boxById(id);
+    if (b && !(b.text || '').trim()) { page().boxes = page().boxes.filter(x => x.id !== id); if (bsel === id) bsel = null; persist(); }
+    clearTimeout(drawStrip.t); drawStrip();
+  }
+  function deleteBox(id) { change(() => { page().boxes = page().boxes.filter(x => x.id !== id); }); if (bsel === id) bsel = null; editing = null; draw(); }
+  function dupBox(id) {
+    const b = boxById(id); if (!b) return;
+    const G = geometry(doc), c = Object.assign(clone(b), { id: uid(), x: clamp(b.x + 24 * G.u / G.W, 0, 1 - b.w), y: clamp(b.y + 24 * G.u / G.H, 0, 0.97) });
+    change(() => { page().boxes.push(c); bsel = c.id; });
+  }
+  const editBox = fn => { const b = boxById(bsel); if (b) change(() => fn(b)); };
+  // Where a box snaps as you drag it: the margins, the middle, the pictures' edges, the other boxes.
+  function snapTo(x, y, w, h, id) {
+    const G = geometry(doc), L = layout(doc, page()), tol = 7 / scale;
+    const xs = [G.m, G.W / 2, G.W - G.m], ys = [G.m, G.H / 2, G.H - L.bottom];
+    L.rects.forEach(r => { if (r) { xs.push(r.x, r.x + r.w); ys.push(r.y, r.y + r.h); } });
+    (page().boxes || []).forEach(o => { if (o.id === id) return; const el = boxEl(o.id); xs.push(o.x * G.W, (o.x + o.w) * G.W); ys.push(o.y * G.H); if (el) ys.push(o.y * G.H + el.offsetHeight); });
+    const near = (pairs, lines) => { let best = null; pairs.forEach(([v, off]) => lines.forEach(c => { const d = Math.abs(v - c); if (d <= tol && (!best || d < best.d)) best = { d, pos: c - off, line: c }; })); return best; };
+    const sx = near([[x, 0], [x + w / 2, w / 2], [x + w, w]], xs), sy = near([[y, 0], [y + h / 2, h / 2], [y + h, h]], ys);
+    return { x: sx ? sx.pos : x, y: sy ? sy.pos : y, gx: sx ? sx.line : null, gy: sy ? sy.line : null };
+  }
+
+  /* ---------------------------------------------------------------- photos in bulk */
+  // Lots of photos at once: onto new pages after this one — a few go onto this page.
+  function placeMany(ids) {
+    const picks = ids.map(stillById).filter(Boolean);
+    if (!picks.length) return;
+    if (picks.length <= 6 && (page().pics.length + picks.length) <= 8) { addToPage(picks.map(x => x.id)); return toast(`${picks.length} photo${picks.length === 1 ? '' : 's'} on this page`); }
+    let made = [];
+    change(() => {
+      const pics = picks.map(picFrom);
+      if (doc.mode === 'mood') { const n = doc.perPage || 6; for (let i = 0; i < pics.length; i += n) { const p = newPage('rows'); p.pics = pics.slice(i, i + n); made.push(p); } }
+      else { const cycle = ['left', 'right', 'rows']; for (let i = 0, k = 0; i < pics.length; k++) { const lay = cycle[k % 3], n = lay === 'rows' ? 5 : 3; const p = newPage(lay); p.pics = pics.slice(i, i + n); made.push(p); i += n; } }
+      let at = cur + 1;
+      if (!page().pics.length && !hasWords(page())) { doc.pages.splice(cur, 1); at = cur; }
+      doc.pages.splice(at, 0, ...made);
+      cur = at; sel.clear(); bsel = null;
+    });
+    toast(`${picks.length} photos on ${made.length} new page${made.length === 1 ? '' : 's'} — ⌘Z takes them off`);
+  }
+  async function bringPhotos() {
+    const r = await call('designAddPhotos').catch(() => null);
+    if (!r) toast('Bringing photos in needs the app');
+  }
+
   /* ---------------------------------------------------------------- swap: ↑ ↓ through your stills */
   function swapStep(d) {
     const p = page(); if (sel.size !== 1) return;
@@ -817,28 +1005,29 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
     const d = t.dataset;
     if (d.new) return makeNew(d.new, [...trayPick]);
     if (d.open) return openDesign(d.open);
+    if (t.id === 'photosBtn' || t.id === 'photosBtn2') return bringPhotos();
+    if (t.id === 'trayBig') return trayToggle();
     if (!doc) { if (d.scope || d.tsize) trayHead(d); if (t.classList.contains('still')) trayClick(e, t); return; }
     if (swap && !t.closest('#stage')) swapEnd(true);
+    if (t.id === 'textBtn' || t.id === 'addText') return addBox();
+    if (t.id === 'panelPage') { sel.clear(); bsel = null; reframe = null; stopEditing(); drawStage(); return drawPanel(); }
     if (t.id === 'docsBtn') return openDocs();
     if (d.mode && d.mode !== doc.mode) {
       change(() => { doc.mode = d.mode; if (d.mode === 'treatment') doc.pages.forEach(p => { if (!p.layout) p.layout = 'rows'; }); });
-      panelTab = 'page';
+      bsel = null; editing = null;
       return toast(d.mode === 'mood' ? 'Mood: just pictures — the words are kept, hidden' : 'Treatment: layouts and words');
     }
     if (t.id === 'addPage' || t.id === 'addPage2') { change(() => { doc.pages.splice(t.id === 'addPage2' ? doc.pages.length : cur + 1, 0, newPage(doc.mode === 'mood' ? 'rows' : 'left')); cur = t.id === 'addPage2' ? doc.pages.length - 1 : cur + 1; sel.clear(); }); return; }
-    if (t.id === 'layBtn') return cycleLayout();
     if (t.id === 'breakBtn') return breakHere();
     if (t.id === 'playBtn') return play(true);
     if (t.id === 'keysBtn') return openKeys();
     if (t.id === 'exportBtn') return openExport();
     if (d.delpage != null) { e.stopPropagation(); return removePage(+d.delpage); }
-    if (d.page != null && t.classList.contains('thumb')) { cur = +d.page; sel.clear(); tsel = null; reframe = null; armed = false; return draw(); }
+    if (d.page != null && t.classList.contains('thumb')) { stopEditing(); cur = +d.page; sel.clear(); bsel = null; reframe = null; return draw(); }
     // panel
-    if (d.ptab) { panelTab = d.ptab; return drawPanel(); }
     if (d.lay) { change(() => { page().layout = d.lay; }); return; }
     if (t.id === 'bleedTog') { change(() => { page().bleed = !page().bleed; }); return; }
     if (d.bg) {
-      if (e.altKey && doc.mode !== 'mood') { change(() => { page().textColour = d.textc || d.bg; }); return toast('The words take that colour'); }
       const all = !page().bg;
       change(() => { if (all) doc.bg = d.bg; else page().bg = d.bg; });
       return;
@@ -846,7 +1035,6 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
     if (t.id === 'bgAll') { change(() => { const p = page(); if (p.bg) { doc.bg = p.bg; doc.pages.forEach(x => { x.bg = null; }); } else p.bg = doc.bg; }); return; }
     if (t.id === 'fadeTog') { change(() => { const p = page(); p.fade = Object.assign({ strength: 0.6, to: 'black' }, p.fade || {}, { on: !(p.fade && p.fade.on) }); }); return; }
     if (d.fadeto) { change(() => { page().fade.to = d.fadeto; }); return; }
-    if (t.id === 'textColourOff') { change(() => { page().textColour = null; }); return; }
     if (t.id === 'dupPage') return dupPage();
     if (t.id === 'delPage') return removePage(cur);
     if (t.id === 'deal') return dealAgain();
@@ -854,11 +1042,19 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
     if (t.id === 'reframeBtn') { reframe = reframe == null ? [...sel][0] : null; drawStage(); return drawPanel(); }
     if (t.id === 'reframeReset') { const k = [...sel][0]; change(() => { page().pics[k].crop = { x: 50, y: 50, z: 1 }; }); return; }
     if (t.id === 'removePics') return removePics([...sel]);
-    if (d.style) { tsel = d.style; drawStage(); return drawPanel(); }
-    if (t.id === 'stItalic' || t.id === 'stUpper') { const k = tsel || 'heading'; change(() => { const s = doc.styles[k]; if (t.id === 'stItalic') s.italic = !s.italic; else s.upper = !s.upper; }); return; }
-    if (d.align) { const k = tsel || 'heading'; change(() => { doc.styles[k].align = d.align; }); return; }
-    if (d.stcolour) { const k = tsel || 'heading'; change(() => { doc.styles[k].colour = d.stcolour; }); return; }
-    if (t.id === 'stReset') { const k = tsel || 'heading'; change(() => { doc.styles[k] = defaultStyles()[k]; }); return; }
+    // the text box you picked
+    if (d.preset) return editBox(b => Object.assign(b, preset(d.preset)));
+    if (t.id === 'bItalic') return editBox(b => { b.italic = !b.italic; });
+    if (t.id === 'bUpper') return editBox(b => { b.upper = !b.upper; });
+    if (d.balign) return editBox(b => { b.align = d.balign; });
+    if (d.bcolour) return editBox(b => { b.colour = d.bcolour === 'auto' ? null : d.bcolour; });
+    if (t.id === 'bDelete') return deleteBox(bsel);
+    if (t.id === 'bDup') return dupBox(bsel);
+    if (t.id === 'bAll') {
+      const b = boxById(bsel); if (!b) return;
+      change(() => doc.pages.forEach(p => (p.boxes || []).forEach(x => { x.font = b.font; x.colour = b.colour; })));
+      return toast(`Every text box: ${b.font}, ${b.colour || 'automatic colour'}`);
+    }
     // tray
     if (d.scope || d.tsize) return trayHead(d);
     if (t.id === 'addPicked') { addToPage([...trayPick]); trayPick.clear(); return drawTray(); }
@@ -887,8 +1083,8 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
   document.addEventListener('dblclick', e => {
     const s = e.target.closest('.still');
     if (s && doc) { addToPage([s.dataset.id]); return; }
-    const pic = e.target.closest('#pagewrap .pic');
-    if (pic && doc) { const k = +pic.dataset.k; sel = new Set([k]); reframe = reframe === k ? null : k; drawStage(); drawPanel(); }
+    const tb = e.target.closest('#pagewrap .tb');
+    if (tb && doc && editing !== tb.dataset.b) startEditing(tb.dataset.b, { x: e.clientX, y: e.clientY });
   });
   document.addEventListener('input', e => {
     const t = e.target; if (!doc) { if (t.id === 'trayQ') { trayQ = t.value; drawTrayKeepFocus(); } return; }
@@ -896,40 +1092,44 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
     if (t.id === 'docName') { doc.name = t.value; persist(); return; }
     if (t.id === 'moodTitle') { change(() => { doc.title = t.value; }, { quiet: true }); drawStage(); drawStrip(); return; }
     if (t.classList.contains('tb')) {
-      const k = t.dataset.t;
-      change(() => { page().text[k] = t.textContent; }, { quiet: true });
+      const k = t.dataset.b, b = boxById(k); if (!b) return;
+      change(() => { b.text = t.innerText.replace(/\n$/, ''); }, { quiet: true });
+      drawBoxSel();
       clearTimeout(drawStrip.t); drawStrip.t = setTimeout(drawStrip, 400);
       if (undo.length > 1 && undo[undo.length - 1] && typing.k === k && Date.now() - typing.at < 1200) undo.pop();   // one undo per burst of typing
       typing = { k, at: Date.now() };
       return;
     }
-    const liveRange = { perPage: v => { doc.perPage = +v; }, fadeStr: v => { page().fade.strength = +v; }, textOp: v => { page().textOpacity = +v; },
+    const bx = boxById(bsel) || {};
+    const liveRange = { perPage: v => { doc.perPage = +v; }, fadeStr: v => { page().fade.strength = +v; },
       picOp: v => { [...sel].forEach(k => { page().pics[k].opacity = +v; }); },
-      stSize: v => { doc.styles[tsel || 'heading'].size = +v; }, stTrack: v => { doc.styles[tsel || 'heading'].tracking = +v; }, stLead: v => { doc.styles[tsel || 'heading'].leading = +v; } }[t.id];
+      bSize: v => { bx.size = +v; }, bTrack: v => { bx.tracking = +v; }, bLead: v => { bx.leading = +v; }, bOp: v => { bx.opacity = +v; } }[t.id];
     if (liveRange) {
       const last = rangeBurst.id === t.id && Date.now() - rangeBurst.at < 1500;
       change(() => liveRange(t.value), { quiet: true });
       if (last) undo.pop();
       rangeBurst = { id: t.id, at: Date.now() };
       const v = t.parentElement.querySelector('.val'); if (v) v.textContent = /Op|Str/.test(t.id) ? Math.round(t.value * 100) + '%' : /Track|Lead/.test(t.id) ? (+t.value).toFixed(2) : t.value;
+      if (t.id === 'bSize') { const pb = $('panel').querySelector('.seg [data-preset].on'); if (pb) pb.classList.remove('on'); }
       if (t.id !== 'perPage') { drawStage(); clearTimeout(drawStrip.t); drawStrip.t = setTimeout(drawStrip, 250); }
       else { const b = $('deal'); if (b) b.textContent = `Deal them out again, ${t.value} a page`; }
     }
     if (t.id === 'bgPick') { const all = !page().bg; change(() => { if (all) doc.bg = t.value; else page().bg = t.value; }, { quiet: true }); drawStage(); drawStrip(); }
-    if (t.id === 'stColour') { change(() => { doc.styles[tsel || 'heading'].colour = t.value; }, { quiet: true }); drawStage(); }
+    if (t.id === 'bColourPick') { const b = boxById(bsel); if (b) { change(() => { b.colour = t.value; }, { quiet: true }); drawStage(); } }
   });
   let typing = { k: '', at: 0 }, rangeBurst = { id: '', at: 0 };
   function drawTrayKeepFocus() { const pos = $('trayQ').selectionStart; drawTray(); const q = $('trayQ'); q.focus(); q.setSelectionRange(pos, pos); }
   document.addEventListener('change', async e => {
     const t = e.target; if (!doc) return;
     if (t.id === 'sizeSel') { change(() => { doc.size = t.value; }); return toast(`${SIZE_NAMES[t.value]} — every page re-flows to fit`); }
-    if (t.id === 'stFont') { change(() => { doc.styles[tsel || 'heading'].font = t.value; }); return; }
-    if (t.id === 'stWeight') { change(() => { doc.styles[tsel || 'heading'].weight = +t.value; }); return; }
+    if (t.id === 'bFont') return editBox(b => { b.font = t.value; });
+    if (t.id === 'bWeight') return editBox(b => { b.weight = +t.value; });
     if (t.id === 'docName') { if (rel) { const r = await call('designRename', { rel, name: t.value }).catch(() => null); if (r && r.ok) rel = r.rel; else if (r && r.error) toast(r.error); } }
   });
-  document.addEventListener('focusin', e => {
+  // Leaving a box you were typing in: done with it (it stays picked).
+  document.addEventListener('focusout', e => {
     const t = e.target;
-    if (t.classList && t.classList.contains('tb') && doc) { if (tsel !== t.dataset.t) { tsel = t.dataset.t; panelTab = 'text'; sel.clear(); drawPanel(); } }
+    if (t.classList && t.classList.contains('tb') && editing === t.dataset.b) { stopEditing(); setTimeout(() => { if (doc && !editing) { drawStage(); drawPanel(); } }, 0); }
   });
   document.addEventListener('paste', e => {
     if (!doc || doc.mode === 'mood') return;
@@ -938,40 +1138,65 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
     if (!text) return;
     if (t.classList && t.classList.contains('tb')) return;              // into the words you're in, as usual
     if (/^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName)) return;
-    // Pasted onto the page: the first line is the heading, the rest the body.
+    // Pasted onto the page: a new text box with it in.
     e.preventDefault();
-    const lines = text.replace(/\r/g, '').split('\n');
-    const head = lines.shift().trim(), body = lines.join('\n').trim();
-    change(() => { const p = page(); if (p.layout === 'rows') p.layout = 'left'; p.text.heading = head; if (body) p.text.body = body; });
-    toast('The first line became the heading');
+    addBox(null, text.replace(/\r/g, '').trim());
+    toast('Pasted into a new text box');
   });
 
   /* ---------------------------------------------------------------- the page: select, marquee, reframe, drag */
   let marquee = null, drag = null;
   $('stage').addEventListener('mousedown', e => {
     if (!doc || e.button !== 0) return;
-    const pic = e.target.closest('.pic'), tb = e.target.closest('.tb');
-    if (tb) return;
+    const pic = e.target.closest('.pic'), tb = e.target.closest('#pagewrap .tb'), handle = e.target.closest('#boxsel .h');
+    if (handle && bsel) {                   // a handle: width from the sides, size from the corner
+      const b = boxById(bsel), el = boxEl(bsel); if (!b || !el) return;
+      e.preventDefault();
+      drag = { kind: 'size', h: handle.dataset.h, id: bsel, x0: e.clientX, b: clone(b), before: JSON.stringify(doc), moved: false };
+      return;
+    }
+    if (tb) {                               // a text box: pick it, drag it; click it again to type
+      const id = tb.dataset.b;
+      if (editing === id) return;
+      stopEditing();
+      if (swap) swapEnd(true);
+      const was = bsel === id;
+      bsel = id; sel.clear(); reframe = null;
+      drag = { kind: 'move', id, x0: e.clientX, y0: e.clientY, b: clone(boxById(id)), before: JSON.stringify(doc), moved: false, was, pt: { x: e.clientX, y: e.clientY } };
+      e.preventDefault();
+      if (!was) { drawStage(); drawPanel(); }
+      return;
+    }
+    stopEditing();
+    bsel = null;
     if (swap) swapEnd(true);
+    // Double-clicks are read here: the first click redraws the page, so the browser's own double-click never comes.
+    if (e.detail === 2 && pic && !swap) { const k = +pic.dataset.k; sel = new Set([k]); reframe = reframe === k ? null : k; drawStage(); drawPanel(); return; }
+    if (e.detail === 2 && !pic && doc.mode !== 'mood' && e.target.closest('#pagewrap')) {       // the page: a text box, right there
+      const w = $('pagewrap').getBoundingClientRect();
+      e.preventDefault();
+      addBox({ x: (e.clientX - w.left) / scale, y: (e.clientY - w.top) / scale });
+      return;
+    }
     if (pic) {
       const k = +pic.dataset.k;
       if (reframe === k) { drag = { k, x: e.clientX, y: e.clientY, crop: Object.assign({ x: 50, y: 50, z: 1 }, page().pics[k].crop), before: JSON.stringify(doc) }; e.preventDefault(); return; }
       if (reframe != null) { reframe = null; }
       if (e.metaKey || e.ctrlKey || e.shiftKey) { sel.has(k) ? sel.delete(k) : sel.add(k); }
       else if (!sel.has(k)) sel = new Set([k]);
-      tsel = null; panelTab = 'pic'; armed = false; drawStage(); drawPanel(); drawBar();
+      drawStage(); drawPanel(); drawBar();
       return;
     }
-    // Empty space: start a marquee (and let go of what was picked). A click here also means "type".
+    // Empty space: start a marquee (and let go of what was picked).
     if (reframe != null) reframe = null;
-    armed = !!e.target.closest('#pagewrap');
     const r = $('stage').getBoundingClientRect();
     marquee = { x0: e.clientX, y0: e.clientY, add: e.metaKey || e.shiftKey ? new Set(sel) : new Set(), el: null, rect: r };
-    if (!(e.metaKey || e.shiftKey)) { sel.clear(); tsel = null; }
+    if (!(e.metaKey || e.shiftKey)) sel.clear();
     if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
     drawStage(); drawPanel(); drawBar();
   });
   document.addEventListener('mousemove', e => {
+    if (drag && drag.kind) return boxDrag(e);
     if (drag) {
       const p = page(), pic = p.pics[drag.k]; if (!pic) return;
       const L = layout(doc, p), r = L.rects[drag.k]; if (!r) return;
@@ -992,9 +1217,35 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
     sel = next;
     $('pagewrap').querySelectorAll('.pic').forEach(p => p.classList.toggle('sel', sel.has(+p.dataset.k)));
   });
+  function boxDrag(e) {
+    const b = boxById(drag.id), el = boxEl(drag.id); if (!b || !el) return;
+    if (!drag.moved && Math.abs(e.clientX - drag.x0) + Math.abs(e.clientY - (drag.y0 || e.clientY)) < 4) return;
+    drag.moved = true;
+    const G = geometry(doc), dx = (e.clientX - drag.x0) / scale;
+    if (drag.kind === 'move') {
+      const dy = (e.clientY - drag.y0) / scale, w = b.w * G.W, h = el.offsetHeight;
+      let x = drag.b.x * G.W + dx, y = drag.b.y * G.H + dy, gx = null, gy = null;
+      if (!(e.metaKey || e.ctrlKey)) { const sn = snapTo(x, y, w, h, b.id); x = sn.x; y = sn.y; gx = sn.gx; gy = sn.gy; }   // ⌘ while dragging: no snapping
+      b.x = clamp(x, 0, G.W - w) / G.W; b.y = clamp(y, 0, Math.max(0, G.H - h)) / G.H;
+      guides(gx, gy);
+    } else {
+      const x0 = drag.b.x * G.W, w0 = drag.b.w * G.W, min = 40 * G.u;
+      if (drag.h === 'r') b.w = clamp(w0 + dx, min, G.W - x0) / G.W;
+      else if (drag.h === 'l') { const nx = clamp(x0 + dx, 0, x0 + w0 - min); b.x = nx / G.W; b.w = (x0 + w0 - nx) / G.W; }
+      else { const f = clamp((w0 + dx) / w0, 0.15, 8); b.w = clamp(w0 * f, min, G.W - x0) / G.W; b.size = Math.round(clamp(drag.b.size * f, 4, 400) * 2) / 2; }
+    }
+    Object.assign(el.style, { left: (b.x * G.W).toFixed(1) + 'px', top: (b.y * G.H).toFixed(1) + 'px', width: (b.w * G.W).toFixed(1) + 'px', fontSize: (b.size * G.u).toFixed(1) + 'px' });
+    drawBoxSel();
+  }
   document.addEventListener('mouseup', () => {
+    if (drag && drag.kind) {
+      const d = drag; drag = null; guides(null, null);
+      if (d.moved) { undo.push(d.before); if (undo.length > 120) undo.shift(); redo = []; persist(); drawStrip(); drawPanel(); }
+      else if (d.kind === 'move' && d.was) startEditing(d.id, d.pt);    // a click on the picked box: type in it
+      return;
+    }
     if (drag) { undo.push(drag.before); redo = []; drag = null; persist(); drawStrip(); }
-    if (marquee) { if (marquee.el) marquee.el.remove(); marquee = null; if (sel.size) panelTab = 'pic'; drawPanel(); drawBar(); }
+    if (marquee) { if (marquee.el) marquee.el.remove(); marquee = null; drawPanel(); drawBar(); }
   });
   $('stage').addEventListener('wheel', e => {
     if (reframe == null || !doc) return;
@@ -1132,18 +1383,32 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
     const cmd = e.metaKey || e.ctrlKey;
     if (cmd && e.key.toLowerCase() === 'z') { if (typingIn && t.isContentEditable === false) return; e.preventDefault(); if (t.isContentEditable) t.blur(); return undoIt(!e.shiftKey); }
     if (cmd && e.key.toLowerCase() === 's') { e.preventDefault(); return keepVersion(); }
-    if (cmd && e.key.toLowerCase() === 'd') { e.preventDefault(); return dupPage(); }
-    if (typingIn) { if (e.key === 'Escape' && t.isContentEditable) t.blur(); return; }
+    if (cmd && e.key.toLowerCase() === 'd') { e.preventDefault(); if (editing) return; return bsel ? dupBox(bsel) : dupPage(); }
+    if (typingIn) { if (e.key === 'Escape' && t.isContentEditable) { e.preventDefault(); stopEditing(); drawStage(); drawPanel(); } return; }
     if (swap) {
       if (e.key === 'ArrowUp' || e.key === 'ArrowDown') { e.preventDefault(); return swapStep(e.key === 'ArrowDown' ? 1 : -1); }
       if (e.key === 'Enter') { e.preventDefault(); swapEnd(true); return toast('Kept'); }
       if (e.key === 'Escape') { e.preventDefault(); return swapEnd(false); }
       swapEnd(true);
     }
-    if (e.key === 'Escape') { armed = false; if (reframe != null) { reframe = null; } else { sel.clear(); tsel = null; } drawStage(); drawPanel(); drawBar(); return; }
+    if (e.key === 'Escape') { if (reframe != null) { reframe = null; } else { sel.clear(); bsel = null; } drawStage(); drawPanel(); drawBar(); return; }
     if (e.key === ' ') { e.preventDefault(); return play(true); }
     if (e.key === 'Tab') { e.preventDefault(); $('work').classList.toggle('nopanel'); setTimeout(drawStage, 30); return; }
     if (e.key === '?') { e.preventDefault(); return openKeys(); }
+    if (bsel && boxById(bsel)) {           // a picked text box: nudge, type, delete
+      const b = boxById(bsel), G = geometry(doc);
+      if (e.key.startsWith('Arrow')) {
+        e.preventDefault();
+        const n = (e.shiftKey ? 10 : 1) / scale, el = boxEl(b.id);
+        change(() => {
+          if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') b.x = clamp(b.x * G.W + (e.key === 'ArrowRight' ? n : -n), 0, G.W - b.w * G.W) / G.W;
+          else b.y = clamp(b.y * G.H + (e.key === 'ArrowDown' ? n : -n), 0, G.H - (el ? el.offsetHeight : 0)) / G.H;
+        });
+        return;
+      }
+      if (e.key === 'Enter') { e.preventDefault(); return startEditing(b.id); }
+      if (e.key === 'Backspace' || e.key === 'Delete') { e.preventDefault(); return deleteBox(b.id); }
+    }
     if (sel.size) {
       const ks = [...sel];
       if (e.key === 'ArrowUp' || e.key === 'ArrowDown') { e.preventDefault(); if (sel.size === 1) swapStep(e.key === 'ArrowDown' ? 1 : -1); return; }
@@ -1153,16 +1418,9 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
     } else {
       if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') { e.preventDefault(); cur = clamp(cur + (e.key === 'ArrowRight' ? 1 : -1), 0, doc.pages.length - 1); return draw(); }
     }
-    // L: the next layout — unless you've clicked on the page to type.
-    if (e.key.toLowerCase() === 'l' && !cmd && !armed && doc.mode !== 'mood') { e.preventDefault(); return cycleLayout(); }
-    // Just type: click the page, and a key starts the heading — or the body, if there's a heading.
-    if (armed && doc.mode !== 'mood' && !cmd && !e.altKey && e.key.length === 1 && /\S/.test(e.key)) {
-      const p = page();
-      if (p.layout === 'rows') change(() => { p.layout = 'left'; });
-      const k = p.text.heading ? 'body' : 'heading';
-      const el = $('pagewrap').querySelector(`.tb.${k}`);
-      if (el) { e.preventDefault(); el.focus(); document.execCommand('insertText', false, (p.text[k] && k === 'body' ? (/\s$/.test(p.text[k]) ? '' : ' ') : '') + e.key); placeCaretEnd(el); }
-    }
+    if (cmd || e.altKey || doc.mode === 'mood') return;
+    if (e.key.toLowerCase() === 't') { e.preventDefault(); return addBox(); }
+    if (e.key.toLowerCase() === 'l') { e.preventDefault(); return cycleLayout(); }
   });
   function placeCaretEnd(el) { const r = document.createRange(); r.selectNodeContents(el); r.collapse(false); const s = getSelection(); s.removeAllRanges(); s.addRange(r); }
   async function keepVersion() {
@@ -1204,7 +1462,8 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
     if ($('play').classList.contains('on')) { play(false); return true; }
     if (sheetOpen) { closeSheet(); return true; }
     if (swap) { swapEnd(false); return true; }
-    if (reframe != null || sel.size) { reframe = null; sel.clear(); draw(); return true; }
+    if (editing) { stopEditing(); draw(); return true; }
+    if (reframe != null || sel.size || bsel) { reframe = null; sel.clear(); bsel = null; draw(); return true; }
     return false;
   };
   const closeX = '<button class="close" data-close aria-label="Close">×</button>';
@@ -1222,7 +1481,9 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
   }
   function openKeys() {
     const k = [['↑ ↓', 'Swap the picked picture through your stills — Return keeps, Esc puts it back'], ['← →', 'Move it along the page (nothing picked: the page before or after)'], ['⌘← ⌘→', 'Move it to the page before or after'],
-      ['F', 'Feature it — the hero of its row'], ['⌫', 'Take it off the page'], ['Double-click', 'Reframe: drag inside it, scroll to zoom'], ['L', 'Next layout for this page'], ['Type', 'Start the heading (then the body) — paste a paragraph to split it'],
+      ['F', 'Feature it — the hero of its row'], ['⌫', 'Take it off the page'], ['Double-click', 'A picture: reframe it (drag inside, scroll to zoom) · the page: a text box there'],
+      ['T', 'A new text box'], ['Text box', 'Drag it anywhere · handles for width, the corner for size · click again, or Return, to type · arrows nudge · ⌘ while dragging stops the snapping'],
+      ['L', 'Next layout for this page'], ['Paste', 'Words pasted onto the page become a text box'],
       ['⌘D', 'Duplicate the page'], ['⌘Z  ⇧⌘Z', 'Undo, redo — everything'], ['⌘S', 'Keep a version'], ['Space', 'Play through the pages'], ['Tab', 'Hide the panel — just the page'], ['?', 'These keys']];
     openSheet('keys', `<div class="shead"><div class="grow"><h2>Keys</h2><span class="empty">The same few moves everywhere.</span></div>${closeX}</div>
       <div class="keys">${k.map(([a, b]) => `<kbd>${esc(a)}</kbd><span>${esc(b)}</span>`).join('')}</div>`);
@@ -1312,12 +1573,13 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
     const pick = ids.length ? ids : trayList().filter(s => (s.a || 0) > 0).slice(0, 36).map(s => s.id);
     return makeNew((o && o.mode) || 'mood', pick);
   };
+  // Photos brought in from the Mac (dropped, or + Photos): a few onto this page, lots onto new pages.
   window.__designDropped = items => {
     if (!items || !items.length) return;
-    loadStills().then(() => { if (doc) addToPage(items.map(i => i.id)); else makeNew('mood', items.map(i => i.id)); });
+    loadStills().then(() => { const ids = items.map(i => i.id); if (doc) placeMany(ids); else makeNew('mood', ids); });
   };
   window.__designDrag = on => $('dropveil').classList.toggle('on', !!on);
-  window.addEventListener('resize', () => { if (doc) drawStage(); });
+  window.addEventListener('resize', () => { sizeTray(); if (doc) drawStage(); });
   call('designFonts').then(r => { fonts = (r && r.fonts) || []; }).catch(() => {});
   call('state').then(s => window.__neededShared(s)).catch(() => draw());
 

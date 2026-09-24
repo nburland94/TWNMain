@@ -395,7 +395,8 @@ final class Shell: NSObject, NSApplicationDelegate, NSWindowDelegate, WKScriptMe
         // Needed Design: pictures dropped on it go into the project and onto the page.
         let dp = page("design.html", drop: true)
         if let d = dp as? DropWebView {
-            d.accepts = { urls in urls.contains { Shell.imageExt.contains($0.pathExtension.lowercased()) } }
+            // Photos, or folders of them.
+            d.accepts = { urls in urls.contains { u in Shell.imageExt.contains(u.pathExtension.lowercased()) || u.hasDirectoryPath } }
             d.onFiles = { [weak self] urls in self?.designDrop(urls) }
             d.onHover = { [weak self] on in self?.designPage?.evaluateJavaScript("window.__designDrag && window.__designDrag(\(on))", completionHandler: nil) }
         }

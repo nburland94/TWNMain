@@ -111,6 +111,30 @@ enum Designs {
     }
 
     /// Stills to design with: this project's, or the whole vault's, each with its shape and colours.
+    /// Every photo in these files and folders — folders searched all the way down, in Finder's order.
+    static func pictures(in urls: [URL]) -> [URL] {
+        let fm = FileManager.default
+        let usable: (URL) -> Bool = { u in
+            let e = u.pathExtension.lowercased()
+            return Shell.imageExt.contains(e) && e != "gif"
+        }
+        var out: [URL] = []
+        for u in urls {
+            var isDir: ObjCBool = false
+            guard fm.fileExists(atPath: u.path, isDirectory: &isDir) else { continue }
+            if !isDir.boolValue {
+                if usable(u) { out.append(u) }
+                continue
+            }
+            guard let walk = fm.enumerator(at: u, includingPropertiesForKeys: nil, options: [.skipsHiddenFiles, .skipsPackageDescendants]) else { continue }
+            var found: [URL] = []
+            for case let f as URL in walk where usable(f) { found.append(f) }
+            found.sort { $0.path.localizedStandardCompare($1.path) == .orderedAscending }
+            out.append(contentsOf: found)
+        }
+        return out
+    }
+
     static func stills(scope: String, project: String, aspects: inout [String: Double]) -> [[String: Any]] {
         guard let base = Shared.vault else { return [] }
         VaultStore.shared.load()
@@ -290,6 +314,21 @@ extension Shell {
             if let u = Designs.url((body["rel"] as? String) ?? "") { NSWorkspace.shared.activateFileViewerSelecting([u]) }
             reply(["ok": true], nil)
 
+        case "designAddPhotos":
+            // + Photos: as many as you like — files, or whole folders of them.
+            let panel = NSOpenPanel()
+            panel.allowsMultipleSelection = true
+            panel.canChooseFiles = true
+            panel.canChooseDirectories = true
+            panel.message = "Choose photos — or whole folders of them — for \(project)"
+            panel.prompt = "Bring them in"
+            panel.beginSheetModal(for: window) { r in
+                guard r == .OK else { return reply(["ok": false, "cancelled": true], nil) }
+                let urls = panel.urls
+                reply(["ok": true, "chosen": urls.count], nil)
+                self.designImport(urls)
+            }
+
         case "openDesign":
             // From the Vault or the project page: Needed Design, with these stills already placed.
             show("design")
@@ -353,28 +392,100 @@ extension Shell {
         return config
     }
 
-    /// Pictures dropped on Needed Design: into the project as references, then onto the page.
+    /// Pictures dropped on Needed Design — files or whole folders: into the project as references, then onto pages.
     func designDrop(_ urls: [URL]) {
+        designImport(urls)
+    }
+
+    /// Photos in bulk: copied into <P>_Vault as references off the main thread, then added to the vault a few at a
+    /// time (each gets its thumbnail and colours), with the progress bar going. The page places them when they're in.
+    func designImport(_ urls: [URL]) {
         let project = Shared.project
+        let files = Designs.pictures(in: urls)
+        guard !files.isEmpty else {
+            Shell.post("No photos there", "Nothing you chose was a photo Needed Design can use.")
+            return
+        }
         let v = vaultHost
-        var added: [[String: Any]] = []
+        guard let folder = v.outputFolder("Stills", project: project, area: "References") else { return }
+        // Where each goes, planned first, so two photos with the same name each keep their own.
+        var planned = Set<String>()
+        var jobs: [(from: URL, to: URL)] = []
+        for u in files {
+            var target = v.uniqueURL(in: folder, name: u.lastPathComponent)
+            var n = 2
+            while planned.contains(target.path) {
+                let stem = u.deletingPathExtension().lastPathComponent
+                let ext = u.pathExtension
+                target = v.uniqueURL(in: folder, name: ext.isEmpty ? "\(stem) \(n)" : "\(stem) \(n).\(ext)")
+                n += 1
+            }
+            planned.insert(target.path)
+            jobs.append((from: u, to: target))
+        }
+        let view = designPage
+        let total = jobs.count
+        view?.evaluateJavaScript("window.__neededLoad && window.__neededLoad.start(\(Shell.js("Bringing in \(total) photo\(total == 1 ? "" : "s")")))", completionHandler: nil)
+        let copyJobs = jobs
+        DispatchQueue.global(qos: .userInitiated).async {
+            var copied: [URL] = []
+            for (i, j) in copyJobs.enumerated() {
+                if (try? FileManager.default.copyItem(at: j.from, to: j.to)) != nil { copied.append(j.to) }
+                if i % 10 == 9 {
+                    let f = 0.4 * Double(i + 1) / Double(max(1, total))
+                    DispatchQueue.main.async { view?.evaluateJavaScript("window.__neededLoad && window.__neededLoad.set(\(f))", completionHandler: nil) }
+                }
+            }
+            let done = copied
+            DispatchQueue.main.async { self.designRegister(done, project: project, total: total) }
+        }
+    }
+
+    /// Into the vault, twelve at a time so the window keeps moving.
+    func designRegister(_ files: [URL], project: String, total: Int) {
+        let view = designPage
+        var ids: [String] = []
+        var at = 0
         VaultStore.shared.holdSaves = true
         VaultStore.shared.load()
-        for u in urls where Shell.imageExt.contains(u.pathExtension.lowercased()) && u.pathExtension.lowercased() != "gif" {
-            guard let folder = v.outputFolder("Stills", project: project, area: "References") else { continue }
-            let target = v.uniqueURL(in: folder, name: u.lastPathComponent)
-            guard (try? FileManager.default.copyItem(at: u, to: target)) != nil else { continue }
-            let meta: [String: Any] = ["source": ["type": "file", "title": u.deletingPathExtension().lastPathComponent], "origin": "reference"]
-            let it = VaultStore.shared.register(kind: "still", file: target, meta: meta, project: project)
-            if let id = it["id"] as? String { added.append(["id": id]) }
+        func finish() {
+            VaultStore.shared.holdSaves = false
+            VaultStore.shared.save()
+            view?.evaluateJavaScript("window.__neededLoad && window.__neededLoad.done()", completionHandler: nil)
+            let missed = total - ids.count
+            guard !ids.isEmpty else {
+                Shell.post("Couldn't bring them in", "None of the \(total) photos could be copied into \(project).")
+                return
+            }
+            Shell.post("\(ids.count) photo\(ids.count == 1 ? "" : "s") in \(project)",
+                       "In \(project)_Vault as references, with their colours" + (missed > 0 ? " — \(missed) couldn't be copied." : "."))
+            let wanted = Set(ids)
+            var rank: [String: Int] = [:]
+            for (i, id) in ids.enumerated() { rank[id] = i }
+            let all = Designs.stills(scope: "project", project: project, aspects: &self.designAspects)
+            let picked = all.filter { wanted.contains(($0["id"] as? String) ?? "") }
+            let key: ([String: Any]) -> Int = { rank[($0["id"] as? String) ?? ""] ?? 0 }
+            let items = picked.sorted { key($0) < key($1) }
+            if let d = try? JSONSerialization.data(withJSONObject: items), let json = String(data: d, encoding: .utf8) {
+                view?.evaluateJavaScript("window.__designDropped && window.__designDropped(\(json))", completionHandler: nil)
+            }
         }
-        VaultStore.shared.holdSaves = false
-        VaultStore.shared.save()
-        guard !added.isEmpty else { return }
-        Shell.post("Added to \(project)", "\(added.count) still\(added.count == 1 ? "" : "s"), as references — and onto the page.")
-        let items = Designs.stills(scope: "project", project: project, aspects: &designAspects).filter { s in added.contains { ($0["id"] as? String) == (s["id"] as? String) } }
-        if let d = try? JSONSerialization.data(withJSONObject: items), let json = String(data: d, encoding: .utf8) {
-            designPage?.evaluateJavaScript("window.__designDropped && window.__designDropped(\(json))", completionHandler: nil)
+        func step() {
+            let end = min(files.count, at + 12)
+            while at < end {
+                let u = files[at]
+                let meta: [String: Any] = ["source": ["type": "file", "title": u.deletingPathExtension().lastPathComponent], "origin": "reference"]
+                if let id = VaultStore.shared.register(kind: "still", file: u, meta: meta, project: project)["id"] as? String { ids.append(id) }
+                at += 1
+            }
+            let f = 0.4 + 0.6 * Double(at) / Double(max(1, files.count))
+            view?.evaluateJavaScript("window.__neededLoad && window.__neededLoad.set(\(f))", completionHandler: nil)
+            if at < files.count {
+                DispatchQueue.main.async { step() }
+            } else {
+                finish()
+            }
         }
+        step()
     }
 }
