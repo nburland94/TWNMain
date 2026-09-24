@@ -413,3 +413,23 @@ ROUND 8 — DESIGN LIKE KEYNOTE, AND A CLEAN LOGO
   • The logo: redrawn from a clean trace at four times the size, so it's
     sharp everywhere — the bar, welcome, sign-in, every tool, and the
     exports. In dark mode it's plain white.
+
+ROUND 9 — DESIGN, SIMPLER AND FILLED FOR YOU
+  • The panel runs the full height, from under the toolbar to the bottom of
+    the window. No Style / Text / Arrange tabs: one column — for words, the
+    words, then the box, then "Place it"; for pictures, the picture, its
+    look, then where it sits (on Free pages).
+  • New mood boards and treatments fill themselves with the project's
+    stills (or the ones you picked). "Pictures a page" (1–12, for both)
+    re-deals the pages as you slide, from all the stills, so 12 really means
+    12. From: The project / Picked. Stills you take off stay off when it
+    re-deals; "Bring back" returns them. In treatments the cover, Free pages
+    and words-only pages keep their pictures, and pages with words keep
+    them.
+  • ↑ ↓ still works when every still is on a page: it runs through them all;
+    keeping one from another page trades their places, so nothing doubles.
+    Adding a still that's already on a page moves it.
+  • Right-click picked stills in the tray: add them to this page (Return), to
+    a new page, lay them out on new pages, make a mood board, show in the
+    Vault, pick none.
+  • The guide no longer mentions Keynote, and describes the one panel.

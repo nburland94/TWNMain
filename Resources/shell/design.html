@@ -23,7 +23,11 @@
 <style id="editorCss">
 body{background:#fbf3ed;overflow:hidden}
 .glow{position:fixed;inset:0;background:radial-gradient(ellipse 72% 70% at 50% 48%,#f7bf99 0%,#f9cfb1 26%,#fbdfca 50%,#fcebdf 72%,#fdf5ef 100%);opacity:0.8;pointer-events:none}
-#app{position:relative;height:100vh;display:grid;grid-template-rows:56px 96px minmax(0,1fr) auto;min-width:0}
+/* The panel runs the whole height under the toolbar, beside the pages, the page and the stills. */
+#app{position:relative;height:100vh;display:grid;grid-template-columns:minmax(0,1fr) 300px;grid-template-rows:56px 96px minmax(0,1fr) auto;grid-template-areas:"bar bar" "strip panel" "work panel" "tray panel";min-width:0}
+#app>.bar{grid-area:bar}#app>.strip{grid-area:strip}#app>.work{grid-area:work}#app>.tray{grid-area:tray}#app>.panel{grid-area:panel}
+#app.nopanel{grid-template-columns:minmax(0,1fr) 0}
+#app.nopanel>.panel{display:none}
 .cap{font-family:'Courier Prime',monospace;font-size:10.5px;letter-spacing:0.18em;text-transform:uppercase;color:#7a5a48}
 .mono{font-family:'Courier Prime',monospace}
 .g{background:linear-gradient(160deg,rgba(255,255,255,0.66),rgba(255,255,255,0.42));border:1px solid rgba(255,255,255,0.85);box-shadow:inset 0 1px 0 rgba(255,255,255,0.95),0 14px 40px rgba(160,70,20,0.08);-webkit-backdrop-filter:blur(26px) saturate(1.5);backdrop-filter:blur(26px) saturate(1.5)}
@@ -61,9 +65,7 @@ select.sel{appearance:none;-webkit-appearance:none;border:1px solid rgba(28,28,2
 .addpage{flex-shrink:0;height:66px;width:48px;margin-left:6px;border-radius:6px;border:1.5px dashed rgba(28,28,28,0.2);background:rgba(255,255,255,0.35);font-size:20px;color:#8a7a72}
 
 /* stage and panel */
-.work{display:grid;grid-template-columns:minmax(0,1fr) 300px;min-height:0}
-.work.nopanel{grid-template-columns:minmax(0,1fr) 0}
-.work.nopanel .panel{display:none}
+.work{display:grid;grid-template-columns:minmax(0,1fr);min-height:0;min-width:0}
 .stage{position:relative;display:flex;align-items:center;justify-content:center;min-width:0;min-height:0;overflow:hidden}
 .pagewrap{position:relative;box-shadow:0 20px 60px rgba(80,30,10,0.16),0 0 0 0.5px rgba(0,0,0,0.1)}
 .pagewrap .pg{transform-origin:0 0;position:absolute;left:0;top:0}
@@ -103,6 +105,8 @@ select.sel{appearance:none;-webkit-appearance:none;border:1px solid rgba(28,28,2
 .panel .phead{display:flex;align-items:baseline;justify-content:space-between;gap:8px}
 .panel .phead b{font-weight:300;font-size:22px}
 .light.small{padding:7px 12px;font-size:12.5px}
+.kdiv{border-top:1px solid rgba(28,28,28,0.08);margin:2px 0 -4px}
+.ksec{font-family:'Courier Prime',monospace;font-size:10.5px;letter-spacing:0.18em;text-transform:uppercase;color:#7a5a48;margin-bottom:-6px}
 .ktabs{display:grid;grid-template-columns:repeat(auto-fit,minmax(0,1fr))}
 .ktabs button{text-align:center}
 .klabel{font-size:12.5px;font-weight:500;color:#2a2926}
@@ -222,6 +226,15 @@ body.resizing,body.resizing *{cursor:ns-resize!important;user-select:none}
 .drow .x{margin-left:auto;border:none;background:none;color:#a08a7e;font-size:15px;opacity:0}
 .drow:hover .x{opacity:1}
 
+/* right-click on picked stills */
+.ctxmenu[hidden]{display:none}
+.ctxmenu{position:fixed;z-index:95;min-width:230px;padding:5px;border-radius:10px;font-size:13px;background:linear-gradient(160deg,rgba(255,255,255,0.95),rgba(255,255,255,0.86));border:1px solid rgba(255,255,255,0.95);box-shadow:0 18px 50px rgba(80,30,10,0.22),0 0 0 0.5px rgba(0,0,0,0.12);-webkit-backdrop-filter:blur(26px);backdrop-filter:blur(26px)}
+.ctxmenu button{display:flex;justify-content:space-between;gap:24px;width:100%;border:none;background:transparent;text-align:left;padding:6px 12px;border-radius:6px;font-size:13px;color:#141414}
+.ctxmenu button small{color:#8a8784;font-size:11.5px}
+.ctxmenu button.hi,.ctxmenu button:hover{background:#F05A22;color:#fff}
+.ctxmenu button.hi small,.ctxmenu button:hover small{color:rgba(255,255,255,0.8)}
+.ctxmenu hr{border:none;border-top:1px solid rgba(28,28,28,0.1);margin:4px 6px}
+
 /* the guide */
 .gstep{display:grid;grid-template-columns:300px minmax(0,1fr);gap:24px;align-items:center}
 .gstep p{margin:0;font-size:15px;line-height:1.65;color:#2a2926}
@@ -244,7 +257,7 @@ body.resizing,body.resizing *{cursor:ns-resize!important;user-select:none}
 .dropveil.on{opacity:1}
 .toast{position:fixed;left:50%;bottom:24px;transform:translate(-50%,10px);z-index:90;background:#141414;color:#fff;border-radius:100px;padding:10px 18px;font-size:13px;opacity:0;pointer-events:none;transition:opacity .25s var(--ease-out),transform .25s var(--ease-out)}
 .toast.show{opacity:1;transform:translate(-50%,0)}
-@media (max-width:1200px){.work{grid-template-columns:minmax(0,1fr) 260px}.name{width:150px}.bar .hidenarrow{display:none}}
+@media (max-width:1200px){#app{grid-template-columns:minmax(0,1fr) 270px}.name{width:150px}.bar .hidenarrow{display:none}}
 </style></head>
 <body>
 <script>
@@ -257,8 +270,8 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
   <div class="strip" id="strip"></div>
   <div class="work" id="work">
     <div class="stage" id="stage"><div class="pagewrap" id="pagewrap"></div><div class="boxsel" id="boxsel" hidden><i class="h" data-h="l"></i><i class="h" data-h="r"></i><i class="h" data-h="br"></i><i class="h" data-h="b"></i></div><div class="guide v" id="guideX" hidden></div><div class="guide hz" id="guideY" hidden></div><div class="swapbar g" id="swapbar" hidden></div><div class="stagehint" id="stagehint"></div></div>
-    <aside class="panel" id="panel"></aside>
   </div>
+  <aside class="panel" id="panel"></aside>
   <div class="tray" id="tray">
     <div class="traygrip" id="traygrip" title="Drag to make the stills bigger or smaller — double-click to switch"></div>
     <div class="trayhead" id="trayhead"></div>
@@ -270,6 +283,7 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
 <div class="play" id="play"></div>
 <div class="dropveil" id="dropveil">Drop photos or folders — as many as you like</div>
 <div class="toast" id="toast"></div>
+<div class="ctxmenu" id="ctxmenu" role="menu" hidden></div>
 <script src="load.js"></script>
 <script>
 (function () {
@@ -286,8 +300,8 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
   /* ================================================================ the page model */
   const SIZES = { '16:9': [1920, 1080], '2:1': [2160, 1080], '4:3': [1440, 1080], 'A4': [1754, 1240], '1:1': [1080, 1080], '4:5': [1080, 1350], '9:16': [1080, 1920] };
   const SIZE_NAMES = { '16:9': '16:9 · 1920 × 1080', '2:1': '2:1 wide', '4:3': '4:3', 'A4': 'A4 landscape', '1:1': '1:1 square', '4:5': '4:5 portrait', '9:16': '9:16 vertical' };
-  const LAYOUTS = [['rows', 'Rows of pictures'], ['left', 'Pictures left, words right'], ['right', 'Words left, pictures right'], ['bleed', 'Full bleed, words on it'], ['text', 'Words only'], ['free', 'Free — place pictures anywhere, like Keynote']];
-  // Words are text boxes, like Keynote: put one anywhere, drag it, size it. Helvetica unless you say otherwise.
+  const LAYOUTS = [['rows', 'Rows of pictures'], ['left', 'Pictures left, words right'], ['right', 'Words left, pictures right'], ['bleed', 'Full bleed, words on it'], ['text', 'Words only'], ['free', 'Free — place pictures anywhere by hand']];
+  // Words are text boxes: put one anywhere, drag it, size it. Helvetica unless you say otherwise.
   const HELV = 'Helvetica Neue';
   const BUNDLED = ['Helvetica Neue', 'Helvetica', 'Raleway', 'Oswald', 'Cormorant Garamond', 'Inter', 'Courier Prime'];
   const PRESETS = [
@@ -538,7 +552,7 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
   function draw() {
     const on = !!doc;
     $('start').hidden = on;
-    ['bar', 'strip', 'work', 'tray'].forEach(id => { $(id).style.visibility = on ? '' : 'hidden'; });
+    ['bar', 'strip', 'work', 'tray', 'panel'].forEach(id => { $(id).style.visibility = on ? '' : 'hidden'; });
     if (!on) { drawStart(); drawTray(); return; }
     drawBar(); drawStrip(); drawStage(); drawPanel(); drawTray();
   }
@@ -641,7 +655,7 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
     text: '<b style="left:8px;top:9px;width:50%"></b><b style="left:8px;top:15px;width:62%"></b><b style="left:8px;top:21px;width:44%"></b><b style="left:8px;top:27px;width:56%"></b>',
     free: '<i style="left:5px;top:5px;width:40%;height:15px;transform:rotate(-4deg)"></i><i style="right:6px;top:11px;width:34%;height:12px"></i><i style="left:30%;bottom:5px;width:38%;height:11px;background:#6b5d55"></i>',
   }[k]);
-  // Small drawn icons for the inspector, Keynote's own shapes.
+  // Small drawn icons for the panel.
   const ICON = {
     left: '<svg viewBox="0 0 16 12"><path d="M1 1h14M1 4.3h9M1 7.6h14M1 11h9"/></svg>', center: '<svg viewBox="0 0 16 12"><path d="M1 1h14M3.5 4.3h9M1 7.6h14M3.5 11h9"/></svg>',
     right: '<svg viewBox="0 0 16 12"><path d="M1 1h14M6 4.3h9M1 7.6h14M6 11h9"/></svg>', justify: '<svg viewBox="0 0 16 12"><path d="M1 1h14M1 4.3h14M1 7.6h14M1 11h14"/></svg>',
@@ -654,7 +668,7 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
   };
   const paletteOf = pics => { const seen = new Set(), out = []; pics.forEach(p => (p.palette || []).slice(0, 4).forEach(c => { const k = String(c).toLowerCase(); if (!seen.has(k)) { seen.add(k); out.push(c); } })); return out.slice(0, 14); };
 
-  // The inspector for what's picked, laid out like Keynote's Format panel: Style · Text (or Picture) · Arrange.
+  // The panel for what's picked.
   let inspTab = { text: 'text', pic: 'pic' };
   const num = (id, v, unit, step, dis) => `<span class="knum"><input type="number" id="${id}" value="${v}" step="${step || 1}"${dis ? ' disabled' : ''}><i>${unit || ''}</i></span>`;
   const colourRow = (attr, now, pal, pickId, auto) => `<div class="sw">${auto ? `<button data-${attr}="auto" class="auto${now ? '' : ' on'}" title="Automatic — black on light pages, white on dark"></button>` : ''}${['#141414', '#3a3836', '#8a8784', '#ffffff', '#F05A22'].map(c => `<button data-${attr}="${c}" class="${now === c ? 'on' : ''}" style="background:${c}" title="${c}"></button>`).join('')}<input type="color" id="${pickId}" value="${esc(now && now !== 'auto' ? now : '#141414')}" title="Any colour"></div>`
@@ -666,16 +680,20 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
     if (sel.size === 1 && layoutOf(doc, p) === 'free') { const k = [...sel][0]; return p.pics[k] ? { kind: 'pic', o: p.pics[k], k } : null; }
     return null;
   }
+  // One column, no tabs: for words — the words, the box, where it sits; for pictures — the picture, its look, where it sits.
   function inspector(ctx, p, b, pal, range, pct) {
+    const parts = ctx === 'text' ? [['text', ''], ['style', 'Box'], ['arrange', 'Place it']]
+      : doc.mode === 'mood' ? [['pic', ''], ['style', 'Look']] : [['pic', ''], ['style', 'Look'], ['arrange', 'Place it']];
+    return parts.map(([tab, title]) => { const inner = inspectorPart(ctx, tab, p, b, pal, range, pct); return inner ? (title ? `<div class="kdiv"></div><span class="ksec">${title}</span>` : '') + inner : ''; }).join('');
+  }
+  function inspectorPart(ctx, tab, p, b, pal, range, pct) {
     const G = geometry(doc), pt = v => Math.round(v * 10) / 10;
-    const tabs = ctx === 'text' ? [['style', 'Style'], ['text', 'Text'], ['arrange', 'Arrange']] : doc.mode === 'mood' ? [['pic', 'Picture'], ['style', 'Style']] : [['pic', 'Picture'], ['style', 'Style'], ['arrange', 'Arrange']];
-    const tab = tabs.some(t => t[0] === inspTab[ctx]) ? inspTab[ctx] : ctx === 'text' ? 'text' : 'pic';
-    let h = `<div class="seg ktabs">${tabs.map(([k, n]) => `<button data-itab="${k}" class="${tab === k ? 'on' : ''}">${n}</button>`).join('')}</div>`;
+    let h = '';
     const ks = [...sel], one = ctx === 'pic' && ks.length === 1 ? p.pics[ks[0]] : null, free = layoutOf(doc, p) === 'free';
     if (tab === 'arrange') {
       const t = arrangeTarget();
-      if (!t) return h + `<div class="psec"><span class="empty">${ks.length > 1 ? 'Pick one picture to arrange it.' : 'Pictures on this page lay themselves out — that’s the quick way. To place them by hand, like Keynote, make the page Free.'}</span>
-        ${ks.length > 1 ? '' : '<button class="light small" id="makeFree" style="align-self:flex-start">Make this page Free</button>'}</div>
+      if (!t) return ks.length > 1 ? '' : `<div class="psec"><span class="empty">Pictures on this page lay themselves out. To place them by hand, make the page Free.</span>
+        <button class="light small" id="makeFree" style="align-self:flex-start">Make this page Free</button></div>
         <div class="hintk"><kbd>←</kbd> <kbd>→</kbd> move it along the row<br><kbd>⌘</kbd><kbd>←</kbd> <kbd>→</kbd> to the page before or after</div>`;
       const o = t.o, r = t.kind === 'box' ? { x: o.x, y: o.y, w: o.w, h: null } : (o.box || defaultBox(G, o, t.k));
       const el = t.kind === 'box' ? boxEl(o.id) : null;
@@ -746,9 +764,14 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
     if (ctx === 'page') {
       const bgNow = p.bg || doc.bg;
       const presets = ['#f4f1ec', '#ffffff', '#ece6dc', '#141414', '#0a0a0a', '#1e2227'];
+      const pickedN = doc.from === 'picked' ? (doc.fromIds || []).length : trayPick.size, offN = (doc.off || []).length;
+      h += `
+        <div class="psec"><span class="cap">Pictures a page</span>${range('perPage', '', perOf(), 1, 12, 1)}
+          <span class="empty" id="dealInfo" style="margin-top:-4px">${esc(dealInfo())}</span>
+          <span class="cap" style="margin-top:4px">From</span>
+          <div class="seg"><button data-from="project" class="${doc.from !== 'picked' ? 'on' : ''}">The project</button><button data-from="picked" class="${doc.from === 'picked' ? 'on' : ''}" title="The stills picked in the tray">Picked${pickedN ? ` (${pickedN})` : ''}</button></div>
+          ${offN ? `<button class="tbtn" id="unOff" style="align-self:flex-start;padding-left:0">Bring back the ${offN} taken off</button>` : ''}</div>`;
       h += mood ? `
-        <div class="psec"><span class="cap">Pictures a page</span>${range('perPage', '', doc.perPage || 6, 1, 12, 1)}
-          <button class="light small" id="deal" style="align-self:flex-start">Deal them out again, ${doc.perPage || 6} a page</button></div>
         <div class="psec"><span class="cap">Title — top left of every page</span><div class="prow"><input type="text" id="moodTitle" value="${esc(doc.title || '')}" placeholder="Optional" style="flex-grow:1"></div></div>`
       : `
         <div class="psec"><span class="cap">Where the pictures go</span><div class="lays">${LAYOUTS.map(([k, n]) => `<button class="lay${p.layout === k ? ' on' : ''}" data-lay="${k}" title="${esc(n)}" aria-label="${esc(n)}">${layIcon(k)}</button>`).join('')}</div>
@@ -794,8 +817,7 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
       <input class="q" id="trayQ" placeholder="Search" value="${esc(trayQ)}" spellcheck="false">
       <span class="count">${list.length} still${list.length === 1 ? '' : 's'}${trayPick.size ? ` · ${trayPick.size} picked` : ''}</span>
       <span style="flex-grow:1"></span>
-      ${doc ? `<button class="tbtn" id="addPicked" ${trayPick.size ? '' : 'disabled'} title="Or double-click, or drag them onto the page">Add to page</button>
-        <button class="tbtn" id="autoDraft" title="Lays the picked stills — or all of them — out into pages for you, grouped by colour">Lay them out for me</button>` : ''}
+      ${doc ? `<button class="tbtn" id="addPicked" ${trayPick.size ? '' : 'disabled'} title="Or double-click, drag them onto the page, or right-click for more">Add to page</button>` : ''}
       <button class="tbtn" id="photosBtn2" title="Photos, or whole folders of them, from your Mac">+ Photos</button>
       <div class="seg">${['XS', 'S', 'M', 'L', 'List'].map(k => `<button data-tsize="${k}" class="${traySize === k ? 'on' : ''}">${k}</button>`).join('')}</div>
       <button class="tbtn" id="trayBig" title="Drag the bar above, or double-click it">${trayH > innerHeight * 0.45 ? 'Smaller ⌄' : 'Bigger ⌃'}</button>`;
@@ -827,9 +849,19 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
     const r = await call('designStills', { scope }).catch(() => null);
     stills = (r && r.stills) || [];
     drawTray();
+    await loadProjStills();
   }
-  const stillById = id => stills.find(s => s.id === id);
-  const picFrom = s => ({ id: s.id, file: s.file, thumb: s.thumb, a: s.a || 1.5, palette: (s.palette || []).slice(0, 6), title: s.title || '', project: s.project || '', crop: { x: 50, y: 50, z: 1 }, opacity: 1, featured: false });
+  // The project's own stills, whatever the tray is showing: what new designs and "Pictures a page" deal from.
+  let projStills = [];
+  async function loadProjStills() {
+    if (scope === 'project') { projStills = stills; return; }
+    const r = await call('designStills', { scope: 'project' }).catch(() => null);
+    projStills = (r && r.stills) || [];
+  }
+  const stillById = id => stills.find(s => s.id === id) || projStills.find(s => s.id === id);
+  // A still coming onto a page is wanted again, if it had been taken off.
+  const picFrom = s => { if (doc && doc.off && doc.off.includes(s.id)) doc.off = doc.off.filter(x => x !== s.id); return picFromRaw(s); };
+  const picFromRaw = s => ({ id: s.id, file: s.file, thumb: s.thumb, a: s.a || 1.5, palette: (s.palette || []).slice(0, 6), title: s.title || '', project: s.project || '', crop: { x: 50, y: 50, z: 1 }, opacity: 1, featured: false });
 
   /* ---------------------------------------------------------------- the start: pick Mood or Treatment */
   function drawStart() {
@@ -887,6 +919,44 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
         colour: p.textColour || (s.colour === o.colour ? null : s.colour), opacity: p.textOpacity == null ? 1 : p.textOpacity };
     });
   }
+  /* ---------------------------------------------------------------- pictures a page: dealt for you */
+  const DEAL_MAX = 120;                         // a design deals at most this many stills; add more by hand
+  const perOf = () => doc.mode === 'mood' ? (doc.perPage || 6) : (doc.tPerPage || 3);
+  // Which pages the dealing fills: every mood page; in a treatment, all but the cover, Free pages and pages of words only.
+  const isDealt = (p, i) => doc.mode === 'mood' || !((i === 0 && p.layout === 'bleed') || p.layout === 'free' || p.layout === 'text');
+  function dealPool() {
+    const off = new Set(doc.off || []), picked = doc.from === 'picked' ? new Set(doc.fromIds || []) : null;
+    const held = new Set(), seen = new Set(), pool = [];
+    doc.pages.forEach((p, i) => { if (!isDealt(p, i)) p.pics.forEach(x => held.add(x.id)); });
+    // what's already dealt, in its order (your swaps and moves kept), then the rest of the source
+    doc.pages.forEach((p, i) => { if (isDealt(p, i)) p.pics.forEach(x => { if (!seen.has(x.id) && !off.has(x.id) && !held.has(x.id) && (!picked || picked.has(x.id))) { seen.add(x.id); pool.push(x); } }); });
+    const src = picked ? [...picked].map(stillById).filter(Boolean) : projStills;
+    for (const st of src) { if (pool.length >= DEAL_MAX) break; if (!seen.has(st.id) && !off.has(st.id) && !held.has(st.id)) { seen.add(st.id); pool.push(picFromRaw(st)); } }
+    return pool;
+  }
+  function redeal() {
+    const n = perOf(), pool = dealPool(), chunks = [];
+    for (let i = 0; i < pool.length; i += n) chunks.push(pool.slice(i, i + n));
+    if (doc.mode === 'mood') {
+      doc.pages = chunks.map((c, i) => { const p = doc.pages[i] || newPage('rows'); p.pics = c; return p; });
+      if (!doc.pages.length) doc.pages = [newPage('rows')];
+    } else {
+      const out = []; let c = 0;
+      doc.pages.forEach((p, i) => {
+        if (!isDealt(p, i)) { out.push(p); return; }
+        if (c < chunks.length) { p.pics = chunks[c++]; out.push(p); }
+        else if (hasWords(p)) { p.pics = []; out.push(p); }     // its words stay, waiting for pictures
+      });
+      const cycle = ['left', 'right', 'rows'];
+      while (c < chunks.length) { const p = newPage(n > 4 ? 'rows' : cycle[out.length % 3]); p.pics = chunks[c++]; out.push(p); }
+      doc.pages = out.length ? out : [newPage('left')];
+    }
+    cur = clamp(cur, 0, doc.pages.length - 1);
+    sel.clear();
+    return pool.length;
+  }
+  const dealInfo = () => { const n = dealPool().length; return `${n} still${n === 1 ? '' : 's'} → ${Math.ceil(n / perOf()) || 0} page${Math.ceil(n / perOf()) === 1 ? '' : 's'}, changing as you slide`; };
+
   async function makeNew(mode, ids) {
     const info = await call('designProject').catch(() => ({}));
     const title = (info && info.title) || project;
@@ -900,16 +970,23 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
       const items = [['caption', (info && info.client) || ''], ['title', title], ['caption', info && info.director ? `Dir. ${info.director}` : '']].filter(x => x[1]);
       const at = stackIn(G, L.text, items.map(([k, v]) => ({ st: preset(k), text: v })), 'bottom');
       cover.boxes = items.map(([k, v], i) => newBox(k, at[i].x / G.W, at[i].y / G.H, at[i].w / G.W, v));
-      doc.pages.push(newPage('left'));
     }
+    // It fills itself: the stills you picked, or else all of the project's.
+    if (!projStills.length) await loadProjStills();
     if (ids && ids.length) {
       if (scope !== 'vault' && ids.some(id => !stillById(id))) { scope = 'vault'; await loadStills(); }
-      const picks = ids.map(stillById).filter(Boolean);
-      deal(picks, mode === 'treatment');
+      doc.from = 'picked'; doc.fromIds = ids.filter(id => stillById(id));
     }
+    if (mode === 'treatment') {
+      const first = (doc.from === 'picked' ? doc.fromIds.map(stillById) : projStills).filter(Boolean)[0];
+      if (first) doc.pages[0].pics = [picFromRaw(first)];
+    }
+    redeal();
+    cur = 0;
     persist(); draw();
     if (!pref('guideSeen', '')) setTimeout(() => openGuide(0), 350);
-    toast(mode === 'mood' ? 'A new mood board — double-click stills to add them' : 'A new treatment — the cover is from the project. T adds text');
+    const count = doc.pages.reduce((a, p) => a + p.pics.length, 0);
+    toast(count ? `${count} still${count === 1 ? '' : 's'} on ${doc.pages.length} page${doc.pages.length === 1 ? '' : 's'} — Pictures a page changes it` : (mode === 'mood' ? 'A new mood board — no stills in this project yet' : 'A new treatment — the cover is from the project. T adds text'));
   }
 
   // Deal stills into pages: mood boards N a page; treatments alternate layouts.
@@ -961,11 +1038,18 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
   }
 
   /* ---------------------------------------------------------------- moving pictures */
+  // A still that's already on a page moves to where you put it, rather than being there twice.
+  function pullFromPages(ids) {
+    const set = new Set(ids); let n = 0;
+    doc.pages.forEach(pg => { const before = pg.pics.length; pg.pics = pg.pics.filter(x => !set.has(x.id)); n += before - pg.pics.length; });
+    return n;
+  }
   function addToPage(ids, at, pageIndex) {
     const pi = pageIndex == null ? cur : pageIndex;
     const add = ids.map(stillById).filter(Boolean).map(picFrom);
     if (!add.length) return;
     change(() => {
+      pullFromPages(add.map(x => x.id));
       const p = doc.pages[pi];
       const where = at == null ? p.pics.length : at;
       p.pics.splice(where, 0, ...add);
@@ -995,7 +1079,11 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
     });
   }
   function removePics(ks) {
-    change(() => { page().pics = page().pics.filter((_, k) => !ks.includes(k)); });
+    change(() => {
+      const p = page(), gone = ks.map(k => p.pics[k] && p.pics[k].id).filter(Boolean);
+      if (gone.length) doc.off = [...new Set((doc.off || []).concat(gone))];     // taken off stays off when the pages re-deal
+      p.pics = p.pics.filter((_, k) => !ks.includes(k));
+    });
     sel.clear(); reframe = null; drawStage(); drawPanel();
   }
   function breakHere() {
@@ -1121,13 +1209,13 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
 
   /* ---------------------------------------------------------------- photos in bulk */
   // Lots of photos at once: onto new pages after this one — a few go onto this page.
-  function placeMany(ids) {
+  function placeMany(ids, force) {
     const picks = ids.map(stillById).filter(Boolean);
     if (!picks.length) return;
-    if (picks.length <= 6 && (page().pics.length + picks.length) <= 8) { addToPage(picks.map(x => x.id)); return toast(`${picks.length} photo${picks.length === 1 ? '' : 's'} on this page`); }
+    if (!force && picks.length <= 6 && (page().pics.length + picks.length) <= 8) { addToPage(picks.map(x => x.id)); return toast(`${picks.length} photo${picks.length === 1 ? '' : 's'} on this page`); }
     let made = [];
     change(() => {
-      const pics = picks.map(picFrom);
+      const pics = picks.map(picFrom); pullFromPages(pics.map(x => x.id));
       if (doc.mode === 'mood') { const n = doc.perPage || 6; for (let i = 0; i < pics.length; i += n) { const p = newPage('rows'); p.pics = pics.slice(i, i + n); made.push(p); } }
       else { const cycle = ['left', 'right', 'rows']; for (let i = 0, k = 0; i < pics.length; k++) { const lay = cycle[k % 3], n = lay === 'rows' ? 5 : 3; const p = newPage(lay); p.pics = pics.slice(i, i + n); made.push(p); i += n; } }
       let at = cur + 1;
@@ -1147,10 +1235,11 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
     const p = page(); if (sel.size !== 1) return;
     const k = [...sel][0], pic = p.pics[k]; if (!pic) return;
     if (!swap) {
-      const used = usedIds(); used.delete(pic.id);
-      // Your picked stills first, then the rest of the tray; nothing already on a page.
-      const tray = trayList().filter(s => !used.has(s.id));
-      const list = tray.filter(s => trayPick.has(s.id)).concat(tray.filter(s => !trayPick.has(s.id)));
+      const used = usedIds(), here = new Set(p.pics.map(x => x.id)); here.delete(pic.id);
+      // Your picked stills first, then the ones on no page, then the ones on other pages (keeping one of those trades their places).
+      const tray = trayList().filter(s => !here.has(s.id));
+      const rank = s => (trayPick.has(s.id) ? 0 : 2) + (used.has(s.id) && s.id !== pic.id ? 1 : 0);
+      const list = tray.slice().sort((a, b) => rank(a) - rank(b));
       if (!list.length) return toast('No other stills to swap in');
       let i = list.findIndex(s => s.id === pic.id);
       if (i < 0) { list.unshift(stillById(pic.id) || { id: pic.id, file: pic.file, thumb: pic.thumb, a: pic.a, palette: pic.palette, title: pic.title }); i = 0; }
@@ -1158,12 +1247,22 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
     }
     swap.i = (swap.i + d + swap.list.length) % swap.list.length;
     const s = swap.list[swap.i];
-    p.pics[k] = Object.assign(picFrom(s), { opacity: swap.original.opacity, featured: swap.original.featured, box: swap.original.box, border: swap.original.border, shadow: swap.original.shadow, radius: swap.original.radius });
+    p.pics[k] = Object.assign(picFromRaw(s), { opacity: swap.original.opacity, featured: swap.original.featured, box: swap.original.box, border: swap.original.border, shadow: swap.original.shadow, radius: swap.original.radius });
     drawStage(); drawStrip(); drawPanel();
   }
   function swapEnd(keep) {
     if (!swap) return;
-    if (keep) { undo.push(swap.before); redo = []; persist(); }
+    if (keep) {
+      const now = page().pics[swap.k];
+      if (now && now.id !== swap.original.id) {
+        // Already on another page? The two trade places, so nothing is doubled.
+        doc.pages.forEach((pg, pi) => pg.pics.forEach((x, xi) => {
+          if (x.id === now.id && !(pi === cur && xi === swap.k)) pg.pics[xi] = Object.assign(clone(swap.original), { box: x.box, border: x.border, shadow: x.shadow, radius: x.radius, opacity: x.opacity });
+        }));
+        if (doc.off) doc.off = doc.off.filter(id => id !== now.id);
+      }
+      undo.push(swap.before); redo = []; persist();
+    }
     else page().pics[swap.k] = swap.original;
     swap = null; draw();
   }
@@ -1207,7 +1306,17 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
     if (d.fadeto) { change(() => { page().fade.to = d.fadeto; }); return; }
     if (t.id === 'dupPage') return dupPage();
     if (t.id === 'delPage') return removePage(cur);
-    if (t.id === 'deal') return dealAgain();
+    if (d.from) {
+      if (d.from === 'picked') {
+        const ids = trayPick.size ? [...trayPick] : (doc.fromIds || []);
+        if (!ids.length) return toast('Pick some stills in the tray first — ⌘-click, or drag across them');
+        change(() => { doc.from = 'picked'; doc.fromIds = ids; redeal(); });
+        return toast(`Just the ${ids.length} you picked, ${perOf()} a page`);
+      }
+      change(() => { doc.from = 'project'; redeal(); });
+      return toast(`All of ${project}'s stills, ${perOf()} a page`);
+    }
+    if (t.id === 'unOff') { change(() => { doc.off = []; redeal(); }); return toast('They\u2019re back'); }
     if (t.id === 'featTog') return toggleFeature();
     if (t.id === 'reframeBtn') { reframe = reframe == null ? [...sel][0] : null; drawStage(); return drawPanel(); }
     if (t.id === 'reframeReset') { const k = [...sel][0]; change(() => { page().pics[k].crop = { x: 50, y: 50, z: 1 }; }); return; }
@@ -1263,6 +1372,61 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
     if (c) c.textContent = `${list.length} still${list.length === 1 ? '' : 's'}${trayPick.size ? ` · ${trayPick.size} picked` : ''}`;
     const a = $('addPicked'); if (a) a.disabled = !trayPick.size;
   }
+  /* ---------------------------------------------------------------- right-click the picked stills */
+  let ctxIds = [], ctxHi = 0;
+  function openCtx(x, y, ids) {
+    ctxIds = ids; ctxHi = 0;
+    const n = ids.length, them = n === 1 ? 'it' : String(n);
+    const items = doc ? [['add', `Add ${them} to this page`, 'Return'], ['newpage', `Add ${them} to a new page`, ''], ['pages', `Lay ${them} out on new pages`, ''], null,
+      ['mood', `Make a mood board with ${n === 1 ? 'it' : 'them'}`, ''], null].concat(n === 1 ? [['vault', 'Show in the Vault', '']] : []).concat([['none', 'Pick none', 'Esc']])
+      : [['mood', `Make a mood board with ${n === 1 ? 'it' : 'them'}`, 'Return'], ['treatment', `Make a treatment with ${n === 1 ? 'it' : 'them'}`, ''], null, ['none', 'Pick none', 'Esc']];
+    const m = $('ctxmenu');
+    m.innerHTML = items.map(it => it ? `<button role="menuitem" data-ctx="${it[0]}"><span>${esc(it[1])}</span><small>${it[2]}</small></button>` : '<hr>').join('');
+    m.hidden = false;
+    const r = m.getBoundingClientRect();
+    m.style.left = Math.min(x, innerWidth - r.width - 8) + 'px';
+    m.style.top = Math.min(y, innerHeight - r.height - 8) + 'px';
+    paintCtx();
+  }
+  const paintCtx = () => $('ctxmenu').querySelectorAll('button').forEach((b, i) => b.classList.toggle('hi', i === ctxHi));
+  const closeCtx = () => { $('ctxmenu').hidden = true; };
+  async function runCtx(what) {
+    const ids = ctxIds.slice(); closeCtx();
+    if (what === 'none') { trayPick.clear(); return paintTrayPick(); }
+    if (what === 'vault') return call('openRef', { id: ids[0] });
+    if (what === 'mood' || what === 'treatment') { await flushSave(); trayPick.clear(); return makeNew(what, ids); }
+    if (!doc) return;
+    if (what === 'add') addToPage(ids);
+    if (what === 'newpage') {
+      change(() => {
+        const lay = doc.mode === 'mood' ? 'rows' : page().layout === 'free' ? 'free' : 'left';
+        const np = newPage(lay); np.pics = ids.map(stillById).filter(Boolean).map(picFrom); pullFromPages(ids);
+        doc.pages.splice(cur + 1, 0, np); cur += 1; sel.clear(); bsel = null;
+      });
+      toast(`A new page with ${ids.length === 1 ? 'it' : 'them'}`);
+    }
+    if (what === 'pages') placeMany(ids, true);
+    trayPick.clear(); drawTray();
+  }
+  $('traygrid').addEventListener('contextmenu', e => {
+    const st = e.target.closest('.still'); if (!st) return;
+    e.preventDefault();
+    if (!trayPick.has(st.dataset.id)) { trayPick = new Set([st.dataset.id]); paintTrayPick(); }
+    openCtx(e.clientX, e.clientY, [...trayPick]);
+  });
+  $('ctxmenu').addEventListener('click', e => { const b = e.target.closest('[data-ctx]'); if (b) runCtx(b.dataset.ctx); });
+  document.addEventListener('mousedown', e => { if (!$('ctxmenu').hidden && !e.target.closest('#ctxmenu')) closeCtx(); }, true);
+  document.addEventListener('keydown', e => {
+    if ($('ctxmenu').hidden) return;
+    const bs = $('ctxmenu').querySelectorAll('button');
+    e.preventDefault(); e.stopImmediatePropagation();
+    if (e.key === 'Escape') return closeCtx();
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') { ctxHi = (ctxHi + (e.key === 'ArrowDown' ? 1 : -1) + bs.length) % bs.length; return paintCtx(); }
+    if (e.key === 'Enter') return runCtx(bs[ctxHi].dataset.ctx);
+  }, true);
+  window.addEventListener('blur', closeCtx);
+  $('traygrid').addEventListener('scroll', closeCtx);
+
   document.addEventListener('dblclick', e => {
     const s = e.target.closest('.still');
     if (s && doc) { addToPage([s.dataset.id]); return; }
@@ -1284,7 +1448,7 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
       return;
     }
     const bx = boxById(bsel) || {};
-    const liveRange = { perPage: v => { doc.perPage = +v; }, fadeStr: v => { page().fade.strength = +v; },
+    const liveRange = { perPage: v => { if (doc.mode === 'mood') doc.perPage = +v; else doc.tPerPage = +v; redeal(); }, fadeStr: v => { page().fade.strength = +v; },
       picOp: v => { [...sel].forEach(k => { page().pics[k].opacity = +v; }); },
       pRadius: v => { [...sel].forEach(k => { page().pics[k].radius = +v; }); },
       bSize: v => { bx.size = +v; }, bTrack: v => { bx.tracking = +v; }, bLead: v => { bx.leading = +v; }, bOp: v => { bx.opacity = +v; } }[t.id];
@@ -1296,7 +1460,7 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
       const v = t.parentElement.querySelector('.val'); if (v) v.textContent = /Op|Str/.test(t.id) ? Math.round(t.value * 100) + '%' : /Track|Lead/.test(t.id) ? (+t.value).toFixed(2) : /Radius/.test(t.id) ? t.value + ' pt' : t.value;
       if (t.id === 'bSize') { const pb = $('panel').querySelector('.seg [data-preset].on'); if (pb) pb.classList.remove('on'); }
       if (t.id !== 'perPage') { drawStage(); clearTimeout(drawStrip.t); drawStrip.t = setTimeout(drawStrip, 250); }
-      else { const b = $('deal'); if (b) b.textContent = `Deal them out again, ${t.value} a page`; }
+      else { drawStage(); drawStrip(); const di = $('dealInfo'); if (di) di.textContent = dealInfo(); }
     }
     if (t.id === 'bgPick') { const all = !page().bg; change(() => { if (all) doc.bg = t.value; else page().bg = t.value; }, { quiet: true }); drawStage(); drawStrip(); }
     if (t.id === 'bFillPick') { const b = boxById(bsel); if (b) { change(() => { b.fill = t.value; }, { quiet: true }); drawStage(); } return; }
@@ -1522,7 +1686,7 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
       return;
     }
     const takePics = () => {             // the pictures being moved, off their page
-      if (dd.from === 'tray') return dd.ids.map(stillById).filter(Boolean).map(picFrom);
+      if (dd.from === 'tray') { const out = dd.ids.map(stillById).filter(Boolean).map(picFrom); pullFromPages(out.map(x => x.id)); return out; }
       const from = doc.pages[dd.page], ks = dd.ks.slice().sort((a, b) => a - b), out = ks.map(k => from.pics[k]);
       from.pics = from.pics.filter((_, k) => !ks.includes(k));
       return out;
@@ -1635,7 +1799,7 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
     }
     if (e.key === 'Escape') { if (reframe != null) { reframe = null; } else { sel.clear(); bsel = null; } drawStage(); drawPanel(); drawBar(); return; }
     if (e.key === ' ') { e.preventDefault(); return play(true); }
-    if (e.key === 'Tab') { e.preventDefault(); $('work').classList.toggle('nopanel'); setTimeout(drawStage, 30); return; }
+    if (e.key === 'Tab') { e.preventDefault(); $('app').classList.toggle('nopanel'); setTimeout(drawStage, 30); return; }
     if (e.key === '?') { e.preventDefault(); return openGuide(0); }
     if (bsel && boxById(bsel)) {           // a picked text box: nudge, type, delete
       const b = boxById(bsel), G = geometry(doc);
@@ -1746,19 +1910,19 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
   const art = (inner, bg) => `<div class="gart" style="background:${bg || '#f4f1ec'}">${inner}</div>`;
   const blk = (l, t, w, h, c, extra) => `<i style="left:${l}%;top:${t}%;width:${w}%;height:${h}%;background:${c};${extra || ''}"></i>`;
   const GUIDE = [
-    ['Start with your stills', 'Pick a <b>mood board</b> (just pictures) or a <b>treatment</b> (pictures and words). Your project’s stills wait in the tray at the bottom — drag its top edge to make it bigger. <b>+ Photos</b> brings in more, whole folders at once.',
+    ['Start with your stills', 'Pick a <b>mood board</b> (just pictures) or a <b>treatment</b> (pictures and words) — it fills itself with the project\u2019s stills straight away, and <b>Pictures a page</b> in the panel re-deals them as you slide. More stills wait in the tray at the bottom; drag its top edge to make it bigger. <b>+ Photos</b> brings in more, whole folders at once.',
       art(blk(4, 8, 58, 64, '#fff', 'box-shadow:0 4px 14px rgba(0,0,0,.12)') + blk(4, 78, 12, 16, '#3b2a22') + blk(18, 78, 18, 16, '#b8461c') + blk(38, 78, 12, 16, '#1e2227') + blk(52, 78, 16, 16, '#e0a24a') + blk(70, 78, 10, 16, '#6d2a18') + blk(66, 8, 30, 64, 'rgba(255,255,255,.6)'))],
-    ['Put pictures on the page', '<b>Double-click</b> a still, or <b>drag it</b> onto the page. You can drop photos straight from Finder too. A few go on this page; lots go onto new pages, laid out for you.',
+    ['Put pictures on the page', '<b>Double-click</b> a still, or <b>drag it</b> onto the page. Pick several (⌘-click, or drag across them) and <b>right-click</b>: this page, a new page, or laid out on new pages. You can drop photos straight from Finder too.',
       art(blk(8, 10, 84, 60, '#fff', 'box-shadow:0 4px 14px rgba(0,0,0,.12)') + blk(14, 18, 34, 44, '#3b2a22') + blk(52, 18, 34, 44, '#b8461c', 'outline:2px dashed #F05A22;outline-offset:3px') + blk(60, 78, 16, 16, '#b8461c', 'opacity:.45') + '<b class="garrow" style="left:66%;top:62%">↑</b>')],
-    ['Tidy, or place by hand', 'In the panel, <b>Rows, Left, Right, Full</b> and <b>None</b> lay the pictures out for you — one margin, one gutter, always even. <b>Free</b> is Keynote: drop them where you want, drag them about, pull a corner to size them.',
+    ['Tidy, or place by hand', 'In the panel, <b>Rows, Left, Right, Full</b> and <b>None</b> lay the pictures out for you — one margin, one gutter, always even. <b>Free</b> lets you drop them where you want, drag them about, and pull a corner to size them.',
       art(blk(6, 12, 40, 70, '#fff', 'box-shadow:0 4px 14px rgba(0,0,0,.12)') + blk(9, 17, 17, 28, '#3b2a22') + blk(28, 17, 15, 28, '#1e2227') + blk(9, 48, 34, 28, '#b8461c') + blk(54, 12, 40, 70, '#fff', 'box-shadow:0 4px 14px rgba(0,0,0,.12)') + blk(58, 20, 20, 30, '#3b2a22', 'transform:rotate(-3deg)') + blk(72, 44, 18, 30, '#e0a24a', 'outline:2px solid #F05A22'))],
     ['Swap a picture in a second', 'Click a picture, then <b>↑ ↓</b> runs it through your stills, right there on the page. <b>Return</b> keeps the one you like; <b>Esc</b> puts the first one back.',
       art(blk(8, 10, 84, 62, '#fff', 'box-shadow:0 4px 14px rgba(0,0,0,.12)') + blk(14, 18, 36, 46, '#1e2227', 'outline:2px solid #F05A22') + blk(54, 18, 32, 46, '#b8461c') + blk(20, 78, 10, 16, '#3b2a22', 'opacity:.5') + blk(32, 76, 12, 20, '#1e2227', 'outline:2px solid #F05A22') + blk(46, 78, 10, 16, '#e0a24a', 'opacity:.5') + '<b class="garrow" style="left:62%;top:78%">↑↓</b>')],
-    ['Words, like Keynote', 'Press <b>T</b> — or double-click the page — for a text box. <b>Drag</b> it anywhere; it snaps to the margins and the pictures. The side handles set its width, the corner its size. <b>Click it again</b> to type. It starts in Helvetica, black or white to suit the page.',
+    ['Words', 'Press <b>T</b> — or double-click the page — for a text box. <b>Drag</b> it anywhere; it snaps to the margins and the pictures. The side handles set its width, the corner its size. <b>Click it again</b> to type. It starts in Helvetica, black or white to suit the page.',
       art(blk(0, 0, 100, 100, '#1b1b1b') + blk(10, 20, 38, 9, '#fff', 'opacity:.95') + blk(10, 34, 34, 3.5, '#fff', 'opacity:.7') + blk(10, 40, 36, 3.5, '#fff', 'opacity:.7') + blk(10, 46, 30, 3.5, '#fff', 'opacity:.7') + blk(8, 16, 42, 36, 'transparent', 'outline:1.5px solid #F05A22') + '<b class="gdot" style="left:49%;top:33%"></b><b class="gdot" style="left:49%;top:51%"></b>', '#1b1b1b')],
-    ['The inspector', 'Pick anything and the panel shows it, the way Keynote’s does: <b>Style</b> (fill, border, shadow, opacity), <b>Text</b> (font, size, B I U, colour, alignment, spacing) and <b>Arrange</b> (front and back, align, size and position in points). <b>Esc</b> takes you back to the page.',
+    ['The panel', 'Pick anything and the panel on the right shows its settings, all in one column: for words, the font, size, B I U, colour, alignment and spacing, then the box (fill, border, shadow, opacity), then where it sits. <b>Esc</b> takes you back to the page.',
       art(blk(6, 10, 56, 72, '#fff', 'box-shadow:0 4px 14px rgba(0,0,0,.12)') + blk(66, 10, 28, 80, '#fff', 'box-shadow:0 4px 14px rgba(0,0,0,.08)') + blk(68, 14, 7, 6, '#ece6dc') + blk(76, 14, 8, 6, '#141414') + blk(85, 14, 7, 6, '#ece6dc') + blk(68, 26, 24, 5, '#ece6dc') + blk(68, 35, 24, 5, '#ece6dc') + blk(68, 44, 11, 5, '#ece6dc') + blk(81, 44, 11, 5, '#ece6dc') + blk(68, 55, 24, 5, '#F05A22', 'opacity:.8'))],
-    ['Play, keep, export', '<b>Space</b> plays it full screen. Everything saves as you go; <b>⌘S</b> keeps a version. <b>Export</b> makes a PDF, page images for Keynote, or both — a new version every time, in the project’s Design folder.',
+    ['Play, keep, export', '<b>Space</b> plays it full screen. Everything saves as you go; <b>⌘S</b> keeps a version. <b>Export</b> makes a PDF, page images for your slides, or both — a new version every time, in the project’s Design folder.',
       art(blk(0, 0, 100, 100, '#0b0b0b') + blk(14, 14, 72, 58, '#3b2a22') + blk(20, 50, 30, 6, '#fff', 'opacity:.9') + blk(40, 80, 20, 8, '#F05A22', 'border-radius:20px'), '#0b0b0b')],
   ];
   function openGuide(i) {
@@ -1778,7 +1942,7 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
     if (!doc) return;
     const n = doc.pages.length, size = SIZE_NAMES[doc.size];
     const count = exportPages().length;
-    const K = [['pdf', 'PDF', 'One file to send. Fonts and fades exactly as on screen.'], ['images', 'Page images', 'A JPEG per page — drop them straight into Keynote.'], ['both', 'Both', 'The PDF and a folder of page images, side by side.']];
+    const K = [['pdf', 'PDF', 'One file to send. Fonts and fades exactly as on screen.'], ['images', 'Page images', 'A JPEG per page — ready to drop into your slides.'], ['both', 'Both', 'The PDF and a folder of page images, side by side.']];
     openSheet('export', `
       <div class="shead"><div class="grow"><h2>Export</h2><span class="empty">${esc(doc.name || 'This design')} · ${n} page${n === 1 ? '' : 's'}</span></div>${closeX}</div>
       <div style="display:flex;flex-direction:column;gap:8px"><span class="cap">As</span><div class="kinds">${K.map(([k, a, b]) => `<button class="kind${ex.kind === k ? ' on' : ''}" data-exkind="${k}"><b>${a}</b><span>${b}</span></button>`).join('')}</div></div>
@@ -1857,8 +2021,7 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
     await flushSave();
     if (!stills.length) await loadStills();
     const ids = (o && o.ids) || [];
-    const pick = ids.length ? ids : trayList().filter(s => (s.a || 0) > 0).slice(0, 36).map(s => s.id);
-    return makeNew((o && o.mode) || 'mood', pick);
+    return makeNew((o && o.mode) || 'mood', ids);
   };
   // Photos brought in from the Mac (dropped, or + Photos): a few onto this page, lots onto new pages.
   window.__designDropped = items => {
