@@ -3067,6 +3067,8 @@ body.marqueeing{user-select:none;-webkit-user-select:none;cursor:crosshair}
   };
   // Home's quick action: paste a link.
   window.__neededQuick = what => {
+    // From the project page: Make a mood board.
+    if (what === 'mood') { const m = document.querySelector("#views button[data-view='mood']"); if (m) m.click(); return; }
     if (what !== 'link') return;
     const b = document.querySelector("#views button[data-view='add']"); if (b) b.click();
     const i = document.getElementById('linkInput'); if (i) { i.focus(); i.select(); }

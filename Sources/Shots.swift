@@ -642,7 +642,7 @@ extension ShotsHost {
         var n = (raw ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
             .replacingOccurrences(of: "/", with: "-").replacingOccurrences(of: ":", with: "-")
         while n.hasPrefix(".") { n.removeFirst() }
-        if n.count > 60 { n = String(n.prefix(60)) }
+        if n.count > 80 { n = String(n.prefix(80)) }
         return n.isEmpty ? "Unsorted" : n
     }
 

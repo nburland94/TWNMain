@@ -610,6 +610,9 @@ Jess Moreau"></textarea>
   const esc = v => String(v == null ? '' : v).replace(/[&<>"']/g, c =>
     ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
+  // A macOS notification when something finishes (in Needed Tools; nothing on its own).
+  const notify = (title, body) => { try { const sh = window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.shell;
+    if (sh) sh.postMessage({ action: 'notify', title, body }).catch(() => {}); } catch (e) {} };
   let rows = [];          // {id, role, name, handle, email, dept, status}
   let nextId = 1;
   let format = 'caption';
@@ -625,6 +628,9 @@ Jess Moreau"></textarea>
     catch (e) { ok = false; toast('Crew memory is full — export a backup, then clear some out'); }
     $('cacheCount').textContent = Object.keys(c).length;
     if (typeof renderContacts === 'function') renderContacts();
+    // The suite's one contact book hears about everyone Credit knows.
+    try { const sh = window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.shell;
+          if (sh) { clearTimeout(saveCache.t); saveCache.t = setTimeout(() => sh.postMessage({ action: 'creditContacts', cache: c }).catch(() => {}), 400); } } catch (e) {}
     return ok;
   }
   let cache = loadCache();
@@ -761,6 +767,7 @@ Jess Moreau"></textarea>
     sheetMsg(`${rows.length} people read${source ? ' from ' + source : ''}` +
              (filled ? ` · ${filled} handle${filled === 1 ? '' : 's'} filled from memory` : '') + '.');
     renderCrew(true);
+    notify('Crew read', `${rows.length} people${source ? ' from ' + source : ''}` + (filled ? ` — ${filled} handle${filled === 1 ? '' : 's'} filled from memory.` : '.'));
   }
 
   /* ------------------------------------------------------------ crew table */
@@ -1556,6 +1563,18 @@ Jess Moreau"></textarea>
   // Reading a call sheet shows the suite's loading pill.
   const readSheet = ingestFile;
   ingestFile = async f => { const L = window.__neededLoad; if (L) L.start('Reading the call sheet'); try { return await readSheet(f); } finally { if (L) L.done(); } };
+  // The project page's crew: Make credits brings everyone in, roles and handles and all.
+  window.__neededMakeCredits = (list, project) => {
+    rows = (list || []).map(r => {
+      const row = { id: nextId++, role: r.role || '', name: r.name || '', handle: r.handle ? cleanHandle(r.handle) : '',
+                    email: r.email || '', dept: deptFor(r.role || '', 'Other'), status: r.handle ? 'auto' : '' };
+      if (row.handle) remember(row);
+      else { const hit = lookup(row); if (hit) { row.handle = hit.handle; row.status = hit.status; } }
+      return row;
+    });
+    sheetMsg(`${rows.length} people from ${project || 'the project'}'s crew.`);
+    renderCrew(true);
+  };
   // A call sheet dropped on Home.
   window.__neededOpenFile = (name, type, b64) => {
     const bytes = Uint8Array.from(atob(b64), c => c.charCodeAt(0));

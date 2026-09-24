@@ -53,7 +53,21 @@ final class VaultStore {
         try? FileManager.default.createDirectory(at: u.deletingLastPathComponent(), withIntermediateDirectories: true)
         if let d = try? JSONSerialization.data(withJSONObject: items, options: []) {
             if (try? d.write(to: u, options: .atomic)) != nil { stamp = fileDate(); loadedFor = base?.path ?? "" }
+            VaultStore.backup(d, name: "index", into: u.deletingLastPathComponent().appendingPathComponent("backups", isDirectory: true))
         }
+    }
+
+    /// A copy a day, the last 30 kept — the vault's list is the one file everything
+    /// else hangs off (tags, notes, boards), so a bad write never loses it.
+    static func backup(_ data: Data, name: String, into dir: URL) {
+        let fm = FileManager.default
+        let day = ISO8601DateFormatter.string(from: Date(), timeZone: .current, formatOptions: [.withFullDate])
+        let target = dir.appendingPathComponent("\(name)-\(day).json")
+        guard !fm.fileExists(atPath: target.path) else { return }             // today's first save is today's copy
+        try? fm.createDirectory(at: dir, withIntermediateDirectories: true)
+        try? data.write(to: target, options: .atomic)
+        let old = ((try? fm.contentsOfDirectory(atPath: dir.path)) ?? []).filter { $0.hasPrefix(name + "-") }.sorted(by: >)
+        for f in old.dropFirst(30) { try? fm.removeItem(at: dir.appendingPathComponent(f)) }
     }
 
     // MARK: Adding one

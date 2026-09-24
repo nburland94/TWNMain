@@ -262,3 +262,41 @@ ROUND 4.2 — MOOD BOARDS
   • The This Was Needed mark, small, bottom right of every page (white
     on dark pages).
   • Tighter: 6pt between pictures.
+
+ROUND 5 — THE PROJECT PAGE
+  • Project, beside the project in the top bar (or ⌘0): one page for the
+    job. Its title, client, producer and director; the label and tags;
+    and a countdown to the shoot.
+  • Timeline: your dates, plus any calendar event with the project's name
+    in it (read only — nothing is written to your calendar).
+  • Mood: the project's references and grabs and the colours they share.
+    It only appears once the project has some — a producer's project with
+    no references never shows an empty box.
+  • Deliverables (with the idea and the must-haves) and To do, with a
+    progress bar. Type "Hero film 60s 16:9" and the shape and length come
+    out on their own.
+  • Documents: everything made here (Pay invoices, Shots lists, mood
+    boards) and everything dropped in. Drop anything onto the page, or
+    Home, or use Add files: it's copied in and filed by what it is —
+    Lexus › Lexus_Docs › Treatments › Treatment v4.pdf. Versions are kept:
+    a new treatment is the next v, never a replacement. Change its type
+    and it moves folder. Pictures and films become references in the
+    Vault, with their colours.
+  • Read it: a brief, treatment or schedule is read on the Mac — rules on
+    every Mac, and Apple's on-device model as well where macOS has it
+    (macOS 26 with Apple Intelligence). It shows what it found; nothing
+    is added until you tick and say so. Nothing leaves the Mac.
+  • Send: pick documents, pick people (To, Cc, Bcc), subject, message,
+    drafts kept with the project. It sends from the same account Pay
+    sends invoices from — set up once, in Pay › Settings. A copy goes in
+    Lexus_Docs › Sent and each document notes who it went to.
+  • One contact book: crew from Credit, clients from Pay, and everyone
+    you add on a project. Matched by email, then name; the Contact book
+    button shows likely duplicates to merge.
+  • Crew: add from the contact book or type a name; To book → Pencilled →
+    Confirmed. Make credits opens Credit with every name, role and handle
+    already in.
+  • Credit now sends a notification when it's read a crew list.
+  • Project names can be up to 80 characters in every tool (some stopped at 60).
+  • The vault's list and the contact book each keep a copy a day for 30
+    days (.vault/backups, and ~/Library/Application Support/NeededTools/backups).

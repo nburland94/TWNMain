@@ -292,13 +292,15 @@ final class Shell: NSObject, NSApplicationDelegate, NSWindowDelegate, WKScriptMe
     var window: NSWindow!
     private var content = NSView()
     private var chrome: WKWebView!
-    private var home: WKWebView!
+    var home: WKWebView!
+    /// The project page: one job, all in one place (Project.swift).
+    var projectPage: WKWebView?
     private var signin: WKWebView?
     private let area = NSView()
     private var hosts: [String: ToolHost] = [:]
     private(set) var current = "home"
     static let barHeight: CGFloat = 64
-    private let calendarStore = EKEventStore()
+    let calendarStore = EKEventStore()
     private var welcome: (NSVisualEffectView, WKWebView)?
     private var undocked: [String: NSWindow] = [:]
     static let names = ["grab": "Grab", "vault": "Vault", "shots": "Shots", "sort": "Sort", "credit": "Credit", "pay": "Pay"]
@@ -342,6 +344,16 @@ final class Shell: NSObject, NSApplicationDelegate, NSWindowDelegate, WKScriptMe
         }
         place(home)
         UNUserNotificationCenter.current().delegate = self
+
+        // The project page takes drops too: anything dropped is filed into the project.
+        let pp = page("project.html", drop: true)
+        if let d = pp as? DropWebView {
+            d.onFiles = { [weak self] urls in self?.fileIntoProject(urls) }
+            d.onHover = { [weak self] on in self?.projectPage?.evaluateJavaScript("window.__projectDrag && window.__projectDrag(\(on))", completionHandler: nil) }
+        }
+        projectPage = pp
+        place(pp)
+        pp.isHidden = true
 
         hosts["vault"] = vaultHost
         place(vaultHost.webView)
@@ -401,7 +413,7 @@ final class Shell: NSObject, NSApplicationDelegate, NSWindowDelegate, WKScriptMe
         if view.superview !== area { area.addSubview(view) }
     }
 
-    private func host(_ id: String) -> ToolHost? {
+    func host(_ id: String) -> ToolHost? {
         if let h = hosts[id] { return h }
         let h: ToolHost
         switch id {
@@ -432,7 +444,7 @@ final class Shell: NSObject, NSApplicationDelegate, NSWindowDelegate, WKScriptMe
         }
         if let w = undocked[id] { w.makeKeyAndOrderFront(nil); return }
         let target: WKWebView?
-        if id == "home" { target = home } else { target = host(id)?.webView }
+        if id == "home" { target = home } else if id == "project" { target = projectPage } else { target = host(id)?.webView }
         guard let view = target else { return }
         place(view)
         for sub in area.subviews { sub.isHidden = sub !== view }
@@ -449,15 +461,20 @@ final class Shell: NSObject, NSApplicationDelegate, NSWindowDelegate, WKScriptMe
 
     func route(_ urls: [URL]) {
         let fm = FileManager.default
-        var folders: [URL] = [], images: [URL] = [], film: URL? = nil, sheet: URL? = nil
+        var folders: [URL] = [], images: [URL] = [], film: URL? = nil, sheet: URL? = nil, docs: [URL] = []
         for u in urls {
             var isDir: ObjCBool = false
             _ = fm.fileExists(atPath: u.path, isDirectory: &isDir)
             let ext = u.pathExtension.lowercased()
-            if isDir.boolValue { folders.append(u) }
+            let isPackage = (try? u.resourceValues(forKeys: [.isPackageKey]))?.isPackage == true
+            if isPackage { docs.append(u) }                           // a Keynote or Pages file
+            else if isDir.boolValue { folders.append(u) }
             else if Shell.filmExt.contains(ext) { if film == nil { film = u } }
             else if Shell.imageExt.contains(ext) { images.append(u) }
+            // A call sheet or crew list goes to Credit; any other document is filed into the project.
+            else if ext == "pdf" && Docs.guess(u.lastPathComponent) != "Call sheet" { docs.append(u) }
             else if Shell.sheetExt.contains(ext) { if sheet == nil { sheet = u } }
+            else if Docs.docExt.contains(ext) { docs.append(u) }
         }
         if !folders.isEmpty {                                   // a card, or a folder of footage → Sort
             show("sort")
@@ -475,6 +492,10 @@ final class Shell: NSObject, NSApplicationDelegate, NSWindowDelegate, WKScriptMe
             pendingImages = images
             pendingWeb = nil
             askWhere(count: images.count, sample: images.first?.lastPathComponent ?? "")
+        } else if !docs.isEmpty {                               // documents → filed into the project
+            guard Shared.vault != nil else { return homeToast("Choose your vault first") }
+            show("project")
+            fileIntoProject(docs)
         } else if let s = sheet, let data = try? Data(contentsOf: s), data.count < 30_000_000 {   // a call sheet → Credit
             show("credit")
             let type = s.pathExtension.lowercased() == "pdf" ? "application/pdf" : "text/plain"
@@ -669,7 +690,7 @@ final class Shell: NSObject, NSApplicationDelegate, NSWindowDelegate, WKScriptMe
         guard !vaultHost.syncing else { return }                 // a second press waits for the one running
         let project = Shared.project
         // The one loading pill, in whatever you're looking at.
-        let view: WKWebView? = current == "home" ? home : (undocked[current] == nil ? hosts[current]?.webView : nil)
+        let view: WKWebView? = current == "home" ? home : current == "project" ? projectPage : (undocked[current] == nil ? hosts[current]?.webView : nil)
         view?.evaluateJavaScript("window.__neededLoad && window.__neededLoad.start(\(Shell.js("Syncing \(project)")))", completionHandler: nil)
         vaultHost.sync(project: project, progress: { f in
             view?.evaluateJavaScript("window.__neededLoad && window.__neededLoad.set(\(f))", completionHandler: nil)
@@ -679,6 +700,7 @@ final class Shell: NSObject, NSApplicationDelegate, NSWindowDelegate, WKScriptMe
             Labels.forget()                                            // and any labels changed in Finder
             // Every open tool refreshes what it shows: Home, the Vault, Shots, Grab…
             var views: [WKWebView] = [self.home]
+            if let p = self.projectPage { views.append(p) }
             views += self.hosts.values.compactMap { $0.webView }
             for v in views { v.evaluateJavaScript("window.__neededSynced && window.__neededSynced()", completionHandler: nil) }
             if (result["ok"] as? Bool) == true {
@@ -692,7 +714,7 @@ final class Shell: NSObject, NSApplicationDelegate, NSWindowDelegate, WKScriptMe
 
     // MARK: Home's calendar: whatever macOS Calendar has — Google too, if it's added there
 
-    private func calendarAllowed() -> Bool {
+    func calendarAllowed() -> Bool {
         let st = EKEventStore.authorizationStatus(for: .event)
         // macOS 14 renamed "authorized" to "fullAccess" (same value). Older
         // developer tools don't know the new name, so it's only compiled when they do.
@@ -896,6 +918,7 @@ final class Shell: NSObject, NSApplicationDelegate, NSWindowDelegate, WKScriptMe
               let json = String(data: data, encoding: .utf8) else { return }
         let js = "window.__neededShared && window.__neededShared(\(json))"
         var views: [WKWebView] = [chrome, home]
+        if let p = projectPage { views.append(p) }
         views += hosts.values.compactMap { $0.webView }
         for v in views { v.evaluateJavaScript(js, completionHandler: nil) }
         for (id, w) in undocked { w.title = "Needed \(Shell.names[id] ?? "") — \(Shared.project)" }
@@ -912,7 +935,7 @@ final class Shell: NSObject, NSApplicationDelegate, NSWindowDelegate, WKScriptMe
 
         case "navBack":
             // First close whatever's open on top — a reference, a pop-up — then go back a tab.
-            let view: WKWebView? = current == "home" ? home : hosts[current]?.webView
+            let view: WKWebView? = current == "home" ? home : current == "project" ? projectPage : hosts[current]?.webView
             let goBack = {
                 guard let prev = self.backStack.popLast() else {
                     if self.current != "home" { self.forwardStack.append(self.current); self.show("home", remember: false) }
@@ -1145,7 +1168,7 @@ final class Shell: NSObject, NSApplicationDelegate, NSWindowDelegate, WKScriptMe
             replyHandler(["ok": true], nil)
 
         default:
-            replyHandler(nil, "unknown action")
+            if !projectAction((body["action"] as? String) ?? "", body, replyHandler) { replyHandler(nil, "unknown action") }
         }
     }
 
@@ -1185,6 +1208,7 @@ final class Shell: NSObject, NSApplicationDelegate, NSWindowDelegate, WKScriptMe
 
     @objc private func pickTab(_ item: NSMenuItem) {
         guard signin == nil, welcome == nil else { return }
+        if item.tag == 99 { return show("project") }
         show(item.tag == 0 ? "home" : TOOL_IDS[item.tag - 1])
     }
 
@@ -1221,6 +1245,10 @@ final class Shell: NSObject, NSApplicationDelegate, NSWindowDelegate, WKScriptMe
             item.target = self
             item.tag = i
         }
+        view.addItem(.separator())
+        let proj = view.addItem(withTitle: "Project Page", action: #selector(pickTab(_:)), keyEquivalent: "0")
+        proj.target = self
+        proj.tag = 99
         viewItem.submenu = view
 
         let windowItem = NSMenuItem(); bar.addItem(windowItem)
