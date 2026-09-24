@@ -291,6 +291,9 @@ main{padding:0 3rem;max-width:1180px}
 .toggle.on .sw{background:#3a9d5a}
 .toggle.on .sw::after{transform:translateX(15px)}
 .toggle.off{opacity:0.35;cursor:not-allowed}
+html[data-theme=dark] .toggle .sw{background:#2b3c55}
+html[data-theme=dark] .toggle.on .sw{background:#4fae6c}
+html[data-theme=dark] .toggle .sw::after{background:#eaf0f7}
 .plain{display:grid;gap:6px}
 .plain .pr{display:grid;gap:6px;align-items:start;background:var(--panel);border:1px solid var(--hair);border-radius:6px;padding:0.5rem}
 .pages{display:flex;flex-direction:column;align-items:center;gap:18px;margin-top:1.2rem;padding:1.4rem;background:#e7e5e1;border-radius:var(--r);min-height:200px}
@@ -357,6 +360,47 @@ main{padding:0 3rem;max-width:1180px}
 .sendcard .copy{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--mid)}
 .sendcard .copy input{accent-color:#F05A22}
 
+/* ---- the quieter dashboard: a list, and small widgets beside it ---- */
+.quiet{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:24px;margin-top:1.2rem;align-items:start}
+.qbar{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.qlist{border-radius:18px;padding:6px 10px;background:linear-gradient(160deg,rgba(255,255,255,0.66),rgba(255,255,255,0.42));border:1px solid rgba(255,255,255,0.85);box-shadow:0 14px 40px rgba(160,70,20,0.06)}
+.qlist .inv{grid-template-columns:70px minmax(120px,1.3fr) minmax(80px,1fr) 118px 110px 104px 20px;background:transparent!important;border:none!important;border-top:1px solid var(--hair)!important;border-radius:10px;padding:0.6rem 0.4rem;margin:0}
+.qlist .inv:first-child{border-top:none!important}
+.qlist .inv.head{font-family:var(--mono);font-size:9.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--dim);cursor:default;padding-top:0.5rem;padding-bottom:0.3rem}
+@media (hover:hover){.qlist .inv:not(.head):hover{background:rgba(255,255,255,0.6)!important}}
+.hid{color:var(--dim)!important;letter-spacing:0.12em}
+.qside{display:flex;flex-direction:column;gap:12px}
+.qglance{display:flex;align-items:center;padding:2px 4px 0}
+.qshow{border:none;background:none;font-size:12.5px;color:var(--accent-ink);padding:0;cursor:pointer}
+.qw{border-radius:18px;padding:14px 16px;display:flex;flex-direction:column;gap:9px;background:linear-gradient(160deg,rgba(255,255,255,0.66),rgba(255,255,255,0.42));border:1px solid rgba(255,255,255,0.85);box-shadow:0 14px 40px rgba(160,70,20,0.06)}
+.qwh{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--mid)}
+.qrow{display:flex;justify-content:space-between;align-items:baseline;gap:10px;font-size:13px;color:var(--mid)}
+.qrow b{font-family:'Raleway',sans-serif;font-weight:200;font-size:26px;line-height:1;color:var(--ink)}
+.qrow.small{font-size:12px}
+.qbar2{display:flex;height:5px;border-radius:3px;overflow:hidden;background:rgba(28,28,28,0.07)}
+.qdue{display:flex;align-items:center;gap:9px;padding:6px 0;border-top:1px solid var(--hair);font-size:13px;cursor:pointer}
+.qdue:first-child{border-top:none}
+.qdue i{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.qdue span{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.qdue em{font-style:normal;font-family:var(--mono);font-size:10.5px;color:var(--mid);white-space:nowrap}
+.qdue em.late{color:#b0391a}
+.qarrow{border:none;background:none;width:22px;height:22px;border-radius:50%;font-size:14px;line-height:1;color:var(--mid);cursor:pointer}
+.qarrow:disabled{opacity:0.3;cursor:default}
+@media (hover:hover){.qarrow:not(:disabled):hover{background:rgba(255,255,255,0.7)}}
+.mcal{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;text-align:center}
+.mcal .dw{font-family:var(--mono);font-size:9px;color:var(--dim);padding-bottom:3px}
+.mcal .dd{position:relative;font-family:var(--mono);font-size:10.5px;color:var(--mid);padding:4px 0 9px;border-radius:6px}
+.mcal .dd.out{color:transparent}
+.mcal .dd.today{background:var(--ink);color:#fff}
+.mcal .dd.has{cursor:pointer;color:var(--ink)}
+@media (hover:hover){.mcal .dd.has:hover{background:rgba(255,255,255,0.8)}}
+.mcal .dots{position:absolute;left:0;right:0;bottom:3px;display:flex;justify-content:center;gap:2px}
+.mcal .dots i{width:4px;height:4px;border-radius:50%}
+.qkey{display:flex;gap:10px;font-family:var(--mono);font-size:9.5px;color:var(--dim)}
+.qkey i{display:inline-block;width:6px;height:6px;border-radius:50%;margin-right:4px;vertical-align:1px}
+.qyear{display:flex;align-items:flex-end;gap:4px;height:56px}
+.qyear i{flex:1;border-radius:3px 3px 1px 1px}
+@media (max-width:1100px){.quiet{grid-template-columns:minmax(0,1fr)}.qside{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}}
 </style>
 </head>
 <body>
@@ -404,26 +448,37 @@ main{padding:0 3rem;max-width:1180px}
 
   <!-- ============ dashboard ============ -->
   <section id="dashView">
-    <div class="row" style="margin-top:1.2rem">
-      <select class="sel" id="dashProject" style="max-width:240px"></select>
-      <input type="text" class="in" id="dashSearch" style="max-width:320px" placeholder="Search clients, numbers, notes" spellcheck="false">
+    <!-- Quieter: the invoices as a list, the money in small widgets, amounts hidden until you ask. -->
+    <div class="quiet">
+      <div class="qmain">
+        <div class="qbar">
+          <div class="seg" id="listSeg"></div>
+          <select class="sel" id="dashProject" style="max-width:220px"></select>
+          <span class="spacer" style="flex:1"></span>
+          <input type="text" class="in" id="dashSearch" style="max-width:240px" placeholder="Search clients, numbers, notes" spellcheck="false">
+        </div>
+        <div class="qlist" id="dash"></div>
+        <p class="empty" id="dashEmpty" hidden>No invoices yet. Press New invoice to make your first.</p>
+      </div>
+      <aside class="qside">
+        <div class="qglance"><span class="label" style="margin:0">At a glance</span><span class="spacer" style="flex:1"></span>
+          <button class="qshow" id="showAmounts"></button></div>
+        <div class="qw" id="sums"></div>
+        <div class="qw"><div class="qwh">Due next</div><div id="dueNext"></div></div>
+        <div class="qw">
+          <div class="qwh"><span id="periodTitle"></span><span class="spacer" style="flex:1"></span>
+            <button class="qarrow" id="prevBtn" title="The month before" aria-label="The month before">‹</button>
+            <button class="qarrow" id="todayBtn" title="This month" aria-label="This month">•</button>
+            <button class="qarrow" id="nextBtn" title="The month after" aria-label="The month after">›</button></div>
+          <div id="cal"></div>
+          <div class="qkey"><span><i style="background:#c9472a"></i>late</span><span><i style="background:#e0a07f"></i>due</span><span><i style="background:#3a9d5a"></i>paid</span></div>
+          <p class="note" id="calNote" style="margin:0"></p>
+        </div>
+        <div class="qw"><div class="qwh">The year so far</div><div id="chart"></div>
+          <span class="note" style="margin:0;font-family:var(--mono);font-size:10px">paid, by the month it landed</span></div>
+        <div hidden><div class="seg" id="periodSeg"><button data-v="month" class="on">Month</button></div><div class="seg" id="curSeg"></div></div>
+      </aside>
     </div>
-    <div class="periodbar">
-      <div class="seg" id="periodSeg"><button data-v="week">Week</button><button data-v="month" class="on">Month</button><button data-v="year">Year</button></div>
-      <button class="pill quiet" id="prevBtn" title="Earlier">←</button>
-      <span class="ptitle" id="periodTitle"></span>
-      <button class="pill quiet" id="nextBtn" title="Later">→</button>
-      <button class="pill quiet" id="todayBtn">Today</button>
-      <span class="spacer" style="flex:1"></span>
-      <div class="seg" id="curSeg" hidden></div>
-    </div>
-    <div class="cardsum" id="sums"></div>
-    <div class="chartwrap"><div id="chart"></div>
-      <p class="note" style="margin:0.4rem 0 0"><span class="key green"></span> paid &nbsp; <span class="key red"></span> not paid yet — by the date each was issued</p></div>
-    <div class="dhead"><span class="dot red"></span><h3>Due</h3><span class="note" style="margin:0" id="calNote"></span></div>
-    <div id="cal"></div>
-    <div id="dash"></div>
-    <p class="empty" id="dashEmpty" hidden>No invoices yet. Press New invoice to make your first.</p>
   </section>
 
   <!-- ============ an invoice ============ -->
@@ -1038,108 +1093,27 @@ main{padding:0 3rem;max-width:1180px}
   $('todayBtn').addEventListener('click', () => { anchor = today(); renderDash(); });
   $('curSeg').addEventListener('click', e => { const b2 = e.target.closest('button'); if (b2) { chartCur = b2.dataset.v; renderDash(); } });
 
+  // Unpaid first; amounts stay hidden until you ask (remembered).
+  let listFilter = 'unpaid';
+  let showAmounts = (() => { try { return localStorage.getItem('np.showAmounts') === '1'; } catch (e) { return false; } })();
+  const amt = (n, c) => showAmounts ? money(n, c) : '•••';
   function renderDash() {
     showProjects();
+    period = 'month';
     const pf = $('dashProject').value, q = $('dashSearch').value.trim().toLowerCase();
     const list = L.invoices.filter(i => (!pf || i.project === pf) &&
       (!q || [i.number, i.client.name, i.project, i.notes, ...i.items.map(x => x.role + ' ' + x.note)].some(x => String(x || '').toLowerCase().includes(q))));
-    const issued = list.filter(i => i.status === 'sent' || i.status === 'paid');
     const [from, to] = range();
     const within = d => d && d >= from && d <= to;
+    const by = st => list.filter(i => i.status === st);
+    const unpaid = by('sent').sort((a2, b2) => (a2.due || '9').localeCompare(b2.due || '9'));
+    const paid = by('paid').sort((a2, b2) => (b2.paidAt || '').localeCompare(a2.paidAt || ''));
+    const drafts = by('draft');
+    const sets = { unpaid, paid, drafts, all: unpaid.concat(drafts, paid, by('void')) };
+    const F = [['unpaid', 'Unpaid', unpaid.length], ['paid', 'Paid', paid.length], ['drafts', 'Drafts', drafts.length], ['all', 'All', list.length]];
+    $('listSeg').innerHTML = F.map(([k, n, c]) => `<button data-list="${k}"${k === listFilter ? ' class="on"' : ''}>${n}${c ? ` · ${c}` : ''}</button>`).join('');
 
-    $('periodSeg').querySelectorAll('button').forEach(b2 => b2.classList.toggle('on', b2.dataset.v === period));
-    $('periodTitle').textContent = titleOf();
-    const [tf, tt] = (() => { const keep = anchor; anchor = today(); const r = range(); anchor = keep; return r; })();
-    $('todayBtn').disabled = from === tf && to === tt;
-
-    // ---- the numbers for this period, per currency
-    const add = (m, c, n) => { m[c] = (m[c] || 0) + n; return m; };
-    const invoiced = {}, paid = {}, owed = {};
-    issued.forEach(i => {
-      if (within(i.date)) add(invoiced, i.currency, total(i));
-      if (i.status === 'paid' && within(i.paidAt)) add(paid, i.currency, total(i));
-    });
-    list.filter(i => i.status === 'sent').forEach(i => add(owed, i.currency, total(i)));   // owed is always everything outstanding
-    const late = list.filter(overdue).length;
-    const show = m => Object.keys(m).length ? Object.entries(m).map(([c, n]) => money(n, c)).join('<br>') : money(0, chartCur || 'CAD');
-    const word = { week: 'this week', month: 'this month', year: 'this year' }[period];
-    const now = from === tf;
-    $('sums').innerHTML =
-      `<div class="sum"><span class="label">Invoiced ${now ? word : ''}</span><div class="v">${show(invoiced)}</div></div>` +
-      `<div class="sum paid"><span class="label">Paid ${now ? word : ''}</span><div class="v">${show(paid)}</div></div>` +
-      `<div class="sum owed"><span class="label">Owed to you, all told</span><div class="v">${show(owed)}</div></div>` +
-      `<div class="sum"><span class="label">Overdue</span><div class="v"${late ? ' style="color:#b0391a"' : ''}>${late}</div></div>`;
-
-    // ---- the chart: invoiced by the date issued, paid part in green
-    const curs = [...new Set(issued.map(i => i.currency))];
-    const counts = curs.map(c => [c, issued.filter(i => i.currency === c).length]).sort((x, y) => y[1] - x[1]);
-    if (!curs.includes(chartCur)) chartCur = counts.length ? counts[0][0] : 'CAD';
-    $('curSeg').hidden = curs.length < 2;
-    $('curSeg').innerHTML = curs.map(c => `<button data-v="${c}"${c === chartCur ? ' class="on"' : ''}>${c}</button>`).join('');
-    const buckets = [];
-    if (period === 'year') for (let m = 0; m < 12; m++) {
-      const y = parse(from).getFullYear();
-      buckets.push({ label: new Date(y, m, 1).toLocaleDateString('en-GB', { month: 'short' }), from: iso(new Date(y, m, 1)), to: iso(new Date(y, m + 1, 0)) });
-    } else for (let d = parse(from); iso(d) <= to; d.setDate(d.getDate() + 1)) {
-      buckets.push({ label: period === 'week' ? d.toLocaleDateString('en-GB', { weekday: 'short' }) : String(d.getDate()), from: iso(d), to: iso(d) });
-    }
-    buckets.forEach(bk => {
-      const inside = issued.filter(i => i.currency === chartCur && i.date >= bk.from && i.date <= bk.to);
-      bk.paid = inside.filter(i => i.status === 'paid').reduce((a2, i) => a2 + total(i), 0);
-      bk.open = inside.filter(i => i.status === 'sent').reduce((a2, i) => a2 + total(i), 0);
-      bk.n = inside.length;
-    });
-    const max = Math.max(1, ...buckets.map(bk => bk.paid + bk.open));
-    const W = 720, H = 170, top = 18, base = 140, gap = period === 'month' ? 3 : 10;
-    const bw = (W - gap * (buckets.length - 1)) / buckets.length;
-    const bars = buckets.map((bk, k) => {
-      const x = k * (bw + gap), hp = (bk.paid / max) * (base - top), ho = (bk.open / max) * (base - top);
-      const showLabel = period !== 'month' || k === 0 || (k + 1) % 5 === 0;
-      const tip = `${bk.label}: ${money(bk.paid + bk.open, chartCur)} invoiced${bk.open ? ', ' + money(bk.open, chartCur) + ' not paid yet' : ''}`;
-      return `<g><title>${esc(tip)}</title>
-        <rect x="${x}" y="${top}" width="${bw}" height="${base - top}" fill="transparent"/>
-        ${bk.paid ? `<rect x="${x}" y="${base - hp}" width="${bw}" height="${hp}" rx="2" fill="#3a9d5a"/>` : ''}
-        ${bk.open ? `<rect x="${x}" y="${base - hp - ho}" width="${bw}" height="${ho}" rx="2" fill="#d9826b"/>` : ''}
-        ${!bk.n ? `<rect x="${x}" y="${base - 2}" width="${bw}" height="2" fill="#e3e1dd"/>` : ''}
-        ${showLabel ? `<text x="${x + bw / 2}" y="${base + 16}" text-anchor="middle" font-family="Courier Prime, monospace" font-size="10" fill="#8a8a86">${esc(bk.label)}</text>` : ''}</g>`;
-    }).join('');
-    $('chart').innerHTML = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Invoiced and paid">
-      <text x="0" y="10" font-family="Courier Prime, monospace" font-size="10" fill="#8a8a86">${esc(money(max === 1 ? 0 : max, chartCur))}</text>
-      <line x1="0" y1="${base}" x2="${W}" y2="${base}" stroke="#e3e1dd"/>${bars}</svg>`;
-
-    // ---- the calendar: what's due when
-    const dueIn = list.filter(i => (i.status === 'sent' || i.status === 'paid') && i.due);
-    const chip = i => {
-      const cls = i.status === 'paid' ? 'paid' : overdue(i) ? 'late' : 'unpaid';
-      return `<span class="chip2 ${cls}" data-open="${esc(i.id)}" title="${esc(`${i.number} · ${i.client.name} · ${money(total(i), i.currency)} · ${countdown(i)}`)}">${esc(i.number)} · ${esc(money(total(i), i.currency))}</span>`;
-    };
-    if (period === 'year') {
-      const y = parse(from).getFullYear(), thisMonth = today().slice(0, 7);
-      $('cal').innerHTML = `<div class="yeargrid">${Array.from({ length: 12 }, (_, m) => {
-        const key = `${y}-${String(m + 1).padStart(2, '0')}`;
-        const due = dueIn.filter(i => i.due.slice(0, 7) === key);
-        const open = due.filter(i => i.status === 'sent'), lateN = open.filter(overdue).length;
-        const sum = {}; open.forEach(i => add(sum, i.currency, total(i)));
-        return `<div class="ym${key === thisMonth ? ' now' : ''}" data-month="${key}"><b>${new Date(y, m, 1).toLocaleDateString('en-GB', { month: 'long' })}</b>
-          <div>${due.length ? `${due.length} due · ${due.length - open.length} paid` : 'nothing due'}</div>
-          ${open.length ? `<div class="${lateN ? 'late' : ''}">${Object.entries(sum).map(([c, n]) => money(n, c)).join(' · ')} outstanding</div>` : ''}</div>`;
-      }).join('')}</div>`;
-      $('calNote').textContent = 'Click a month to open it.';
-    } else {
-      const start = parse(from); start.setDate(start.getDate() - ((start.getDay() + 6) % 7));
-      const end = parse(to); end.setDate(end.getDate() + (6 - (end.getDay() + 6) % 7));
-      let cells = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(d => `<div class="dow">${d}</div>`).join('');
-      for (let d = new Date(start); iso(d) <= iso(end); d.setDate(d.getDate() + 1)) {
-        const key = iso(d), out = key < from || key > to;
-        const due = out ? [] : dueIn.filter(i => i.due === key);
-        cells += `<div class="day${out ? ' out' : ''}${key === today() ? ' today' : ''}"><span class="d">${d.getDate()}</span>${due.map(chip).join('')}</div>`;
-      }
-      $('cal').innerHTML = `<div class="cal ${period}">${cells}</div>`;
-      const n = dueIn.filter(i => within(i.due) && i.status === 'sent').length;
-      $('calNote').textContent = n ? `${n} unpaid due ${now ? word : 'in this ' + period}` : `Nothing unpaid due ${now ? word : 'in this ' + period}.`;
-    }
-
-    // ---- the lists: everything outstanding, and what was paid in this period
+    // ---- the list, with each invoice's Paid / Unpaid switch
     const row = i => {
       const cls = i.status === 'sent' ? 'unpaid' : i.status;
       const can = i.status === 'sent' || i.status === 'paid';
@@ -1148,30 +1122,65 @@ main{padding:0 3rem;max-width:1180px}
         <span class="num">${esc(i.number || '—')}</span>
         <span class="cli">${esc(i.client.name || 'No client yet')}</span>
         <span class="mono">${esc(i.project || '')}</span>
-        <span class="mono">${esc(shortDate(i.date))}</span>
-        <span class="mono${overdue(i) ? ' late' : urgent ? ' soon' : ''}">${esc(cd || shortDate(i.due))}</span>
-        <span class="amt">${money(total(i), i.currency)}</span>
+        <span class="mono${overdue(i) ? ' late' : urgent ? ' soon' : ''}">${esc(cd || (i.status === 'draft' ? 'draft' : shortDate(i.due)))}</span>
+        <span class="amt${showAmounts ? '' : ' hid'}">${amt(total(i), i.currency)}</span>
         <span class="toggle${i.status === 'paid' ? ' on' : ''}${can ? '' : ' off'}" data-paid="${esc(i.id)}"
-          title="${can ? 'Paid?' : i.status === 'draft' ? 'Export it first' : 'Void'}"><span class="sw"></span>${{ paid: 'Paid', sent: 'Unpaid', draft: 'Draft', void: 'Void' }[i.status]}</span>
+          title="${can ? (i.status === 'paid' ? 'Paid — click for unpaid' : 'Unpaid — click when the money lands') : i.status === 'draft' ? 'Export it first' : 'Void'}"><span class="sw"></span>${{ paid: 'Paid', sent: 'Unpaid', draft: 'Draft', void: 'Void' }[i.status]}</span>
         <button class="x" data-del="${esc(i.id)}" title="Delete">×</button></div>`;
     };
-    const group = (title, dot, rows, note) => rows.length ? `<div class="dhead"><span class="dot ${dot}"></span><h3>${title}</h3>
-      <span class="note" style="margin:0">${note || rows.length}</span></div>` + rows.map(row).join('') : '';
-    const by = st => list.filter(i => i.status === st);
-    const paidHere = by('paid').filter(i => within(i.paidAt)).sort((a2, b2) => (b2.paidAt || '').localeCompare(a2.paidAt || ''));
-    $('dash').innerHTML =
-      group('Unpaid', 'red', by('sent').sort((a2, b2) => (a2.due || '').localeCompare(b2.due || ''))) +
-      group('Drafts', 'grey', by('draft')) +
-      group('Paid', 'green', paidHere, `${paidHere.length} paid ${now ? word : 'in ' + titleOf()}`) +
-      group('Void', 'grey', by('void').filter(i => within(i.voidAt || i.date)));
+    const rows = sets[listFilter] || unpaid;
+    $('dash').innerHTML = rows.length ? `<div class="inv head"><span>No.</span><span>Client</span><span>Project</span><span>Due</span><span style="text-align:right">Amount</span><span style="justify-self:end">Paid?</span><span></span></div>` + rows.map(row).join('')
+      : `<p class="note" style="padding:1rem 0.4rem;margin:0">${{ unpaid: 'Nothing unpaid — everything you’ve sent has landed.', paid: 'Nothing paid yet.', drafts: 'No drafts.', all: 'No invoices yet.' }[listFilter]}</p>`;
     $('dashEmpty').hidden = L.invoices.length > 0;
+
+    // ---- owed, and this month
+    const add = (m, c, n) => { m[c] = (m[c] || 0) + n; return m; };
+    const owed = {}, paidMonth = {};
+    unpaid.forEach(i => add(owed, i.currency, total(i)));
+    paid.filter(i => within(i.paidAt)).forEach(i => add(paidMonth, i.currency, total(i)));
+    const main = Object.keys(owed)[0] || Object.keys(paidMonth)[0] || (L.invoices[0] && L.invoices[0].currency) || 'CAD';
+    const sumOf = m => Object.keys(m).length ? Object.entries(m).map(([c, n]) => amt(n, c)).join(' · ') : amt(0, main);
+    const o = owed[main] || 0, p2 = paidMonth[main] || 0, share = o + p2 ? Math.round(p2 / (o + p2) * 100) : 0;
+    const late = unpaid.filter(overdue).length;
+    $('sums').innerHTML = `<div class="qrow"><span>Owed to you</span><b class="${showAmounts ? '' : 'hid'}">${sumOf(owed)}</b></div>
+      <div class="qbar2"><i style="width:${share}%;background:#3a9d5a"></i><i style="width:${100 - share}%;background:#e0a07f"></i></div>
+      <div class="qrow small"><span>${showAmounts ? sumOf(paidMonth) + ' paid' : 'Paid'} in ${parse(anchor).toLocaleDateString('en-GB', { month: 'long' })}</span><span>${late ? `<b style="color:#b0391a;font-weight:400;font-size:12px">${late} late</b>` : `${unpaid.length} to come`}</span></div>`;
+
+    // ---- due next
+    const next = unpaid.filter(i => i.due).slice(0, 4);
+    $('dueNext').innerHTML = next.length ? next.map(i => `<div class="qdue" data-open="${esc(i.id)}"><i style="background:${overdue(i) ? '#c9472a' : '#c9bfb8'}"></i>
+      <span>${esc(i.client.name || i.number)}</span><em${overdue(i) ? ' class="late"' : ''}>${esc(countdown(i).replace(/^due /, ''))}</em></div>`).join('')
+      : '<p class="note" style="margin:0">Nothing waiting.</p>';
+
+    // ---- the little calendar: what falls due, day by day
+    $('periodTitle').textContent = parse(anchor).toLocaleDateString('en-GB', { month: 'long', year: 'numeric' });
+    const dueIn = list.filter(i => (i.status === 'sent' || i.status === 'paid') && i.due);
+    const start = parse(from); start.setDate(start.getDate() - ((start.getDay() + 6) % 7));
+    let cells = ['M', 'T', 'W', 'T', 'F', 'S', 'S'].map(d => `<span class="dw">${d}</span>`).join('');
+    for (let d = new Date(start), k = 0; k < 42 && (iso(d) <= to || k % 7); d.setDate(d.getDate() + 1), k++) {
+      const key = iso(d), out = key < from || key > to;
+      const due = out ? [] : dueIn.filter(i => i.due === key);
+      const dots = due.slice(0, 3).map(i => `<i style="background:${i.status === 'paid' ? '#3a9d5a' : overdue(i) ? '#c9472a' : '#e0a07f'}"></i>`).join('');
+      const tip = due.map(i => `${i.number} · ${i.client.name} · ${showAmounts ? money(total(i), i.currency) + ' · ' : ''}${countdown(i)}`).join('\n');
+      cells += `<span class="dd${out ? ' out' : ''}${key === today() ? ' today' : ''}${due.length ? ' has' : ''}"${due.length ? ` data-open="${esc(due[0].id)}" title="${esc(tip)}"` : ''}>${d.getDate()}<span class="dots">${dots}</span></span>`;
+    }
+    $('cal').innerHTML = `<div class="mcal">${cells}</div>`;
+    const n = dueIn.filter(i => within(i.due) && i.status === 'sent').length;
+    $('calNote').textContent = n ? `${n} unpaid due this month` : 'Nothing unpaid due this month.';
+    const tf = (() => { const keep = anchor; anchor = today(); const r = range(); anchor = keep; return r[0]; })();
+    $('todayBtn').disabled = from === tf;
+
+    // ---- the year so far: paid, by the month it landed
+    const y = parse(anchor).getFullYear();
+    const months = Array.from({ length: 12 }, (_, m) => paid.filter(i => i.currency === main && (i.paidAt || '').slice(0, 7) === `${y}-${String(m + 1).padStart(2, '0')}`).reduce((a2, i) => a2 + total(i), 0));
+    const max = Math.max(1, ...months), thisM = parse(anchor).getMonth();
+    $('chart').innerHTML = `<div class="qyear">${months.map((v, m) => `<i title="${esc(new Date(y, m, 1).toLocaleDateString('en-GB', { month: 'long' }))}${showAmounts ? ': ' + esc(money(v, main)) : ''}" style="height:${Math.max(3, Math.round(v / max * 54))}px;background:${v ? (m === thisM ? 'var(--accent)' : 'rgba(28,28,28,0.24)') : 'rgba(28,28,28,0.07)'}"></i>`).join('')}</div>`;
+    $('showAmounts').textContent = showAmounts ? 'Hide amounts' : 'Show amounts';
   }
-  $('cal').addEventListener('click', e => {
-    const c = e.target.closest('[data-open]');
-    if (c) { cur = L.invoices.find(i => i.id === c.dataset.open); showTab('inv'); return; }
-    const m = e.target.closest('[data-month]');
-    if (m) { period = 'month'; anchor = m.dataset.month + '-01'; renderDash(); }
-  });
+  $('listSeg').addEventListener('click', e => { const b2 = e.target.closest('[data-list]'); if (b2) { listFilter = b2.dataset.list; renderDash(); } });
+  $('showAmounts').addEventListener('click', () => { showAmounts = !showAmounts; try { localStorage.setItem('np.showAmounts', showAmounts ? '1' : '0'); } catch (e) {} renderDash(); });
+  $('cal').addEventListener('click', e => { const c = e.target.closest('[data-open]'); if (c) { cur = L.invoices.find(i => i.id === c.dataset.open); showTab('inv'); } });
+  $('dueNext').addEventListener('click', e => { const c = e.target.closest('[data-open]'); if (c) { cur = L.invoices.find(i => i.id === c.dataset.open); showTab('inv'); } });
   $('dashProject').addEventListener('change', renderDash);
   $('dashSearch').addEventListener('input', renderDash);
   // Drafts go straight away; an issued invoice asks once, since it's a record.
@@ -1206,7 +1215,7 @@ main{padding:0 3rem;max-width:1180px}
       save(); renderDash();
       return;
     }
-    const r = e.target.closest('.inv'); if (!r) return;
+    const r = e.target.closest('.inv'); if (!r || !r.dataset.id) return;
     cur = L.invoices.find(i => i.id === r.dataset.id); showTab('inv');
   });
 

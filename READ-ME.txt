@@ -355,3 +355,17 @@ DARK MODE
     again for light. It's remembered.
   • Your pictures, colour swatches and Design pages keep their true colours,
     and exports are never affected. (Resources/shell/theme.js)
+
+PAY, QUIETER
+  • The dashboard is now a list and a few small widgets, like the project
+    page — not a wall of money.
+  • The list: Unpaid · Paid · Drafts · All, a project picker and search. Each
+    invoice has its own Paid / Unpaid switch (and × to remove it).
+  • At a glance: what you're owed, what's come in this month and how many
+    are late. Amounts stay hidden (•••) until you press "Show amounts" —
+    it's remembered.
+  • Due next: the next few invoices, late ones first.
+  • A little calendar: a dot on each due day — orange for late, pale for
+    due, green for paid. ‹ • › moves through the months; click a day to
+    see what's due on it.
+  • The year so far, as small monthly bars.
