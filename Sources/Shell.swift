@@ -149,8 +149,12 @@ enum Labels {
     /// The labels to choose from: the three to start with, yours, and any a project already has.
     static func names() -> [String] {
         let mine = (UserDefaults.standard.array(forKey: "projectLabels") as? [String]) ?? []
-        var seen = Set<String>(), out: [String] = []
-        for l in starters + mine + all().values.sorted() where !l.isEmpty && seen.insert(l.lowercased()).inserted { out.append(l) }
+        var every: [String] = starters
+        every.append(contentsOf: mine)
+        every.append(contentsOf: all().values.sorted())
+        var seen = Set<String>()
+        var out: [String] = []
+        for l in every where !l.isEmpty && seen.insert(l.lowercased()).inserted { out.append(l) }
         return out
     }
     static func add(_ label: String) {
@@ -486,39 +490,65 @@ final class Shell: NSObject, NSApplicationDelegate, NSWindowDelegate, WKScriptMe
             let src = it["source"] as? [String: Any]
             return (src?["type"] as? String) == "file" && it["at"] == nil ? "grab" : "reference"
         }
-        let picked = v.index.filter { it in
-            guard ["still", "gif", "clip"].contains(it["kind"] as? String ?? "") else { return false }
+        // (Kept in small, typed steps: older Swift compilers give up on one big closure.)
+        let picked = v.index.filter { (it: [String: Any]) -> Bool in
+            let kind = it["kind"] as? String ?? ""
+            guard kind == "still" || kind == "gif" || kind == "clip" else { return false }
             let proj = it["project"] as? String ?? "Unsorted"
             if scope == "project" && proj != Shared.project { return false }
-            if scope == "label" && (labels[proj] ?? "").lowercased() != wantLabel { return false }
-            let o = originOf(it)
-            guard show == "both" || (show == "references" && o == "reference") || (show == "grabs" && o == "grab") else { return false }
+            if scope == "label" {
+                let theirs: String = labels[proj] ?? ""
+                if theirs.lowercased() != wantLabel { return false }
+            }
+            let o: String = originOf(it)
+            let wanted: Bool = show == "both" || (show == "references" && o == "reference") || (show == "grabs" && o == "grab")
+            guard wanted else { return false }
             if words.isEmpty { return true }
-            let src = it["source"] as? [String: Any]
-            var hay = [src?["title"] as? String ?? "", src?["url"] as? String ?? "", src?["site"] as? String ?? "",
-                       it["project"] as? String ?? "", labels[it["project"] as? String ?? ""] ?? "",
-                       it["note"] as? String ?? "", it["kind"] as? String ?? ""]
-            hay += (it["tags"] as? [String]) ?? []
-            hay += (it["boards"] as? [String]) ?? []
-            hay += ((it["palette"] as? [String]) ?? []).flatMap { Shell.colourNames($0) }
-            let text = hay.joined(separator: " ").lowercased()
+            let text: String = Shell.searchText(it, label: labels[proj] ?? "")
             return words.allSatisfy { text.contains($0) }
         }.sorted { ($0["created"] as? String ?? "") > ($1["created"] as? String ?? "") }.prefix(300)
-        let items: [[String: Any]] = picked.compactMap { it in
+        let items: [[String: Any]] = picked.compactMap { (it: [String: Any]) -> [String: Any]? in
             guard let id = it["id"] as? String, let thumb = it["thumb"] as? String, let file = it["file"] as? String else { return nil }
-            var a = 16.0 / 9.0
+            var a: Double = 16.0 / 9.0
             if let w = (it["w"] as? NSNumber)?.doubleValue, let h = (it["h"] as? NSNumber)?.doubleValue, w > 0, h > 0 { a = w / h }
             else if let known = aspects[id] { a = known }
             else if let src = CGImageSourceCreateWithURL(base.appendingPathComponent(thumb) as CFURL, nil),
                     let p = CGImageSourceCopyPropertiesAtIndex(src, 0, nil) as? [CFString: Any],
                     let w = p[kCGImagePropertyPixelWidth] as? Double, let h = p[kCGImagePropertyPixelHeight] as? Double, h > 0 { a = w / h; aspects[id] = a }
             let src = it["source"] as? [String: Any]
-            return ["id": id, "kind": it["kind"] as? String ?? "still", "thumb": thumb, "file": file, "a": a,
-                    "title": src?["title"] as? String ?? "", "url": src?["url"] as? String ?? "", "at": it["at"] ?? NSNull(),
-                    "project": it["project"] as? String ?? "Unsorted", "label": labels[it["project"] as? String ?? ""] ?? "", "origin": originOf(it), "tags": (it["tags"] as? [String]) ?? [String](),
-                    "boards": (it["boards"] as? [String]) ?? [String](), "palette": (it["palette"] as? [String]) ?? [String]()]
+            let proj: String = it["project"] as? String ?? "Unsorted"
+            var out: [String: Any] = ["id": id, "thumb": thumb, "file": file, "a": a]
+            out["kind"] = it["kind"] as? String ?? "still"
+            out["title"] = src?["title"] as? String ?? ""
+            out["url"] = src?["url"] as? String ?? ""
+            out["at"] = it["at"] ?? NSNull()
+            out["project"] = proj
+            out["label"] = labels[proj] ?? ""
+            out["origin"] = originOf(it)
+            out["tags"] = (it["tags"] as? [String]) ?? [String]()
+            out["boards"] = (it["boards"] as? [String]) ?? [String]()
+            out["palette"] = (it["palette"] as? [String]) ?? [String]()
+            return out
         }
         return ["items": items, "vault": true, "project": Shared.project]
+    }
+
+    /// Everything Home's search looks through for one item: title, source, project,
+    /// its label, note, kind, tags, boards and its colours' names.
+    static func searchText(_ it: [String: Any], label: String) -> String {
+        let src = it["source"] as? [String: Any] ?? [:]
+        var hay: [String] = []
+        hay.append(src["title"] as? String ?? "")
+        hay.append(src["url"] as? String ?? "")
+        hay.append(src["site"] as? String ?? "")
+        hay.append(it["project"] as? String ?? "")
+        hay.append(label)
+        hay.append(it["note"] as? String ?? "")
+        hay.append(it["kind"] as? String ?? "")
+        hay.append(contentsOf: (it["tags"] as? [String]) ?? [])
+        hay.append(contentsOf: (it["boards"] as? [String]) ?? [])
+        for hex in (it["palette"] as? [String]) ?? [] { hay.append(contentsOf: colourNames(hex)) }
+        return hay.joined(separator: " ").lowercased()
     }
 
     /// Names for a colour, so "red" or "teal" finds pictures with it in their palette.

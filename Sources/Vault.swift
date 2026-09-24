@@ -1448,9 +1448,13 @@ extension VaultHost {
                     }
                 }
             }
-            let total = Double(max(1, found.count + needThumb.count + needPalette.count))
-            var step = 0.0
-            let tick = { step += 1; let f = step / total; DispatchQueue.main.async { progress(f) } }
+            let total: Double = Double(max(1, found.count + needThumb.count + needPalette.count))
+            var step: Double = 0
+            let tick: () -> Void = {
+                step += 1
+                let f: Double = step / total
+                DispatchQueue.main.async { progress(f) }
+            }
             // 2. each new one gets its preview and colours, the way register() does it
             let stamp = ISO8601DateFormatter().string(from: Date())
             var added: [[String: Any]] = []
@@ -1460,10 +1464,12 @@ extension VaultHost {
                 var thumbRel = rel
                 if kind == "clip", let t = self.poster(for: f, id: id) { thumbRel = t.path.replacingOccurrences(of: base.path + "/", with: "") }
                 else if kind != "clip", let t = self.smallThumb(for: f, id: id) { thumbRel = t.path.replacingOccurrences(of: base.path + "/", with: "") }
-                var item: [String: Any] = [
-                    "id": id, "kind": kind, "file": rel, "thumb": thumbRel, "project": project, "bytes": self.fileSize(f), "created": stamp,
-                    "source": ["type": "file", "title": f.deletingPathExtension().lastPathComponent], "origin": origin,
-                ]
+                let source: [String: Any] = ["type": "file", "title": f.deletingPathExtension().lastPathComponent]
+                var item: [String: Any] = ["id": id, "kind": kind, "file": rel, "thumb": thumbRel, "project": project]
+                item["bytes"] = self.fileSize(f)
+                item["created"] = stamp
+                item["source"] = source
+                item["origin"] = origin
                 if let p = self.palette(of: base.appendingPathComponent(thumbRel)), !p.isEmpty { item["palette"] = p }
                 added.append(item)
                 tick()
@@ -1918,10 +1924,13 @@ extension VaultHost {
                 let set = Array(pics[i..<min(pics.count, i + perPage)])
                 i += set.count
                 ctx.beginPDFPage(nil)
-                ctx.setFillColor(dark ? CGColor(srgbRed: 0.07, green: 0.07, blue: 0.07, alpha: 1)
-                                      : CGColor(srgbRed: 0.957, green: 0.953, blue: 0.945, alpha: 1))
+                let ground: CGColor = dark ? CGColor(srgbRed: 0.07, green: 0.07, blue: 0.07, alpha: 1)
+                                           : CGColor(srgbRed: 0.957, green: 0.953, blue: 0.945, alpha: 1)
+                ctx.setFillColor(ground)
                 ctx.fill(page)
-                for (img, r) in zip(set, VaultHost.moodLayout(set.map { CGFloat($0.width) / CGFloat(max(1, $0.height)) }, in: area, gap: gap)) {
+                let shapes: [CGFloat] = set.map { (img: CGImage) -> CGFloat in CGFloat(img.width) / CGFloat(max(1, img.height)) }
+                let rects: [CGRect] = VaultHost.moodLayout(shapes, in: area, gap: gap)
+                for (img, r) in zip(set, rects) {
                     ctx.interpolationQuality = .high
                     ctx.draw(img, in: r)
                 }
@@ -1946,7 +1955,8 @@ extension VaultHost {
         var best: (score: CGFloat, rects: [CGRect]) = (-1, [])
         for rowsCount in 1...n {
             // split in order into rowsCount rows of roughly equal total width
-            let total = aspects.reduce(0, +), aim = total / CGFloat(rowsCount)
+            let total: CGFloat = aspects.reduce(0, +)
+            let aim: CGFloat = total / CGFloat(rowsCount)
             var rows: [[Int]] = [[]], sum: CGFloat = 0
             for (k, a) in aspects.enumerated() {
                 let left = n - k, rowsLeft = rowsCount - rows.count
@@ -1956,29 +1966,35 @@ extension VaultHost {
                 rows[rows.count - 1].append(k); sum += a
             }
             // each row fills the width; then the lot scales to fit the height
-            var heights = rows.map { r -> CGFloat in
-                let s = r.reduce(CGFloat(0)) { $0 + aspects[$1] }
-                return (area.width - gap * CGFloat(r.count - 1)) / max(s, 0.01)
+            var heights: [CGFloat] = rows.map { (r: [Int]) -> CGFloat in
+                var s: CGFloat = 0
+                for i in r { s += aspects[i] }
+                let room: CGFloat = area.width - gap * CGFloat(r.count - 1)
+                return room / max(s, 0.01)
             }
-            let k = min(1, (area.height - gap * CGFloat(rows.count - 1)) / max(heights.reduce(0, +), 1))
+            let gaps: CGFloat = gap * CGFloat(rows.count - 1)
+            let natural: CGFloat = heights.reduce(0, +)
+            let k: CGFloat = min(1, (area.height - gaps) / max(natural, 1))
             heights = heights.map { $0 * k }
-            let blockH = heights.reduce(0, +) + gap * CGFloat(rows.count - 1)
-            var rects: [CGRect] = [], y = area.maxY - (area.height - blockH) / 2
+            let blockH: CGFloat = heights.reduce(0, +) + gaps
+            var rects: [CGRect] = []
+            var y: CGFloat = area.maxY - (area.height - blockH) / 2
             var covered: CGFloat = 0
             for (ri, r) in rows.enumerated() {
-                let h = heights[ri]
-                let w = r.reduce(CGFloat(0)) { $0 + aspects[$1] * h } + gap * CGFloat(r.count - 1)
-                var x = area.minX + (area.width - w) / 2
+                let h: CGFloat = heights[ri]
+                var w: CGFloat = gap * CGFloat(r.count - 1)
+                for i in r { w += aspects[i] * h }
+                var x: CGFloat = area.minX + (area.width - w) / 2
                 y -= h
                 for idx in r {
-                    let rw = aspects[idx] * h
+                    let rw: CGFloat = aspects[idx] * h
                     rects.append(CGRect(x: x, y: y, width: rw, height: h))
                     covered += rw * h
                     x += rw + gap
                 }
                 y -= gap
             }
-            let score = covered / (area.width * area.height)
+            let score: CGFloat = covered / (area.width * area.height)
             if score > best.score { best = (score, rects) }
         }
         return best.rects
