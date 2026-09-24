@@ -124,6 +124,11 @@ select.sel{appearance:none;-webkit-appearance:none;border:1px solid rgba(28,28,2
 .guide.v{width:1px}
 .guide.hz{height:1px}
 .pagewrap.drop{box-shadow:0 0 0 3px #F05A22,0 20px 60px rgba(80,30,10,0.16)}
+.ghost{position:fixed;z-index:99;pointer-events:none;border-radius:8px;overflow:hidden;box-shadow:0 12px 34px rgba(80,30,10,0.3),0 0 0 2px #F05A22;background:#fff}
+.ghost img{display:block;height:64px;max-width:120px;object-fit:cover}
+.ghost span{display:block;padding:10px 14px;font-size:12.5px}
+.ghost b{position:absolute;right:4px;top:4px;background:#F05A22;color:#fff;font-size:11px;font-weight:500;border-radius:100px;padding:1px 7px}
+body.dragging,body.dragging *{cursor:grabbing!important;user-select:none}
 .marquee{position:absolute;border:1px solid #F05A22;background:rgba(240,90,34,0.1);pointer-events:none;z-index:9}
 .stagehint{position:absolute;left:50%;bottom:12px;transform:translateX(-50%);font-size:12px;color:#8a6a58;white-space:nowrap;pointer-events:none}
 .swapbar[hidden]{display:none}
@@ -507,7 +512,7 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
       const src = 'vault/' + encodeURI(opt.thumbs ? (p.thumb || p.file) : p.file);
       const cls = 'pic' + (sel.has(k) ? ' sel' : '') + (opt.reframe === k ? ' reframe' : '') + (opt.edit && p.featured ? ' feat' : '');
       const deco = (p.border ? `;border:${(p.border.w || 2) * u}px solid ${esc(p.border.c || '#ffffff')}` : '') + (p.shadow ? `;box-shadow:0 ${14 * u}px ${44 * u}px rgba(0,0,0,0.38)` : '') + (p.radius ? `;border-radius:${p.radius * u}px` : '');
-      h += `<div class="${cls}" data-k="${k}"${opt.edit && L.lay !== 'free' ? ' draggable="true"' : ''} style="left:${r.x.toFixed(1)}px;top:${r.y.toFixed(1)}px;width:${r.w.toFixed(1)}px;height:${r.h.toFixed(1)}px;opacity:${p.opacity == null ? 1 : p.opacity};z-index:${zOf(p, k, 'pic')}${deco}${opt.edit ? `;outline-width:${Math.max(2, 3 / (opt.scale || 1))}px` : ''}">`
+      h += `<div class="${cls}" data-k="${k}" style="left:${r.x.toFixed(1)}px;top:${r.y.toFixed(1)}px;width:${r.w.toFixed(1)}px;height:${r.h.toFixed(1)}px;opacity:${p.opacity == null ? 1 : p.opacity};z-index:${zOf(p, k, 'pic')}${deco}${opt.edit ? `;outline-width:${Math.max(2, 3 / (opt.scale || 1))}px` : ''}">`
         + `<img alt="" draggable="false" src="${esc(src)}" style="object-position:${c.x}% ${c.y}%;transform:scale(${c.z});transform-origin:${c.x}% ${c.y}%"></div>`;
     });
     // The fade: from the side the words are on, to black or to the page colour.
@@ -645,7 +650,7 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
       const { W, H } = geometry(doc);
       const s = th / H;
       parts.push(`<div class="gapz" data-gap="${i}"></div>`);
-      parts.push(`<div class="thumb${i === cur ? ' on' : ''}" data-page="${i}" draggable="true" style="width:${Math.round(W * s)}px;height:${th}px" title="Page ${i + 1}">
+      parts.push(`<div class="thumb${i === cur ? ' on' : ''}" data-page="${i}" draggable="false" style="width:${Math.round(W * s)}px;height:${th}px" title="Page ${i + 1}">
         <div style="transform:scale(${s});transform-origin:0 0;width:${W}px;height:${H}px;pointer-events:none">${pageHTML(doc, p, { thumbs: true })}</div>
         <span class="n">${i + 1}</span>${doc.pages.length > 1 ? `<button class="del" data-delpage="${i}" aria-label="Remove page ${i + 1}">×</button>` : ''}</div>`);
     });
@@ -1004,8 +1009,8 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
     g.classList.toggle('list', traySize === 'List');
     const h = TRAY_H[traySize] || 100;
     g.innerHTML = list.length ? list.map((s, i) => traySize === 'List'
-      ? `<div class="still${trayPick.has(s.id) ? ' on' : ''}${used.has(s.id) ? ' used' : ''}" data-id="${esc(s.id)}" data-i="${i}" draggable="true"><img alt="" loading="lazy" src="vault/${esc(encodeURI(s.thumb))}"><span>${esc(s.title || 'Still')}</span><small>${esc(s.project)}</small></div>`
-      : `<div class="still${trayPick.has(s.id) ? ' on' : ''}${used.has(s.id) ? ' used' : ''}" data-id="${esc(s.id)}" data-i="${i}" draggable="true" title="${esc(s.title)}" style="height:${h}px;width:${Math.round(h * clamp(s.a || 1.5, 0.4, 3))}px"><img alt="" loading="lazy" src="vault/${esc(encodeURI(s.thumb))}"></div>`).join('')
+      ? `<div class="still${trayPick.has(s.id) ? ' on' : ''}${used.has(s.id) ? ' used' : ''}" data-id="${esc(s.id)}" data-i="${i}" draggable="false"><img alt="" loading="lazy" src="vault/${esc(encodeURI(s.thumb))}"><span>${esc(s.title || 'Still')}</span><small>${esc(s.project)}</small></div>`
+      : `<div class="still${trayPick.has(s.id) ? ' on' : ''}${used.has(s.id) ? ' used' : ''}" data-id="${esc(s.id)}" data-i="${i}" draggable="false" title="${esc(s.title)}" style="height:${h}px;width:${Math.round(h * clamp(s.a || 1.5, 0.4, 3))}px"><img alt="" loading="lazy" src="vault/${esc(encodeURI(s.thumb))}"></div>`).join('')
       : `<div class="empty" style="padding:14px 0">${scope === 'project' ? `No stills in ${esc(project)} yet — grab some, add references in the Vault, or drop pictures right here.` : 'No stills in the vault yet.'}</div>`;
   }
   // The stills window: drag its top edge, or Bigger / Smaller.
@@ -1983,36 +1988,49 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
   $('stage').addEventListener('gestureend', e => e.preventDefault());
   $('scroller').addEventListener('scroll', () => { drawBoxSel(); drawSplit(); drawFadeSel(); drawArrBar(); });
 
-  // Drag and drop: stills from the tray, pictures between places, pages in the strip.
-  let dragData = null;
-  document.addEventListener('dragstart', e => {
-    const s = e.target.closest && e.target.closest('.still'), pic = e.target.closest && e.target.closest('#pagewrap .pic'), th = e.target.closest && e.target.closest('.thumb');
-    if (s) { const id = s.dataset.id; if (!trayPick.has(id)) { trayPick = new Set([id]); } dragData = { from: 'tray', ids: [...trayPick] }; }
-    else if (pic && reframe == null) { const k = +pic.dataset.k; if (!sel.has(k)) sel = new Set([k]); dragData = { from: 'page', page: cur, ks: [...sel] }; }
-    else if (th) dragData = { from: 'strip', i: +th.dataset.page };
-    else return;
-    e.dataTransfer.effectAllowed = 'move';
-    try { e.dataTransfer.setData('text/plain', 'needed'); } catch (x) {}
-  });
-  document.addEventListener('dragend', () => { dragData = null; clearOver(); });
+  // Dragging: stills from the tray, pictures between places, pages in the strip. The page does this itself (press, move,
+  // let go) rather than with the browser's drag and drop, which the Mac's web view doesn't always hand over.
+  let dragData = null, pend = null, ghost = null, eatClick = false;
   const clearOver = () => document.querySelectorAll('.over,.dropbefore,.drop').forEach(x => x.classList.remove('over', 'dropbefore', 'drop'));
-  document.addEventListener('dragover', e => {
-    if (!dragData || !doc) return;
-    const th = e.target.closest('.thumb'), gap = e.target.closest('.gapz'), pic = e.target.closest('#pagewrap .pic'), wrap = e.target.closest('#pagewrap, #stage');
-    if (!(th || gap || pic || wrap)) return;
-    e.preventDefault();
-    clearOver();
-    if (th && dragData.from !== 'strip') th.classList.add('over');
-    else if (th) th.classList.add('over');
-    else if (gap) gap.classList.add('over');
-    else if (pic) pic.classList.add('dropbefore');
-    else $('pagewrap').classList.add('drop');
+  document.addEventListener('mousedown', e => {
+    if (e.button !== 0 || !doc || e.metaKey || e.shiftKey || e.ctrlKey) return;
+    const s = e.target.closest('.still'), pic = e.target.closest('#pagewrap .pic'), th = e.target.closest('.thumb');
+    if (s) pend = { from: 'tray', id: s.dataset.id, x0: e.clientX, y0: e.clientY, thumb: s.querySelector('img') && s.querySelector('img').src };
+    else if (pic && reframe == null && layoutOf(doc, page()) !== 'free' && e.detail < 2) pend = { from: 'page', k: +pic.dataset.k, x0: e.clientX, y0: e.clientY, thumb: pic.querySelector('img') && pic.querySelector('img').src };
+    else if (th && !e.target.closest('.del')) pend = { from: 'strip', i: +th.dataset.page, x0: e.clientX, y0: e.clientY };
+  }, true);
+  document.addEventListener('mousemove', e => {
+    if (!pend && !dragData) return;
+    if (pend && !dragData) {
+      if (Math.abs(e.clientX - pend.x0) + Math.abs(e.clientY - pend.y0) < 6) return;
+      if (pend.from === 'tray') { if (!trayPick.has(pend.id)) { trayPick = new Set([pend.id]); paintTrayPick(); } dragData = { from: 'tray', ids: [...trayPick] }; }
+      else if (pend.from === 'page') { if (!sel.has(pend.k)) sel = new Set([pend.k]); dragData = { from: 'page', page: cur, ks: [...sel] }; drag = null; marquee = null; }
+      else dragData = { from: 'strip', i: pend.i };
+      const n = dragData.ids ? dragData.ids.length : dragData.ks ? dragData.ks.length : 0;
+      ghost = document.createElement('div'); ghost.className = 'ghost';
+      ghost.innerHTML = (pend.thumb ? `<img alt="" src="${esc(pend.thumb)}">` : `<span>Page ${pend.i + 1}</span>`) + (n > 1 ? `<b>${n}</b>` : '');
+      document.body.appendChild(ghost); document.body.classList.add('dragging');
+      pend = null;
+    }
+    ghost.style.left = (e.clientX + 12) + 'px'; ghost.style.top = (e.clientY + 12) + 'px';
+    const t = document.elementFromPoint(e.clientX, e.clientY); clearOver(); if (!t) return;
+    const th = t.closest('.thumb'), gap = t.closest('.gapz'), pic = t.closest('#pagewrap .pic'), wrap = t.closest('#pagewrap, #stage');
+    if (th) th.classList.add('over'); else if (gap) gap.classList.add('over'); else if (dragData.from === 'strip') return;
+    else if (pic && layoutOf(doc, page()) !== 'free') pic.classList.add('dropbefore'); else if (wrap) $('pagewrap').classList.add('drop');
   });
-  document.addEventListener('drop', e => {
-    if (!dragData || !doc) return;
-    e.preventDefault();
+  document.addEventListener('mouseup', e => {
+    pend = null;
+    if (!dragData) return;
     const dd = dragData; dragData = null; clearOver();
-    const th = e.target.closest('.thumb'), gap = e.target.closest('.gapz'), pic = e.target.closest('#pagewrap .pic');
+    if (ghost) { ghost.remove(); ghost = null; } document.body.classList.remove('dragging');
+    eatClick = true; setTimeout(() => { eatClick = false; }, 0);
+    const t = document.elementFromPoint(e.clientX, e.clientY);
+    if (t && doc) dropAt(dd, t, e.clientX, e.clientY);
+  }, true);
+  document.addEventListener('click', e => { if (eatClick) { e.stopPropagation(); e.preventDefault(); eatClick = false; } }, true);
+  function dropAt(dd, target, cx, cy) {
+    const th = target.closest('.thumb'), gap = target.closest('.gapz'), pic = target.closest('#pagewrap .pic');
+    if (!(th || gap || pic || target.closest('#pagewrap, #stage'))) return;          // let go somewhere else: nothing happens
     if (dd.from === 'strip') {
       const to = th ? +th.dataset.page : gap ? +gap.dataset.gap : null; if (to == null) return;
       change(() => { const [p] = doc.pages.splice(dd.i, 1); const at = to > dd.i && gap ? to - 1 : to; doc.pages.splice(at, 0, p); cur = at; });
@@ -2037,7 +2055,7 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
     // onto a Free page: right where you let go
     if (layoutOf(doc, page()) === 'free' && doc.mode !== 'mood') {
       const w = $('pagewrap').getBoundingClientRect(), G = geometry(doc);
-      const px = (e.clientX - w.left) / scale, py = (e.clientY - w.top) / scale;
+      const px = (cx - w.left) / scale, py = (cy - w.top) / scale;
       change(() => {
         const pics = takePics(), p = page();
         pics.forEach((x, i) => {
@@ -2060,7 +2078,7 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
       sel = new Set(pics.map(x => p.pics.indexOf(x)));
     });
     if (dd.from === 'tray') { trayPick.clear(); drawTray(); }
-  });
+  }
 
   // Tray marquee: drag across stills to pick them.
   let tmq = null;
