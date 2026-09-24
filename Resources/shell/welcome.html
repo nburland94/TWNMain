@@ -52,12 +52,18 @@ html.only label{visibility:hidden}
   const $ = id => document.getElementById(id);
   const call = (action, x) => window.webkit.messageHandlers.shell.postMessage(Object.assign({ action }, x || {}));
   const SLIDES = [
-    { key: 'Welcome', id: 'welcome', title: 'Needed Tools', line: 'Six tools, one vault. Everything you make files into the project you\u2019re in.',
+    { key: 'Welcome', id: 'welcome', title: 'Needed Tools', line: 'Seven tools, one vault. Everything you make files into the project you\u2019re in.',
       steps: ['Choose your vault \u2014 the folder everything lives in.', 'Pick a project. Every tool follows it \u2014 label the kind of work beside it (Commercial, Music video, Documentary\u2026) and tag its world (sports, fashion\u2026).',
               'Added files in Finder? Press Sync, top right \u2014 it brings every tool up to date.', 'Open any tool from the tabs, or from Home.'] },
     { key: 'Vault', id: 'vault', title: 'Needed Vault', line: 'Your reference library, sorted by project.',
       steps: ['Paste a link \u2014 YouTube, Vimeo or Instagram.', 'Grab stills, GIFs or MP4 clips from it \u2014 each in its own shapes.', 'Tag them, and add them to boards.',
-              'Find anything again by project, label, board, tag or colour.', 'Mood: a PDF of stills and no words, from a project, board, tag or colour.'] },
+              'Find anything again by project, label, board, tag or colour.', 'Pick stills and press Make mood board \u2014 they open in Needed Design.'] },
+    { key: 'Design', id: 'design', title: 'Needed Design', line: 'Mood boards and treatments, from your stills.',
+      steps: ['Mood: just pictures, in tight rows \u2014 a title, the mark, up to 12 a page.', 'Treatment: pictures and words on one grid \u2014 press L for layouts, and just type.',
+              'Click a picture, then \u2191 \u2193 to swap it through your stills. \u2190 \u2192 moves it, \u2318\u2190 \u2192 to another page.', 'Export a PDF, page images, or both \u2014 every export is a new version.'] },
+    { key: 'Project', id: 'project', title: 'The project page', line: 'One job, all in one place.',
+      steps: ['Dates, deliverables and to-dos \u2014 or read the brief and it finds them.', 'Drop anything on it: it\u2019s filed into the project by what it is.',
+              'Pick documents and send them \u2014 To, Cc, Bcc \u2014 from Pay\u2019s account.', 'Crew from your contacts; Make credits opens Credit with them all in.'] },
     { key: 'Shots', id: 'shots', title: 'Needed Shots', line: 'Treatment in, shot list out.',
       steps: ['Paste your beats or treatment \u2014 each one becomes a shot.', 'Add the details, and stills from your vault.',
               'Preview it \u2014 page, layout, size.', 'Export the PDF.'] },

@@ -19,7 +19,7 @@
       ['#tray .shapes', 'Each still\u2019s shapes', 'Under every still: Original, 16:9, 4:5, 1:1, 9:16. Pick which it saves as, then Frame these shapes to choose what\u2019s in shot. New stills start with the row below them.', '#linkInput', 'Once you\u2019ve grabbed a still'],
       ['#gifShapes', 'Shapes for the GIF and MP4', 'The GIF and the MP4 each have their own. Pick as many as you like \u2014 each shape saves as its own file.', '#linkInput', 'Once a link or film is playing'],
       ['#exportBtn', 'Save', 'Your stills go into the vault, filed under this project\u2019s Vault folder.'],
-      ["#views button[data-view='mood']", 'Mood boards', 'A PDF of stills and no words \u2014 from a project, a board, a tag or a colour. It saves into this project.'],
+      ["#views button[data-design]", 'Mood boards', 'Now in Needed Design \u2014 or pick stills and press Make mood board, and they open there already placed.'],
     ],
     'neededshots:': [
       ['#beatsPanel', 'Paste your beats', 'A treatment or beat sheet — each line becomes a shot. Paste more later and only the new ones come in.'],

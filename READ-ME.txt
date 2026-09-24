@@ -300,3 +300,48 @@ ROUND 5 — THE PROJECT PAGE
   • Project names can be up to 80 characters in every tool (some stopped at 60).
   • The vault's list and the contact book each keep a copy a day for 30
     days (.vault/backups, and ~/Library/Application Support/NeededTools/backups).
+
+ROUND 5.1 — THE PROJECT PAGE AS THE MOCK-UP, AND THE HOLES FIXED
+  • The project page is laid out exactly as the Project v2 mock-up: the big
+    title, label and tags, the phase timeline, Mood beside To do (Mood only
+    appears when the project has references — otherwise Deliverables takes
+    its place), Documents four across, Crew beside Deliverables.
+  • The top bar: the project and its page are one pill — orange for which
+    project, black for its page. The label lives on the project page now.
+  • Sync follows Finder: a picture moved in Finder is found again (tags,
+    notes and boards kept); one deleted in Finder comes off the list (kept
+    in .vault/removed.json). An unplugged drive never empties the vault.
+  • Rename a project from the project menu or the project page: its
+    folders, pictures, documents and Pay's invoices all follow.
+  • Every tool files its documents under Lexus_Docs (Invoices, Shot lists,
+    Mood boards, Contact sheets); ideas go in Lexus_Vault/Ideas. Older
+    folders stay where they are and are still read.
+  • Versions keep a word from the file's own name when it's a different
+    document: "Treatment — agency v2" next to "Treatment v4". Rename any
+    document from its ⋯ menu.
+  • The contact book and Pay's books keep a copy in the vault (.vault), so a
+    backup of the vault drive has them; the project's own file is now in
+    plain sight: Lexus/Lexus_Project.json.
+  • After filing a drop, "Move the originals to the Trash" — so nothing is
+    kept twice. Sent emails keep the message, not a second copy of the files.
+  • Home's Shuffle: every press is a new mix, from the whole vault.
+
+ROUND 6 — NEEDED DESIGN
+  • A new tool, beside the Vault (⌘3). Mood board — just pictures, in tight
+    rows, a title and the mark, 1–12 a page. Treatment — pictures and words
+    on one grid: rows, pictures left, pictures right, full bleed, words only.
+  • Start from the Vault (pick stills → Make mood board), the project page,
+    or here. "Lay them out for me" makes the first draft, grouped by colour.
+  • Keys: click a picture, ↑ ↓ swap it through your stills (Return keeps,
+    Esc puts it back), ← → move it, ⌘← → to another page, F features it,
+    double-click to reframe. L for the next layout; click the page and just
+    type. ⌘D duplicate, ⌘Z undo, ⌘S keep a version, Space plays, Tab hides
+    the panel, ? shows the keys.
+  • Type: five styles (number, section, heading, body, caption) — any font
+    on your Mac, plus Raleway, Oswald, Cormorant Garamond, Inter and Courier
+    Prime built in (all free-to-ship, licences in Resources/shell/fonts).
+  • Fades to black or the page colour, opacity for pictures and words,
+    backgrounds from the stills' own colours, page sizes 16:9 to 9:16.
+  • Export a PDF, page images, or both — every export a new version, in
+    Lexus_Design/Mood or /Treatments. The mark switch is there (Pro later).
+  • The Vault's grid is just pictures now, each in its own shape, like Home.

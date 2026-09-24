@@ -62,7 +62,7 @@ main{position:relative;height:100vh;display:grid;grid-template-columns:minmax(0,
   background:radial-gradient(320px circle at var(--mx,30%) var(--my,0%),rgba(255,255,255,0.6),rgba(255,255,255,0) 62%);mix-blend-mode:soft-light;opacity:var(--glow,0.35)}
 
 /* ---- tools ---- */
-.tiles{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px}
+.tiles{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:10px}
 .tile{border:none;text-align:left;padding:16px 15px;display:flex;flex-direction:column;gap:16px;color:var(--ink);transition:transform .25s var(--ease-out)}
 .tile b{font-family:Oswald,sans-serif;font-weight:400;font-size:15px;letter-spacing:0.08em;text-transform:uppercase}
 @media (hover:hover) and (pointer:fine){.tile:hover{transform:translateY(-2px)}}
@@ -342,8 +342,9 @@ main{position:relative;height:100vh;display:grid;grid-template-columns:minmax(0,
     sort: '<path d="M3 7h7l2 2h9v10H3z"/><path d="M8 14h8"/>',
     credit: '<circle cx="12" cy="12" r="4"/><path d="M16 12v1.5a2.5 2.5 0 0 0 5 0V12a9 9 0 1 0-3.5 7.1"/>',
     pay: '<path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6M9 12h6"/>',
+    design: '<rect x="3" y="5" width="18" height="14" rx="1.5"/><path d="M3 13l5-4 4 3 3-2 6 5"/><path d="M14 5v14"/>',
   };
-  const TOOLS = [['vault', 'Vault'], ['shots', 'Shots'], ['sort', 'Sort'], ['grab', 'Grab'], ['credit', 'Credit'], ['pay', 'Pay']];   // the flow of a project
+  const TOOLS = [['vault', 'Vault'], ['design', 'Design'], ['shots', 'Shots'], ['sort', 'Sort'], ['grab', 'Grab'], ['credit', 'Credit'], ['pay', 'Pay']];   // the flow of a project
   $('tiles').innerHTML = TOOLS.map(([id, name]) => `<button class="g tile" data-id="${id}">
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1c1c1c" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICON[id]}</svg>
     <b>${name}</b></button>`).join('');

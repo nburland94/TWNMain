@@ -1,0 +1,1328 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><title>Needed Design</title>
+<link rel="stylesheet" href="base.css">
+<style>
+@font-face{font-family:'Raleway';font-weight:500;font-display:swap;src:url('fonts/raleway-latin-500-normal.woff2') format('woff2')}
+@font-face{font-family:'Oswald';font-weight:500;font-display:swap;src:url('fonts/oswald-latin-500-normal.woff2') format('woff2')}
+@font-face{font-family:'Courier Prime';font-weight:700;font-display:swap;src:url('fonts/courier-prime-latin-700-normal.woff2') format('woff2')}
+@font-face{font-family:'Inter';font-weight:400;font-display:swap;src:url('fonts/inter-latin-400-normal.woff2') format('woff2')}
+@font-face{font-family:'Inter';font-weight:500;font-display:swap;src:url('fonts/inter-latin-500-normal.woff2') format('woff2')}
+@font-face{font-family:'Cormorant Garamond';font-weight:400;font-style:normal;font-display:swap;src:url('fonts/cormorant-garamond-latin-400-normal.woff2') format('woff2')}
+@font-face{font-family:'Cormorant Garamond';font-weight:400;font-style:italic;font-display:swap;src:url('fonts/cormorant-garamond-latin-400-italic.woff2') format('woff2')}
+
+/* ---- a page: the same markup on screen, in the strip, playing, and in the export ---- */
+.pg{position:relative;overflow:hidden;flex-shrink:0}
+.pg .pic{position:absolute;overflow:hidden;background:#d9cfc4}
+.pg .pic img{display:block;width:100%;height:100%;object-fit:cover;-webkit-user-drag:none;user-select:none}
+.pg .fade{position:absolute;inset:0;pointer-events:none}
+.pg .txt{position:absolute;display:flex;flex-direction:column}
+.pg .tb{white-space:pre-wrap;word-wrap:break-word;flex-shrink:0}
+.pg .tb.section,.pg .tb.heading{margin-bottom:0.55em}
+.pg .tb.body{margin-bottom:0.9em}
+.pg .spacer{flex-grow:1}
+.pg .ttl{position:absolute;font-family:Raleway,serif;font-weight:200;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pg .mark{position:absolute;display:block}
+.pg .hole{position:absolute;border:2px dashed rgba(120,55,20,0.25);display:flex;align-items:center;justify-content:center;color:rgba(120,55,20,0.45);font-family:Raleway,serif}
+</style>
+<style id="editorCss">
+body{background:#fbf3ed;overflow:hidden}
+.glow{position:fixed;inset:0;background:radial-gradient(ellipse 72% 70% at 50% 48%,#f7bf99 0%,#f9cfb1 26%,#fbdfca 50%,#fcebdf 72%,#fdf5ef 100%);opacity:0.8;pointer-events:none}
+#app{position:relative;height:100vh;display:grid;grid-template-rows:56px 96px minmax(0,1fr) auto;min-width:0}
+.cap{font-family:'Courier Prime',monospace;font-size:10.5px;letter-spacing:0.18em;text-transform:uppercase;color:#7a5a48}
+.mono{font-family:'Courier Prime',monospace}
+.g{background:linear-gradient(160deg,rgba(255,255,255,0.66),rgba(255,255,255,0.42));border:1px solid rgba(255,255,255,0.85);box-shadow:inset 0 1px 0 rgba(255,255,255,0.95),0 14px 40px rgba(160,70,20,0.08);-webkit-backdrop-filter:blur(26px) saturate(1.5);backdrop-filter:blur(26px) saturate(1.5)}
+button{color:#141414}
+.tbtn{border:none;background:transparent;border-radius:100px;padding:7px 12px;font-size:12.5px;display:flex;align-items:center;gap:6px;white-space:nowrap;transition:background .15s var(--ease-out)}
+@media (hover:hover) and (pointer:fine){.tbtn:hover{background:rgba(255,255,255,0.7)}}
+.tbtn:disabled{opacity:0.35;cursor:default;background:transparent}
+.dark{border:none;border-radius:100px;padding:9px 16px;font-size:13px;font-weight:500;background:linear-gradient(180deg,#2b2b2b,#111);color:#fff;box-shadow:inset 0 1px 0 rgba(255,255,255,0.14),0 2px 8px rgba(20,20,20,0.16)}
+.dark:disabled{opacity:0.4}
+.light{border-radius:100px;padding:9px 15px;font-size:13px;border:1px solid rgba(28,28,28,0.12);background:rgba(255,255,255,0.75)}
+.seg{display:flex;padding:3px;border-radius:100px;gap:2px;background:rgba(255,255,255,0.55);border:1px solid rgba(28,28,28,0.07)}
+.seg button{border:none;background:transparent;border-radius:100px;padding:5px 11px;font-size:12px;color:#6d4e3d;white-space:nowrap}
+.seg button.on{background:#141414;color:#fff}
+select.sel{appearance:none;-webkit-appearance:none;border:1px solid rgba(28,28,28,0.1);border-radius:100px;padding:6px 26px 6px 12px;font-size:12.5px;background:rgba(255,255,255,0.75) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='9' height='6'%3E%3Cpath d='M1 1l3.5 3.5L8 1' fill='none' stroke='%234a4945' stroke-width='1.3'/%3E%3C/svg%3E") no-repeat right 10px center;cursor:pointer}
+
+/* toolbar */
+.bar{display:flex;align-items:center;gap:8px;padding:0 20px;border-bottom:1px solid rgba(28,28,28,0.05);min-width:0}
+.bar .title{font-family:Oswald,sans-serif;font-size:12.5px;letter-spacing:0.14em;text-transform:uppercase;margin-right:6px;white-space:nowrap}
+.name{border:1px solid transparent;border-radius:8px;background:transparent;font-size:15px;padding:5px 8px;width:220px;outline:none;min-width:80px}
+.name:hover{border-color:rgba(28,28,28,0.1)}
+.name:focus{border-color:var(--accent);background:#fff}
+.bar .sp{flex-grow:1}
+.vsep{width:1px;height:20px;background:rgba(28,28,28,0.1);margin:0 2px}
+
+/* strip */
+.strip{display:flex;align-items:center;gap:0;padding:10px 20px;overflow-x:auto;overflow-y:hidden;scrollbar-width:thin;border-bottom:1px solid rgba(28,28,28,0.05)}
+.thumb{position:relative;flex-shrink:0;border-radius:4px;box-shadow:0 2px 8px rgba(80,30,10,0.12),0 0 0 0.5px rgba(0,0,0,0.12);cursor:pointer;transition:box-shadow .15s var(--ease-out),transform .15s var(--ease-out);overflow:hidden}
+.thumb.on{box-shadow:0 0 0 2px #F05A22,0 2px 8px rgba(80,30,10,0.18)}
+.thumb .n{position:absolute;left:4px;bottom:3px;font-family:'Courier Prime',monospace;font-size:10px;color:#fff;background:rgba(0,0,0,0.45);border-radius:4px;padding:0 4px;pointer-events:none}
+.thumb .del{position:absolute;right:3px;top:3px;width:18px;height:18px;border-radius:50%;border:none;background:rgba(0,0,0,0.55);color:#fff;font-size:11px;line-height:1;opacity:0;transition:opacity .15s}
+.thumb:hover .del{opacity:1}
+.thumb.over{box-shadow:0 0 0 2px #F05A22;transform:translateY(-2px)}
+.gapz{flex-shrink:0;width:14px;align-self:stretch;border-radius:4px;transition:background .15s,width .15s}
+.gapz.over{width:34px;background:rgba(240,90,34,0.18)}
+.addpage{flex-shrink:0;height:66px;width:48px;margin-left:6px;border-radius:6px;border:1.5px dashed rgba(28,28,28,0.2);background:rgba(255,255,255,0.35);font-size:20px;color:#8a7a72}
+
+/* stage and panel */
+.work{display:grid;grid-template-columns:minmax(0,1fr) 300px;min-height:0}
+.work.nopanel{grid-template-columns:minmax(0,1fr) 0}
+.work.nopanel .panel{display:none}
+.stage{position:relative;display:flex;align-items:center;justify-content:center;min-width:0;min-height:0;overflow:hidden}
+.pagewrap{position:relative;box-shadow:0 20px 60px rgba(80,30,10,0.16),0 0 0 0.5px rgba(0,0,0,0.1)}
+.pagewrap .pg{transform-origin:0 0;position:absolute;left:0;top:0}
+.pagewrap .pic{cursor:pointer}
+.pagewrap .pic.sel{outline:solid #F05A22;outline-offset:-1px;z-index:2}
+.pagewrap .pic.reframe{cursor:grab;outline:dashed #F05A22;z-index:3}
+.pagewrap .pic.feat::after{content:'★';position:absolute;right:0.4em;top:0.2em;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,0.5)}
+.pagewrap .pic.dropbefore{box-shadow:inset 6px 0 0 #F05A22}
+.pagewrap .tb[contenteditable]{outline:none;cursor:text;border-radius:3px;-webkit-user-select:text;user-select:text}
+.pagewrap .tb[contenteditable]:hover{box-shadow:0 0 0 1px rgba(240,90,34,0.4)}
+.pagewrap .tb[contenteditable]:focus{box-shadow:0 0 0 1.5px #F05A22}
+.pagewrap .tb:empty::before{content:attr(data-ph);opacity:0.3}
+.pagewrap .tb.tsel{box-shadow:0 0 0 1.5px rgba(240,90,34,0.7)}
+.pagewrap.drop{box-shadow:0 0 0 3px #F05A22,0 20px 60px rgba(80,30,10,0.16)}
+.marquee{position:absolute;border:1px solid #F05A22;background:rgba(240,90,34,0.1);pointer-events:none;z-index:9}
+.stagehint{position:absolute;left:50%;bottom:12px;transform:translateX(-50%);font-size:12px;color:#8a6a58;white-space:nowrap;pointer-events:none}
+.swapbar[hidden]{display:none}
+.swapbar{position:absolute;left:50%;top:12px;transform:translateX(-50%);display:flex;gap:6px;align-items:center;padding:6px;border-radius:14px;z-index:20}
+.swapbar img{height:54px;border-radius:5px;display:block;opacity:0.55}
+.swapbar img.cur{opacity:1;outline:2px solid #F05A22;outline-offset:1px}
+.swapbar .k{font-size:11.5px;color:#6b6964;padding:0 8px;white-space:nowrap}
+.panel{border-left:1px solid rgba(28,28,28,0.05);overflow-y:auto;padding:14px 16px 20px;display:flex;flex-direction:column;gap:16px;min-width:0}
+.panel .tabs{display:flex;gap:2px}
+.psec{display:flex;flex-direction:column;gap:8px}
+.prow{display:flex;align-items:center;gap:8px;font-size:12.5px;min-width:0}
+.prow label{flex-shrink:0;color:#4a4945}
+.prow .val{font-family:'Courier Prime',monospace;font-size:11.5px;color:#6b6964;width:40px;text-align:right}
+.prow input[type=range]{flex-grow:1;accent-color:#F05A22;min-width:0}
+.prow select,.prow input[type=text],.prow input[type=number]{border:1px solid rgba(28,28,28,0.12);border-radius:8px;padding:5px 7px;font-size:12.5px;background:#fff;min-width:0}
+.prow input[type=color]{width:34px;height:26px;border:1px solid rgba(28,28,28,0.12);border-radius:6px;padding:1px;background:#fff}
+.lays{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+.lay{border:1.5px solid rgba(28,28,28,0.1);border-radius:8px;background:rgba(255,255,255,0.6);padding:6px;height:42px;position:relative}
+.lay.on{border-color:#F05A22;background:#fff}
+.lay i{position:absolute;background:#8a7a72;border-radius:1px}
+.lay b{position:absolute;height:2px;background:#c9b8ad;border-radius:1px}
+.sw{display:flex;gap:5px;flex-wrap:wrap}
+.sw button{width:24px;height:24px;border-radius:6px;border:1px solid rgba(0,0,0,0.12);padding:0}
+.sw button.on{box-shadow:0 0 0 2px #fcf2ec,0 0 0 3.5px #F05A22}
+.tog{position:relative;width:38px;height:22px;border-radius:100px;border:none;background:rgba(28,28,28,0.18);padding:0;flex-shrink:0;transition:background .2s}
+.tog::after{content:'';position:absolute;left:3px;top:3px;width:16px;height:16px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,0.2);transition:transform .2s var(--ease-out)}
+.tog.on{background:#F05A22}
+.tog.on::after{transform:translateX(16px)}
+.hintk{font-size:12px;color:#6b6964;line-height:1.6}
+.hintk kbd{font-family:'Courier Prime',monospace;font-size:11px;border:1px solid rgba(28,28,28,0.15);border-bottom-width:2px;border-radius:4px;padding:0 4px;background:#fff;color:#141414}
+.empty{font-size:12.5px;color:#6b6964;line-height:1.5}
+
+/* tray */
+.tray{border-top:1px solid rgba(28,28,28,0.06);display:flex;flex-direction:column;min-height:0;height:210px}
+.tray.tall{height:300px}
+.trayhead{display:flex;align-items:center;gap:8px;padding:8px 20px;flex-wrap:nowrap;min-width:0}
+.trayhead .q{border:1px solid rgba(28,28,28,0.1);border-radius:100px;padding:6px 12px;font-size:12.5px;background:rgba(255,255,255,0.75);outline:none;width:160px;min-width:80px}
+.trayhead .q:focus{border-color:var(--accent)}
+.trayhead .count{font-size:12px;color:#6b6964;white-space:nowrap}
+.traygrid{position:relative;flex-grow:1;overflow-y:auto;padding:4px 20px 14px;display:flex;flex-wrap:wrap;gap:6px;align-content:flex-start;user-select:none}
+.still{position:relative;flex-shrink:0;border-radius:5px;overflow:hidden;background:#e9d3c4;cursor:pointer;outline-offset:1px}
+.still img{display:block;width:100%;height:100%;object-fit:cover;-webkit-user-drag:none;pointer-events:none}
+.still.on{outline:2.5px solid #F05A22}
+.still.used::after{content:'';position:absolute;right:5px;top:5px;width:7px;height:7px;border-radius:50%;background:#F05A22;box-shadow:0 0 0 1.5px #fff}
+.traygrid.list{flex-direction:column;flex-wrap:nowrap;gap:2px}
+.traygrid.list .still{display:flex;align-items:center;gap:10px;width:100%!important;height:44px!important;background:transparent;border-radius:8px;padding:3px 6px}
+.traygrid.list .still img{width:56px;height:36px;border-radius:4px;flex-shrink:0}
+.traygrid.list .still span{font-size:12.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.traygrid.list .still small{font-family:'Courier Prime',monospace;font-size:11px;color:#6b6964;margin-left:auto;white-space:nowrap}
+.traygrid.list .still.on{outline:none;background:rgba(240,90,34,0.12)}
+
+/* start */
+.start[hidden]{display:none}
+.start{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:26px;padding:40px;z-index:5;overflow-y:auto}
+.start h1{margin:0;font-weight:200;font-size:48px}
+.start .lead{font-size:14.5px;color:#4a4945;max-width:560px;text-align:center;line-height:1.55}
+.choices{display:grid;grid-template-columns:repeat(2,minmax(0,300px));gap:16px}
+.choice{border-radius:22px;padding:22px;text-align:left;display:flex;flex-direction:column;gap:10px;border:none;cursor:pointer;transition:transform .2s var(--ease-out)}
+@media (hover:hover) and (pointer:fine){.choice:hover{transform:translateY(-3px)}}
+.choice b{font-weight:300;font-size:24px}
+.choice span{font-size:13px;color:#4a4945;line-height:1.5}
+.choice .pv{height:92px;border-radius:8px;background:#f4f1ec;position:relative;overflow:hidden;box-shadow:0 0 0 0.5px rgba(0,0,0,0.1)}
+.recent{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;max-width:980px}
+.rec{border:none;border-radius:14px;padding:10px;display:flex;flex-direction:column;gap:6px;width:170px;text-align:left;background:rgba(255,255,255,0.55)}
+.rec img,.rec .ph{width:150px;height:84px;object-fit:cover;border-radius:6px;background:#e9d3c4}
+.rec b{font-weight:400;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rec small{font-family:'Courier Prime',monospace;font-size:10.5px;color:#6b6964}
+
+/* sheets */
+.veil{position:fixed;inset:0;z-index:50;display:flex;align-items:flex-start;justify-content:center;padding:50px 24px;overflow-y:auto;background:rgba(251,243,237,0.35);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);opacity:0;pointer-events:none;transition:opacity .25s var(--ease-out)}
+.veil.on{opacity:1;pointer-events:auto}
+.sheet{width:min(780px,100%);box-sizing:border-box;border-radius:28px;padding:30px 32px 26px;display:flex;flex-direction:column;gap:20px;
+  background:linear-gradient(160deg,rgba(255,255,255,0.88),rgba(255,255,255,0.66));border:1px solid rgba(255,255,255,0.95);box-shadow:inset 0 1.5px 0 #fff,0 40px 120px rgba(160,70,20,0.22);
+  -webkit-backdrop-filter:blur(34px) saturate(1.6);backdrop-filter:blur(34px) saturate(1.6);transform:translateY(12px);transition:transform .4s var(--ease-out)}
+.veil.on .sheet{transform:none}
+.sheet h2{margin:0;font-weight:200;font-size:40px;line-height:1}
+.shead{display:flex;align-items:flex-start;gap:12px}
+.shead .grow{flex-grow:1;display:flex;flex-direction:column;gap:6px}
+.close{width:36px;height:36px;border-radius:50%;flex-shrink:0;border:1px solid rgba(28,28,28,0.08);background:rgba(255,255,255,0.7);color:#6b6964;font-size:16px}
+.kinds{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.kind{display:flex;flex-direction:column;gap:6px;text-align:left;border-radius:16px;padding:14px 16px;background:rgba(255,255,255,0.5);border:1.5px solid rgba(28,28,28,0.08)}
+.kind.on{background:#fff;border-color:#F05A22}
+.kind b{font-weight:500;font-size:15px}
+.kind span{font-size:12px;color:#6b6964;line-height:1.4}
+.pills{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.pills button{border-radius:100px;padding:8px 15px;font-size:13px;border:1px solid rgba(28,28,28,0.14);background:transparent}
+.pills button.on{background:#141414;border-color:#141414;color:#fff}
+.pills input{border:1px solid rgba(28,28,28,0.14);border-radius:100px;padding:7px 12px;font-size:13px;width:90px}
+.markrow{border-radius:16px;padding:14px 16px;background:rgba(255,255,255,0.6);border:1px solid rgba(28,28,28,0.07);display:flex;align-items:center;gap:14px}
+.foot{display:flex;align-items:center;gap:12px;padding-top:14px;border-top:1px solid rgba(28,28,28,0.07)}
+.foot .grow{flex-grow:1;font-size:12.5px;color:#6b6964;line-height:1.45}
+.keys{display:grid;grid-template-columns:auto 1fr;gap:8px 18px;font-size:13.5px;align-items:center}
+.keys kbd{font-family:'Courier Prime',monospace;font-size:12px;border:1px solid rgba(28,28,28,0.15);border-bottom-width:2px;border-radius:5px;padding:1px 6px;background:#fff;white-space:nowrap;justify-self:start}
+.dlist{display:flex;flex-direction:column;gap:4px;max-height:52vh;overflow-y:auto}
+.drow{display:flex;align-items:center;gap:12px;padding:8px;border-radius:12px;border:none;background:transparent;text-align:left;cursor:pointer}
+.drow.on{background:rgba(255,255,255,0.85)}
+@media (hover:hover) and (pointer:fine){.drow:hover{background:rgba(255,255,255,0.7)}}
+.drow img,.drow .ph{width:80px;height:45px;border-radius:5px;object-fit:cover;background:#e9d3c4;flex-shrink:0}
+.drow b{font-weight:400;font-size:14px}
+.drow small{display:block;font-family:'Courier Prime',monospace;font-size:11px;color:#6b6964}
+.drow .x{margin-left:auto;border:none;background:none;color:#a08a7e;font-size:15px;opacity:0}
+.drow:hover .x{opacity:1}
+
+/* play */
+.play{position:fixed;inset:0;z-index:80;background:#050505;display:none;align-items:center;justify-content:center}
+.play.on{display:flex}
+.play .pg{transform-origin:0 0;position:absolute}
+.play .count{position:absolute;right:20px;bottom:16px;font-family:'Courier Prime',monospace;font-size:12px;color:rgba(255,255,255,0.5)}
+.dropveil{position:fixed;inset:14px;z-index:40;border-radius:28px;border:2px dashed rgba(240,90,34,0.6);background:rgba(251,243,237,0.72);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:center;font-weight:200;font-size:36px;opacity:0;pointer-events:none;transition:opacity .2s}
+.dropveil.on{opacity:1}
+.toast{position:fixed;left:50%;bottom:24px;transform:translate(-50%,10px);z-index:90;background:#141414;color:#fff;border-radius:100px;padding:10px 18px;font-size:13px;opacity:0;pointer-events:none;transition:opacity .25s var(--ease-out),transform .25s var(--ease-out)}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+@media (max-width:1200px){.work{grid-template-columns:minmax(0,1fr) 260px}.name{width:150px}.bar .hidenarrow{display:none}}
+</style></head>
+<body>
+<script>
+// Export draws pages in this same file, with nothing else on it.
+if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss').remove(); document.documentElement.style.background = 'transparent'; }
+</script>
+<div class="glow" id="glow"></div>
+<div id="app">
+  <header class="bar" id="bar"></header>
+  <div class="strip" id="strip"></div>
+  <div class="work" id="work">
+    <div class="stage" id="stage"><div class="pagewrap" id="pagewrap"></div><div class="swapbar g" id="swapbar" hidden></div><div class="stagehint" id="stagehint"></div></div>
+    <aside class="panel" id="panel"></aside>
+  </div>
+  <div class="tray" id="tray">
+    <div class="trayhead" id="trayhead"></div>
+    <div class="traygrid" id="traygrid"></div>
+  </div>
+  <div class="start" id="start" hidden></div>
+</div>
+<div class="veil" id="veil"><section class="sheet" id="sheet" role="dialog" aria-modal="true"></section></div>
+<div class="play" id="play"></div>
+<div class="dropveil" id="dropveil">Drop to add them to the page</div>
+<div class="toast" id="toast"></div>
+<script src="load.js"></script>
+<script>
+(function () {
+  'use strict';
+  const RENDER = /[?&]render=1/.test(location.search);
+  const $ = id => document.getElementById(id);
+  const esc = v => String(v == null ? '' : v).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const bridge = () => { try { return window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.shell; } catch (e) { return null; } };
+  const call = (action, x) => { const b = bridge(); return b ? b.postMessage(Object.assign({ action }, x || {})) : Promise.reject(new Error('no app')); };
+  const uid = () => Math.random().toString(36).slice(2, 10);
+  const clone = o => JSON.parse(JSON.stringify(o));
+  const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+
+  /* ================================================================ the page model */
+  const SIZES = { '16:9': [1920, 1080], '2:1': [2160, 1080], '4:3': [1440, 1080], 'A4': [1754, 1240], '1:1': [1080, 1080], '4:5': [1080, 1350], '9:16': [1080, 1920] };
+  const SIZE_NAMES = { '16:9': '16:9 · 1920 × 1080', '2:1': '2:1 wide', '4:3': '4:3', 'A4': 'A4 landscape', '1:1': '1:1 square', '4:5': '4:5 portrait', '9:16': '9:16 vertical' };
+  const LAYOUTS = [['rows', 'Rows of pictures'], ['left', 'Pictures left, words right'], ['right', 'Words left, pictures right'], ['bleed', 'Full bleed, words on it'], ['text', 'Words only']];
+  const STYLE_KEYS = [['number', 'Number'], ['section', 'Section'], ['heading', 'Heading'], ['body', 'Body'], ['caption', 'Caption']];
+  const PH = { number: '01', section: 'Section', heading: 'A heading, in a line', body: 'The words — just type. Paste a paragraph and the first line becomes the heading.', caption: 'Caption · reference' };
+  const BUNDLED = ['Raleway', 'Oswald', 'Cormorant Garamond', 'Inter', 'Courier Prime'];
+  const defaultStyles = () => ({
+    number: { font: 'Raleway', size: 100, weight: 200, italic: false, colour: '#b3262b', tracking: 0, leading: 1, align: 'left', upper: false },
+    section: { font: 'Oswald', size: 40, weight: 500, italic: false, colour: '#b3262b', tracking: 0.02, leading: 1.05, align: 'left', upper: true },
+    heading: { font: 'Cormorant Garamond', size: 32, weight: 400, italic: true, colour: '#141414', tracking: 0, leading: 1.2, align: 'left', upper: false },
+    body: { font: 'Raleway', size: 15, weight: 400, italic: false, colour: '#3a3836', tracking: 0, leading: 1.6, align: 'left', upper: false },
+    caption: { font: 'Courier Prime', size: 11.5, weight: 400, italic: false, colour: '#6b6964', tracking: 0.1, leading: 1.4, align: 'left', upper: true },
+  });
+  const newPage = (layout) => ({ id: uid(), layout: layout || 'rows', pics: [], text: { number: '', section: '', heading: '', body: '', caption: '' },
+    bg: null, textColour: null, bleed: false, textOpacity: 1, fade: { on: false, strength: 0.6, to: 'black' } });
+  const newDoc = (mode, name) => ({ v: 1, name: name || '', mode, size: '16:9', bg: '#f4f1ec', title: '', mark: true, perPage: 6, styles: defaultStyles(), pages: [newPage(mode === 'mood' ? 'rows' : 'left')] });
+
+  // Metrics: one unit is 1/1600 of a 16:9 page's width, so every size keeps the same proportions.
+  function geometry(doc) {
+    const [W, H] = SIZES[doc.size] || SIZES['16:9'];
+    const u = Math.min(W, H * 16 / 9) / 1600;
+    return { W, H, u, m: Math.round(40 * u), g: Math.max(2, Math.round(6 * u)) };
+  }
+  // The rows you already know from mood boards: justified, filling the space.
+  function rowLayout(aspects, x0, y0, aw, ah, gap) {
+    const n = aspects.length;
+    if (!n || aw <= 0 || ah <= 0) return [];
+    let best = { score: -1, rects: [] };
+    for (let rowsCount = 1; rowsCount <= n; rowsCount++) {
+      const total = aspects.reduce((a, b) => a + b, 0), aim = total / rowsCount;
+      const rows = [[]]; let sum = 0;
+      aspects.forEach((a, k) => {
+        const left = n - k, rowsLeft = rowsCount - rows.length;
+        if (rows[rows.length - 1].length && (sum + a / 2 > aim || left <= rowsLeft) && rows.length < rowsCount) { rows.push([]); sum = 0; }
+        rows[rows.length - 1].push(k); sum += a;
+      });
+      let hs = rows.map(r => (aw - gap * (r.length - 1)) / Math.max(0.01, r.reduce((t, i) => t + aspects[i], 0)));
+      const k = Math.min(1, (ah - gap * (rows.length - 1)) / Math.max(1, hs.reduce((a, b) => a + b, 0)));
+      hs = hs.map(h => h * k);
+      const blockH = hs.reduce((a, b) => a + b, 0) + gap * (rows.length - 1);
+      let y = y0 + (ah - blockH) / 2, covered = 0; const rects = [];
+      rows.forEach((r, ri) => {
+        const h = hs[ri], w = r.reduce((t, i) => t + aspects[i] * h, 0) + gap * (r.length - 1);
+        let x = x0 + (aw - w) / 2;
+        r.forEach(i => { const rw = aspects[i] * h; rects[i] = { x, y, w: rw, h }; covered += rw * h; x += rw + gap; });
+        y += h + gap;
+      });
+      const score = covered / (aw * ah);
+      if (score > best.score) best = { score, rects };
+    }
+    return best.rects;
+  }
+  const boundsOf = rs => {
+    const r = rs.filter(Boolean); if (!r.length) return null;
+    const x = Math.min(...r.map(a => a.x)), y = Math.min(...r.map(a => a.y));
+    return { x, y, w: Math.max(...r.map(a => a.x + a.w)) - x, h: Math.max(...r.map(a => a.y + a.h)) - y };
+  };
+  const layoutOf = (doc, page) => doc.mode === 'mood' ? 'rows' : (page.layout || 'rows');
+  const hasWords = page => Object.values(page.text || {}).some(v => (v || '').trim());
+
+  // Where everything goes on one page. Text keeps one margin and one gutter, and
+  // lives on the picture lines: it starts on the top edge of the first row.
+  function layout(doc, page) {
+    const G = geometry(doc), { W, H, u, m, g } = G;
+    const mood = doc.mode === 'mood';
+    const top = mood && (doc.title || '').trim() ? Math.round(96 * u) : m;
+    const bottom = doc.mark ? Math.round(56 * u) : m;
+    const lay = layoutOf(doc, page);
+    const aspects = page.pics.map(p => (p.featured ? 1.9 : 1) * (p.a || 1.5));
+    let rects = [], text = null, hole = null;
+    if (lay === 'bleed') {
+      if (page.pics.length) rects = [{ x: 0, y: 0, w: W, h: H }];
+      else hole = { x: 0, y: 0, w: W, h: H };
+      text = { x: m, y: m, w: Math.round((W - 2 * m) * 0.5), h: H - m - bottom, anchor: 'bottom' };
+    } else if (lay === 'text') {
+      text = { x: m, y: top, w: Math.round((W - 2 * m) * 0.62), h: H - top - bottom };
+    } else if (lay === 'left' || lay === 'right') {
+      const cw = W - 2 * m, pw = Math.round(cw * 0.58);
+      const px = lay === 'left' ? m : W - m - pw, tx = lay === 'left' ? m + pw + m : m;
+      rects = rowLayout(aspects, px, top, pw, H - top - bottom, g);
+      const b = boundsOf(rects);
+      if (!page.pics.length) hole = { x: px, y: top, w: pw, h: H - top - bottom };
+      text = { x: tx, y: b ? b.y : top, w: cw - pw - m, h: b ? b.h : H - top - bottom };
+    } else {
+      const bleed = !!page.bleed;
+      const x0 = bleed ? 0 : m, y0 = bleed ? 0 : top;
+      rects = rowLayout(aspects, x0, y0, W - 2 * x0, H - y0 - (bleed ? 0 : bottom), bleed ? 0 : g);
+      if (!page.pics.length) hole = { x: m, y: top, w: W - 2 * m, h: H - top - bottom };
+    }
+    return { G, lay, rects, text, hole, top, bottom };
+  }
+
+  /* ---------------------------------------------------------------- colour */
+  const hexRgb = h => { const s = String(h || '').replace('#', ''); const n = parseInt(s.length === 3 ? s.split('').map(c => c + c).join('') : s, 16); return isNaN(n) ? [244, 241, 236] : [(n >> 16) & 255, (n >> 8) & 255, n & 255]; };
+  const lum = h => { const [r, g, b] = hexRgb(h); return (0.299 * r + 0.587 * g + 0.114 * b) / 255; };
+  const sat = h => { const [r, g, b] = hexRgb(h).map(x => x / 255); const mx = Math.max(r, g, b), mn = Math.min(r, g, b); return mx ? (mx - mn) / mx : 0; };
+  // On a dark page, dark greys turn light; colours keep their colour.
+  const onDark = (c, dark) => dark && lum(c) < 0.5 && sat(c) < 0.35 ? (lum(c) < 0.3 ? '#f4f3f1' : '#d9d5cf') : c;
+  const rgba = (h, a) => { const [r, g, b] = hexRgb(h); return `rgba(${r},${g},${b},${a})`; };
+  const fontStack = f => `'${String(f).replace(/'/g, '')}', ${/courier|mono/i.test(f) ? 'monospace' : /garamond|serif|baskerville|didot|bodoni|times|georgia/i.test(f) ? 'Georgia, serif' : 'Raleway, sans-serif'}`;
+
+  /* ---------------------------------------------------------------- one page, as markup */
+  function pageHTML(doc, page, opt) {
+    opt = opt || {};
+    const L = layout(doc, page), { W, H, u, m } = L.G;
+    const bg = page.bg || doc.bg || '#f4f1ec';
+    const mood = doc.mode === 'mood';
+    const dark = lum(bg) < 0.42 || L.lay === 'bleed';
+    const sel = opt.sel || new Set();
+    let h = `<div class="pg" style="width:${W}px;height:${H}px;background:${esc(bg)}">`;
+    if (L.hole && opt.edit) h += `<div class="hole" style="left:${L.hole.x}px;top:${L.hole.y}px;width:${L.hole.w}px;height:${L.hole.h}px;font-size:${Math.round(20 * u)}px">Drop stills here — or double-click one below</div>`;
+    L.rects.forEach((r, k) => {
+      const p = page.pics[k]; if (!r || !p) return;
+      const c = p.crop || { x: 50, y: 50, z: 1 };
+      const src = 'vault/' + encodeURI(opt.thumbs ? (p.thumb || p.file) : p.file);
+      const cls = 'pic' + (sel.has(k) ? ' sel' : '') + (opt.reframe === k ? ' reframe' : '') + (opt.edit && p.featured ? ' feat' : '');
+      h += `<div class="${cls}" data-k="${k}"${opt.edit ? ' draggable="true"' : ''} style="left:${r.x.toFixed(1)}px;top:${r.y.toFixed(1)}px;width:${r.w.toFixed(1)}px;height:${r.h.toFixed(1)}px;opacity:${p.opacity == null ? 1 : p.opacity}${opt.edit ? `;outline-width:${Math.max(2, 3 / (opt.scale || 1))}px` : ''}">`
+        + `<img alt="" draggable="false" src="${esc(src)}" style="object-position:${c.x}% ${c.y}%;transform:scale(${c.z});transform-origin:${c.x}% ${c.y}%"></div>`;
+    });
+    // The fade: from the side the words are on, to black or to the page colour.
+    const words = !mood && L.text && (hasWords(page) || opt.edit);
+    const fade = page.fade || {};
+    const autoFade = L.lay === 'bleed' && hasWords(page);
+    if (!mood && (fade.on || autoFade) && L.rects.length) {
+      const to = fade.to === 'page' ? bg : '#000000', s = fade.on ? (fade.strength == null ? 0.6 : fade.strength) : 0.6;
+      const dir = L.lay === 'left' ? 'to left' : L.lay === 'right' ? 'to right' : 'to top';
+      h += `<div class="fade" style="background:linear-gradient(${dir}, ${rgba(to, s)} 0%, ${rgba(to, s * 0.55)} 32%, ${rgba(to, 0)} 64%)"></div>`;
+    }
+    if (words) h += textHTML(doc, page, L, dark, opt);
+    if (mood && (doc.title || '').trim()) {
+      const tc = onDark('#141414', lum(bg) < 0.42);
+      h += `<div class="ttl" style="left:${m}px;top:${Math.round(34 * u)}px;right:${m}px;font-size:${Math.round(30 * u)}px;line-height:1.2;color:${tc}">${esc(doc.title)}</div>`;
+    }
+    if (doc.mark && opt.mark !== false) {
+      const mh = Math.round(22 * u);
+      h += `<img class="mark" alt="" src="mark.png" style="right:${m}px;bottom:${Math.round((L.bottom - mh) / 2)}px;height:${mh}px;${dark ? 'filter:brightness(0) invert(1)' : ''}">`;
+    }
+    return h + '</div>';
+  }
+  function textHTML(doc, page, L, dark, opt) {
+    const T = L.text, u = L.G.u, st = doc.styles || defaultStyles();
+    const colourFor = k => page.textColour && k !== 'number' && k !== 'section' ? page.textColour : onDark(st[k].colour, dark);
+    const css = k => { const s = st[k] || defaultStyles()[k];
+      return `font-family:${esc(fontStack(s.font))};font-size:${(s.size * u).toFixed(1)}px;font-weight:${s.weight};font-style:${s.italic ? 'italic' : 'normal'};color:${colourFor(k)};letter-spacing:${s.tracking || 0}em;line-height:${s.leading};text-align:${s.align || 'left'};text-transform:${s.upper ? 'uppercase' : 'none'}${k === 'body' ? ';max-width:32em' : ''}`; };
+    const block = k => {
+      const v = (page.text || {})[k] || '';
+      if (!v && !opt.edit) return '';
+      const tsel = opt.tsel === k ? ' tsel' : '';
+      return `<div class="tb ${k}${tsel}" data-t="${k}"${opt.edit ? ` contenteditable="plaintext-only" spellcheck="false" data-ph="${esc(PH[k])}"` : ''} style="${css(k)}">${esc(v)}</div>`;
+    };
+    const stack = ['section', 'heading', 'body', 'caption'].map(block).join('');
+    const inner = T.anchor === 'bottom' ? `<div class="spacer"></div>${block('number')}${stack}` : `${stack}<div class="spacer"></div>${block('number')}`;
+    return `<div class="txt" style="left:${T.x}px;top:${T.y}px;width:${T.w}px;height:${T.h}px;opacity:${page.textOpacity == null ? 1 : page.textOpacity}">${inner}</div>`;
+  }
+
+  /* ================================================================ export draws here */
+  if (RENDER) {
+    document.body.innerHTML = '<div id="render"></div>';
+    document.body.style.cssText = 'margin:0;background:transparent;overflow:hidden';
+    window.__designRender = async (doc, i, mark) => {
+      const page = doc.pages[i];
+      $('render').innerHTML = pageHTML(doc, page, { mark });
+      try { await document.fonts.ready; } catch (e) {}
+      await Promise.all([...document.images].map(im => im.decode ? im.decode().catch(() => {}) : Promise.resolve()));
+      await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+      return true;
+    };
+    return;
+  }
+
+  /* ================================================================ the editor */
+  const toast = t => { $('toast').textContent = t; $('toast').classList.add('show'); clearTimeout(toast.t); toast.t = setTimeout(() => $('toast').classList.remove('show'), Math.max(2400, t.length * 55)); };
+  const L = () => window.__neededLoad;
+  const pref = (k, d) => { try { return localStorage.getItem('design.' + k) || d; } catch (e) { return d; } };
+  const setPref = (k, v) => { try { localStorage.setItem('design.' + k, v); } catch (e) {} };
+
+  let doc = null, rel = null, cur = 0;                 // the design, its file, the page you're on
+  let sel = new Set(), tsel = null, reframe = null;     // selected pictures (on this page), text style, picture being reframed
+  let stills = [], scope = pref('scope', 'project'), traySize = pref('size', 'M'), trayQ = '', trayPick = new Set();
+  let fonts = [], project = '', panelTab = 'page', designs = [];
+  let undo = [], redo = [], swap = null;
+  let armed = false;                                   // clicked on the page itself: typing goes into the words
+
+  /* ---------------------------------------------------------------- saving and undo */
+  let saveT = null;
+  function persist() {
+    clearTimeout(saveT);
+    saveT = setTimeout(async () => {
+      if (!doc) return;
+      const r = await call('designSave', { rel, doc }).catch(() => null);
+      if (r && r.ok) rel = r.rel; else if (r && r.error) toast(r.error);
+    }, 500);
+  }
+  // Every change: remembered for ⌘Z, saved a moment later, drawn again.
+  function change(fn, opts) {
+    if (!doc) return;
+    undo.push(JSON.stringify(doc)); if (undo.length > 120) undo.shift();
+    redo = [];
+    fn();
+    persist();
+    if (!(opts && opts.quiet)) draw();
+  }
+  function undoIt(back) {
+    const from = back ? undo : redo, to = back ? redo : undo;
+    if (!from.length) return toast(back ? 'Nothing to undo' : 'Nothing to redo');
+    to.push(JSON.stringify(doc));
+    doc = JSON.parse(from.pop());
+    cur = clamp(cur, 0, doc.pages.length - 1);
+    sel.clear(); reframe = null; swap = null;
+    persist(); draw();
+  }
+  const page = () => doc && doc.pages[cur];
+
+  /* ---------------------------------------------------------------- drawing */
+  function draw() {
+    const on = !!doc;
+    $('start').hidden = on;
+    ['bar', 'strip', 'work', 'tray'].forEach(id => { $(id).style.visibility = on ? '' : 'hidden'; });
+    if (!on) { drawStart(); drawTray(); return; }
+    drawBar(); drawStrip(); drawStage(); drawPanel(); drawTray();
+  }
+
+  function drawBar() {
+    const mood = doc.mode === 'mood';
+    $('bar').innerHTML = `
+      <span class="title">Design</span>
+      <button class="tbtn" id="docsBtn" title="Your designs for ${esc(project)}">Designs ▾</button>
+      <input class="name" id="docName" value="${esc(doc.name)}" placeholder="Name it" spellcheck="false" aria-label="Name">
+      <div class="seg" role="group" aria-label="Mood or treatment"><button data-mode="mood" class="${mood ? 'on' : ''}" title="Just pictures">Mood</button><button data-mode="treatment" class="${mood ? '' : 'on'}" title="Pictures and words">Treatment</button></div>
+      <span class="sp"></span>
+      <button class="tbtn" id="addPage" title="A new page after this one">+ Page</button>
+      ${mood ? '' : `<button class="tbtn" id="layBtn" title="Next layout — or press L">Layout · ${esc((LAYOUTS.find(l => l[0] === page().layout) || LAYOUTS[0])[1])}</button>`}
+      <button class="tbtn hidenarrow" id="breakBtn" ${sel.size === 1 && [...sel][0] > 0 ? '' : 'disabled'} title="The selected picture and the ones after it go onto a new page">Break here</button>
+      <span class="vsep"></span>
+      <select class="sel" id="sizeSel" aria-label="Page size">${Object.keys(SIZES).map(k => `<option value="${k}"${k === doc.size ? ' selected' : ''}>${esc(SIZE_NAMES[k])}</option>`).join('')}</select>
+      <button class="tbtn" id="playBtn" title="Play through the pages — Space">▶ Play</button>
+      <button class="tbtn hidenarrow" id="keysBtn" title="Keys — ?">?</button>
+      <button class="dark" id="exportBtn">Export</button>`;
+  }
+
+  // The pages, small, in a row: click one, drag to reorder, drop stills on one.
+  function drawStrip() {
+    const th = 66, parts = [];
+    doc.pages.forEach((p, i) => {
+      const { W, H } = geometry(doc);
+      const s = th / H;
+      parts.push(`<div class="gapz" data-gap="${i}"></div>`);
+      parts.push(`<div class="thumb${i === cur ? ' on' : ''}" data-page="${i}" draggable="true" style="width:${Math.round(W * s)}px;height:${th}px" title="Page ${i + 1}">
+        <div style="transform:scale(${s});transform-origin:0 0;width:${W}px;height:${H}px;pointer-events:none">${pageHTML(doc, p, { thumbs: true })}</div>
+        <span class="n">${i + 1}</span>${doc.pages.length > 1 ? `<button class="del" data-delpage="${i}" aria-label="Remove page ${i + 1}">×</button>` : ''}</div>`);
+    });
+    parts.push(`<div class="gapz" data-gap="${doc.pages.length}"></div><button class="addpage" id="addPage2" title="Add a page">+</button>`);
+    $('strip').innerHTML = parts.join('');
+    const t = $('strip').querySelector('.thumb.on'); if (t) t.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+  }
+
+  let scale = 1;
+  function drawStage() {
+    const p = page(); if (!p) return;
+    const { W, H } = geometry(doc);
+    const st = $('stage').getBoundingClientRect();
+    scale = Math.max(0.05, Math.min((st.width - 56) / W, (st.height - 56) / H));
+    const wrap = $('pagewrap');
+    wrap.style.width = Math.round(W * scale) + 'px';
+    wrap.style.height = Math.round(H * scale) + 'px';
+    wrap.innerHTML = pageHTML(doc, p, { edit: doc.mode !== 'mood' || true, sel, tsel, reframe, scale }).replace('class="pg"', `class="pg" style-scale="1"`);
+    const pg = wrap.querySelector('.pg'); pg.style.transform = `scale(${scale})`;
+    if (doc.mode === 'mood') wrap.querySelectorAll('.tb').forEach(x => x.remove());
+    $('stagehint').textContent = reframe != null ? 'Drag to reframe · scroll to zoom · Esc when done'
+      : sel.size === 1 ? '↑ ↓ swap it through your stills · ← → move · ⌘← → another page · F feature · ⌫ remove'
+      : sel.size > 1 ? `${sel.size} picked · ⌘← → another page · ⌫ remove` : (doc.mode === 'mood' ? 'Double-click stills below to add them · drag to reorder' : armed ? 'Just type — the heading first, then the words' : 'Click the page and just type · L for layouts · Space to play');
+    drawSwap();
+  }
+
+  function drawSwap() {
+    const bar = $('swapbar');
+    if (!swap) { bar.hidden = true; return; }
+    const list = swap.list, i = swap.i;
+    const around = [-2, -1, 0, 1, 2].map(d => list[(i + d + list.length * 3) % list.length]).filter(Boolean);
+    bar.innerHTML = `<span class="k">↑</span>${around.map((s, k) => `<img alt="" src="vault/${esc(encodeURI(s.thumb))}" class="${k === Math.min(2, around.length - 1) ? 'cur' : ''}">`).join('')}<span class="k">↓ · Return keeps · Esc puts it back</span>`;
+    bar.hidden = false;
+  }
+
+  /* ---------------------------------------------------------------- the panel */
+  const layIcon = k => ({
+    rows: '<i style="left:6px;top:6px;width:46%;height:12px"></i><i style="right:6px;top:6px;width:38%;height:12px"></i><i style="left:6px;bottom:6px;width:30%;height:12px"></i><i style="right:6px;bottom:6px;width:54%;height:12px"></i>',
+    left: '<i style="left:6px;top:6px;width:52%;bottom:6px"></i><b style="right:6px;top:10px;width:28%"></b><b style="right:6px;top:16px;width:22%"></b><b style="right:6px;top:22px;width:26%"></b>',
+    right: '<i style="right:6px;top:6px;width:52%;bottom:6px"></i><b style="left:6px;top:10px;width:28%"></b><b style="left:6px;top:16px;width:22%"></b><b style="left:6px;top:22px;width:26%"></b>',
+    bleed: '<i style="inset:3px;background:#6b5d55"></i><b style="left:9px;bottom:10px;width:40%;background:#fff"></b><b style="left:9px;bottom:6px;width:26%;background:#fff"></b>',
+    text: '<b style="left:8px;top:9px;width:50%"></b><b style="left:8px;top:15px;width:62%"></b><b style="left:8px;top:21px;width:44%"></b><b style="left:8px;top:27px;width:56%"></b>',
+  }[k]);
+  const paletteOf = pics => { const seen = new Set(), out = []; pics.forEach(p => (p.palette || []).slice(0, 4).forEach(c => { const k = String(c).toLowerCase(); if (!seen.has(k)) { seen.add(k); out.push(c); } })); return out.slice(0, 14); };
+
+  function drawPanel() {
+    const p = page(), mood = doc.mode === 'mood';
+    const tabs = [['page', 'Page']].concat(sel.size ? [['pic', sel.size > 1 ? `Pictures · ${sel.size}` : 'Picture']] : []).concat(mood ? [] : [['text', 'Text']]);
+    if (!tabs.some(t => t[0] === panelTab)) panelTab = sel.size ? 'pic' : 'page';
+    let h = `<div class="seg tabs">${tabs.map(([k, n]) => `<button data-ptab="${k}" class="${panelTab === k ? 'on' : ''}">${esc(n)}</button>`).join('')}</div>`;
+    const range = (id, label, v, min, max, step, fmt) => `<div class="prow"><label for="${id}">${label}</label><input type="range" id="${id}" min="${min}" max="${max}" step="${step}" value="${v}"><span class="val">${fmt ? fmt(v) : v}</span></div>`;
+    if (panelTab === 'page') {
+      const bgNow = p.bg || doc.bg;
+      const pal = paletteOf(p.pics);
+      const presets = ['#f4f1ec', '#ffffff', '#ece6dc', '#141414', '#0a0a0a', '#1e2227'];
+      h += mood ? `
+        <div class="psec"><span class="cap">Pictures a page</span>${range('perPage', '', doc.perPage || 6, 1, 12, 1)}
+          <button class="light" id="deal" style="align-self:flex-start;padding:7px 13px;font-size:12.5px">Deal them out again, ${doc.perPage || 6} a page</button></div>
+        <div class="psec"><span class="cap">Title — top left of every page</span><div class="prow"><input type="text" id="moodTitle" value="${esc(doc.title || '')}" placeholder="Optional" style="flex-grow:1"></div></div>`
+      : `
+        <div class="psec"><span class="cap">Layout · L for the next</span><div class="lays">${LAYOUTS.map(([k, n]) => `<button class="lay${p.layout === k ? ' on' : ''}" data-lay="${k}" title="${esc(n)}" aria-label="${esc(n)}">${layIcon(k)}</button>`).join('')}</div>
+          ${p.layout === 'rows' ? `<div class="prow"><label>Pictures run off the page edge</label><span style="flex-grow:1"></span><button class="tog${p.bleed ? ' on' : ''}" id="bleedTog" aria-pressed="${!!p.bleed}"></button></div>` : ''}
+          ${p.layout === 'bleed' && p.pics.length > 1 ? '<span class="empty">Full bleed shows the first picture — the others wait on this page.</span>' : ''}</div>`;
+      h += `
+        <div class="psec"><span class="cap">Background</span>
+          <div class="sw">${presets.map(c => `<button data-bg="${c}" class="${bgNow === c ? 'on' : ''}" style="background:${c}" title="${c}"></button>`).join('')}<input type="color" id="bgPick" value="${esc(bgNow)}" title="Any colour"></div>
+          ${pal.length ? `<span class="cap" style="margin-top:4px">From these stills</span><div class="sw">${pal.map(c => `<button data-bg="${esc(c)}" data-textc="${esc(c)}" class="pal${bgNow === c ? ' on' : ''}" style="background:${esc(c)}" title="${esc(c)} — click for the background${mood ? '' : ', ⌥-click for the words'}"></button>`).join('')}</div>` : ''}
+          <div class="prow"><label>Every page</label><span style="flex-grow:1"></span><button class="tog${p.bg ? '' : ' on'}" id="bgAll" aria-pressed="${!p.bg}" title="On: the whole design's background. Off: just this page"></button></div></div>`;
+      if (!mood) {
+        const f = p.fade || {};
+        h += `
+        <div class="psec"><span class="cap">Fade</span>
+          <div class="prow"><label>Fade the pictures</label><span style="flex-grow:1"></span><button class="tog${f.on ? ' on' : ''}" id="fadeTog" aria-pressed="${!!f.on}"></button></div>
+          ${f.on ? range('fadeStr', 'Strength', f.strength == null ? 0.6 : f.strength, 0.1, 1, 0.05, v => Math.round(v * 100) + '%') + `<div class="prow"><label>To</label><div class="seg"><button data-fadeto="black" class="${f.to !== 'page' ? 'on' : ''}">Black</button><button data-fadeto="page" class="${f.to === 'page' ? 'on' : ''}">Page colour</button></div></div>` : ''}
+          ${range('textOp', 'Words', p.textOpacity == null ? 1 : p.textOpacity, 0.1, 1, 0.05, v => Math.round(v * 100) + '%')}
+          ${p.textColour ? `<div class="prow"><label>Words in ${esc(p.textColour)}</label><span style="flex-grow:1"></span><button class="tbtn" id="textColourOff">Reset</button></div>` : ''}</div>`;
+      }
+      h += `<div class="psec"><span class="cap">This page</span><div style="display:flex;gap:6px;flex-wrap:wrap">
+          <button class="light" id="dupPage" style="padding:7px 12px;font-size:12.5px">Duplicate · ⌘D</button>
+          ${doc.pages.length > 1 ? '<button class="light" id="delPage" style="padding:7px 12px;font-size:12.5px">Remove page</button>' : ''}</div></div>`;
+    } else if (panelTab === 'pic') {
+      const ks = [...sel], one = ks.length === 1 ? p.pics[ks[0]] : null;
+      const op = ks.length ? (p.pics[ks[0]].opacity == null ? 1 : p.pics[ks[0]].opacity) : 1;
+      h += `<div class="psec">${one ? `<span class="empty">${esc(one.title || 'A still')}${one.project && one.project !== project ? ' · ' + esc(one.project) : ''}</span>` : ''}
+        ${one ? `<div class="prow"><label>Feature it — the hero of its row</label><span style="flex-grow:1"></span><button class="tog${one.featured ? ' on' : ''}" id="featTog" aria-pressed="${!!one.featured}" title="F"></button></div>` : ''}
+        ${range('picOp', 'Fade', op, 0.1, 1, 0.05, v => Math.round(v * 100) + '%')}</div>
+        ${one ? `<div class="psec"><span class="cap">Frame</span><div style="display:flex;gap:6px">
+          <button class="light" id="reframeBtn" style="padding:7px 12px;font-size:12.5px">${reframe != null ? 'Done reframing' : 'Reframe'}</button>
+          ${one.crop && (one.crop.z !== 1 || one.crop.x !== 50 || one.crop.y !== 50) ? '<button class="light" id="reframeReset" style="padding:7px 12px;font-size:12.5px">Centre it</button>' : ''}</div>
+          <span class="empty">Or double-click the picture: drag to move what's in the frame, scroll to zoom.</span></div>` : ''}
+        ${one && (one.palette || []).length ? `<div class="psec"><span class="cap">Its colours</span><div class="sw">${one.palette.slice(0, 6).map(c => `<button data-bg="${esc(c)}" data-textc="${esc(c)}" class="pal" style="background:${esc(c)}" title="Click: the page's background${mood ? '' : ' · ⌥-click: the words'}"></button>`).join('')}</div></div>` : ''}
+        <div class="psec"><button class="light" id="removePics" style="align-self:flex-start;padding:7px 12px;font-size:12.5px">Take ${ks.length > 1 ? 'them' : 'it'} off the page · ⌫</button></div>
+        <div class="hintk"><kbd>↑</kbd> <kbd>↓</kbd> swap through your stills<br><kbd>←</kbd> <kbd>→</kbd> move it along<br><kbd>⌘</kbd><kbd>←</kbd> <kbd>→</kbd> to the page before or after</div>`;
+    } else {
+      const k = tsel || 'heading', s = doc.styles[k];
+      const fontList = BUNDLED.concat(fonts.filter(f => !BUNDLED.includes(f)));
+      h += `<div class="psec"><div class="seg" style="flex-wrap:wrap">${STYLE_KEYS.map(([sk, n]) => `<button data-style="${sk}" class="${k === sk ? 'on' : ''}">${n}</button>`).join('')}</div>
+          <span class="empty">Changes this style on every page. Click the words on the page to type.</span></div>
+        <div class="psec">
+          <div class="prow"><label>Font</label><select id="stFont" style="flex-grow:1">${fontList.map(f => `<option${f === s.font ? ' selected' : ''}>${esc(f)}</option>`).join('')}${fontList.includes(s.font) ? '' : `<option selected>${esc(s.font)}</option>`}</select></div>
+          ${range('stSize', 'Size', s.size, 6, 220, 0.5)}
+          <div class="prow"><label>Weight</label><select id="stWeight">${[100, 200, 300, 400, 500, 600, 700, 800].map(w => `<option${w === +s.weight ? ' selected' : ''}>${w}</option>`).join('')}</select>
+            <label style="margin-left:auto">Italic</label><button class="tog${s.italic ? ' on' : ''}" id="stItalic"></button></div>
+          <div class="prow"><label>Colour</label><input type="color" id="stColour" value="${esc(s.colour)}"><div class="sw">${['#141414', '#3a3836', '#6b6964', '#b3262b', '#F05A22', '#f4f3f1'].map(c => `<button data-stcolour="${c}" style="background:${c}"></button>`).join('')}</div></div>
+          ${range('stTrack', 'Letters', s.tracking || 0, -0.05, 0.4, 0.01, v => (+v).toFixed(2))}
+          ${range('stLead', 'Lines', s.leading, 0.8, 2.4, 0.05, v => (+v).toFixed(2))}
+          <div class="prow"><label>Align</label><div class="seg">${['left', 'center', 'right'].map(a => `<button data-align="${a}" class="${(s.align || 'left') === a ? 'on' : ''}">${a[0].toUpperCase() + a.slice(1)}</button>`).join('')}</div>
+            <label style="margin-left:auto">Caps</label><button class="tog${s.upper ? ' on' : ''}" id="stUpper"></button></div>
+          <button class="tbtn" id="stReset" style="align-self:flex-start;color:#d2440f">Back to the house style</button>
+        </div>`;
+    }
+    $('panel').innerHTML = h;
+  }
+
+  /* ---------------------------------------------------------------- the tray: your stills */
+  const TRAY_H = { XS: 48, S: 70, M: 100, L: 150 };
+  function trayList() {
+    const q = trayQ.trim().toLowerCase();
+    return q ? stills.filter(s => [s.title, s.project, (s.tags || []).join(' ')].join(' ').toLowerCase().includes(q)) : stills;
+  }
+  function usedIds() { const u = new Set(); if (doc) doc.pages.forEach(p => p.pics.forEach(x => u.add(x.id))); return u; }
+  function drawTray() {
+    const list = trayList(), used = usedIds();
+    $('tray').classList.toggle('tall', traySize === 'L');
+    $('trayhead').innerHTML = `
+      <span class="cap">Stills</span>
+      <div class="seg"><button data-scope="project" class="${scope === 'project' ? 'on' : ''}">${esc(project || 'This project')}</button><button data-scope="vault" class="${scope === 'vault' ? 'on' : ''}">Entire vault</button></div>
+      <input class="q" id="trayQ" placeholder="Search" value="${esc(trayQ)}" spellcheck="false">
+      <span class="count">${list.length} still${list.length === 1 ? '' : 's'}${trayPick.size ? ` · ${trayPick.size} picked` : ''}</span>
+      <span style="flex-grow:1"></span>
+      ${doc ? `<button class="tbtn" id="addPicked" ${trayPick.size ? '' : 'disabled'} title="Or double-click, or drag them onto the page">Add to page</button>
+        <button class="tbtn" id="autoDraft" title="Lays the picked stills — or all of them — out into pages for you, grouped by colour">Lay them out for me</button>` : ''}
+      <div class="seg">${['XS', 'S', 'M', 'L', 'List'].map(k => `<button data-tsize="${k}" class="${traySize === k ? 'on' : ''}">${k}</button>`).join('')}</div>`;
+    const g = $('traygrid');
+    g.classList.toggle('list', traySize === 'List');
+    const h = TRAY_H[traySize] || 100;
+    g.innerHTML = list.length ? list.map((s, i) => traySize === 'List'
+      ? `<div class="still${trayPick.has(s.id) ? ' on' : ''}${used.has(s.id) ? ' used' : ''}" data-id="${esc(s.id)}" data-i="${i}" draggable="true"><img alt="" loading="lazy" src="vault/${esc(encodeURI(s.thumb))}"><span>${esc(s.title || 'Still')}</span><small>${esc(s.project)}</small></div>`
+      : `<div class="still${trayPick.has(s.id) ? ' on' : ''}${used.has(s.id) ? ' used' : ''}" data-id="${esc(s.id)}" data-i="${i}" draggable="true" title="${esc(s.title)}" style="height:${h}px;width:${Math.round(h * clamp(s.a || 1.5, 0.4, 3))}px"><img alt="" loading="lazy" src="vault/${esc(encodeURI(s.thumb))}"></div>`).join('')
+      : `<div class="empty" style="padding:14px 0">${scope === 'project' ? `No stills in ${esc(project)} yet — grab some, add references in the Vault, or drop pictures right here.` : 'No stills in the vault yet.'}</div>`;
+  }
+  async function loadStills() {
+    const r = await call('designStills', { scope }).catch(() => null);
+    stills = (r && r.stills) || [];
+    drawTray();
+  }
+  const stillById = id => stills.find(s => s.id === id);
+  const picFrom = s => ({ id: s.id, file: s.file, thumb: s.thumb, a: s.a || 1.5, palette: (s.palette || []).slice(0, 6), title: s.title || '', project: s.project || '', crop: { x: 50, y: 50, z: 1 }, opacity: 1, featured: false });
+
+  /* ---------------------------------------------------------------- the start: pick Mood or Treatment */
+  function drawStart() {
+    const recent = designs.slice(0, 8);
+    $('start').innerHTML = `
+      <h1>Needed Design</h1>
+      <p class="lead">Pages from your stills, for ${esc(project || 'this project')}. A mood board is just pictures. A treatment is pictures and words, on one grid — the spacing takes care of itself.</p>
+      <div class="choices">
+        <button class="g choice" data-new="mood"><div class="pv">${miniPreview('mood')}</div><b>Mood board</b><span>Just pictures, in tight rows. A title, the mark, up to 12 a page. Saves as a mood board.</span></button>
+        <button class="g choice" data-new="treatment"><div class="pv">${miniPreview('treatment')}</div><b>Treatment</b><span>Pictures and words: layouts, type, fades. Saves as a treatment.</span></button>
+      </div>
+      ${recent.length ? `<span class="cap">Carry on with</span><div class="recent">${recent.map(d => `<button class="rec g" data-open="${esc(d.rel)}">${d.cover ? `<img alt="" src="vault/${esc(encodeURI(d.cover))}">` : '<div class="ph"></div>'}<b>${esc(d.name)}</b><small>${d.mode === 'mood' ? 'Mood' : 'Treatment'} · ${d.pages} page${d.pages === 1 ? '' : 's'}</small></button>`).join('')}</div>` : ''}`;
+  }
+  function miniPreview(mode) {
+    const cols = ['#3b2a22', '#6d2a18', '#1e2227', '#b8461c', '#e0a24a', '#402e24'];
+    if (mode === 'mood') return cols.map((c, i) => `<i style="position:absolute;background:${c};border-radius:2px;left:${[4, 36, 70, 4, 30, 62][i]}%;top:${i < 3 ? 8 : 52}%;width:${[30, 32, 26, 24, 30, 34][i]}%;height:40%"></i>`).join('');
+    return `<i style="position:absolute;background:${cols[0]};left:5%;top:8%;width:32%;height:84%;border-radius:2px"></i><i style="position:absolute;background:${cols[3]};left:38%;top:8%;width:18%;height:41%;border-radius:2px"></i><i style="position:absolute;background:${cols[2]};left:38%;top:51%;width:18%;height:41%;border-radius:2px"></i>
+      <b style="position:absolute;left:62%;top:12%;width:22%;height:6px;background:#b3262b;border-radius:1px"></b><b style="position:absolute;left:62%;top:26%;width:30%;height:4px;background:#6b6964;border-radius:1px"></b><b style="position:absolute;left:62%;top:34%;width:26%;height:3px;background:#b9aea6;border-radius:1px"></b><b style="position:absolute;left:62%;top:40%;width:28%;height:3px;background:#b9aea6;border-radius:1px"></b><b style="position:absolute;left:62%;bottom:10%;width:12%;height:12px;background:#b3262b;border-radius:1px;opacity:0.5"></b>`;
+  }
+
+  /* ---------------------------------------------------------------- opening and making */
+  async function refreshList() { const r = await call('designList').catch(() => null); designs = (r && r.designs) || []; project = (r && r.project) || project; }
+  async function openDesign(r) {
+    const res = await call('designLoad', { rel: r }).catch(() => null);
+    if (!res || !res.ok) return toast((res && res.error) || "Couldn't open that one");
+    doc = normalise(res.doc); rel = r; cur = 0; sel.clear(); tsel = null; reframe = null; undo = []; redo = [];
+    setPref('last:' + project, r);
+    closeSheet(); draw();
+  }
+  function normalise(d) {
+    d.styles = Object.assign(defaultStyles(), d.styles || {});
+    d.pages = (d.pages && d.pages.length ? d.pages : [newPage()]).map(p => Object.assign(newPage(), p, { text: Object.assign(newPage().text, p.text || {}) }));
+    if (!SIZES[d.size]) d.size = '16:9';
+    return d;
+  }
+  async function makeNew(mode, ids) {
+    const info = await call('designProject').catch(() => ({}));
+    const title = (info && info.title) || project;
+    doc = newDoc(mode, `${title} ${mode === 'mood' ? 'mood' : 'treatment'}`);
+    rel = null; cur = 0; sel.clear(); tsel = null; undo = []; redo = [];
+    if (mode === 'treatment') {
+      // It starts from the project: its title on the cover, the client and the director with it.
+      const cover = doc.pages[0];
+      cover.layout = 'bleed';
+      cover.text.section = (info && info.client) || '';
+      cover.text.heading = title;
+      cover.text.caption = info && info.director ? `Dir. ${info.director}` : '';
+      doc.pages.push(newPage('left'));
+    }
+    if (ids && ids.length) {
+      if (scope !== 'vault' && ids.some(id => !stillById(id))) { scope = 'vault'; await loadStills(); }
+      const picks = ids.map(stillById).filter(Boolean);
+      deal(picks, mode === 'treatment');
+    }
+    persist(); draw();
+    toast(mode === 'mood' ? 'A new mood board — double-click stills to add them' : 'A new treatment — the cover is from the project');
+  }
+
+  // Deal stills into pages: mood boards N a page; treatments alternate layouts.
+  function deal(picks, treatment) {
+    if (!picks.length) return;
+    const pics = picks.map(picFrom);
+    if (!treatment) {
+      const n = doc.perPage || 6;
+      doc.pages = [];
+      for (let i = 0; i < pics.length; i += n) { const p = newPage('rows'); p.pics = pics.slice(i, i + n); doc.pages.push(p); }
+      cur = 0; return;
+    }
+    const cover = doc.pages[0] && doc.pages[0].layout === 'bleed' ? doc.pages[0] : null;
+    let rest = pics;
+    if (cover && !cover.pics.length) { cover.pics = [rest[0]]; rest = rest.slice(1); }
+    const keep = cover ? [cover] : [];
+    const cycle = ['left', 'right', 'rows', 'left', 'right', 'rows'];
+    let k = 0;
+    for (let i = 0; i < rest.length;) {
+      const lay = cycle[k % cycle.length], n = lay === 'rows' ? 5 : 3;
+      const p = newPage(lay); p.pics = rest.slice(i, i + n); keep.push(p); i += n; k++;
+    }
+    doc.pages = keep.length ? keep : [newPage('left')];
+    cur = 0;
+  }
+  // Grouped by colour, so each page holds together.
+  const HUES = ['red', 'orange', 'brown', 'yellow', 'green', 'teal', 'blue', 'purple', 'pink', 'black', 'grey', 'white'];
+  function family(hex) {
+    const [r, g, b] = hexRgb(hex).map(x => x / 255), mx = Math.max(r, g, b), mn = Math.min(r, g, b), d = mx - mn, s = mx ? d / mx : 0;
+    if (s < 0.18) return mx < 0.22 ? 'black' : mx > 0.85 ? 'white' : 'grey';
+    let h = d === 0 ? 0 : mx === r ? 60 * (((g - b) / d) % 6) : mx === g ? 60 * ((b - r) / d + 2) : 60 * ((r - g) / d + 4); if (h < 0) h += 360;
+    return h < 15 || h >= 340 ? 'red' : h < 40 ? (mx < 0.6 ? 'brown' : 'orange') : h < 65 ? 'yellow' : h < 160 ? 'green' : h < 200 ? 'teal' : h < 250 ? 'blue' : h < 290 ? 'purple' : 'pink';
+  }
+  function autoDraft() {
+    const source = trayPick.size ? stills.filter(s => trayPick.has(s.id)) : trayList();
+    if (!source.length) return toast('No stills to lay out');
+    const picks = source.slice(0, 72).slice().sort((a, b) => {
+      const fa = HUES.indexOf(family((a.palette || [])[0] || '#888888')), fb = HUES.indexOf(family((b.palette || [])[0] || '#888888'));
+      return fa - fb || String(a.project).localeCompare(String(b.project)) || String(a.title).localeCompare(String(b.title));
+    });
+    const had = doc.pages.some(p => p.pics.length || hasWords(p));
+    if (had && !confirm(`Lay out ${picks.length} still${picks.length === 1 ? '' : 's'} into new pages? The pages you have now are replaced — ⌘Z brings them back.`)) return;
+    change(() => {
+      if (doc.mode === 'treatment') { const c = doc.pages[0]; doc.pages = [c && c.layout === 'bleed' ? Object.assign(c, { pics: [] }) : newPage('bleed')]; }
+      deal(picks, doc.mode === 'treatment');
+    });
+    trayPick.clear(); drawTray();
+    toast(`${picks.length} stills on ${doc.pages.length} page${doc.pages.length === 1 ? '' : 's'}, grouped by colour`);
+  }
+
+  /* ---------------------------------------------------------------- moving pictures */
+  function addToPage(ids, at, pageIndex) {
+    const pi = pageIndex == null ? cur : pageIndex;
+    const add = ids.map(stillById).filter(Boolean).map(picFrom);
+    if (!add.length) return;
+    change(() => {
+      const p = doc.pages[pi];
+      const where = at == null ? p.pics.length : at;
+      p.pics.splice(where, 0, ...add);
+    });
+  }
+  function movePics(ks, dir) {
+    const p = page(); const k = ks[0];
+    const to = clamp(k + dir, 0, p.pics.length - 1); if (to === k) return;
+    change(() => { const [x] = p.pics.splice(k, 1); p.pics.splice(to, 0, x); });
+    sel = new Set([to]); drawStage(); drawPanel();
+  }
+  function toPage(ks, dir) {
+    const target = cur + dir;
+    const moving = ks.slice().sort((a, b) => a - b);
+    change(() => {
+      if (target < 0 || target >= doc.pages.length) {
+        const np = newPage(doc.mode === 'mood' ? 'rows' : page().layout);
+        doc.pages.splice(target < 0 ? 0 : doc.pages.length, 0, np);
+        if (target < 0) cur += 1;
+      }
+      const from = doc.pages[cur], t = doc.pages[target < 0 ? 0 : target];
+      const pics = moving.map(k => from.pics[k]);
+      from.pics = from.pics.filter((_, k) => !moving.includes(k));
+      if (dir < 0) t.pics.push(...pics); else t.pics.unshift(...pics);
+      cur = target < 0 ? 0 : target;
+      sel = new Set(pics.map(x => t.pics.indexOf(x)));
+    });
+  }
+  function removePics(ks) {
+    change(() => { page().pics = page().pics.filter((_, k) => !ks.includes(k)); });
+    sel.clear(); reframe = null; drawStage(); drawPanel();
+  }
+  function breakHere() {
+    const k = [...sel][0]; if (sel.size !== 1 || !k) return;
+    change(() => {
+      const p = page(), np = newPage(p.layout);
+      np.pics = p.pics.splice(k);
+      doc.pages.splice(cur + 1, 0, np);
+      cur += 1; sel = new Set([0]);
+    });
+    toast('A new page, from that picture on');
+  }
+
+  /* ---------------------------------------------------------------- swap: ↑ ↓ through your stills */
+  function swapStep(d) {
+    const p = page(); if (sel.size !== 1) return;
+    const k = [...sel][0], pic = p.pics[k]; if (!pic) return;
+    if (!swap) {
+      const used = usedIds(); used.delete(pic.id);
+      // Your picked stills first, then the rest of the tray; nothing already on a page.
+      const tray = trayList().filter(s => !used.has(s.id));
+      const list = tray.filter(s => trayPick.has(s.id)).concat(tray.filter(s => !trayPick.has(s.id)));
+      if (!list.length) return toast('No other stills to swap in');
+      let i = list.findIndex(s => s.id === pic.id);
+      if (i < 0) { list.unshift(stillById(pic.id) || { id: pic.id, file: pic.file, thumb: pic.thumb, a: pic.a, palette: pic.palette, title: pic.title }); i = 0; }
+      swap = { k, list, i, original: clone(pic), before: JSON.stringify(doc) };
+    }
+    swap.i = (swap.i + d + swap.list.length) % swap.list.length;
+    const s = swap.list[swap.i];
+    p.pics[k] = Object.assign(picFrom(s), { opacity: swap.original.opacity, featured: swap.original.featured });
+    drawStage(); drawStrip(); drawPanel();
+  }
+  function swapEnd(keep) {
+    if (!swap) return;
+    if (keep) { undo.push(swap.before); redo = []; persist(); }
+    else page().pics[swap.k] = swap.original;
+    swap = null; draw();
+  }
+
+  /* ---------------------------------------------------------------- events: toolbar, strip, panel, tray */
+  document.addEventListener('click', async e => {
+    const t = e.target.closest('button, [data-page], .still, .rec');
+    if (!t || t.closest('#sheet')) return;
+    const d = t.dataset;
+    if (d.new) return makeNew(d.new, [...trayPick]);
+    if (d.open) return openDesign(d.open);
+    if (!doc) { if (d.scope || d.tsize) trayHead(d); if (t.classList.contains('still')) trayClick(e, t); return; }
+    if (swap && !t.closest('#stage')) swapEnd(true);
+    if (t.id === 'docsBtn') return openDocs();
+    if (d.mode && d.mode !== doc.mode) {
+      change(() => { doc.mode = d.mode; if (d.mode === 'treatment') doc.pages.forEach(p => { if (!p.layout) p.layout = 'rows'; }); });
+      panelTab = 'page';
+      return toast(d.mode === 'mood' ? 'Mood: just pictures — the words are kept, hidden' : 'Treatment: layouts and words');
+    }
+    if (t.id === 'addPage' || t.id === 'addPage2') { change(() => { doc.pages.splice(t.id === 'addPage2' ? doc.pages.length : cur + 1, 0, newPage(doc.mode === 'mood' ? 'rows' : 'left')); cur = t.id === 'addPage2' ? doc.pages.length - 1 : cur + 1; sel.clear(); }); return; }
+    if (t.id === 'layBtn') return cycleLayout();
+    if (t.id === 'breakBtn') return breakHere();
+    if (t.id === 'playBtn') return play(true);
+    if (t.id === 'keysBtn') return openKeys();
+    if (t.id === 'exportBtn') return openExport();
+    if (d.delpage != null) { e.stopPropagation(); return removePage(+d.delpage); }
+    if (d.page != null && t.classList.contains('thumb')) { cur = +d.page; sel.clear(); tsel = null; reframe = null; armed = false; return draw(); }
+    // panel
+    if (d.ptab) { panelTab = d.ptab; return drawPanel(); }
+    if (d.lay) { change(() => { page().layout = d.lay; }); return; }
+    if (t.id === 'bleedTog') { change(() => { page().bleed = !page().bleed; }); return; }
+    if (d.bg) {
+      if (e.altKey && doc.mode !== 'mood') { change(() => { page().textColour = d.textc || d.bg; }); return toast('The words take that colour'); }
+      const all = !page().bg;
+      change(() => { if (all) doc.bg = d.bg; else page().bg = d.bg; });
+      return;
+    }
+    if (t.id === 'bgAll') { change(() => { const p = page(); if (p.bg) { doc.bg = p.bg; doc.pages.forEach(x => { x.bg = null; }); } else p.bg = doc.bg; }); return; }
+    if (t.id === 'fadeTog') { change(() => { const p = page(); p.fade = Object.assign({ strength: 0.6, to: 'black' }, p.fade || {}, { on: !(p.fade && p.fade.on) }); }); return; }
+    if (d.fadeto) { change(() => { page().fade.to = d.fadeto; }); return; }
+    if (t.id === 'textColourOff') { change(() => { page().textColour = null; }); return; }
+    if (t.id === 'dupPage') return dupPage();
+    if (t.id === 'delPage') return removePage(cur);
+    if (t.id === 'deal') return dealAgain();
+    if (t.id === 'featTog') return toggleFeature();
+    if (t.id === 'reframeBtn') { reframe = reframe == null ? [...sel][0] : null; drawStage(); return drawPanel(); }
+    if (t.id === 'reframeReset') { const k = [...sel][0]; change(() => { page().pics[k].crop = { x: 50, y: 50, z: 1 }; }); return; }
+    if (t.id === 'removePics') return removePics([...sel]);
+    if (d.style) { tsel = d.style; drawStage(); return drawPanel(); }
+    if (t.id === 'stItalic' || t.id === 'stUpper') { const k = tsel || 'heading'; change(() => { const s = doc.styles[k]; if (t.id === 'stItalic') s.italic = !s.italic; else s.upper = !s.upper; }); return; }
+    if (d.align) { const k = tsel || 'heading'; change(() => { doc.styles[k].align = d.align; }); return; }
+    if (d.stcolour) { const k = tsel || 'heading'; change(() => { doc.styles[k].colour = d.stcolour; }); return; }
+    if (t.id === 'stReset') { const k = tsel || 'heading'; change(() => { doc.styles[k] = defaultStyles()[k]; }); return; }
+    // tray
+    if (d.scope || d.tsize) return trayHead(d);
+    if (t.id === 'addPicked') { addToPage([...trayPick]); trayPick.clear(); return drawTray(); }
+    if (t.id === 'autoDraft') return autoDraft();
+    if (t.classList.contains('still')) return trayClick(e, t);
+  });
+  function trayHead(d) {
+    if (d.scope) { scope = d.scope; setPref('scope', scope); trayPick.clear(); loadStills(); }
+    if (d.tsize) { traySize = d.tsize; setPref('size', traySize); drawTray(); }
+  }
+  let lastTrayClick = -1;
+  function trayClick(e, t) {
+    const id = t.dataset.id, i = +t.dataset.i;
+    if (e.shiftKey && lastTrayClick >= 0) { const list = trayList(); const [a, b] = [Math.min(i, lastTrayClick), Math.max(i, lastTrayClick)]; for (let k = a; k <= b; k++) trayPick.add(list[k].id); }
+    else if (e.metaKey || e.ctrlKey) { trayPick.has(id) ? trayPick.delete(id) : trayPick.add(id); }
+    else { const only = trayPick.size === 1 && trayPick.has(id); trayPick.clear(); if (!only) trayPick.add(id); }
+    lastTrayClick = i; paintTrayPick();
+  }
+  // Just the picked marks — the grid stays put, so a double-click lands on the same still.
+  function paintTrayPick() {
+    $('traygrid').querySelectorAll('.still').forEach(s => s.classList.toggle('on', trayPick.has(s.dataset.id)));
+    const c = $('trayhead').querySelector('.count'), list = trayList();
+    if (c) c.textContent = `${list.length} still${list.length === 1 ? '' : 's'}${trayPick.size ? ` · ${trayPick.size} picked` : ''}`;
+    const a = $('addPicked'); if (a) a.disabled = !trayPick.size;
+  }
+  document.addEventListener('dblclick', e => {
+    const s = e.target.closest('.still');
+    if (s && doc) { addToPage([s.dataset.id]); return; }
+    const pic = e.target.closest('#pagewrap .pic');
+    if (pic && doc) { const k = +pic.dataset.k; sel = new Set([k]); reframe = reframe === k ? null : k; drawStage(); drawPanel(); }
+  });
+  document.addEventListener('input', e => {
+    const t = e.target; if (!doc) { if (t.id === 'trayQ') { trayQ = t.value; drawTrayKeepFocus(); } return; }
+    if (t.id === 'trayQ') { trayQ = t.value; return drawTrayKeepFocus(); }
+    if (t.id === 'docName') { doc.name = t.value; persist(); return; }
+    if (t.id === 'moodTitle') { change(() => { doc.title = t.value; }, { quiet: true }); drawStage(); drawStrip(); return; }
+    if (t.classList.contains('tb')) {
+      const k = t.dataset.t;
+      change(() => { page().text[k] = t.textContent; }, { quiet: true });
+      clearTimeout(drawStrip.t); drawStrip.t = setTimeout(drawStrip, 400);
+      if (undo.length > 1 && undo[undo.length - 1] && typing.k === k && Date.now() - typing.at < 1200) undo.pop();   // one undo per burst of typing
+      typing = { k, at: Date.now() };
+      return;
+    }
+    const liveRange = { perPage: v => { doc.perPage = +v; }, fadeStr: v => { page().fade.strength = +v; }, textOp: v => { page().textOpacity = +v; },
+      picOp: v => { [...sel].forEach(k => { page().pics[k].opacity = +v; }); },
+      stSize: v => { doc.styles[tsel || 'heading'].size = +v; }, stTrack: v => { doc.styles[tsel || 'heading'].tracking = +v; }, stLead: v => { doc.styles[tsel || 'heading'].leading = +v; } }[t.id];
+    if (liveRange) {
+      const last = rangeBurst.id === t.id && Date.now() - rangeBurst.at < 1500;
+      change(() => liveRange(t.value), { quiet: true });
+      if (last) undo.pop();
+      rangeBurst = { id: t.id, at: Date.now() };
+      const v = t.parentElement.querySelector('.val'); if (v) v.textContent = /Op|Str/.test(t.id) ? Math.round(t.value * 100) + '%' : /Track|Lead/.test(t.id) ? (+t.value).toFixed(2) : t.value;
+      if (t.id !== 'perPage') { drawStage(); clearTimeout(drawStrip.t); drawStrip.t = setTimeout(drawStrip, 250); }
+      else { const b = $('deal'); if (b) b.textContent = `Deal them out again, ${t.value} a page`; }
+    }
+    if (t.id === 'bgPick') { const all = !page().bg; change(() => { if (all) doc.bg = t.value; else page().bg = t.value; }, { quiet: true }); drawStage(); drawStrip(); }
+    if (t.id === 'stColour') { change(() => { doc.styles[tsel || 'heading'].colour = t.value; }, { quiet: true }); drawStage(); }
+  });
+  let typing = { k: '', at: 0 }, rangeBurst = { id: '', at: 0 };
+  function drawTrayKeepFocus() { const pos = $('trayQ').selectionStart; drawTray(); const q = $('trayQ'); q.focus(); q.setSelectionRange(pos, pos); }
+  document.addEventListener('change', async e => {
+    const t = e.target; if (!doc) return;
+    if (t.id === 'sizeSel') { change(() => { doc.size = t.value; }); return toast(`${SIZE_NAMES[t.value]} — every page re-flows to fit`); }
+    if (t.id === 'stFont') { change(() => { doc.styles[tsel || 'heading'].font = t.value; }); return; }
+    if (t.id === 'stWeight') { change(() => { doc.styles[tsel || 'heading'].weight = +t.value; }); return; }
+    if (t.id === 'docName') { if (rel) { const r = await call('designRename', { rel, name: t.value }).catch(() => null); if (r && r.ok) rel = r.rel; else if (r && r.error) toast(r.error); } }
+  });
+  document.addEventListener('focusin', e => {
+    const t = e.target;
+    if (t.classList && t.classList.contains('tb') && doc) { if (tsel !== t.dataset.t) { tsel = t.dataset.t; panelTab = 'text'; sel.clear(); drawPanel(); } }
+  });
+  document.addEventListener('paste', e => {
+    if (!doc || doc.mode === 'mood') return;
+    const t = e.target;
+    const text = (e.clipboardData && e.clipboardData.getData('text/plain')) || '';
+    if (!text) return;
+    if (t.classList && t.classList.contains('tb')) return;              // into the words you're in, as usual
+    if (/^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName)) return;
+    // Pasted onto the page: the first line is the heading, the rest the body.
+    e.preventDefault();
+    const lines = text.replace(/\r/g, '').split('\n');
+    const head = lines.shift().trim(), body = lines.join('\n').trim();
+    change(() => { const p = page(); if (p.layout === 'rows') p.layout = 'left'; p.text.heading = head; if (body) p.text.body = body; });
+    toast('The first line became the heading');
+  });
+
+  /* ---------------------------------------------------------------- the page: select, marquee, reframe, drag */
+  let marquee = null, drag = null;
+  $('stage').addEventListener('mousedown', e => {
+    if (!doc || e.button !== 0) return;
+    const pic = e.target.closest('.pic'), tb = e.target.closest('.tb');
+    if (tb) return;
+    if (swap) swapEnd(true);
+    if (pic) {
+      const k = +pic.dataset.k;
+      if (reframe === k) { drag = { k, x: e.clientX, y: e.clientY, crop: Object.assign({ x: 50, y: 50, z: 1 }, page().pics[k].crop), before: JSON.stringify(doc) }; e.preventDefault(); return; }
+      if (reframe != null) { reframe = null; }
+      if (e.metaKey || e.ctrlKey || e.shiftKey) { sel.has(k) ? sel.delete(k) : sel.add(k); }
+      else if (!sel.has(k)) sel = new Set([k]);
+      tsel = null; panelTab = 'pic'; armed = false; drawStage(); drawPanel(); drawBar();
+      return;
+    }
+    // Empty space: start a marquee (and let go of what was picked). A click here also means "type".
+    if (reframe != null) reframe = null;
+    armed = !!e.target.closest('#pagewrap');
+    const r = $('stage').getBoundingClientRect();
+    marquee = { x0: e.clientX, y0: e.clientY, add: e.metaKey || e.shiftKey ? new Set(sel) : new Set(), el: null, rect: r };
+    if (!(e.metaKey || e.shiftKey)) { sel.clear(); tsel = null; }
+    if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
+    drawStage(); drawPanel(); drawBar();
+  });
+  document.addEventListener('mousemove', e => {
+    if (drag) {
+      const p = page(), pic = p.pics[drag.k]; if (!pic) return;
+      const L = layout(doc, p), r = L.rects[drag.k]; if (!r) return;
+      const z = drag.crop.z || 1;
+      const dx = (e.clientX - drag.x) / scale, dy = (e.clientY - drag.y) / scale;
+      pic.crop = { x: clamp(drag.crop.x - dx / r.w * 100 / Math.max(0.2, z - 1 + 0.6), 0, 100), y: clamp(drag.crop.y - dy / r.h * 100 / Math.max(0.2, z - 1 + 0.6), 0, 100), z };
+      const img = $('pagewrap').querySelector(`.pic[data-k="${drag.k}"] img`);
+      if (img) { img.style.objectPosition = `${pic.crop.x}% ${pic.crop.y}%`; img.style.transformOrigin = `${pic.crop.x}% ${pic.crop.y}%`; }
+      return;
+    }
+    if (!marquee) return;
+    const x = Math.min(e.clientX, marquee.x0), y = Math.min(e.clientY, marquee.y0), w = Math.abs(e.clientX - marquee.x0), h = Math.abs(e.clientY - marquee.y0);
+    if (w + h < 6) return;
+    if (!marquee.el) { marquee.el = document.createElement('div'); marquee.el.className = 'marquee'; $('stage').appendChild(marquee.el); }
+    Object.assign(marquee.el.style, { left: (x - marquee.rect.left) + 'px', top: (y - marquee.rect.top) + 'px', width: w + 'px', height: h + 'px' });
+    const next = new Set(marquee.add);
+    $('pagewrap').querySelectorAll('.pic').forEach(p => { const b = p.getBoundingClientRect(); if (b.right > x && b.left < x + w && b.bottom > y && b.top < y + h) next.add(+p.dataset.k); });
+    sel = next;
+    $('pagewrap').querySelectorAll('.pic').forEach(p => p.classList.toggle('sel', sel.has(+p.dataset.k)));
+  });
+  document.addEventListener('mouseup', () => {
+    if (drag) { undo.push(drag.before); redo = []; drag = null; persist(); drawStrip(); }
+    if (marquee) { if (marquee.el) marquee.el.remove(); marquee = null; if (sel.size) panelTab = 'pic'; drawPanel(); drawBar(); }
+  });
+  $('stage').addEventListener('wheel', e => {
+    if (reframe == null || !doc) return;
+    e.preventDefault();
+    const pic = page().pics[reframe]; if (!pic) return;
+    const c = Object.assign({ x: 50, y: 50, z: 1 }, pic.crop);
+    const was = JSON.stringify(doc);
+    c.z = clamp(c.z * (1 - e.deltaY * 0.0022), 1, 4);
+    pic.crop = c;
+    const img = $('pagewrap').querySelector(`.pic[data-k="${reframe}"] img`); if (img) img.style.transform = `scale(${c.z})`;
+    clearTimeout(zoomT); if (!zoomT) undo.push(was); zoomT = setTimeout(() => { zoomT = null; persist(); drawStrip(); }, 400);
+  }, { passive: false });
+  let zoomT = null;
+
+  // Drag and drop: stills from the tray, pictures between places, pages in the strip.
+  let dragData = null;
+  document.addEventListener('dragstart', e => {
+    const s = e.target.closest && e.target.closest('.still'), pic = e.target.closest && e.target.closest('#pagewrap .pic'), th = e.target.closest && e.target.closest('.thumb');
+    if (s) { const id = s.dataset.id; if (!trayPick.has(id)) { trayPick = new Set([id]); } dragData = { from: 'tray', ids: [...trayPick] }; }
+    else if (pic && reframe == null) { const k = +pic.dataset.k; if (!sel.has(k)) sel = new Set([k]); dragData = { from: 'page', page: cur, ks: [...sel] }; }
+    else if (th) dragData = { from: 'strip', i: +th.dataset.page };
+    else return;
+    e.dataTransfer.effectAllowed = 'move';
+    try { e.dataTransfer.setData('text/plain', 'needed'); } catch (x) {}
+  });
+  document.addEventListener('dragend', () => { dragData = null; clearOver(); });
+  const clearOver = () => document.querySelectorAll('.over,.dropbefore,.drop').forEach(x => x.classList.remove('over', 'dropbefore', 'drop'));
+  document.addEventListener('dragover', e => {
+    if (!dragData || !doc) return;
+    const th = e.target.closest('.thumb'), gap = e.target.closest('.gapz'), pic = e.target.closest('#pagewrap .pic'), wrap = e.target.closest('#pagewrap, #stage');
+    if (!(th || gap || pic || wrap)) return;
+    e.preventDefault();
+    clearOver();
+    if (th && dragData.from !== 'strip') th.classList.add('over');
+    else if (th) th.classList.add('over');
+    else if (gap) gap.classList.add('over');
+    else if (pic) pic.classList.add('dropbefore');
+    else $('pagewrap').classList.add('drop');
+  });
+  document.addEventListener('drop', e => {
+    if (!dragData || !doc) return;
+    e.preventDefault();
+    const dd = dragData; dragData = null; clearOver();
+    const th = e.target.closest('.thumb'), gap = e.target.closest('.gapz'), pic = e.target.closest('#pagewrap .pic');
+    if (dd.from === 'strip') {
+      const to = th ? +th.dataset.page : gap ? +gap.dataset.gap : null; if (to == null) return;
+      change(() => { const [p] = doc.pages.splice(dd.i, 1); const at = to > dd.i && gap ? to - 1 : to; doc.pages.splice(at, 0, p); cur = at; });
+      return;
+    }
+    const takePics = () => {             // the pictures being moved, off their page
+      if (dd.from === 'tray') return dd.ids.map(stillById).filter(Boolean).map(picFrom);
+      const from = doc.pages[dd.page], ks = dd.ks.slice().sort((a, b) => a - b), out = ks.map(k => from.pics[k]);
+      from.pics = from.pics.filter((_, k) => !ks.includes(k));
+      return out;
+    };
+    if (gap) {                              // between pages: a new page with them on it
+      const at = +gap.dataset.gap;
+      change(() => { const p = newPage(doc.mode === 'mood' ? 'rows' : 'left'); p.pics = takePics(); doc.pages.splice(at, 0, p); cur = at; sel.clear(); });
+      return;
+    }
+    if (th) {                               // onto another page
+      const to = +th.dataset.page;
+      change(() => { const pics = takePics(); doc.pages[to].pics.push(...pics); sel.clear(); });
+      return toast(`Onto page ${to + 1}`);
+    }
+    // onto this page: before the picture it's dropped on, or at the end
+    change(() => {
+      const target = pic ? page().pics[+pic.dataset.k] : null;
+      const pics = takePics();
+      const p = page();
+      const at = target ? p.pics.indexOf(target) : p.pics.length;
+      p.pics.splice(at < 0 ? p.pics.length : at, 0, ...pics);
+      sel = new Set(pics.map(x => p.pics.indexOf(x)));
+    });
+    if (dd.from === 'tray') { trayPick.clear(); drawTray(); }
+  });
+
+  // Tray marquee: drag across stills to pick them.
+  let tmq = null;
+  $('traygrid').addEventListener('mousedown', e => {
+    if (e.button !== 0 || e.target.closest('.still')) return;
+    const r = $('traygrid').getBoundingClientRect();
+    tmq = { x0: e.clientX, y0: e.clientY, base: e.metaKey || e.shiftKey ? new Set(trayPick) : new Set(), el: null, r };
+    if (!(e.metaKey || e.shiftKey)) trayPick.clear();
+  });
+  document.addEventListener('mousemove', e => {
+    if (!tmq) return;
+    const x = Math.min(e.clientX, tmq.x0), y = Math.min(e.clientY, tmq.y0), w = Math.abs(e.clientX - tmq.x0), h = Math.abs(e.clientY - tmq.y0);
+    if (w + h < 6) return;
+    const g = $('traygrid');
+    if (!tmq.el) { tmq.el = document.createElement('div'); tmq.el.className = 'marquee'; g.appendChild(tmq.el); }
+    Object.assign(tmq.el.style, { left: (x - tmq.r.left) + 'px', top: (y - tmq.r.top + g.scrollTop) + 'px', width: w + 'px', height: h + 'px' });
+    trayPick = new Set(tmq.base);
+    g.querySelectorAll('.still').forEach(s => { const b = s.getBoundingClientRect(); const hit = b.right > x && b.left < x + w && b.bottom > y && b.top < y + h; if (hit) trayPick.add(s.dataset.id); s.classList.toggle('on', trayPick.has(s.dataset.id)); });
+  });
+  document.addEventListener('mouseup', () => { if (tmq) { if (tmq.el) tmq.el.remove(); tmq = null; paintTrayPick(); } });
+
+  /* ---------------------------------------------------------------- pages */
+  function removePage(i) {
+    if (doc.pages.length < 2) return;
+    change(() => { doc.pages.splice(i, 1); cur = clamp(cur > i ? cur - 1 : cur, 0, doc.pages.length - 1); sel.clear(); });
+    toast(`Page ${i + 1} removed — ⌘Z brings it back`);
+  }
+  function dupPage() { change(() => { const c = clone(page()); c.id = uid(); doc.pages.splice(cur + 1, 0, c); cur += 1; sel.clear(); }); toast('A copy of the page, to try something'); }
+  function cycleLayout() {
+    if (doc.mode === 'mood') return;
+    const i = LAYOUTS.findIndex(l => l[0] === page().layout);
+    const next = LAYOUTS[(i + 1) % LAYOUTS.length];
+    change(() => { page().layout = next[0]; });
+    toast(next[1]);
+  }
+  function toggleFeature() {
+    if (sel.size !== 1) return;
+    const k = [...sel][0];
+    change(() => { const p = page(); const was = p.pics[k].featured; p.pics.forEach(x => { x.featured = false; }); p.pics[k].featured = !was; });
+  }
+  function dealAgain() {
+    const all = [].concat(...doc.pages.map(p => p.pics));
+    if (!all.length) return toast('No pictures to deal yet');
+    change(() => {
+      const n = doc.perPage || 6; doc.pages = [];
+      for (let i = 0; i < all.length; i += n) { const p = newPage('rows'); p.pics = all.slice(i, i + n); doc.pages.push(p); }
+      cur = 0; sel.clear();
+    });
+    toast(`${all.length} stills, ${doc.perPage} a page — ${doc.pages.length} page${doc.pages.length === 1 ? '' : 's'}`);
+  }
+
+  /* ---------------------------------------------------------------- keys */
+  document.addEventListener('keydown', e => {
+    const t = e.target;
+    const typingIn = t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName);
+    if ($('play').classList.contains('on')) return playKey(e);
+    if (sheetOpen) { if (e.key === 'Escape') { e.preventDefault(); closeSheet(); } return; }
+    if (!doc) return;
+    const cmd = e.metaKey || e.ctrlKey;
+    if (cmd && e.key.toLowerCase() === 'z') { if (typingIn && t.isContentEditable === false) return; e.preventDefault(); if (t.isContentEditable) t.blur(); return undoIt(!e.shiftKey); }
+    if (cmd && e.key.toLowerCase() === 's') { e.preventDefault(); return keepVersion(); }
+    if (cmd && e.key.toLowerCase() === 'd') { e.preventDefault(); return dupPage(); }
+    if (typingIn) { if (e.key === 'Escape' && t.isContentEditable) t.blur(); return; }
+    if (swap) {
+      if (e.key === 'ArrowUp' || e.key === 'ArrowDown') { e.preventDefault(); return swapStep(e.key === 'ArrowDown' ? 1 : -1); }
+      if (e.key === 'Enter') { e.preventDefault(); swapEnd(true); return toast('Kept'); }
+      if (e.key === 'Escape') { e.preventDefault(); return swapEnd(false); }
+      swapEnd(true);
+    }
+    if (e.key === 'Escape') { armed = false; if (reframe != null) { reframe = null; } else { sel.clear(); tsel = null; } drawStage(); drawPanel(); drawBar(); return; }
+    if (e.key === ' ') { e.preventDefault(); return play(true); }
+    if (e.key === 'Tab') { e.preventDefault(); $('work').classList.toggle('nopanel'); setTimeout(drawStage, 30); return; }
+    if (e.key === '?') { e.preventDefault(); return openKeys(); }
+    if (sel.size) {
+      const ks = [...sel];
+      if (e.key === 'ArrowUp' || e.key === 'ArrowDown') { e.preventDefault(); if (sel.size === 1) swapStep(e.key === 'ArrowDown' ? 1 : -1); return; }
+      if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') { e.preventDefault(); const d = e.key === 'ArrowRight' ? 1 : -1; return cmd ? toPage(ks, d) : sel.size === 1 ? movePics(ks, d) : null; }
+      if (e.key === 'Backspace' || e.key === 'Delete') { e.preventDefault(); return removePics(ks); }
+      if (e.key.toLowerCase() === 'f' && !cmd) { e.preventDefault(); return toggleFeature(); }
+    } else {
+      if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') { e.preventDefault(); cur = clamp(cur + (e.key === 'ArrowRight' ? 1 : -1), 0, doc.pages.length - 1); return draw(); }
+    }
+    // L: the next layout — unless you've clicked on the page to type.
+    if (e.key.toLowerCase() === 'l' && !cmd && !armed && doc.mode !== 'mood') { e.preventDefault(); return cycleLayout(); }
+    // Just type: click the page, and a key starts the heading — or the body, if there's a heading.
+    if (armed && doc.mode !== 'mood' && !cmd && !e.altKey && e.key.length === 1 && /\S/.test(e.key)) {
+      const p = page();
+      if (p.layout === 'rows') change(() => { p.layout = 'left'; });
+      const k = p.text.heading ? 'body' : 'heading';
+      const el = $('pagewrap').querySelector(`.tb.${k}`);
+      if (el) { e.preventDefault(); el.focus(); document.execCommand('insertText', false, (p.text[k] && k === 'body' ? (/\s$/.test(p.text[k]) ? '' : ' ') : '') + e.key); placeCaretEnd(el); }
+    }
+  });
+  function placeCaretEnd(el) { const r = document.createRange(); r.selectNodeContents(el); r.collapse(false); const s = getSelection(); s.removeAllRanges(); s.addRange(r); }
+  async function keepVersion() {
+    await flushSave();
+    if (!rel) return toast('Nothing to keep yet');
+    const r = await call('designVersion', { rel }).catch(() => null);
+    toast(r && r.ok ? `Kept as version ${r.version} — it's in the Versions folder beside it` : "Couldn't keep a version");
+  }
+  async function flushSave() { if (saveT) { clearTimeout(saveT); saveT = null; const r = await call('designSave', { rel, doc }).catch(() => null); if (r && r.ok) rel = r.rel; } }
+
+  /* ---------------------------------------------------------------- play */
+  let playAt = 0;
+  function play(on) {
+    const el = $('play');
+    if (!on) { el.classList.remove('on'); el.innerHTML = ''; return; }
+    playAt = cur; el.classList.add('on'); showPlay();
+  }
+  function showPlay() {
+    const { W, H } = geometry(doc), s = Math.min(innerWidth / W, innerHeight / H);
+    $('play').innerHTML = pageHTML(doc, doc.pages[playAt], {}) + `<span class="count">${playAt + 1} / ${doc.pages.length} · ← → · Esc</span>`;
+    const pg = $('play').querySelector('.pg');
+    pg.style.transform = `scale(${s})`; pg.style.left = ((innerWidth - W * s) / 2) + 'px'; pg.style.top = ((innerHeight - H * s) / 2) + 'px';
+  }
+  function playKey(e) {
+    e.preventDefault();
+    if (e.key === 'Escape') { cur = playAt; play(false); return draw(); }
+    if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'ArrowDown') playAt = Math.min(doc.pages.length - 1, playAt + 1);
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') playAt = Math.max(0, playAt - 1);
+    showPlay();
+  }
+  $('play').addEventListener('click', () => { if (playAt < doc.pages.length - 1) { playAt++; showPlay(); } else { cur = playAt; play(false); draw(); } });
+
+  /* ---------------------------------------------------------------- sheets: designs, keys, export */
+  let sheetOpen = null;
+  function openSheet(name, html) { sheetOpen = name; $('sheet').innerHTML = html; $('veil').classList.add('on'); }
+  function closeSheet() { sheetOpen = null; $('veil').classList.remove('on'); }
+  $('veil').addEventListener('mousedown', e => { if (e.target === $('veil')) closeSheet(); });
+  window.__neededBack = () => {
+    if ($('play').classList.contains('on')) { play(false); return true; }
+    if (sheetOpen) { closeSheet(); return true; }
+    if (swap) { swapEnd(false); return true; }
+    if (reframe != null || sel.size) { reframe = null; sel.clear(); draw(); return true; }
+    return false;
+  };
+  const closeX = '<button class="close" data-close aria-label="Close">×</button>';
+
+  async function openDocs() {
+    await flushSave(); await refreshList();
+    openSheet('docs', `
+      <div class="shead"><div class="grow"><h2>Designs</h2><span class="empty">For ${esc(project)} — in ${esc(project)}_Design, beside the rest of the project.</span></div>${closeX}</div>
+      <div style="display:flex;gap:8px"><button class="light" data-snew="mood">New mood board</button><button class="light" data-snew="treatment">New treatment</button></div>
+      <div class="dlist">${designs.map(d => `<div class="drow${d.rel === rel ? ' on' : ''}" data-sopen="${esc(d.rel)}" role="button" tabindex="0">
+          ${d.cover ? `<img alt="" src="vault/${esc(encodeURI(d.cover))}">` : '<div class="ph"></div>'}
+          <span><b>${esc(d.name)}</b><small>${d.mode === 'mood' ? 'Mood' : 'Treatment'} · ${d.pages} page${d.pages === 1 ? '' : 's'}</small></span>
+          <button class="x" data-sdel="${esc(d.rel)}" aria-label="Move ${esc(d.name)} to the Trash">×</button></div>`).join('') || '<span class="empty">None yet.</span>'}</div>
+      <div class="foot"><span class="grow">Everything saves as you go. ⌘S keeps a version; every export is a new version too.</span><button class="dark" data-close>Done</button></div>`);
+  }
+  function openKeys() {
+    const k = [['↑ ↓', 'Swap the picked picture through your stills — Return keeps, Esc puts it back'], ['← →', 'Move it along the page (nothing picked: the page before or after)'], ['⌘← ⌘→', 'Move it to the page before or after'],
+      ['F', 'Feature it — the hero of its row'], ['⌫', 'Take it off the page'], ['Double-click', 'Reframe: drag inside it, scroll to zoom'], ['L', 'Next layout for this page'], ['Type', 'Start the heading (then the body) — paste a paragraph to split it'],
+      ['⌘D', 'Duplicate the page'], ['⌘Z  ⇧⌘Z', 'Undo, redo — everything'], ['⌘S', 'Keep a version'], ['Space', 'Play through the pages'], ['Tab', 'Hide the panel — just the page'], ['?', 'These keys']];
+    openSheet('keys', `<div class="shead"><div class="grow"><h2>Keys</h2><span class="empty">The same few moves everywhere.</span></div>${closeX}</div>
+      <div class="keys">${k.map(([a, b]) => `<kbd>${esc(a)}</kbd><span>${esc(b)}</span>`).join('')}</div>`);
+  }
+  let ex = { kind: 'both', pages: 'all', range: '', mark: true };
+  function openExport() {
+    if (!doc) return;
+    const n = doc.pages.length, size = SIZE_NAMES[doc.size];
+    const count = exportPages().length;
+    const K = [['pdf', 'PDF', 'One file to send. Fonts and fades exactly as on screen.'], ['images', 'Page images', 'A JPEG per page — drop them straight into Keynote.'], ['both', 'Both', 'The PDF and a folder of page images, side by side.']];
+    openSheet('export', `
+      <div class="shead"><div class="grow"><h2>Export</h2><span class="empty">${esc(doc.name || 'This design')} · ${n} page${n === 1 ? '' : 's'}</span></div>${closeX}</div>
+      <div style="display:flex;flex-direction:column;gap:8px"><span class="cap">As</span><div class="kinds">${K.map(([k, a, b]) => `<button class="kind${ex.kind === k ? ' on' : ''}" data-exkind="${k}"><b>${a}</b><span>${b}</span></button>`).join('')}</div></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px">
+        <div style="display:flex;flex-direction:column;gap:8px"><span class="cap">Size</span><span style="font-size:14px">${esc(size)}</span><span class="empty">Change it in the bar — pages re-flow to fit.</span></div>
+        <div style="display:flex;flex-direction:column;gap:8px"><span class="cap">Pages</span><div class="pills"><button data-expages="all" class="${ex.pages === 'all' ? 'on' : ''}">All ${n}</button><button data-expages="this" class="${ex.pages === 'this' ? 'on' : ''}">This page</button><input id="exRange" placeholder="e.g. 2–5" value="${esc(ex.range)}"></div></div>
+      </div>
+      <div class="markrow"><img src="mark.png" alt="" style="width:34px"><div style="display:flex;flex-direction:column;gap:3px;flex-grow:1"><span style="font-size:14px">This Was Needed mark on every page</span>
+        <span class="empty">Small, bottom right. Taking it off will be part of the Pro plan — for now it's yours to switch.</span></div>
+        <button class="tog${ex.mark ? ' on' : ''}" id="exMark" role="switch" aria-checked="${ex.mark}"></button></div>
+      <div class="foot"><span class="grow">Saves into ${esc(project)} › ${esc(project)}_Design › ${doc.mode === 'mood' ? 'Mood' : 'Treatments'} — a new version every time.</span>
+        <button class="dark" id="exGo" ${count ? '' : 'disabled'}>${ex.kind === 'pdf' ? `Export PDF` : ex.kind === 'images' ? `Export ${count} image${count === 1 ? '' : 's'}` : `Export PDF + ${count} image${count === 1 ? '' : 's'}`}</button></div>`);
+  }
+  function exportPages() {
+    const n = doc.pages.length;
+    if (ex.pages === 'this') return [cur];
+    if (ex.pages === 'range' && ex.range.trim()) {
+      const out = new Set();
+      ex.range.split(',').forEach(part => { const m = part.trim().match(/^(\d+)\s*(?:[-–]\s*(\d+))?$/); if (!m) return; const a = +m[1], b = m[2] ? +m[2] : a; for (let i = Math.min(a, b); i <= Math.max(a, b); i++) if (i >= 1 && i <= n) out.add(i - 1); });
+      return [...out].sort((a, b) => a - b);
+    }
+    return doc.pages.map((_, i) => i);
+  }
+  $('sheet').addEventListener('click', async e => {
+    const t = e.target.closest('button, [data-sopen]'); if (!t) return;
+    const d = t.dataset;
+    if (d.close != null) return closeSheet();
+    if (d.snew) { closeSheet(); return makeNew(d.snew, []); }
+    if (d.sdel) {
+      e.stopPropagation();
+      if (!confirm('Move this design to the Trash? Its exports stay where they are.')) return;
+      const r = await call('designDelete', { rel: d.sdel }).catch(() => null);
+      designs = (r && r.designs) || designs.filter(x => x.rel !== d.sdel);
+      if (d.sdel === rel) { doc = null; rel = null; closeSheet(); return draw(); }
+      return openDocs();
+    }
+    if (d.sopen) return openDesign(d.sopen);
+    if (d.exkind) { ex.kind = d.exkind; return openExport(); }
+    if (d.expages) { ex.pages = d.expages; ex.range = ''; return openExport(); }
+    if (t.id === 'exMark') { ex.mark = !ex.mark; return openExport(); }
+    if (t.id === 'exGo') {
+      await flushSave();
+      const pages = exportPages(); if (!pages.length) return;
+      const [W, H] = SIZES[doc.size];
+      t.disabled = true; t.textContent = 'Exporting…';
+      const r = await call('designExport', { doc, kind: ex.kind, pages, width: W, height: H, mark: ex.mark }).catch(() => null);
+      closeSheet();
+      if (!r || !r.ok) return toast((r && r.error) || "Couldn't export it");
+      toast(`${r.name} — saved in ${project}_Design`);
+      const where = r.pdf || r.folder; if (where) setTimeout(() => call('designReveal', { rel: where }), 400);
+    }
+  });
+  $('sheet').addEventListener('input', e => { if (e.target.id === 'exRange') { ex.range = e.target.value; ex.pages = e.target.value.trim() ? 'range' : 'all'; const b = $('exGo'); const n = exportPages().length; if (b) { b.disabled = !n; b.textContent = ex.kind === 'pdf' ? 'Export PDF' : ex.kind === 'images' ? `Export ${n} image${n === 1 ? '' : 's'}` : `Export PDF + ${n} image${n === 1 ? '' : 's'}`; } } });
+
+  /* ---------------------------------------------------------------- the app tells us */
+  let shared = {};
+  window.__neededShared = async s => {
+    s = s || {};
+    const changed = s.project !== shared.project || s.vault !== shared.vault;
+    shared = s;
+    if (!changed) { if (s.tab === 'design' && doc) setTimeout(drawStage, 30); return; }
+    await flushSave();
+    project = s.project || '';
+    doc = null; rel = null; sel.clear(); trayPick.clear(); swap = null; reframe = null;
+    await refreshList();
+    await loadStills();
+    // Back to what you had open in this project.
+    const last = pref('last:' + project, '');
+    if (last && designs.some(d => d.rel === last)) return openDesign(last);
+    draw();
+  };
+  window.__neededSynced = () => loadStills();
+  window.__designOpenWith = async o => {
+    await flushSave();
+    if (!stills.length) await loadStills();
+    const ids = (o && o.ids) || [];
+    const pick = ids.length ? ids : trayList().filter(s => (s.a || 0) > 0).slice(0, 36).map(s => s.id);
+    return makeNew((o && o.mode) || 'mood', pick);
+  };
+  window.__designDropped = items => {
+    if (!items || !items.length) return;
+    loadStills().then(() => { if (doc) addToPage(items.map(i => i.id)); else makeNew('mood', items.map(i => i.id)); });
+  };
+  window.__designDrag = on => $('dropveil').classList.toggle('on', !!on);
+  window.addEventListener('resize', () => { if (doc) drawStage(); });
+  call('designFonts').then(r => { fonts = (r && r.fonts) || []; }).catch(() => {});
+  call('state').then(s => window.__neededShared(s)).catch(() => draw());
+
+  // For checks: the layout, from outside.
+  window.__designDebug = { layout, geometry, get doc() { return doc; }, set doc(d) { doc = d; draw(); }, pageHTML };
+})();
+</script>
+</body></html>

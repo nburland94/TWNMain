@@ -1175,10 +1175,8 @@ extension Shell {
             reply(["ok": true], nil)
 
         case "projectMood":
-            // Make a mood board: the Vault's Mood tab, for now (Needed Design takes this over).
-            show("vault")
-            whenReady(vaultHost.webView, "__neededQuick", "window.__neededQuick('mood')")
-            reply(["ok": true], nil)
+            // Make a mood board: Needed Design, with the project's stills.
+            _ = designAction("openDesign", ["mode": "mood", "ids": [String]()], reply)
 
         case "projectTool":
             let id = (body["id"] as? String) ?? "home"

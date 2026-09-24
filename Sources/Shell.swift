@@ -310,6 +310,10 @@ final class Shell: NSObject, NSApplicationDelegate, NSWindowDelegate, WKScriptMe
     var home: WKWebView!
     /// The project page: one job, all in one place (Project.swift).
     var projectPage: WKWebView?
+    /// Needed Design: mood boards and treatments (Design.swift).
+    var designPage: WKWebView?
+    var designAspects: [String: Double] = [:]
+    let designRenderer = DesignRenderer()
     private var signin: WKWebView?
     private let area = NSView()
     var hosts: [String: ToolHost] = [:]
@@ -318,7 +322,7 @@ final class Shell: NSObject, NSApplicationDelegate, NSWindowDelegate, WKScriptMe
     let calendarStore = EKEventStore()
     private var welcome: (NSVisualEffectView, WKWebView)?
     private var undocked: [String: NSWindow] = [:]
-    static let names = ["grab": "Grab", "vault": "Vault", "shots": "Shots", "sort": "Sort", "credit": "Credit", "pay": "Pay"]
+    static let names = ["design": "Design", "grab": "Grab", "vault": "Vault", "shots": "Shots", "sort": "Sort", "credit": "Credit", "pay": "Pay"]
 
     // The Vault starts with the app: Grab & Go listens from the moment you open it.
     lazy var vaultHost: VaultHost = {
@@ -369,6 +373,17 @@ final class Shell: NSObject, NSApplicationDelegate, NSWindowDelegate, WKScriptMe
         projectPage = pp
         place(pp)
         pp.isHidden = true
+
+        // Needed Design: pictures dropped on it go into the project and onto the page.
+        let dp = page("design.html", drop: true)
+        if let d = dp as? DropWebView {
+            d.accepts = { urls in urls.contains { Shell.imageExt.contains($0.pathExtension.lowercased()) } }
+            d.onFiles = { [weak self] urls in self?.designDrop(urls) }
+            d.onHover = { [weak self] on in self?.designPage?.evaluateJavaScript("window.__designDrag && window.__designDrag(\(on))", completionHandler: nil) }
+        }
+        designPage = dp
+        place(dp)
+        dp.isHidden = true
 
         hosts["vault"] = vaultHost
         place(vaultHost.webView)
@@ -459,7 +474,7 @@ final class Shell: NSObject, NSApplicationDelegate, NSWindowDelegate, WKScriptMe
         }
         if let w = undocked[id] { w.makeKeyAndOrderFront(nil); return }
         let target: WKWebView?
-        if id == "home" { target = home } else if id == "project" { target = projectPage } else { target = host(id)?.webView }
+        if id == "home" { target = home } else if id == "project" { target = projectPage } else if id == "design" { target = designPage } else { target = host(id)?.webView }
         guard let view = target else { return }
         place(view)
         for sub in area.subviews { sub.isHidden = sub !== view }
@@ -723,7 +738,7 @@ final class Shell: NSObject, NSApplicationDelegate, NSWindowDelegate, WKScriptMe
         guard !vaultHost.syncing else { return }                 // a second press waits for the one running
         let project = Shared.project
         // The one loading pill, in whatever you're looking at.
-        let view: WKWebView? = current == "home" ? home : current == "project" ? projectPage : (undocked[current] == nil ? hosts[current]?.webView : nil)
+        let view: WKWebView? = current == "home" ? home : current == "project" ? projectPage : current == "design" ? designPage : (undocked[current] == nil ? hosts[current]?.webView : nil)
         view?.evaluateJavaScript("window.__neededLoad && window.__neededLoad.start(\(Shell.js("Syncing \(project)")))", completionHandler: nil)
         vaultHost.sync(project: project, progress: { f in
             view?.evaluateJavaScript("window.__neededLoad && window.__neededLoad.set(\(f))", completionHandler: nil)
@@ -734,6 +749,7 @@ final class Shell: NSObject, NSApplicationDelegate, NSWindowDelegate, WKScriptMe
             // Every open tool refreshes what it shows: Home, the Vault, Shots, Grab…
             var views: [WKWebView] = [self.home]
             if let p = self.projectPage { views.append(p) }
+            if let d = self.designPage { views.append(d) }
             views += self.hosts.values.compactMap { $0.webView }
             for v in views { v.evaluateJavaScript("window.__neededSynced && window.__neededSynced()", completionHandler: nil) }
             if (result["ok"] as? Bool) == true {
@@ -957,6 +973,7 @@ final class Shell: NSObject, NSApplicationDelegate, NSWindowDelegate, WKScriptMe
         let js = "window.__neededShared && window.__neededShared(\(json))"
         var views: [WKWebView] = [chrome, home]
         if let p = projectPage { views.append(p) }
+        if let d = designPage { views.append(d) }
         views += hosts.values.compactMap { $0.webView }
         for v in views { v.evaluateJavaScript(js, completionHandler: nil) }
         for (id, w) in undocked { w.title = "Needed \(Shell.names[id] ?? "") — \(Shared.project)" }
@@ -973,7 +990,7 @@ final class Shell: NSObject, NSApplicationDelegate, NSWindowDelegate, WKScriptMe
 
         case "navBack":
             // First close whatever's open on top — a reference, a pop-up — then go back a tab.
-            let view: WKWebView? = current == "home" ? home : current == "project" ? projectPage : hosts[current]?.webView
+            let view: WKWebView? = current == "home" ? home : current == "project" ? projectPage : current == "design" ? designPage : hosts[current]?.webView
             let goBack = {
                 guard let prev = self.backStack.popLast() else {
                     if self.current != "home" { self.forwardStack.append(self.current); self.show("home", remember: false) }
@@ -1206,7 +1223,8 @@ final class Shell: NSObject, NSApplicationDelegate, NSWindowDelegate, WKScriptMe
             replyHandler(["ok": true], nil)
 
         default:
-            if !projectAction((body["action"] as? String) ?? "", body, replyHandler) { replyHandler(nil, "unknown action") }
+            let a = (body["action"] as? String) ?? ""
+            if !projectAction(a, body, replyHandler) && !designAction(a, body, replyHandler) { replyHandler(nil, "unknown action") }
         }
     }
 
@@ -1234,6 +1252,15 @@ final class Shell: NSObject, NSApplicationDelegate, NSWindowDelegate, WKScriptMe
         alert.beginSheetModal(for: window) { r in completionHandler(r == .alertFirstButtonReturn ? field.stringValue : nil) }
     }
 
+    func webView(_ webView: WKWebView, runJavaScriptConfirmPanelWithMessage message: String,
+                 initiatedByFrame frame: WKFrameInfo, completionHandler: @escaping (Bool) -> Void) {
+        let alert = NSAlert()
+        alert.messageText = message
+        alert.addButton(withTitle: "OK")
+        alert.addButton(withTitle: "Cancel")
+        alert.beginSheetModal(for: window) { r in completionHandler(r == .alertFirstButtonReturn) }
+    }
+
     func webView(_ webView: WKWebView, runJavaScriptAlertPanelWithMessage message: String,
                  initiatedByFrame frame: WKFrameInfo, completionHandler: @escaping () -> Void) {
         let alert = NSAlert()
@@ -1247,7 +1274,8 @@ final class Shell: NSObject, NSApplicationDelegate, NSWindowDelegate, WKScriptMe
     @objc private func pickTab(_ item: NSMenuItem) {
         guard signin == nil, welcome == nil else { return }
         if item.tag == 99 { return show("project") }
-        show(item.tag == 0 ? "home" : TOOL_IDS[item.tag - 1])
+        let order = ["home", "vault", "design", "shots", "sort", "grab", "credit", "pay"]
+        if item.tag >= 0 && item.tag < order.count { show(order[item.tag]) }
     }
 
     private func buildMenu() {
@@ -1278,7 +1306,7 @@ final class Shell: NSObject, NSApplicationDelegate, NSWindowDelegate, WKScriptMe
 
         let viewItem = NSMenuItem(); bar.addItem(viewItem)
         let view = NSMenu(title: "View")
-        for (i, name) in (["Home"] + ["Vault", "Shots", "Sort", "Grab", "Credit", "Pay"]).enumerated() {
+        for (i, name) in ["Home", "Vault", "Design", "Shots", "Sort", "Grab", "Credit", "Pay"].enumerated() {
             let item = view.addItem(withTitle: name, action: #selector(pickTab(_:)), keyEquivalent: "\(i + 1)")
             item.target = self
             item.tag = i

@@ -144,9 +144,10 @@ main{padding:0 3rem;max-width:1180px}
 .vaultloc select:disabled,.vaultloc .pill:disabled{opacity:0.4}
 .cropsbox{display:flex;flex-direction:column;gap:0.55rem;padding-top:0.8rem;border-top:1px solid var(--hair)}
 .cropsbox .row{gap:5px}
-.ref.picked{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-soft)}
+.ref.picked{box-shadow:0 0 0 3px var(--accent)}
 .ref .pal{display:flex;height:5px;margin-top:6px;border-radius:2px;overflow:hidden}
 .ref .pal span{flex:1}
+.ref.ideacard{background:var(--panel);border:1px solid var(--hair)}
 .ref.ideacard .media{background:var(--bg);padding:1.9rem 0.8rem 0.8rem;align-items:flex-start}
 .ref .ideatext{font-size:12px;line-height:1.5;color:var(--ink);display:-webkit-box;-webkit-line-clamp:6;
   -webkit-box-orient:vertical;overflow:hidden;white-space:pre-wrap}
@@ -192,14 +193,18 @@ main{padding:0 3rem;max-width:1180px}
   padding:0.62rem 0.9rem;font-family:var(--body);font-size:13px;color:var(--ink)}
 .tagcloud{display:flex;gap:5px;flex-wrap:wrap;margin:0.9rem 0 0}
 .tagcloud:empty{display:none}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px;margin-top:1.1rem}
-.ref{background:var(--panel);border:1px solid var(--hair);border-radius:var(--r);overflow:hidden;cursor:pointer;
-  transition:border-color .2s var(--ease-out),transform .12s var(--ease-out);
+/* Just the pictures, each in its own shape, in rows that fill the width — like Home. */
+.grid{display:flex;flex-wrap:wrap;gap:6px;margin-top:1.1rem}
+.grid::after{content:'';flex:10000 1 0px}
+.ref{--a:1.6;flex:var(--a) 1 calc(var(--a) * 190px);max-width:calc(var(--a) * 420px);position:relative;border-radius:8px;overflow:hidden;cursor:pointer;background:#e9d3c4;
+  transition:transform .12s var(--ease-out),box-shadow .2s var(--ease-out);
   animation:cardIn .28s var(--ease-out) backwards}
 .ref:active{transform:scale(0.985)}
-@media (hover:hover){.ref:hover{border-color:var(--accent)}}
-.ref .media{position:relative;background:#111;aspect-ratio:16/10;display:flex;align-items:center;justify-content:center}
-.ref .media img{max-width:100%;max-height:100%;object-fit:contain;display:block}
+@media (hover:hover){.ref:hover{box-shadow:0 0 0 2px var(--accent)}}
+.ref .media{position:relative;aspect-ratio:var(--a);display:flex;align-items:center;justify-content:center}
+.ref .media img,.ref .media video{width:100%;height:100%;object-fit:cover;display:block}
+.ref .body{display:none}
+.ref .kind:empty{display:none}
 .ref .kind{position:absolute;left:6px;top:6px;background:rgba(28,28,28,0.74);color:#fff;font-family:var(--mono);
   font-size:8.5px;letter-spacing:0.14em;text-transform:uppercase;padding:2px 6px;border-radius:3px}
 .ref .body{padding:0.55rem 0.7rem 0.7rem}
@@ -467,7 +472,7 @@ body.marqueeing{user-select:none;-webkit-user-select:none;cursor:crosshair}
   <nav class="views" id="views">
     <button data-view="add" class="on">Add</button>
     <button data-view="vault">Vault<span class="count" id="vaultCount" hidden></span></button>
-    <button data-view="mood">Mood</button>
+    <button data-design="mood" title="Opens Needed Design with this project's stills">Mood board ↗</button>
     <span class="spacer"></span>
     <span class="vaultloc">
       <span class="label">Vault</span> <span class="mono" id="vaultPath">none chosen</span>
@@ -663,6 +668,7 @@ body.marqueeing{user-select:none;-webkit-user-select:none;cursor:crosshair}
       <span class="mono" id="selCount"></span>
       <button class="pill quiet" id="selBoard">Add to a board</button>
       <button class="pill quiet" id="selSheet">Contact sheet</button>
+      <button class="pill quiet" id="selMood" title="Opens Needed Design with these stills already placed">Make mood board</button>
       <button class="pill quiet" id="selIdeas">Ideas as Markdown</button>
       <span class="movegrp"><select class="movesel" id="moveTo" title="Another project"></select>
         <button class="pill quiet" id="selMove">Move</button><button class="pill quiet" id="selCopy">Copy</button></span>
@@ -2422,13 +2428,13 @@ body.marqueeing{user-select:none;-webkit-user-select:none;cursor:crosshair}
     $('grid').classList.remove('settled'); clearTimeout(renderVault.t);
     renderVault.t = setTimeout(() => $('grid').classList.add('settled'), 900);   // never left invisible
     $('grid').innerHTML = list.map((it, i) => `
-      <div class="ref${it.kind === 'idea' ? ' ideacard' : ''}${picked.has(it.id) ? ' picked' : ''}" data-id="${esc(it.id)}" style="animation-delay:${Math.min(i, 14) * 35}ms">
+      <div class="ref${it.kind === 'idea' ? ' ideacard' : ''}${picked.has(it.id) ? ' picked' : ''}" data-id="${esc(it.id)}" title="${esc(refTitle(it))}" style="--a:${gridAspect(it).toFixed(3)};animation-delay:${Math.min(i, 14) * 35}ms">
         <span class="tick"></span>
         <div class="media">${it.kind === 'idea'
           ? `<div class="ideatext">${esc(it.text || '')}</div>`
           : it.kind === 'clip' && (!it.thumb || it.thumb === it.file)
             ? `<video muted playsinline preload="metadata" src="${vaultURL(it.file)}#t=0.5"></video>`
-            : `<img loading="lazy" decoding="async" draggable="false" alt="" src="${vaultURL(it.thumb || it.file)}">`}<span class="kind">${KIND[it.kind] || ''}</span></div>
+            : `<img loading="lazy" decoding="async" draggable="false" alt="" src="${vaultURL(it.thumb || it.file)}" data-aspect="${esc(it.id)}">`}<span class="kind">${it.kind === 'still' ? '' : KIND[it.kind] || ''}</span></div>
         <div class="body"><div class="t">${esc(refTitle(it))}</div><div class="s">${esc(refSub(it))}</div>
           ${(it.palette || []).length ? `<div class="pal">${it.palette.map(c => `<span style="background:${esc(c)}"></span>`).join('')}</div>` : ''}
           ${(it.tags || []).length ? `<div class="tags">${it.tags.slice(0, 4).map(t => `<span>${esc(t)}</span>`).join('')}</div>` : ''}</div>
@@ -2447,6 +2453,25 @@ body.marqueeing{user-select:none;-webkit-user-select:none;cursor:crosshair}
       : 'Nothing matches that.';
   }
   $('search').addEventListener('input', renderVault);
+  // Each picture's shape: from the list when it's known, or learned the first time it loads.
+  const gridAspects = {};
+  function gridAspect(it) {
+    if (it.kind === 'idea') return 1;
+    if (gridAspects[it.id]) return gridAspects[it.id];
+    if (it.w > 0 && it.h > 0) return it.w / it.h;
+    return 16 / 9;
+  }
+  $('grid').addEventListener('load', e => {
+    const img = e.target; if (!img.dataset || !img.dataset.aspect || !img.naturalWidth) return;
+    const a = Math.max(0.3, Math.min(4, img.naturalWidth / img.naturalHeight));
+    if (Math.abs((gridAspects[img.dataset.aspect] || 0) - a) < 0.01) return;
+    gridAspects[img.dataset.aspect] = a;
+    const card = img.closest('.ref'); if (card) card.style.setProperty('--a', a.toFixed(3));
+  }, true);
+  $('grid').addEventListener('loadedmetadata', e => {
+    const v = e.target; if (v.tagName !== 'VIDEO' || !v.videoWidth) return;
+    const card = v.closest('.ref'); if (card) card.style.setProperty('--a', Math.max(0.3, Math.min(4, v.videoWidth / v.videoHeight)).toFixed(3));
+  }, true);
   $('kindSeg').addEventListener('click', e => {
     const b = e.target.closest('button'); if (!b) return;
     kindFilter = b.dataset.v;
@@ -2936,6 +2961,14 @@ body.marqueeing{user-select:none;-webkit-user-select:none;cursor:crosshair}
     const i = new Image(); i.onload = () => res(i); i.onerror = rej; i.src = src;
   });
 
+  // Mood boards live in Needed Design now: the picked stills (or the project's) open there, already placed.
+  const shellPost = m => { try { const h = window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.shell; if (h) return h.postMessage(m); } catch (e) {} return Promise.resolve(null); };
+  $('selMood').addEventListener('click', () => {
+    const ids = pickedItems().filter(it => it.kind === 'still').map(it => it.id);
+    if (!ids.length) return toast('Pick some stills first');
+    shellPost({ action: 'openDesign', mode: 'mood', ids });
+  });
+  document.querySelector('#views [data-design]').addEventListener('click', () => shellPost({ action: 'openDesign', mode: 'mood', ids: [] }));
   $('selSheet').addEventListener('click', async () => {
     const chosen = pickedItems().filter(it => it.kind !== 'idea');
     if (!chosen.length) return toast('Pick some references first');
@@ -3068,7 +3101,7 @@ body.marqueeing{user-select:none;-webkit-user-select:none;cursor:crosshair}
   // Home's quick action: paste a link.
   window.__neededQuick = what => {
     // From the project page: Make a mood board.
-    if (what === 'mood') { const m = document.querySelector("#views button[data-view='mood']"); if (m) m.click(); return; }
+    if (what === 'mood') { shellPost({ action: 'openDesign', mode: 'mood', ids: [] }); return; }
     if (what !== 'link') return;
     const b = document.querySelector("#views button[data-view='add']"); if (b) b.click();
     const i = document.getElementById('linkInput'); if (i) { i.focus(); i.select(); }

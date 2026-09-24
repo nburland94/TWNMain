@@ -81,7 +81,7 @@ nav{display:flex;gap:22px;align-items:center}
   const $ = id => document.getElementById(id);
   const call = (action, x) => window.webkit.messageHandlers.shell.postMessage(Object.assign({ action }, x || {}));
   const esc = v => String(v == null ? '' : v).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-  const TABS = [['home', 'Home'], ['vault', 'Vault'], ['shots', 'Shots'], ['sort', 'Sort'], ['grab', 'Grab'], ['credit', 'Credit'], ['pay', 'Pay']];   // the flow of a project
+  const TABS = [['home', 'Home'], ['vault', 'Vault'], ['design', 'Design'], ['shots', 'Shots'], ['sort', 'Sort'], ['grab', 'Grab'], ['credit', 'Credit'], ['pay', 'Pay']];   // the flow of a project
   const toast = t => { $('toast').textContent = t; $('toast').classList.add('show'); clearTimeout(toast.t); toast.t = setTimeout(() => $('toast').classList.remove('show'), Math.max(2200, t.length * 55)); };
   let S = { tab: 'home' };
   function render(s) {
@@ -91,7 +91,7 @@ nav{display:flex;gap:22px;align-items:center}
     const UNDOCK = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#4a4945" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6"/><path d="M20 4l-9 9"/><path d="M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>';
     $('tabs').innerHTML = TABS.map(([id, name]) => `<span class="tabwrap${away.includes(id) ? ' away' : ''}">
       <button class="tab${S.tab === id && !away.includes(id) ? ' on' : ''}" data-id="${id}" title="${away.includes(id) ? name + ' is in its own window' : ''}">${name}</button>
-      ${S.tab === id && id !== 'home' && !away.includes(id) ? `<button class="undock" data-undock="${id}" aria-label="Open ${name} in its own window" title="Open in its own window">${UNDOCK}</button>` : ''}</span>`).join('');
+      ${S.tab === id && id !== 'home' && id !== 'design' && !away.includes(id) ? `<button class="undock" data-undock="${id}" aria-label="Open ${name} in its own window" title="Open in its own window">${UNDOCK}</button>` : ''}</span>`).join('');
     $('vaultName').textContent = S.vaultName || 'Choose vault';
     $('proj').disabled = !S.vault;
     $('proj').innerHTML = S.vault
