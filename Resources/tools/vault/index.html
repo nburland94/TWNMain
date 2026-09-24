@@ -162,6 +162,16 @@ main{padding:0 3rem;max-width:1180px}
 @keyframes sweep{0%{margin-left:-35%}100%{margin-left:100%}}
 
 .libbar{display:flex;gap:0.8rem;align-items:center;flex-wrap:wrap;margin-top:1.6rem}
+/* ---- Mood: a text-free PDF of stills ---- */
+#moodView{margin-top:1.6rem}
+.moodopts{display:flex;gap:2rem;flex-wrap:wrap;margin:1.2rem 0 1.6rem;align-items:flex-start}
+.moodopts select{font-family:var(--body);font-size:13px;padding:7px 12px;border:1px solid var(--hair);border-radius:100px;background:var(--panel);color:var(--ink);min-width:180px}
+.moodpages{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:14px}
+.moodpage{position:relative;aspect-ratio:16/9;border-radius:6px;overflow:hidden;background:#f4f3f1;box-shadow:0 8px 26px rgba(80,30,10,0.12),0 0 0 0.5px rgba(0,0,0,0.08)}
+.moodpage.dark{background:#121212}
+.moodpage img{position:absolute;display:block}
+.moodrow{display:flex;gap:0.8rem;align-items:center;flex-wrap:wrap;margin-top:1.4rem}
+.moodrow .status{font-size:12.5px;color:var(--mid)}
 .search{flex:1;min-width:240px;background:var(--panel);border:1px solid var(--hair);border-radius:var(--r);
   padding:0.62rem 0.9rem;font-family:var(--body);font-size:13px;color:var(--ink)}
 .tagcloud{display:flex;gap:5px;flex-wrap:wrap;margin:0.9rem 0 0}
@@ -258,7 +268,7 @@ select{font-family:var(--mono);font-size:11.5px;padding:0.3rem 0.5rem;border:1px
 .outcard .opt .label{display:block;margin-bottom:0.45rem}
 
 /* ---- stills tray ---- */
-.tray{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px}
+.tray{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px}
 .still{position:relative;background:var(--panel);border:1px solid var(--hair);border-radius:var(--r);overflow:hidden;
   opacity:0;transform:translateY(6px);animation:rise .28s var(--ease-out) forwards}
 @keyframes rise{to{opacity:1;transform:none}}
@@ -274,6 +284,21 @@ select{font-family:var(--mono);font-size:11.5px;padding:0.3rem 0.5rem;border:1px
   padding:0.2rem 0.55rem;background:transparent;color:var(--mid);cursor:pointer}
 .chip.on{border-color:var(--ink);color:var(--ink)}
 .chip.adj{border-style:dashed}
+/* ---- shapes: each still, GIF and MP4 has its own ---- */
+.shapes{display:flex;gap:6px;flex-wrap:wrap}
+.still .shapes{padding:0.5rem 0.6rem 0.1rem}
+.shape{font-family:var(--mono);font-size:11.5px;letter-spacing:0.06em;min-height:34px;min-width:46px;padding:0 12px;border-radius:100px;
+  border:1px solid rgba(28,28,28,0.2);background:rgba(255,255,255,0.65);color:var(--mid);cursor:pointer;
+  display:inline-flex;align-items:center;justify-content:center;gap:5px;
+  transition:background .15s var(--ease-out),color .15s var(--ease-out),border-color .15s var(--ease-out)}
+.shape.on{background:var(--ink);border-color:var(--ink);color:#fff}
+.shape i{font-style:normal;font-size:10px;color:var(--accent)}
+.shape:active{transform:scale(0.97)}
+@media (hover:hover) and (pointer:fine){.shape:not(.on):hover{border-color:var(--ink);color:var(--ink)}}
+.frameit{margin:0.2rem 0.6rem 0.6rem;border:none;background:none;padding:6px 0;font-family:var(--mono);font-size:11px;letter-spacing:0.06em;
+  color:var(--accent-ink);cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+.frameit:disabled{color:var(--dim);cursor:default;text-decoration:none}
+.outcard .frameit{margin:0.5rem 0 0}
 .opts{display:flex;gap:2.2rem;flex-wrap:wrap;margin-top:1.4rem}
 .opt .label{display:block;margin-bottom:0.5rem}
 .seg{display:inline-flex;border:1px solid var(--hair);border-radius:100px;overflow:hidden}
@@ -422,6 +447,7 @@ body.marqueeing{user-select:none;-webkit-user-select:none;cursor:crosshair}
   <nav class="views" id="views">
     <button data-view="add" class="on">Add</button>
     <button data-view="vault">Vault<span class="count" id="vaultCount" hidden></span></button>
+    <button data-view="mood">Mood</button>
     <span class="spacer"></span>
     <span class="vaultloc">
       <span class="label">Vault</span> <span class="mono" id="vaultPath">none chosen</span>
@@ -525,13 +551,13 @@ body.marqueeing{user-select:none;-webkit-user-select:none;cursor:crosshair}
       <div class="tray" id="tray"></div>
       <p class="empty" id="trayEmpty">Scrub to a frame you like and press Grab, or G.</p>
       <div class="opts">
-        <div class="opt"><span class="label">Crops</span>
-          <div class="row" id="aspects">
-            <button class="chip on" data-a="orig">Original</button>
-            <button class="chip" data-a="16x9">16:9</button>
-            <button class="chip" data-a="4x5">4:5</button>
-            <button class="chip" data-a="1x1">1:1</button>
-            <button class="chip" data-a="9x16">9:16</button>
+        <div class="opt"><span class="label">New stills start with</span>
+          <div class="shapes" id="aspects" role="group" aria-label="Shapes new stills start with">
+            <button class="shape on" data-a="orig">Original</button>
+            <button class="shape" data-a="16x9">16:9</button>
+            <button class="shape" data-a="4x5">4:5</button>
+            <button class="shape" data-a="1x1">1:1</button>
+            <button class="shape" data-a="9x16">9:16</button>
           </div></div>
         <div class="opt"><span class="label">Size</span>
           <div class="seg" id="sizeSeg"><button data-v="full" class="on">Full resolution</button><button data-v="ig">Instagram</button></div></div>
@@ -539,8 +565,8 @@ body.marqueeing{user-select:none;-webkit-user-select:none;cursor:crosshair}
           <div class="seg" id="fmtSeg"><button data-v="jpeg" class="on">JPEG</button><button data-v="png">PNG</button></div></div>
       </div>
       <p class="cropsum" id="cropSum"></p>
-      <p class="note" style="margin-top:1rem">Click a crop under any still to choose the part of the frame it shows —
-        move it anywhere, and drag a corner or zoom to punch in.</p>
+      <p class="note" style="margin-top:1rem">Under each still, pick the shapes it saves as, then Frame these shapes to choose the part of the
+        frame each one shows — move it anywhere, and drag a corner or zoom to punch in.</p>
     </div>
   </section>
 
@@ -562,17 +588,6 @@ body.marqueeing{user-select:none;-webkit-user-select:none;cursor:crosshair}
       </div>
       <p class="rangeinfo" id="rangeInfo" style="margin-top:0.9rem">Set an in point and an out point on the player — I and O — to make a GIF or a clip from that stretch.</p>
       <p class="note warn" id="clipNote" hidden></p>
-      <div class="opt" style="margin-top:1.2rem"><span class="label">Shape of the GIF or MP4</span>
-        <div class="row">
-          <div class="row" id="clipAspects">
-            <button class="chip on" data-a="orig">Original</button>
-            <button class="chip" data-a="16x9">16:9</button>
-            <button class="chip" data-a="4x5">4:5</button>
-            <button class="chip" data-a="1x1">1:1</button>
-            <button class="chip" data-a="9x16">9:16</button>
-          </div>
-          <button class="pill quiet" id="clipFrame">Frame it</button>
-        </div></div>
       <div class="outs">
         <div class="outcard">
           <h3>GIF</h3>
@@ -581,6 +596,9 @@ body.marqueeing{user-select:none;-webkit-user-select:none;cursor:crosshair}
             <div class="seg" id="gifW"><button data-v="320">320</button><button data-v="480" class="on">480</button><button data-v="640">640</button><button data-v="800">800</button></div></div>
           <div class="opt"><span class="label">Frames per second</span>
             <div class="seg" id="gifFps"><button data-v="10">10</button><button data-v="15" class="on">15</button><button data-v="20">20</button><button data-v="24">24</button></div></div>
+          <div class="opt"><span class="label">Shapes</span>
+            <div class="shapes" id="gifShapes" role="group" aria-label="Shapes for the GIF"></div>
+            <button class="frameit" id="gifFrame">Frame these shapes</button></div>
           <p class="note" id="gifEst"></p>
           <div class="row"><button class="pill" id="gifPreview">▶ Preview GIF</button><button class="pill solid" id="gifBtn" disabled>Save GIF</button></div>
         </div>
@@ -593,11 +611,14 @@ body.marqueeing{user-select:none;-webkit-user-select:none;cursor:crosshair}
             <div class="seg" id="mp4Codec"><button data-v="h264" class="on">H.264 · plays anywhere</button><button data-v="hevc">HEVC · smaller</button></div></div>
           <div class="opt"><span class="label">Sound</span>
             <div class="seg" id="mp4Audio"><button data-v="on" class="on">On</button><button data-v="off">Off</button></div></div>
+          <div class="opt"><span class="label">Shapes</span>
+            <div class="shapes" id="mp4Shapes" role="group" aria-label="Shapes for the MP4"></div>
+            <button class="frameit" id="mp4Frame">Frame these shapes</button></div>
           <p class="note" id="mp4Est"></p>
           <div class="row"><button class="pill" id="mp4Preview">▶ Preview MP4</button><button class="pill solid" id="mp4Btn" disabled>Save MP4</button></div>
         </div>
       </div>
-      <p class="note" style="margin-top:1rem">Everything you save goes into your vault — GIFs, Motion and Stills folders — and into the library.</p>
+      <p class="note" style="margin-top:1rem">Everything you save goes into your vault — this project's GIFs_Ref, Motion_Ref and Stills_Ref folders — and into the library. One file for every shape you pick.</p>
     </div>
   </section>
 
@@ -605,7 +626,7 @@ body.marqueeing{user-select:none;-webkit-user-select:none;cursor:crosshair}
 
   <div id="vaultView" hidden>
     <div class="libbar">
-      <input type="text" id="search" class="search" spellcheck="false" autocomplete="off" placeholder="Search titles, tags, notes, ideas, channels">
+      <input type="text" id="search" class="search" spellcheck="false" autocomplete="off" placeholder="Search titles, tags, labels, notes, ideas, channels">
       <div class="seg" id="scopeSeg"><button data-v="project" class="on" id="scopeProject">This project</button><button data-v="all">Entire vault</button></div>
       <div class="seg" id="kindSeg"><button data-v="all" class="on">All</button><button data-v="still">Stills</button><button data-v="gif">GIFs</button><button data-v="clip">Clips</button><button data-v="idea">Ideas</button></div>
       <button class="pill quiet" id="ideaBtn">New idea</button>
@@ -631,6 +652,28 @@ body.marqueeing{user-select:none;-webkit-user-select:none;cursor:crosshair}
     </div>
     <div class="grid" id="grid"></div>
     <p class="empty" id="gridEmpty" hidden></p>
+  </div>
+
+  <div id="moodView" hidden>
+    <p class="note" style="margin:0;max-width:640px">A mood board: a PDF of stills and nothing else — no titles, no words. Choose where the stills come from; it saves into this project's Mood folder.</p>
+    <div class="moodopts">
+      <div class="opt"><span class="label">From</span>
+        <div class="seg" id="moodFrom"><button data-v="project" class="on">A project</button><button data-v="board">A board</button><button data-v="tag">A tag</button><button data-v="colour">A colour</button></div></div>
+      <div class="opt"><span class="label" id="moodPickLabel">Project</span>
+        <label><span style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">Which one</span><select id="moodPick"></select></label>
+        <div class="swatches" id="moodColours" hidden></div></div>
+      <div class="opt"><span class="label">Pictures a page</span>
+        <div class="seg" id="moodPer"><button data-v="1">1</button><button data-v="4">4</button><button data-v="6" class="on">6</button><button data-v="9">9</button></div></div>
+      <div class="opt"><span class="label">Background</span>
+        <div class="seg" id="moodBg"><button data-v="light" class="on">Light</button><button data-v="dark">Dark</button></div></div>
+    </div>
+    <div class="moodpages" id="moodPages"></div>
+    <p class="empty" id="moodEmpty" hidden></p>
+    <div class="moodrow">
+      <button class="pill solid" id="moodMake" disabled>Make the PDF</button>
+      <button class="pill quiet" id="moodReveal" hidden>Show in Finder</button>
+      <span class="status" id="moodStatus"></span>
+    </div>
   </div>
 
   <footer class="licfoot" id="licFoot" hidden>
@@ -746,7 +789,8 @@ body.marqueeing{user-select:none;-webkit-user-select:none;cursor:crosshair}
   const blocked = () => toast(busyWhat ? `Hang on — ${busyWhat}` : 'Hang on a moment');
   let inT = null, outT = null;                  // in and out points, seconds
   const clip = { t: 0, preview: '', pos: {} };  // framing for GIFs and clips
-  let clipAspect = 'orig';
+  const clipShapes = { gif: ['orig'], mp4: ['orig'] };   // the GIF and the MP4 each have their own shapes
+  let clipAspect = 'orig';                                // the shape the preview is showing
   let gifW = 480, gifFps = 15, mp4Size = 'full', mp4Codec = 'h264', mp4Audio = true;
   let nativeFilm = false;                       // the app knows where the film file is
   let nativeJob = false;
@@ -965,7 +1009,7 @@ body.marqueeing{user-select:none;-webkit-user-select:none;cursor:crosshair}
   function addStill(t, preview, full) {
     const f = frameOf(t);
     if (stills.some(s => frameOf(s.t) === f)) { toast('Already grabbed'); return false; }
-    stills.push({ id: nextId++, t, preview, full: full || null, pos: {} });
+    stills.push({ id: nextId++, t, preview, full: full || null, pos: {}, shapes: cropAspects() });
     stills.sort((a, b) => a.t - b.t);
     renderTray();
     return true;
@@ -1034,15 +1078,18 @@ body.marqueeing{user-select:none;-webkit-user-select:none;cursor:crosshair}
 
   /* ------------------------------------------------------------ stills tray */
 
-  const cropAspects = () => ['orig', '16x9', '4x5', '1x1', '9x16'].filter(a => chosen.has(a));
+  const SHAPES = ['orig', '16x9', '4x5', '1x1', '9x16'];
+  const cropAspects = () => SHAPES.filter(a => chosen.has(a));          // what new stills start with
+  const shapesOf = s => SHAPES.filter(a => (s.shapes || cropAspects()).includes(a));   // this still's own
 
   function renderTray() {
     $('tray').innerHTML = stills.map((s, i) => `
       <div class="still" data-id="${s.id}" style="animation-delay:${Math.min(i, 14) * 40}ms">
         <img alt="" src="${s.preview}" title="Jump to ${tc(s.t)}" style="aspect-ratio:${film.w} / ${film.h}">
         <div class="meta"><span>${tc(s.t)}${s.pending ? ' · <em class="hq">getting full quality</em>' : s.failed ? ' · <em class="hq warn">from the scrub copy</em>' : ''}</span><button class="x" title="Remove" aria-label="Remove">×</button></div>
-        <div class="chips">${cropAspects().map(a =>
-          `<button class="chip${s.pos[a] ? ' on' : ''}" data-a="${a}" title="Reframe ${LABEL[a]}">${LABEL[a]}${s.pos[a] ? ' ✓' : ''}</button>`).join('')}</div>
+        <div class="shapes" role="group" aria-label="Shapes for this still">${SHAPES.map(a => { const on = shapesOf(s).includes(a);
+          return `<button class="shape${on ? ' on' : ''}" data-shape="${a}" aria-pressed="${on}" title="${on ? 'Saving' : 'Not saving'} ${LABEL[a]} — click to ${on ? 'leave it out' : 'add it'}">${LABEL[a]}${on && s.pos[a] ? '<i title="Framed">✓</i>' : ''}</button>`; }).join('')}</div>
+        <button class="frameit" data-frame${shapesOf(s).length ? '' : ' disabled'}>Frame these shapes</button>
       </div>`).join('');
     $('trayEmpty').hidden = stills.length > 0;
     refresh();
@@ -1054,17 +1101,24 @@ body.marqueeing{user-select:none;-webkit-user-select:none;cursor:crosshair}
     if (e.target.closest('.x')) {
       stills = stills.filter(x => x !== s); renderTray(); return;
     }
-    const chip = e.target.closest('.chip');
-    if (chip) { openCrop(s, chip.dataset.a); return; }
+    const sh = e.target.closest('[data-shape]');
+    if (sh) {                                    // this still's own shapes, on or off
+      const a = sh.dataset.shape, now = shapesOf(s);
+      s.shapes = now.includes(a) ? now.filter(x => x !== a) : SHAPES.filter(x => x === a || now.includes(x));
+      renderTray(); return;
+    }
+    if (e.target.closest('[data-frame]')) { const list = shapesOf(s); if (list.length) openCrop(s, list[0], list); return; }
     if (e.target.tagName === 'IMG') { v.pause(); await seek(s.t); $('video').scrollIntoView({ behavior: 'smooth', block: 'center' }); }
   });
 
+  // The top row: the shapes each new still starts with. Stills already grabbed keep their own.
   $('aspects').addEventListener('click', e => {
-    const b = e.target.closest('.chip'); if (!b) return;
+    const b = e.target.closest('[data-a]'); if (!b) return;
     const a = b.dataset.a;
     chosen.has(a) ? chosen.delete(a) : chosen.add(a);
     b.classList.toggle('on', chosen.has(a));
-    renderTray();
+    b.setAttribute('aria-pressed', chosen.has(a));
+    refresh();
   });
   function segment(id, set) {
     $(id).addEventListener('click', e => {
@@ -1107,7 +1161,7 @@ body.marqueeing{user-select:none;-webkit-user-select:none;cursor:crosshair}
   function upscaled() {
     if (size !== 'ig' || !film) return [];
     const list = stills.length ? stills : [{ pos: {} }];
-    return [...chosen].filter(a => list.some(st => cropRect(a, st).sw < IG_W));
+    return SHAPES.filter(a => list.some(st => shapesOf(st).includes(a) && cropRect(a, st).sw < IG_W));
   }
 
   let crop = null;   // {still, aspect}
@@ -1294,6 +1348,7 @@ body.marqueeing{user-select:none;-webkit-user-select:none;cursor:crosshair}
   let project = 'Unsorted';  // the folder inside it that new things are filed into
   let projects = [];
   let projectFilter = '';
+  let projectLabels = {};          // project → its label: Sports, Comedy, Fashion or your own
   let scope = 'project';          // the Vault tab: this project, or everything
   let dirHandle = null;     // browser fallback where supported
 
@@ -1373,7 +1428,7 @@ body.marqueeing{user-select:none;-webkit-user-select:none;cursor:crosshair}
 
   /* ------------------------------------------------------------ export */
 
-  function files() { return stills.length * chosen.size; }
+  function files() { return stills.reduce((n, s) => n + shapesOf(s).length, 0); }
 
   // Saving a moment you've already saved from the same video.
   function alreadySaved(at, kind) {
@@ -1408,7 +1463,6 @@ body.marqueeing{user-select:none;-webkit-user-select:none;cursor:crosshair}
     const total = files(); let done = 0, error = '';
     let seq = nextSeq('still');
     const mime = fmt === 'png' ? 'image/png' : 'image/jpeg', ext = fmt === 'png' ? 'png' : 'jpg';
-    const order = ['orig', '16x9', '4x5', '1x1', '9x16'].filter(a => chosen.has(a));
 
     outer:
     for (const s of stills) {
@@ -1426,7 +1480,7 @@ body.marqueeing{user-select:none;-webkit-user-select:none;cursor:crosshair}
       }
       s.seq = seq++;
       s.palette = paletteFrom(full);
-      for (const a of order) {
+      for (const a of shapesOf(s)) {
         if (cancel) break outer;
         const { sx, sy, sw, sh } = cropRect(a, s);
         const [ow, oh] = outSize(a, sw, sh);
@@ -1444,7 +1498,7 @@ body.marqueeing{user-select:none;-webkit-user-select:none;cursor:crosshair}
     busy = false; busyWhat = '';
     await seek(back);
     refresh();
-    const where = `${folderName()} › ${project} › Stills`;
+    const where = `${folderName()} › ${project} › ${project}_Vault › Stills_Ref`;
     if (error) { setStatus(`${error}. ${done} of ${total} saved.`, true); return; }
     if (cancel) { setStatus(`Stopped — ${done} of ${total} saved in ${where}.`, true); $('revealBtn').hidden = !filesBridge || !done; return; }
     setStatus(`${total} still${total === 1 ? '' : 's'} saved in ${where}.`);
@@ -1514,8 +1568,8 @@ body.marqueeing{user-select:none;-webkit-user-select:none;cursor:crosshair}
     refresh();
   }
 
-  function clipGeom(kind) {
-    const { sx, sy, sw, sh } = cropRect(clipAspect, clip);
+  function clipGeom(kind, a = clipAspect) {
+    const { sx, sy, sw, sh } = cropRect(a, clip);
     let ow, oh;
     if (kind === 'gif') { ow = Math.min(gifW, sw); oh = Math.round(ow * sh / sw); }
     else if (mp4Size === 'full') { ow = sw; oh = sh; }
@@ -1530,27 +1584,45 @@ body.marqueeing{user-select:none;-webkit-user-select:none;cursor:crosshair}
     const note = $('clipNote');
     note.hidden = !(filesBridge && !nativeFilm);
     note.textContent = "Couldn't find this film's file on your Mac — open it with Choose film to make GIFs and clips.";
-    $('clipFrame').textContent = clip.pos[clipAspect] ? 'Frame it ✓' : 'Frame it';
+    renderClipShapes();
     if (inT === null || outT === null) { $('gifEst').textContent = ''; $('mp4Est').textContent = ''; return; }
     const d = clipEnd() - inT;
-    const g = clipGeom('gif'), frames = Math.max(1, Math.round(d * gifFps));
-    const est = frames * g.out.w * g.out.h * 0.55;           // rough: GIF runs ~0.5 bytes a pixel on footage
+    const frames = Math.max(1, Math.round(d * gifFps));
+    const gifs = clipShapes.gif.map(a => { const g = clipGeom('gif', a);
+      return `${LABEL[a]} · ${g.out.w} × ${g.out.h} · roughly ${fmtBytes(frames * g.out.w * g.out.h * 0.55)}`; });   // GIF runs ~0.5 bytes a pixel on footage
     $('gifEst').className = 'note' + (d > 10 ? ' warn' : '');
-    $('gifEst').textContent = `${g.out.w} × ${g.out.h} · ${frames} frames · roughly ${fmtBytes(est)}` +
+    $('gifEst').textContent = (gifs.length ? `${frames} frames — ${gifs.join('; ')}` : 'Pick a shape for the GIF.') +
       (d > 10 ? ' — long GIFs get heavy; the MP4 will be far smaller.' : '');
-    const m = clipGeom('mp4');
-    $('mp4Est').className = 'note' + (m.upscaled ? ' warn' : '');
-    $('mp4Est').textContent = `${m.out.w} × ${m.out.h} · ${d.toFixed(1)}s` +
-      (m.upscaled ? ` — upscaled from ${m.rect.w} px wide, so it'll be softer` : '');
+    const mp4s = clipShapes.mp4.map(a => clipGeom('mp4', a)), soft = mp4s.some(m => m.upscaled);
+    $('mp4Est').className = 'note' + (soft ? ' warn' : '');
+    $('mp4Est').textContent = (mp4s.length ? `${d.toFixed(1)}s — ` + clipShapes.mp4.map((a, i) => `${LABEL[a]} · ${mp4s[i].out.w} × ${mp4s[i].out.h}`).join('; ') : 'Pick a shape for the MP4.') +
+      (soft ? ' — some are upscaled, so they\'ll be softer' : '');
   }
 
-  $('clipAspects').addEventListener('click', e => {
-    const b = e.target.closest('.chip'); if (!b) return;
-    clipAspect = b.dataset.a;
-    $('clipAspects').querySelectorAll('.chip').forEach(x => x.classList.toggle('on', x === b));
-    updateClipUI(); pvRefresh();
-  });
-  $('clipFrame').addEventListener('click', async () => {
+  // The GIF's shapes and the MP4's shapes: on or off, each one its own file.
+  function renderClipShapes() {
+    for (const kind of ['gif', 'mp4']) {
+      $(kind + 'Shapes').innerHTML = SHAPES.map(a => { const on = clipShapes[kind].includes(a);
+        return `<button class="shape${on ? ' on' : ''}" data-shape="${a}" aria-pressed="${on}">${LABEL[a]}${on && clip.pos[a] ? '<i title="Framed">✓</i>' : ''}</button>`; }).join('');
+      $(kind + 'Frame').disabled = !clipShapes[kind].length;
+      const n = clipShapes[kind].length, label = kind === 'gif' ? 'GIF' : 'MP4';
+      $(kind + 'Btn').textContent = n > 1 ? `Save ${n} ${label}s` : `Save ${label}`;
+    }
+  }
+  for (const kind of ['gif', 'mp4']) {
+    $(kind + 'Shapes').addEventListener('click', e => {
+      const b = e.target.closest('[data-shape]'); if (!b) return;
+      const a = b.dataset.shape, now = clipShapes[kind];
+      clipShapes[kind] = now.includes(a) ? now.filter(x => x !== a) : SHAPES.filter(x => x === a || now.includes(x));
+      if (clipShapes[kind].includes(a)) clipAspect = a;                  // the preview shows what you just picked
+      else if (clipAspect === a) clipAspect = clipShapes[kind][0] || 'orig';
+      if (pvMode !== kind) setPvMode(kind);
+      updateClipUI(); pvRefresh();
+    });
+    $(kind + 'Frame').addEventListener('click', () => { const list = clipShapes[kind]; if (list.length) frameClip(list); });
+  }
+  renderClipShapes();
+  async function frameClip(list) {
     if (!film) return; if (busy) return blocked();
     clip.t = inT !== null ? inT : v.currentTime;
     if (film.isLink && film.localPreview) {
@@ -1567,8 +1639,8 @@ body.marqueeing{user-select:none;-webkit-user-select:none;cursor:crosshair}
       await seek(clip.t);
       clip.preview = frameImage(480);
     }
-    openCrop(clip, clipAspect, [clipAspect]);
-  });
+    openCrop(clip, list.includes(clipAspect) ? clipAspect : list[0], list);
+  }
   [['gifW', x => { gifW = +x; }], ['gifFps', x => { gifFps = +x; }], ['mp4Size', x => { mp4Size = x; }],
    ['mp4Codec', x => { mp4Codec = x; }], ['mp4Audio', x => { mp4Audio = x === 'on'; }]].forEach(([id, set]) => {
     $(id).addEventListener('click', e => {
@@ -1675,6 +1747,7 @@ body.marqueeing{user-select:none;-webkit-user-select:none;cursor:crosshair}
 
   function setPvMode(m) {
     pvMode = m;
+    if (!clipShapes[m].includes(clipAspect) && clipShapes[m].length) clipAspect = clipShapes[m][0];
     $('pvMode').querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.v === m));
     v2.muted = pvMode === 'gif' || !mp4Audio;
     pvLastFrame = -1; pvRefresh();
@@ -1700,15 +1773,25 @@ body.marqueeing{user-select:none;-webkit-user-select:none;cursor:crosshair}
   $('gifPreview').addEventListener('click', () => { pvStop(); pvPlay('gif', true); $('pvStage').scrollIntoView({ behavior: 'smooth', block: 'center' }); });
   $('mp4Preview').addEventListener('click', () => { pvStop(); pvPlay('mp4', true); $('pvStage').scrollIntoView({ behavior: 'smooth', block: 'center' }); });
 
+  // One file per shape, one after another. Stop ends the lot.
   async function makeMoving(kind) {
-    if (!film) return; if (busy) return blocked();
-    if (inT === null || outT === null) { setStatus('Set an in and an out point first.', true); return; }
-    if (!nativeFilm) return;
-    if (!dest) { await chooseFolder(); if (!dest) return; }
-    const label = kind === 'gif' ? 'GIF' : 'MP4';
-    if (!confirmDuplicate(((source && source.at) || 0) + inT, kind, label)) return;
-    const g = clipGeom(kind);
-    const name = outName(kind, nextSeq(kind), clipAspect, kind === 'gif' ? 'gif' : 'mp4');
+    const list = clipShapes[kind].slice();
+    if (!list.length) return setStatus(`Pick a shape for the ${kind === 'gif' ? 'GIF' : 'MP4'} first.`, true);
+    for (let i = 0; i < list.length; i++) {
+      const ok = await makeOne(kind, list[i], i > 0);
+      if (!ok || cancel) break;
+    }
+  }
+  async function makeOne(kind, shape, again) {
+    if (!film) return false; if (busy) { blocked(); return false; }
+    if (inT === null || outT === null) { setStatus('Set an in and an out point first.', true); return false; }
+    if (!nativeFilm) return false;
+    if (!dest) { await chooseFolder(); if (!dest) return false; }
+    const label = `${LABEL[shape]} ${kind === 'gif' ? 'GIF' : 'MP4'}`;
+    // the second shape of the same moment isn't a duplicate
+    if (!again && !confirmDuplicate(((source && source.at) || 0) + inT, kind, kind === 'gif' ? 'GIF' : 'MP4')) return false;
+    const g = clipGeom(kind, shape);
+    const name = outName(kind, nextSeq(kind), shape, kind === 'gif' ? 'gif' : 'mp4');
     const scaled = { x: g.rect.x * vScale(), y: g.rect.y * vScale(), w: g.rect.w * vScale(), h: g.rect.h * vScale() };
     await seek(inT, v);
     const palette = film.isLink ? paletteFrom(v, scaled) : paletteFrom(v, g.rect);
@@ -1744,7 +1827,7 @@ body.marqueeing{user-select:none;-webkit-user-select:none;cursor:crosshair}
         refresh(); updateClipUI();
         const why = pr && pr.cancelled ? 'Stopped — nothing saved.' : `${(pr && pr.error) || "Couldn't fetch that section"}.`;
         linkMsg(why, true); setStatus(why, true);
-        return;
+        return false;
       }
       start = 0; end = clipEnd() - inT;      // within the fetched section
       setStatus(`Making ${label}…`);
@@ -1752,7 +1835,7 @@ body.marqueeing{user-select:none;-webkit-user-select:none;cursor:crosshair}
     let r;
     try {
       r = await fileCall(kind === 'gif' ? 'makeGif' : 'makeClip', {
-        name, meta: metaFor(inT, clipEnd(), clipAspect, g.out.w, g.out.h, palette),
+        name, meta: metaFor(inT, clipEnd(), shape, g.out.w, g.out.h, palette),
         start, end, rect: asFractions(g.rect), out: g.out,
         fps: gifFps, codec: mp4Codec, audio: mp4Audio,
       });
@@ -1761,12 +1844,13 @@ body.marqueeing{user-select:none;-webkit-user-select:none;cursor:crosshair}
     $('stopBtn').hidden = true;
     refresh(); updateClipUI();
     if (r && r.ok) {
-      setStatus(`${label} saved in ${folderName()} › ${project} › ${kind === 'gif' ? 'GIFs' : 'Motion'}${r.bytes ? ' — ' + fmtBytes(r.bytes) : ''}.`);
+      setStatus(`${label} saved in ${folderName()} › ${project} › ${project}_Vault › ${kind === 'gif' ? 'GIFs_Ref' : 'Motion_Ref'}${r.bytes ? ' — ' + fmtBytes(r.bytes) : ''}.`);
       loadVault();
       $('revealBtn').hidden = false; toast(`${label} saved`);
-    } else {
-      setStatus(r && r.cancelled ? 'Stopped — nothing saved.' : `${(r && r.error) || "That didn't work"}.`, true);
+      return true;
     }
+    setStatus(r && r.cancelled ? 'Stopped — nothing saved.' : `${(r && r.error) || "That didn't work"}.`, true);
+    return false;
   }
   $('gifBtn').addEventListener('click', () => makeMoving('gif'));
   $('mp4Btn').addEventListener('click', () => makeMoving('mp4'));
@@ -1777,15 +1861,17 @@ body.marqueeing{user-select:none;-webkit-user-select:none;cursor:crosshair}
 
   function describeCrops() {
     const el = $('cropSum');
-    const picked = ['orig', '16x9', '4x5', '1x1', '9x16'].filter(a => chosen.has(a)).map(a => LABEL[a]);
-    el.classList.toggle('warn', !picked.length);
-    if (!picked.length) { el.textContent = "Nothing selected — pick at least one crop, or your stills won't save."; return; }
-    const list = picked.length === 1 ? picked[0] : picked.slice(0, -1).join(', ') + ' and ' + picked[picked.length - 1];
-    const how = picked.length === 1 ? `each still saves as <b>${picked[0]}</b> only`
-                                    : `each still saves in these <b>${picked.length} formats</b>`;
-    const total = stills.length * picked.length;
-    el.innerHTML = `You've selected <b>${list}</b> — ${how}` +
-      (stills.length ? `, <b>${total} file${total === 1 ? '' : 's'}</b> in total.` : '.');
+    const names = list => list.length === 1 ? list[0] : list.slice(0, -1).join(', ') + ' and ' + list[list.length - 1];
+    const start = cropAspects().map(a => LABEL[a]);
+    const none = stills.filter(s => !shapesOf(s).length).length, n = files();
+    el.classList.toggle('warn', !!none || (!stills.length && !start.length));
+    if (!stills.length) {
+      el.innerHTML = start.length ? `New stills start with <b>${names(start)}</b> — then change any still's own shapes, under it.`
+                                  : "Nothing picked — new stills won't save until you choose a shape under them.";
+      return;
+    }
+    el.innerHTML = `Each still saves in its own shapes — <b>${n} file${n === 1 ? '' : 's'}</b> in total.` +
+      (none ? ` <b>${none} still${none === 1 ? ' has' : 's have'} no shape</b> and won't save.` : '');
   }
 
   function refresh() {
@@ -1797,13 +1883,13 @@ body.marqueeing{user-select:none;-webkit-user-select:none;cursor:crosshair}
     if (!film) return setStatus('Choose a film to start.');
     if (!stills.length) return setStatus(inT !== null && outT !== null
       ? 'Range set — make a GIF or MP4 in Step Four, or grab stills.' : 'Scrub to a frame and grab it, or set an in and out for a clip.');
-    if (!chosen.size) return setStatus('Pick at least one crop.', true);
+    if (!files()) return setStatus('Pick at least one shape under a still.', true);
     if (!dest) return setStatus('Choose a vault folder — top right.');
-    const same = chosen.has('16x9') && chosen.has('orig') && Math.abs(film.w / film.h - 16 / 9) < 0.01;
+    const same = Math.abs(film.w / film.h - 16 / 9) < 0.01 && stills.some(s => { const l = shapesOf(s); return l.includes('16x9') && l.includes('orig'); });
     const up = upscaled();
     if (same) return setStatus('This film is already 16:9, so the 16:9 and Original exports will be identical — untick one.', true);
     if (up.length) return setStatus(`${up.map(a => LABEL[a]).join(' and ')} will be upscaled for Instagram — expect it softer.`, true);
-    setStatus(`${stills.length} still${stills.length === 1 ? '' : 's'} × ${chosen.size} crop${chosen.size === 1 ? '' : 's'}.`);
+    setStatus(`${stills.length} still${stills.length === 1 ? '' : 's'} · ${files()} file${files() === 1 ? '' : 's'}, each in its own shapes.`);
   }
 
   /* ------------------------------------------------------------ input */
@@ -2034,8 +2120,10 @@ body.marqueeing{user-select:none;-webkit-user-select:none;cursor:crosshair}
     $('views').querySelectorAll('button[data-view]').forEach(b => b.classList.toggle('on', b.dataset.view === which));
     $('addView').hidden = which !== 'add';
     $('vaultView').hidden = which !== 'vault';
+    $('moodView').hidden = which !== 'mood';
     $('bar').hidden = which !== 'add';
     if (which === 'vault') { v.pause(); pvStop(); loadVault(); }
+    if (which === 'mood') { v.pause(); pvStop(); loadVault(); }
   }
   $('views').addEventListener('click', e => { const b = e.target.closest('button[data-view]'); if (b) showView(b.dataset.view); });
 
@@ -2245,11 +2333,16 @@ body.marqueeing{user-select:none;-webkit-user-select:none;cursor:crosshair}
   };
 
   window.__vaultRefresh = () => loadVault();
+  window.__neededSynced = () => loadVault();          // Sync found new work: show it
 
   async function loadVault() {
     if (!filesBridge || !dest) { items = []; renderVault(); return; }
-    try { const r = await fileCall('vaultList'); items = (r && r.items) || []; } catch (e) { items = []; }
+    // If the list can't be read, keep what's showing and say so — never a blank Vault.
+    let r; try { r = await fileCall('vaultList'); } catch (e) { r = null; }
+    if (!r || !Array.isArray(r.items)) { if (!items.length) toast("Couldn't read your vault — press Sync, top right"); return; }
+    items = r.items;
     renderVault();
+    if (!$('moodView').hidden) renderMood();
   }
 
   function renderVault() {
@@ -2292,7 +2385,8 @@ body.marqueeing{user-select:none;-webkit-user-select:none;cursor:crosshair}
       if (colourFilter && !familiesOf(it).includes(colourFilter)) return false;
       if (!q) return true;
       const src = it.source || {};
-      return [src.title, src.uploader, src.site, it.note, it.file, it.title, it.text, it.project, ...(it.tags || []), ...(it.boards || [])]
+      return [src.title, src.uploader, src.site, it.note, it.file, it.title, it.text, it.project, projectLabels[it.project || 'Unsorted'],
+              ...(it.tags || []), ...(it.boards || [])]
         .some(x => String(x || '').toLowerCase().includes(q));
     });
     $('grid').classList.toggle('selecting', selecting);
@@ -2397,7 +2491,7 @@ body.marqueeing{user-select:none;-webkit-user-select:none;cursor:crosshair}
     const src = it.source || {};
     $('itemSource').hidden = !(src.type === 'link' && src.url);
     $('itemSource').textContent = `Open the source at ${mmss(it.at)}`;
-    $('itemWhere').textContent = `In ${it.project || 'Unsorted'} · ${String(it.file || '').split('/').slice(-2).join(' › ')}`;
+    $('itemWhere').textContent = `In ${it.project || 'Unsorted'}${projectLabels[it.project || 'Unsorted'] ? ' (' + projectLabels[it.project || 'Unsorted'] + ')' : ''} · ${String(it.file || '').split('/').slice(-2).join(' › ')}`;
     $('itemTags').value = (it.tags || []).join(', ');
     $('itemBoards').value = (it.boards || []).join(', ');
     $('itemNote').value = it.note || '';
@@ -2666,6 +2760,113 @@ body.marqueeing{user-select:none;-webkit-user-select:none;cursor:crosshair}
     toast(r && r.ok ? `Saved ${name}` : "Couldn't save that");
   });
 
+  /* ---- Mood: a text-free PDF of stills, from a project, a board, a tag or a colour ---- */
+
+  let moodFrom = 'project', moodWhat = '', moodPer = 6, moodBg = 'light';
+  const moodAspect = {};                       // each still's shape, from its preview
+  const moodKeys = it => moodFrom === 'project' ? [it.project || 'Unsorted'] : moodFrom === 'board' ? (it.boards || [])
+    : moodFrom === 'tag' ? (it.tags || []).map(t => t.toLowerCase()) : familiesOf(it);
+  const moodStills = () => items.filter(it => it.kind === 'still' && moodKeys(it).includes(moodWhat));
+  const moodName = () => `Mood — ${moodFrom === 'colour' ? moodWhat : moodWhat.replace(/[\/:]/g, '-')}`;
+
+  // The same layout the Mac draws the PDF with: rows of pictures in their own
+  // shapes, each row the full width, as many rows as fill the page best.
+  function moodLayout(aspects, W, H, margin, gap) {
+    const n = aspects.length, aw = W - margin * 2, ah = H - margin * 2;
+    let best = { score: -1, rects: [] };
+    for (let rowsCount = 1; rowsCount <= n; rowsCount++) {
+      const total = aspects.reduce((a, b) => a + b, 0), aim = total / rowsCount;
+      const rows = [[]]; let sum = 0;
+      aspects.forEach((a, k) => {
+        const left = n - k, rowsLeft = rowsCount - rows.length;
+        if (rows[rows.length - 1].length && (sum + a / 2 > aim || left <= rowsLeft) && rows.length < rowsCount) { rows.push([]); sum = 0; }
+        rows[rows.length - 1].push(k); sum += a;
+      });
+      let hs = rows.map(r => (aw - gap * (r.length - 1)) / Math.max(0.01, r.reduce((t, i) => t + aspects[i], 0)));
+      const k = Math.min(1, (ah - gap * (rows.length - 1)) / Math.max(1, hs.reduce((a, b) => a + b, 0)));
+      hs = hs.map(h => h * k);
+      const blockH = hs.reduce((a, b) => a + b, 0) + gap * (rows.length - 1);
+      let y = margin + (ah - blockH) / 2, covered = 0; const rects = [];
+      rows.forEach((r, ri) => {
+        const h = hs[ri], w = r.reduce((t, i) => t + aspects[i] * h, 0) + gap * (r.length - 1);
+        let x = margin + (aw - w) / 2;
+        r.forEach(i => { const rw = aspects[i] * h; rects[i] = { x, y, w: rw, h }; covered += rw * h; x += rw + gap; });
+        y += h + gap;
+      });
+      const score = covered / (aw * ah);
+      if (score > best.score) best = { score, rects };
+    }
+    return best.rects;
+  }
+
+  function renderMood() {
+    const stills = items.filter(it => it.kind === 'still');
+    const counts = {};
+    stills.forEach(it => moodKeys(it).forEach(k => { counts[k] = (counts[k] || 0) + 1; }));
+    const keys = moodFrom === 'colour' ? Object.keys(FAMILY_SWATCH).filter(f => counts[f])
+      : Object.keys(counts).sort((a, b) => a.localeCompare(b));
+    if (!keys.includes(moodWhat)) moodWhat = moodFrom === 'project' && counts[project] ? project : (keys[0] || '');
+    $('moodFrom').querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.v === moodFrom));
+    $('moodPickLabel').textContent = { project: 'Project', board: 'Board', tag: 'Tag', colour: 'Colour' }[moodFrom];
+    const colour = moodFrom === 'colour';
+    $('moodPick').parentElement.hidden = colour; $('moodColours').hidden = !colour;
+    if (colour) {
+      $('moodColours').innerHTML = keys.map(f => `<button class="swatch${f === moodWhat ? ' on' : ''}" data-colour="${f}" title="${f} · ${counts[f]}" aria-label="${f}, ${counts[f]} stills" style="background:${FAMILY_SWATCH[f]}"></button>`).join('');
+    } else {
+      $('moodPick').innerHTML = keys.map(k => `<option value="${esc(k)}"${k === moodWhat ? ' selected' : ''}>${esc(k)} · ${counts[k]}</option>`).join('');
+      $('moodPick').disabled = !keys.length;
+    }
+    const list = moodStills();
+    $('moodEmpty').hidden = !!list.length;
+    $('moodEmpty').textContent = !stills.length ? 'No stills in your vault yet — save some, then make a mood board from them.'
+      : `Nothing to put on it — pick a ${moodFrom} that has stills.`;
+    const pages = Math.ceil(list.length / moodPer);
+    $('moodMake').disabled = !list.length;
+    $('moodMake').textContent = list.length ? `Make the PDF — ${list.length} still${list.length === 1 ? '' : 's'}, ${pages} page${pages === 1 ? '' : 's'}` : 'Make the PDF';
+    drawMoodPages(list);
+  }
+
+  let moodDraw = 0;
+  async function drawMoodPages(list) {
+    const ticket = ++moodDraw;
+    // each still's real shape, from its small preview
+    await Promise.all(list.filter(it => !moodAspect[it.id]).map(it => loadImage(vaultURL(it.thumb || it.file))
+      .then(img => { moodAspect[it.id] = img.naturalWidth / Math.max(1, img.naturalHeight); }, () => { moodAspect[it.id] = 16 / 9; })));
+    if (ticket !== moodDraw) return;                         // a newer choice is already drawing
+    let html = '';
+    for (let i = 0; i < list.length; i += moodPer) {
+      const set = list.slice(i, i + moodPer);
+      const rects = moodLayout(set.map(it => moodAspect[it.id] || 16 / 9), 1600, 900, 40, 12);
+      html += `<div class="moodpage${moodBg === 'dark' ? ' dark' : ''}">` + set.map((it, k) => { const r = rects[k];
+        return `<img alt="" loading="lazy" src="${vaultURL(it.thumb || it.file)}" style="left:${(r.x / 16).toFixed(3)}%;top:${(r.y / 9).toFixed(3)}%;width:${(r.w / 16).toFixed(3)}%;height:${(r.h / 9).toFixed(3)}%">`; }).join('') + '</div>';
+    }
+    $('moodPages').innerHTML = html;
+  }
+
+  $('moodFrom').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; moodFrom = b.dataset.v; moodWhat = ''; renderMood(); });
+  $('moodPick').addEventListener('change', () => { moodWhat = $('moodPick').value; renderMood(); });
+  $('moodColours').addEventListener('click', e => { const b = e.target.closest('[data-colour]'); if (!b) return; moodWhat = b.dataset.colour; renderMood(); });
+  [['moodPer', x => { moodPer = +x; }], ['moodBg', x => { moodBg = x; }]].forEach(([id, set]) => {
+    $(id).addEventListener('click', e => {
+      const b = e.target.closest('button'); if (!b) return;
+      $(id).querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b));
+      set(b.dataset.v); renderMood();
+    });
+  });
+  $('moodMake').addEventListener('click', async () => {
+    const list = moodStills(); if (!list.length) return;
+    if (!dest) { await chooseFolder(); if (!dest) return; }
+    $('moodMake').disabled = true; $('moodReveal').hidden = true; $('moodStatus').textContent = 'Making the mood board…';
+    let r; try { r = await fileCall('moodBoard', { files: list.map(it => it.file), perPage: moodPer, background: moodBg, project, name: moodName() }); }
+    catch (e) { r = null; }
+    $('moodMake').disabled = false;
+    if (r && r.ok) {
+      $('moodStatus').textContent = `${r.name} — ${r.pages} page${r.pages === 1 ? '' : 's'}, saved in ${project} › ${project}_Vault › Mood.`;
+      $('moodReveal').hidden = false; toast('Mood board saved');
+    } else $('moodStatus').textContent = (r && r.error) || "Couldn't make the mood board.";
+  });
+  $('moodReveal').addEventListener('click', () => fileCall('reveal'));
+
   /* ---- a contact sheet of whatever you've picked ---- */
 
   const loadImage = src => new Promise((res, rej) => {
@@ -2785,6 +2986,11 @@ body.marqueeing{user-select:none;-webkit-user-select:none;cursor:crosshair}
   // Inside Needed Tools: the vault, project and Grab & Go are shared by every tool.
   window.__neededShared = s => {
     const d = s.vault || '', changed = d !== dest || (s.project && s.project !== project);
+    // every project's label (Sports, Comedy…), so a search for one finds its projects
+    if (s.projectLabels && JSON.stringify(s.projectLabels) !== JSON.stringify(projectLabels)) {
+      projectLabels = s.projectLabels;
+      if (!$('vaultView').hidden) renderVault();
+    }
     dest = d; if (s.project) project = s.project; projects = s.projects || projects;
     showDest(); showProjects();
     if ($('grabProj')) $('grabProj').textContent = project;

@@ -606,12 +606,17 @@ extension PayHost {
     var indexURL: URL? { saveFolder?.appendingPathComponent(".vault/index.json") }
 
     func loadIndex() {
-        guard let u = indexURL, let d = try? Data(contentsOf: u),
-              let items = try? JSONSerialization.jsonObject(with: d) as? [[String: Any]] else {
-            index = []; indexLoadedFor = saveFolder?.path ?? ""; return
+        let here = saveFolder?.path ?? ""
+        guard let u = indexURL, FileManager.default.fileExists(atPath: u.path) else {
+            index = []; indexLoadedFor = here; return                       // a new vault: nothing in it yet
+        }
+        guard let d = try? Data(contentsOf: u), let items = try? JSONSerialization.jsonObject(with: d) as? [[String: Any]] else {
+            // Couldn't read it just now: keep what we have rather than show — and later save — an empty vault.
+            if indexLoadedFor != here { index = []; indexLoadedFor = here }
+            return
         }
         index = items
-        indexLoadedFor = saveFolder?.path ?? ""
+        indexLoadedFor = here
     }
 
     func saveIndex() {
@@ -624,7 +629,8 @@ extension PayHost {
 
     /// Every still, GIF and clip is remembered with where it came from.
     func register(kind: String, file: URL, meta: [String: Any]?) -> [String: Any] {
-        if indexLoadedFor != (saveFolder?.path ?? "") { loadIndex() }
+        // Start from the list as it is on disk: another tool may have saved since.
+        loadIndex()
         guard let base = saveFolder else { return [:] }
         let id = UUID().uuidString
         let rel = file.path.replacingOccurrences(of: base.path + "/", with: "")
@@ -661,6 +667,7 @@ extension PayHost {
     }
 
     func updateItem(_ b: [String: Any]) {
+        loadIndex()                                  // the latest list, so no one else's saves are lost
         guard let id = b["id"] as? String, let i = index.firstIndex(where: { ($0["id"] as? String) == id }) else { return }
         if let tags = b["tags"] as? [String] { index[i]["tags"] = tags }
         if let note = b["note"] as? String { index[i]["note"] = note }
@@ -672,6 +679,7 @@ extension PayHost {
 
     /// Removing moves the file to the Trash, never deletes it outright.
     func removeItem(_ id: String) -> Bool {
+        loadIndex()
         guard let base = saveFolder, let i = index.firstIndex(where: { ($0["id"] as? String) == id }) else { return false }
         let item = index[i]
         if let rel = item["file"] as? String {

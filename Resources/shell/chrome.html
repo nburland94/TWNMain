@@ -22,17 +22,33 @@ nav{display:flex;gap:22px;align-items:center}
 .help{width:34px;height:34px;border-radius:50%;border:1px solid rgba(28,28,28,0.06);background:rgba(255,255,255,0.5);color:var(--mid);font-size:14px}
 .pill{display:flex;align-items:center;gap:8px;border-radius:100px;padding:8px 14px;font-size:13px;border:1px solid rgba(28,28,28,0.09);background:linear-gradient(180deg,rgba(255,255,255,0.85),rgba(255,255,255,0.55));box-shadow:inset 0 1px 0 #fff,0 1px 2px rgba(80,30,10,0.05)}
 .vault{max-width:220px}
+.sync svg{transition:transform .3s var(--ease-out)}
+.sync.on svg{animation:spin 1s linear infinite}
+.sync:disabled{opacity:0.45}
+@keyframes spin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.sync.on svg{animation:none}}
 .vault span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .proj{box-shadow:inset 0 1px 0 rgba(255,255,255,0.28),0 2px 8px rgba(240,90,34,0.25);appearance:none;-webkit-appearance:none;border:none;border-radius:100px;padding:8px 30px 8px 15px;background:var(--accent) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='white' stroke-width='1.4'/%3E%3C/svg%3E") no-repeat right 12px center;
   color:#fff;font-weight:400;font-size:13px;max-width:200px}
 .proj:disabled{opacity:0.45}
+/* the project's label: Sports, Comedy, Fashion or your own */
+.label{appearance:none;-webkit-appearance:none;border-radius:100px;padding:8px 28px 8px 13px;font-size:13px;max-width:150px;color:var(--ink);
+  border:1px solid rgba(28,28,28,0.09);background:rgba(255,255,255,0.7) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%234a4945' stroke-width='1.4'/%3E%3C/svg%3E") no-repeat right 11px center;
+  box-shadow:inset 0 1px 0 #fff,0 1px 2px rgba(80,30,10,0.05)}
+.label.none{color:var(--mid)}
+.label:disabled{opacity:0.45}
 .go{border:none;background:linear-gradient(180deg,#2b2b2b,#111);box-shadow:inset 0 1px 0 rgba(255,255,255,0.14),0 2px 8px rgba(20,20,20,0.16);color:#fff;border-radius:100px;padding:8px 15px;font-size:12.5px;display:flex;align-items:center;gap:8px}
 .go i{width:6px;height:6px;border-radius:50%;background:var(--accent)}
 .go.on i{animation:pulse 1.4s ease-in-out infinite}
 @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.8)}}
 .bar button,.bar select{-webkit-app-region:no-drag}
-.toast{position:fixed;right:28px;top:70px;background:var(--ink);color:#fff;border-radius:100px;padding:7px 14px;font-size:12px;opacity:0;transition:opacity .25s var(--ease-out)}
+/* inside the bar (the bar's view is only 64px tall), over the buttons on the right for a moment */
+.toast{position:fixed;right:28px;top:16px;z-index:5;background:var(--ink);color:#fff;border-radius:100px;padding:8px 16px;font-size:12.5px;opacity:0;pointer-events:none;transition:opacity .25s var(--ease-out)}
 .toast.show{opacity:1}
+/* narrower windows: everything tightens up so the bar still fits on one line */
+@media (max-width:1560px){.bar{gap:16px;padding:0 20px}nav{gap:16px}.vault{max-width:160px}.proj{max-width:160px}.label{max-width:130px}}
+@media (max-width:1320px){.sync span,.go span{display:none}.sync{padding:8px 10px}.go{padding:9px 12px}.vault{max-width:120px}.proj{max-width:130px}.label{max-width:104px}nav{gap:12px}.bar{gap:12px}}
+@media (max-width:1100px){.mark{display:none}.vault span{display:none}.vault{padding:8px 10px}.tab{letter-spacing:0.08em}}
 </style></head>
 <body>
 <div class="bar">
@@ -43,12 +59,17 @@ nav{display:flex;gap:22px;align-items:center}
   </div>
   <nav id="tabs" aria-label="Tools"></nav>
   <div class="spacer"></div>
+  <button class="pill sync" id="sync" title="Look through the project you're in and bring every tool up to date">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#4a4945" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11a8 8 0 0 0-14.3-4.9L4 8"/><path d="M4 4v4h4"/><path d="M4 13a8 8 0 0 0 14.3 4.9L20 16"/><path d="M20 20v-4h-4"/></svg>
+    <span>Sync</span></button>
   <button class="pill vault" id="vault" title="Your vault — the folder every tool saves into">
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#4a4945" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7h7l2 2h9v10H3z"/></svg>
     <span id="vaultName">Choose vault</span></button>
   <label><span style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">Project</span>
     <select class="proj" id="proj" disabled></select></label>
-  <button class="go" id="go"><i></i><span id="goLabel">Grab &amp; Go</span></button>
+  <label><span style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">Label</span>
+    <select class="label none" id="label" disabled title="This project's label — Sports, Comedy, Fashion or your own"></select></label>
+  <button class="go" id="go" aria-label="Grab &amp; Go" title="Grab &amp; Go — copied images save into your project"><i></i><span id="goLabel">Grab &amp; Go</span></button>
   <button class="help" id="help" aria-label="Show the welcome">?</button>
 </div>
 <div class="toast" id="toast"></div>
@@ -58,7 +79,7 @@ nav{display:flex;gap:22px;align-items:center}
   const call = (action, x) => window.webkit.messageHandlers.shell.postMessage(Object.assign({ action }, x || {}));
   const esc = v => String(v == null ? '' : v).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   const TABS = [['home', 'Home'], ['vault', 'Vault'], ['shots', 'Shots'], ['sort', 'Sort'], ['grab', 'Grab'], ['credit', 'Credit'], ['pay', 'Pay']];   // the flow of a project
-  const toast = t => { $('toast').textContent = t; $('toast').classList.add('show'); clearTimeout(toast.t); toast.t = setTimeout(() => $('toast').classList.remove('show'), 1800); };
+  const toast = t => { $('toast').textContent = t; $('toast').classList.add('show'); clearTimeout(toast.t); toast.t = setTimeout(() => $('toast').classList.remove('show'), Math.max(2200, t.length * 55)); };
   let S = { tab: 'home' };
   function render(s) {
     S = s || S;
@@ -73,8 +94,15 @@ nav{display:flex;gap:22px;align-items:center}
     $('proj').innerHTML = S.vault
       ? (S.projects || []).map(p => `<option${p === S.project ? ' selected' : ''}>${esc(p)}</option>`).join('') + '<option value="__new">New project…</option>'
       : '<option>Choose a vault first</option>';
+    $('sync').disabled = !S.vault;
+    const cur = S.label || '';
+    $('label').disabled = !S.vault;
+    $('label').classList.toggle('none', !cur);
+    $('label').innerHTML = `<option value=""${cur ? '' : ' selected'}>${cur ? 'No label' : 'Label'}</option>` +
+      (S.labels || []).map(l => `<option${l === cur ? ' selected' : ''}>${esc(l)}</option>`).join('') + '<option value="__new">New label…</option>';
     $('go').classList.toggle('on', !!S.grabGo);
     $('goLabel').textContent = S.grabGo ? 'Grab & Go · on' : 'Grab & Go';
+    $('go').setAttribute('aria-label', S.grabGo ? 'Grab & Go, on' : 'Grab & Go');
   }
   window.__neededShared = render;
   $('back').addEventListener('click', () => call('navBack').then(render));
@@ -92,6 +120,27 @@ nav{display:flex;gap:22px;align-items:center}
       if (!name) return render();
       render(await call('newProject', { name }));
     } else render(await call('setProject', { name: v }));
+  });
+  // Sync: the only time the project's folders are looked through.
+  $('sync').addEventListener('click', async () => {
+    if ($('sync').classList.contains('on')) return;
+    $('sync').classList.add('on');
+    let r; try { r = await call('sync'); } catch (e) { r = { ok: false }; }
+    $('sync').classList.remove('on');
+    if (!r || !r.ok) return toast((r && r.error) || "Couldn't sync — try again");
+    const bits = [];
+    if (r.added) bits.push(`${r.added} new`);
+    if (r.palettes) bits.push(`${r.palettes} colour palette${r.palettes === 1 ? '' : 's'}`);
+    toast(bits.length ? `${r.project} synced — ${bits.join(', ')}` : `${r.project} is up to date`);
+  });
+  $('label').addEventListener('change', async () => {
+    let v = $('label').value;
+    if (v === '__new') {
+      v = (prompt('Name the label — Music video, Docs, Beauty…') || '').trim();
+      if (!v) return render();
+    }
+    render(await call('setLabel', { label: v }));
+    toast(v ? `${S.project} is labelled ${v}` : `${S.project} has no label`);
   });
   $('go').addEventListener('click', async () => {
     const r = await call('grabGo');

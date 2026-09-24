@@ -173,7 +173,7 @@ final class VaultHost: NSObject, NSApplicationDelegate, NSWindowDelegate,
     private var jobProgress: Double = 0
     let grabGo = GrabAndGo()                    // Copy Image, drag and drop, and the Chrome extension
     var holdIndexSaves = false                  // while adopting a batch: one write at the end
-    var thumbsRunning = false                   // small thumbnails being made in the background
+    var syncing = false                         // Sync is looking through a project's folders
     private var lastOutput: URL?                // the sub-folder written to most recently
     var currentProcess: Process?                // a running lookup or pull
     var index: [[String: Any]] = []             // the vault's library
@@ -595,9 +595,7 @@ extension VaultHost {
 
         // ---- library
         case "vaultList":
-            loadIndex()
-            adoptLoose()
-            makeMissingThumbs()
+            loadIndex()                          // just the saved list: Sync is what looks through the folders
             let root = saveFolder?.path ?? ""
             let alive = index.filter { item in
                 guard let rel = item["file"] as? String, let base = saveFolder else { return false }
@@ -622,11 +620,14 @@ extension VaultHost {
             panel.canChooseDirectories = false
             panel.allowedFileTypes = ["jpg", "jpeg", "png", "webp", "heic", "tif", "tiff", "gif", "avif", "mov", "mp4", "m4v"]
             panel.prompt = "Add to Vault"
-            panel.message = "Choose images, GIFs or clips — they're copied into \(currentProject) › References"
+            panel.message = "Choose images, GIFs or clips — they're copied into \(currentProject) › \(projectName(currentProject))_Vault"
             panel.beginSheetModal(for: window) { r in
                 guard r == .OK else { return reply(["ok": false, "cancelled": true], nil) }
                 reply(["ok": true, "added": self.importFiles(panel.urls)], nil)
             }
+
+        case "moodBoard":
+            moodBoard(body, reply)
 
         case "vaultMove":
             reply(moveItems(body), nil)
@@ -665,15 +666,15 @@ extension VaultHost {
         return (attrs?[.size] as? NSNumber)?.int64Value ?? -1
     }
 
-    /// Stills, GIFs and Motion sit directly inside the vault folder, each
-    /// made the first time something goes in it.
-    /// Stills, GIFs and Motion go in the project's References (or Grabs, when
-    /// asked); Ideas and contact sheets sit in the project as before.
+    /// Stills, GIFs and Motion go in the project's Lexus_Vault (or Lexus_Grab,
+    /// when area is "Grabs"); Ideas and contact sheets sit in the project as before.
+    /// Each folder is made the first time something goes in it.
     func outputFolder(_ kind: String, project: String? = nil, area: String? = nil) -> URL? {
         guard let base = saveFolder else { return nil }
-        var folder = base.appendingPathComponent(projectName(project ?? currentProject), isDirectory: true)
-        if ["Stills", "GIFs", "Motion"].contains(kind) { folder = folder.appendingPathComponent(area ?? "References", isDirectory: true) }
-        folder = folder.appendingPathComponent(kind, isDirectory: true)
+        let name = projectName(project ?? currentProject)
+        var folder = base.appendingPathComponent(name, isDirectory: true)
+        if Folders.kinds.contains(kind) { folder = folder.appendingPathComponent(Folders.sub(kind, project: name, grab: area == "Grabs"), isDirectory: true) }
+        else { folder = folder.appendingPathComponent(kind, isDirectory: true) }
         do { try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true) }
         catch { return nil }
         return folder
@@ -1322,12 +1323,17 @@ extension VaultHost {
     var indexURL: URL? { saveFolder?.appendingPathComponent(".vault/index.json") }
 
     func loadIndex() {
-        guard let u = indexURL, let d = try? Data(contentsOf: u),
-              let items = try? JSONSerialization.jsonObject(with: d) as? [[String: Any]] else {
-            index = []; indexLoadedFor = saveFolder?.path ?? ""; return
+        let here = saveFolder?.path ?? ""
+        guard let u = indexURL, FileManager.default.fileExists(atPath: u.path) else {
+            index = []; indexLoadedFor = here; return                       // a new vault: nothing in it yet
+        }
+        guard let d = try? Data(contentsOf: u), let items = try? JSONSerialization.jsonObject(with: d) as? [[String: Any]] else {
+            // Couldn't read it just now: keep what we have rather than show — and later save — an empty vault.
+            if indexLoadedFor != here { index = []; indexLoadedFor = here }
+            return
         }
         index = items
-        indexLoadedFor = saveFolder?.path ?? ""
+        indexLoadedFor = here
     }
 
     func saveIndex() {
@@ -1368,23 +1374,6 @@ extension VaultHost {
         return out.map { String(format: "#%02x%02x%02x", $0.0, $0.1, $0.2) }
     }
 
-    /// Fill in colours for anything that arrived without them. A few at a time, so nothing waits.
-    @discardableResult
-    func fillPalettes(limit: Int = 40) -> Int {
-        guard let base = saveFolder else { return 0 }
-        var done = 0
-        for i in index.indices where done < limit {
-            guard ["still", "gif", "clip"].contains(index[i]["kind"] as? String ?? ""),
-                  (index[i]["palette"] as? [String])?.isEmpty ?? true,
-                  let rel = (index[i]["thumb"] as? String) ?? (index[i]["file"] as? String),
-                  let p = palette(of: base.appendingPathComponent(rel)), !p.isEmpty else { continue }
-            index[i]["palette"] = p
-            done += 1
-        }
-        if done > 0 { saveIndex() }
-        return done
-    }
-
     /// Copy files into the current project's References — stills, GIFs and clips
     /// each to their own folder — and tell the page. Returns how many came in.
     @discardableResult
@@ -1395,6 +1384,7 @@ extension VaultHost {
         }
         let fm = FileManager.default
         var added = 0
+        loadIndex()                                  // the latest list, then one save for the whole batch
         holdIndexSaves = true
         for u in urls {
             let ext = u.pathExtension.lowercased()
@@ -1413,40 +1403,104 @@ extension VaultHost {
         return added
     }
 
-    /// Files other tools put into a project's Stills, GIFs or Motion folder
-    /// — Needed Grab, or you in Finder — join the vault the next time it looks.
-    func adoptLoose() {
-        guard let base = saveFolder else { return }
-        let fm = FileManager.default
+    /// Sync: look through one project's folders for anything the vault doesn't
+    /// know yet — from Needed Grab, or you in Finder — and fill in whatever's
+    /// missing (small previews, colour palettes). This is the only scan: nothing
+    /// looks through the folders by itself any more.
+    /// The slow part (reading every file) runs in the background; the list is
+    /// only touched on the main thread, at the end.
+    func sync(project raw: String, progress: @escaping (Double) -> Void, done: @escaping ([String: Any]) -> Void) {
+        guard let base = saveFolder else { return done(["ok": false, "error": "Choose your vault first"]) }
+        guard !syncing else { return done(["ok": false, "error": "Already syncing"]) }
+        syncing = true
+        loadIndex()
+        let project = projectName(raw)
         let known = Set(index.compactMap { $0["file"] as? String })
+        // what this project's items are missing: a preview of their own, or colours
+        let needThumb: [(String, String)] = index.compactMap { it -> (String, String)? in
+            guard (it["project"] as? String) == project, let id = it["id"] as? String, let kind = it["kind"] as? String,
+                  kind == "still" || kind == "gif", let file = it["file"] as? String, (it["thumb"] as? String) == file else { return nil }
+            return (id, file)
+        }
+        let needPalette: [(String, String)] = index.compactMap { it -> (String, String)? in
+            guard (it["project"] as? String) == project, ["still", "gif", "clip"].contains(it["kind"] as? String ?? ""),
+                  (it["palette"] as? [String])?.isEmpty ?? true, let id = it["id"] as? String,
+                  let rel = (it["thumb"] as? String) ?? (it["file"] as? String) else { return nil }
+            return (id, rel)
+        }
         let kinds: [(String, String, Set<String>)] = [
             ("Stills", "still", ["jpg", "jpeg", "png", "webp", "heic", "tif", "tiff"]),
             ("GIFs", "gif", ["gif"]),
             ("Motion", "clip", ["mp4", "mov", "m4v"]),
         ]
-        // Where to look in each project: the old folders (grabs, as before), and the new Grabs and References.
-        let areas: [(String, String)] = [("", "grab"), ("Grabs/", "grab"), ("References/", "reference")]
-        let projects = (try? fm.contentsOfDirectory(at: base, includingPropertiesForKeys: [.isDirectoryKey], options: [.skipsHiddenFiles])) ?? []
-        holdIndexSaves = true
-        var adopted = 0
-        defer { holdIndexSaves = false; if adopted > 0 { saveIndex() } }
-        for proj in projects where (try? proj.resourceValues(forKeys: [.isDirectoryKey]))?.isDirectory == true {
-            for (area, origin) in areas { for (folder, kind, exts) in kinds {
-                let dir = proj.appendingPathComponent(area + folder, isDirectory: true)
-                for f in (try? fm.contentsOfDirectory(at: dir, includingPropertiesForKeys: nil, options: [.skipsHiddenFiles])) ?? [] {
-                    guard exts.contains(f.pathExtension.lowercased()) else { continue }
-                    let rel = f.path.replacingOccurrences(of: base.path + "/", with: "")
-                    if known.contains(rel) { continue }
-                    let meta: [String: Any] = ["source": ["type": "file", "title": f.deletingPathExtension().lastPathComponent], "origin": origin]
-                    _ = register(kind: kind, file: f, meta: meta, project: proj.lastPathComponent)
-                    adopted += 1
+        DispatchQueue.global(qos: .userInitiated).async {
+            let fm = FileManager.default
+            let proj = base.appendingPathComponent(project, isDirectory: true)
+            // 1. every file in the project's folders that the vault hasn't got
+            var found: [(URL, String, String)] = []            // file, kind, grab or reference
+            for (folder, kind, exts) in kinds {
+                for (sub, origin) in Folders.all(folder, project: project) {
+                    let dir = proj.appendingPathComponent(sub, isDirectory: true)
+                    for f in (try? fm.contentsOfDirectory(at: dir, includingPropertiesForKeys: nil, options: [.skipsHiddenFiles])) ?? [] {
+                        guard exts.contains(f.pathExtension.lowercased()) else { continue }
+                        let rel = f.path.replacingOccurrences(of: base.path + "/", with: "")
+                        if !known.contains(rel) { found.append((f, kind, origin)) }
+                    }
                 }
-            } }
+            }
+            let total = Double(max(1, found.count + needThumb.count + needPalette.count))
+            var step = 0.0
+            let tick = { step += 1; let f = step / total; DispatchQueue.main.async { progress(f) } }
+            // 2. each new one gets its preview and colours, the way register() does it
+            let stamp = ISO8601DateFormatter().string(from: Date())
+            var added: [[String: Any]] = []
+            for (f, kind, origin) in found {
+                let id = UUID().uuidString
+                let rel = f.path.replacingOccurrences(of: base.path + "/", with: "")
+                var thumbRel = rel
+                if kind == "clip", let t = self.poster(for: f, id: id) { thumbRel = t.path.replacingOccurrences(of: base.path + "/", with: "") }
+                else if kind != "clip", let t = self.smallThumb(for: f, id: id) { thumbRel = t.path.replacingOccurrences(of: base.path + "/", with: "") }
+                var item: [String: Any] = [
+                    "id": id, "kind": kind, "file": rel, "thumb": thumbRel, "project": project, "bytes": self.fileSize(f), "created": stamp,
+                    "source": ["type": "file", "title": f.deletingPathExtension().lastPathComponent], "origin": origin,
+                ]
+                if let p = self.palette(of: base.appendingPathComponent(thumbRel)), !p.isEmpty { item["palette"] = p }
+                added.append(item)
+                tick()
+            }
+            // 3. older items: their own small preview, and their colours
+            var thumbs: [String: String] = [:], palettes: [String: [String]] = [:]
+            for (id, file) in needThumb {
+                if let t = self.smallThumb(for: base.appendingPathComponent(file), id: id) { thumbs[id] = t.path.replacingOccurrences(of: base.path + "/", with: "") }
+                tick()
+            }
+            for (id, rel) in needPalette {
+                if let p = self.palette(of: base.appendingPathComponent(thumbs[id] ?? rel)), !p.isEmpty { palettes[id] = p }
+                tick()
+            }
+            // 4. back on the main thread: into the list, once
+            DispatchQueue.main.async {
+                self.syncing = false
+                guard self.saveFolder == base else { return done(["ok": false, "error": "The vault changed while syncing"]) }
+                self.loadIndex()                                             // the list as it is now, then ours on top
+                let now = Set(self.index.compactMap { $0["file"] as? String })   // anything saved meanwhile isn't added twice
+                let fresh = added.filter { !now.contains($0["file"] as? String ?? "") }
+                for i in self.index.indices {
+                    guard let id = self.index[i]["id"] as? String else { continue }
+                    if let t = thumbs[id] { self.index[i]["thumb"] = t }
+                    if let p = palettes[id] { self.index[i]["palette"] = p }
+                }
+                self.index.insert(contentsOf: fresh, at: 0)
+                self.saveIndex()
+                Shared.notify()
+                done(["ok": true, "project": project, "added": fresh.count, "palettes": palettes.count, "previews": thumbs.count])
+            }
         }
     }
 
     func register(kind: String, file: URL, meta: [String: Any]?, project: String? = nil) -> [String: Any] {
-        if indexLoadedFor != (saveFolder?.path ?? "") { loadIndex() }
+        // Start from the list as it is on disk: another tool may have saved since.
+        if !holdIndexSaves || indexLoadedFor != (saveFolder?.path ?? "") { loadIndex() }
         guard let base = saveFolder else { return [:] }
         let id = UUID().uuidString
         let rel = file.path.replacingOccurrences(of: base.path + "/", with: "")
@@ -1473,7 +1527,6 @@ extension VaultHost {
         return item
     }
 
-    /// A still from a clip, for the library grid.
     /// A small JPEG for the grid — ImageIO reads just enough of the file to make it.
     func smallThumb(for file: URL, id: String) -> URL? {
         guard let base = saveFolder, let src = CGImageSourceCreateWithURL(file as CFURL, nil) else { return nil }
@@ -1491,34 +1544,7 @@ extension VaultHost {
         return CGImageDestinationFinalize(dest) ? url : nil
     }
 
-    /// References saved before small thumbnails existed get theirs made once,
-    /// in the background; the grid refreshes when they're ready.
-    func makeMissingThumbs() {
-        guard let base = saveFolder, !thumbsRunning else { return }
-        let todo = index.compactMap { item -> (String, String)? in
-            guard let id = item["id"] as? String, let kind = item["kind"] as? String, kind == "still" || kind == "gif",
-                  let file = item["file"] as? String, (item["thumb"] as? String) == file else { return nil }
-            return (id, file)
-        }
-        guard !todo.isEmpty else { return }
-        thumbsRunning = true
-        DispatchQueue.global(qos: .utility).async {
-            var made: [String: String] = [:]
-            for (id, file) in todo {
-                if let t = self.smallThumb(for: base.appendingPathComponent(file), id: id) {
-                    made[id] = t.path.replacingOccurrences(of: base.path + "/", with: "")
-                }
-            }
-            DispatchQueue.main.async {
-                self.thumbsRunning = false
-                guard !made.isEmpty, self.saveFolder == base else { return }
-                for i in self.index.indices { if let id = self.index[i]["id"] as? String, let t = made[id] { self.index[i]["thumb"] = t } }
-                self.saveIndex()
-                self.webView.evaluateJavaScript("window.__vaultRefresh && window.__vaultRefresh()", completionHandler: nil)
-            }
-        }
-    }
-
+    /// A still from a clip, for the library grid.
     func poster(for file: URL, id: String) -> URL? {
         guard let base = saveFolder else { return nil }
         let gen = AVAssetImageGenerator(asset: AVURLAsset(url: file))
@@ -1543,6 +1569,7 @@ extension VaultHost {
         let copying = (b["copy"] as? Bool) ?? false
         let fm = FileManager.default
         var done = 0, renamed: [String] = [], failed: [String] = [], copies: [[String: Any]] = []
+        loadIndex()
         holdIndexSaves = true
         defer { holdIndexSaves = false; saveIndex() }
         for i in index.indices {
@@ -1550,7 +1577,13 @@ extension VaultHost {
             if !copying && (index[i]["project"] as? String) == to { continue }
             let src = base.appendingPathComponent(rel)
             var dir = base.appendingPathComponent(to, isDirectory: true)
-            for part in rel.split(separator: "/").dropFirst().dropLast() { dir = dir.appendingPathComponent(String(part), isDirectory: true) }
+            let from = rel.split(separator: "/").first.map(String.init) ?? ""
+            for part in rel.split(separator: "/").dropFirst().dropLast() {
+                // Lexus_Grab and Lexus_Vault take the new project's name: Nike_Grab, Nike_Vault
+                var name = String(part)
+                if name == "\(from)_Grab" { name = "\(to)_Grab" } else if name == "\(from)_Vault" { name = "\(to)_Vault" }
+                dir = dir.appendingPathComponent(name, isDirectory: true)
+            }
             try? fm.createDirectory(at: dir, withIntermediateDirectories: true)
             let dst = uniqueURL(in: dir, name: src.lastPathComponent)
             do { if copying { try fm.copyItem(at: src, to: dst) } else { try fm.moveItem(at: src, to: dst) } }
@@ -1582,6 +1615,7 @@ extension VaultHost {
     }
 
     func updateItem(_ b: [String: Any]) {
+        loadIndex()                                  // the latest list, so no one else's saves are lost
         guard let id = b["id"] as? String, let i = index.firstIndex(where: { ($0["id"] as? String) == id }) else { return }
         if let tags = b["tags"] as? [String] { index[i]["tags"] = tags }
         if let note = b["note"] as? String { index[i]["note"] = note }
@@ -1593,6 +1627,7 @@ extension VaultHost {
 
     /// Removing moves the file to the Trash, never deletes it outright.
     func removeItem(_ id: String) -> Bool {
+        loadIndex()
         guard let base = saveFolder, let i = index.firstIndex(where: { ($0["id"] as? String) == id }) else { return false }
         let item = index[i]
         if let rel = item["file"] as? String {
@@ -1831,3 +1866,121 @@ extension VaultHost {
     }
 }
 
+
+// MARK: - Mood boards
+
+extension VaultHost {
+    /// A mood board: a PDF of stills and nothing else — no titles, no captions.
+    /// Each page is rows of pictures in their own shapes, filling the page
+    /// edge to edge with a small gap. It saves into Lexus › Lexus_Vault › Mood.
+    func moodBoard(_ b: [String: Any], _ reply: @escaping (Any?, String?) -> Void) {
+        guard let base = saveFolder else { return reply(["ok": false, "error": "Choose your vault first"], nil) }
+        let rels = ((b["files"] as? [String]) ?? []).filter { !$0.contains("..") && !$0.hasPrefix("/") }
+        guard !rels.isEmpty else { return reply(["ok": false, "error": "No stills to put on it"], nil) }
+        let perPage = max(1, min(12, (b["perPage"] as? NSNumber)?.intValue ?? 6))
+        let dark = (b["background"] as? String) == "dark"
+        let project = projectName((b["project"] as? String) ?? currentProject)
+        var name = ((b["name"] as? String) ?? "Mood board").replacingOccurrences(of: "/", with: "-").replacingOccurrences(of: ":", with: "-")
+        while name.hasPrefix(".") { name.removeFirst() }
+        if name.isEmpty { name = "Mood board" }
+        let folder = base.appendingPathComponent(project, isDirectory: true).appendingPathComponent("\(project)_Vault/Mood", isDirectory: true)
+        guard (try? FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)) != nil else {
+            return reply(["ok": false, "error": "Couldn't make the Mood folder"], nil)
+        }
+        let target = uniqueURL(in: folder, name: name + ".pdf")
+
+        DispatchQueue.global(qos: .userInitiated).async {
+            // Each picture, big enough for a full page and no bigger.
+            var pics: [CGImage] = []
+            for rel in rels {
+                let u = base.appendingPathComponent(rel)
+                guard let src = CGImageSourceCreateWithURL(u as CFURL, nil),
+                      let img = CGImageSourceCreateThumbnailAtIndex(src, 0, [
+                        kCGImageSourceCreateThumbnailFromImageAlways: true,
+                        kCGImageSourceCreateThumbnailWithTransform: true,
+                        kCGImageSourceThumbnailMaxPixelSize: perPage == 1 ? 3200 : 2000,
+                      ] as CFDictionary) else { continue }
+                pics.append(img)
+            }
+            guard !pics.isEmpty else {
+                return DispatchQueue.main.async { reply(["ok": false, "error": "Couldn't read those stills"], nil) }
+            }
+            // A 16:9 page, like a deck.
+            var page = CGRect(x: 0, y: 0, width: 1600, height: 900)
+            guard let ctx = CGContext(target as CFURL, mediaBox: &page, nil) else {
+                return DispatchQueue.main.async { reply(["ok": false, "error": "Couldn't write the PDF"], nil) }
+            }
+            let margin: CGFloat = 40, gap: CGFloat = 12
+            let area = page.insetBy(dx: margin, dy: margin)
+            var pages = 0
+            var i = 0
+            while i < pics.count {
+                let set = Array(pics[i..<min(pics.count, i + perPage)])
+                i += set.count
+                ctx.beginPDFPage(nil)
+                ctx.setFillColor(dark ? CGColor(srgbRed: 0.07, green: 0.07, blue: 0.07, alpha: 1)
+                                      : CGColor(srgbRed: 0.957, green: 0.953, blue: 0.945, alpha: 1))
+                ctx.fill(page)
+                for (img, r) in zip(set, VaultHost.moodLayout(set.map { CGFloat($0.width) / CGFloat(max(1, $0.height)) }, in: area, gap: gap)) {
+                    ctx.interpolationQuality = .high
+                    ctx.draw(img, in: r)
+                }
+                ctx.endPDFPage()
+                pages += 1
+            }
+            ctx.closePDF()
+            DispatchQueue.main.async {
+                self.lastOutput = folder
+                let rel = target.path.replacingOccurrences(of: base.path + "/", with: "")
+                reply(["ok": true, "name": target.lastPathComponent, "file": rel, "pages": pages, "count": pics.count], nil)
+            }
+        }
+    }
+
+    /// Justified rows: the pictures in order, in as many rows as fills the space
+    /// best, each row the full width, the whole block centred. PDF coordinates:
+    /// the first row is at the top.
+    static func moodLayout(_ aspects: [CGFloat], in area: CGRect, gap: CGFloat) -> [CGRect] {
+        let n = aspects.count
+        guard n > 0 else { return [] }
+        var best: (score: CGFloat, rects: [CGRect]) = (-1, [])
+        for rowsCount in 1...n {
+            // split in order into rowsCount rows of roughly equal total width
+            let total = aspects.reduce(0, +), aim = total / CGFloat(rowsCount)
+            var rows: [[Int]] = [[]], sum: CGFloat = 0
+            for (k, a) in aspects.enumerated() {
+                let left = n - k, rowsLeft = rowsCount - rows.count
+                if !rows[rows.count - 1].isEmpty && (sum + a / 2 > aim || left <= rowsLeft) && rows.count < rowsCount {
+                    rows.append([]); sum = 0
+                }
+                rows[rows.count - 1].append(k); sum += a
+            }
+            // each row fills the width; then the lot scales to fit the height
+            var heights = rows.map { r -> CGFloat in
+                let s = r.reduce(CGFloat(0)) { $0 + aspects[$1] }
+                return (area.width - gap * CGFloat(r.count - 1)) / max(s, 0.01)
+            }
+            let k = min(1, (area.height - gap * CGFloat(rows.count - 1)) / max(heights.reduce(0, +), 1))
+            heights = heights.map { $0 * k }
+            let blockH = heights.reduce(0, +) + gap * CGFloat(rows.count - 1)
+            var rects: [CGRect] = [], y = area.maxY - (area.height - blockH) / 2
+            var covered: CGFloat = 0
+            for (ri, r) in rows.enumerated() {
+                let h = heights[ri]
+                let w = r.reduce(CGFloat(0)) { $0 + aspects[$1] * h } + gap * CGFloat(r.count - 1)
+                var x = area.minX + (area.width - w) / 2
+                y -= h
+                for idx in r {
+                    let rw = aspects[idx] * h
+                    rects.append(CGRect(x: x, y: y, width: rw, height: h))
+                    covered += rw * h
+                    x += rw + gap
+                }
+                y -= gap
+            }
+            let score = covered / (area.width * area.height)
+            if score > best.score { best = (score, rects) }
+        }
+        return best.rects
+    }
+}

@@ -1218,6 +1218,8 @@ One beat per line, or ordinary prose; sentences become shots."></textarea>
     showDest(); showProjects();
     if (changed) loadVault();
   };
+  // Sync brought the vault up to date: the stills drawer shows it.
+  window.__neededSynced = async () => { await loadVault(); if (drawerShot) renderDrawer(); };
   // Home's quick action: a new shot list.
   window.__neededQuick = what => { if (what === 'list') document.getElementById('newListBtn').click(); };
 

@@ -28,6 +28,7 @@ enum Shared {
         set {
             if let u = newValue { UserDefaults.standard.set(u.path, forKey: "saveFolder") }
             else { UserDefaults.standard.removeObject(forKey: "saveFolder") }
+            Labels.forget()
             notify()
         }
     }
@@ -68,9 +69,97 @@ enum Shared {
     static let embedded: WKUserScript = {
         let dir = Bundle.main.resourceURL?.appendingPathComponent("shell")
         let read = { (name: String) in dir.flatMap { try? String(contentsOf: $0.appendingPathComponent(name), encoding: .utf8) } ?? "" }
-        // embed.js: the glow, full width, click-outside and ←. hints.js: the glass hints.
-        return WKUserScript(source: read("embed.js") + "\n" + read("hints.js"), injectionTime: .atDocumentEnd, forMainFrameOnly: true)
+        // load.js: the one loading pill. embed.js: the glow, full width, click-outside and ←. hints.js: the glass hints.
+        return WKUserScript(source: read("load.js") + "\n" + read("embed.js") + "\n" + read("hints.js"), injectionTime: .atDocumentEnd, forMainFrameOnly: true)
     }()
+}
+
+// MARK: - Where stills, GIFs and clips live in a project
+
+/// Round 3: Grab and the Vault never share a folder name.
+///     Lexus/Lexus_Grab/   Stills_Grab · GIFs_Grab · Motion_Grab   ← Needed Grab
+///     Lexus/Lexus_Vault/  Stills_Ref  · GIFs_Ref  · Motion_Ref    ← Needed Vault
+/// Files already in the older folders stay there and are still read:
+/// Stills · GIFs · Motion (the first layout) and Grabs/… · References/… (Round F).
+enum Folders {
+    static let kinds = ["Stills", "GIFs", "Motion"]
+
+    /// Inside a project: "Lexus_Grab/Stills_Grab" or "Lexus_Vault/Stills_Ref".
+    static func sub(_ kind: String, project: String, grab: Bool) -> String {
+        grab ? "\(project)_Grab/\(kind)_Grab" : "\(project)_Vault/\(kind)_Ref"
+    }
+
+    /// Every folder a project's stills, GIFs or clips may be in — newest layout
+    /// first — with whether it holds grabs or references.
+    static func all(_ kind: String, project: String) -> [(sub: String, origin: String)] {
+        [(sub(kind, project: project, grab: true), "grab"), (sub(kind, project: project, grab: false), "reference"),
+         ("Grabs/\(kind)", "grab"), ("References/\(kind)", "reference"), (kind, "grab")]
+    }
+
+    /// A file's origin from where it sits ("Lexus/Lexus_Grab/Stills_Grab/a.jpg"), if its folder says.
+    static func origin(ofFile rel: String) -> String? {
+        let parts = rel.split(separator: "/").map(String.init)
+        guard parts.count >= 3 else { return nil }
+        switch parts[1] {
+        case "\(parts[0])_Grab", "Grabs": return "grab"
+        case "\(parts[0])_Vault", "References": return "reference"
+        default: return nil
+        }
+    }
+}
+
+// MARK: - Project labels
+
+/// Sports, Comedy, Fashion and your own. A project's label sits in a small
+/// hidden file in its folder (Lexus/.needed/project.json), so it travels with
+/// the project; the labels you've made up are remembered on this Mac too.
+enum Labels {
+    static let starters = ["Sports", "Comedy", "Fashion"]
+    private static var cache: [String: String]? = nil          // project → label
+
+    private static func file(_ project: String) -> URL? {
+        Shared.vault?.appendingPathComponent(project, isDirectory: true).appendingPathComponent(".needed/project.json")
+    }
+    private static func read(_ project: String) -> [String: Any] {
+        guard let u = file(project), let d = try? Data(contentsOf: u),
+              let o = try? JSONSerialization.jsonObject(with: d) as? [String: Any] else { return [:] }
+        return o
+    }
+
+    /// Every project's label.
+    static func all() -> [String: String] {
+        if let c = cache { return c }
+        var out: [String: String] = [:]
+        for p in Shared.projects() { if let l = read(p)["label"] as? String, !l.isEmpty { out[p] = l } }
+        cache = out
+        return out
+    }
+    static func of(_ project: String) -> String { all()[project] ?? "" }
+
+    static func set(_ label: String, for project: String) {
+        guard let u = file(project) else { return }
+        var o = read(project)                                          // keep anything else in the file
+        let clean = label.trimmingCharacters(in: .whitespacesAndNewlines)
+        if clean.isEmpty { o.removeValue(forKey: "label") } else { o["label"] = String(clean.prefix(40)); add(clean) }
+        try? FileManager.default.createDirectory(at: u.deletingLastPathComponent(), withIntermediateDirectories: true)
+        if let d = try? JSONSerialization.data(withJSONObject: o, options: [.prettyPrinted, .sortedKeys]) { try? d.write(to: u, options: .atomic) }
+        cache = nil
+    }
+
+    /// The labels to choose from: the three to start with, yours, and any a project already has.
+    static func names() -> [String] {
+        let mine = (UserDefaults.standard.array(forKey: "projectLabels") as? [String]) ?? []
+        var seen = Set<String>(), out: [String] = []
+        for l in starters + mine + all().values.sorted() where !l.isEmpty && seen.insert(l.lowercased()).inserted { out.append(l) }
+        return out
+    }
+    static func add(_ label: String) {
+        var mine = (UserDefaults.standard.array(forKey: "projectLabels") as? [String]) ?? []
+        guard !(starters + mine).contains(where: { $0.caseInsensitiveCompare(label) == .orderedSame }) else { return }
+        mine.append(String(label.prefix(40)))
+        UserDefaults.standard.set(mine, forKey: "projectLabels")
+    }
+    static func forget() { cache = nil }                              // a new vault, or after Sync
 }
 
 // MARK: - The tools
@@ -374,40 +463,41 @@ final class Shell: NSObject, NSApplicationDelegate, NSWindowDelegate, WKScriptMe
     // MARK: Home's vault wall: the project's newest work
 
     private var lastIndexStamp: Double = -1
-    private var lastAdopt: Double = 0
     private var aspects: [String: Double] = [:]              // each picture's shape, worked out once
 
     private func homeData(_ body: [String: Any]) -> [String: Any] {
         guard let base = Shared.vault else { return ["items": [], "vault": false] }
         let show = (body["show"] as? String) ?? "both"                   // references, grabs or both
-        let wholeVault = ((body["scope"] as? String) ?? "all") == "all"  // the entire vault, or this project
+        let scope = (body["scope"] as? String) ?? "all"                  // the entire vault, this project, or a label
+        let wantLabel = ((body["label"] as? String) ?? "").lowercased()
+        let labels = Labels.all()
         let v = vaultHost
-        // Only re-read and re-scan when something could have changed — this runs every time Home shows.
+        // Only re-read the saved list when it has changed. Nothing here looks through
+        // the folders — that's Sync's job, when you ask for it.
         let indexFile = base.appendingPathComponent(".vault/index.json")
         let stamp = (try? FileManager.default.attributesOfItem(atPath: indexFile.path)[.modificationDate] as? Date)?.timeIntervalSince1970 ?? 0
         if stamp != lastIndexStamp || v.index.isEmpty { v.loadIndex(); lastIndexStamp = stamp }
-        if Date().timeIntervalSince1970 - lastAdopt > 12 { v.adoptLoose(); lastAdopt = Date().timeIntervalSince1970 }
-        v.fillPalettes(limit: 30)                                        // anything that came in without its colours
         // Search: every word has to match something — title, tags, boards, project, source or a colour's name.
         let words = ((body["q"] as? String) ?? "").lowercased().split(whereSeparator: { $0 == " " || $0 == "," }).map(String.init)
         // Where it came from: saved by the Vault → a reference; put in a project by Grab or Finder → a grab.
         let originOf = { (it: [String: Any]) -> String in
-            let file = it["file"] as? String ?? ""
-            if file.contains("/Grabs/") { return "grab" }
-            if file.contains("/References/") { return "reference" }
+            if let o = Folders.origin(ofFile: it["file"] as? String ?? "") { return o }
             if let o = it["origin"] as? String { return o }
             let src = it["source"] as? [String: Any]
             return (src?["type"] as? String) == "file" && it["at"] == nil ? "grab" : "reference"
         }
         let picked = v.index.filter { it in
             guard ["still", "gif", "clip"].contains(it["kind"] as? String ?? "") else { return false }
-            if !wholeVault && (it["project"] as? String ?? "Unsorted") != Shared.project { return false }
+            let proj = it["project"] as? String ?? "Unsorted"
+            if scope == "project" && proj != Shared.project { return false }
+            if scope == "label" && (labels[proj] ?? "").lowercased() != wantLabel { return false }
             let o = originOf(it)
             guard show == "both" || (show == "references" && o == "reference") || (show == "grabs" && o == "grab") else { return false }
             if words.isEmpty { return true }
             let src = it["source"] as? [String: Any]
             var hay = [src?["title"] as? String ?? "", src?["url"] as? String ?? "", src?["site"] as? String ?? "",
-                       it["project"] as? String ?? "", it["note"] as? String ?? "", it["kind"] as? String ?? ""]
+                       it["project"] as? String ?? "", labels[it["project"] as? String ?? ""] ?? "",
+                       it["note"] as? String ?? "", it["kind"] as? String ?? ""]
             hay += (it["tags"] as? [String]) ?? []
             hay += (it["boards"] as? [String]) ?? []
             hay += ((it["palette"] as? [String]) ?? []).flatMap { Shell.colourNames($0) }
@@ -425,7 +515,7 @@ final class Shell: NSObject, NSApplicationDelegate, NSWindowDelegate, WKScriptMe
             let src = it["source"] as? [String: Any]
             return ["id": id, "kind": it["kind"] as? String ?? "still", "thumb": thumb, "file": file, "a": a,
                     "title": src?["title"] as? String ?? "", "url": src?["url"] as? String ?? "", "at": it["at"] ?? NSNull(),
-                    "project": it["project"] as? String ?? "Unsorted", "origin": originOf(it), "tags": (it["tags"] as? [String]) ?? [String](),
+                    "project": it["project"] as? String ?? "Unsorted", "label": labels[it["project"] as? String ?? ""] ?? "", "origin": originOf(it), "tags": (it["tags"] as? [String]) ?? [String](),
                     "boards": (it["boards"] as? [String]) ?? [String](), "palette": (it["palette"] as? [String]) ?? [String]()]
         }
         return ["items": items, "vault": true, "project": Shared.project]
@@ -456,6 +546,33 @@ final class Shell: NSObject, NSApplicationDelegate, NSWindowDelegate, WKScriptMe
         }
         if mx < 0.3 { names.append("dark") } else if sat < 0.35 && mx > 0.75 { names.append("pastel") }
         return names
+    }
+
+    // MARK: Sync: rescan the project you're in, then bring every tool up to date
+
+    private var syncWaiting: [(Any?, String?) -> Void] = []
+    private func sync(_ reply: @escaping (Any?, String?) -> Void) {
+        guard Shared.vault != nil else { return reply(["ok": false, "error": "Choose your vault first"], nil) }
+        syncWaiting.append(reply)
+        guard !vaultHost.syncing else { return }                 // a second press waits for the one running
+        let project = Shared.project
+        // The one loading pill, in whatever you're looking at.
+        let view: WKWebView? = current == "home" ? home : (undocked[current] == nil ? hosts[current]?.webView : nil)
+        view?.evaluateJavaScript("window.__neededLoad && window.__neededLoad.start(\(Shell.js("Syncing \(project)")))", completionHandler: nil)
+        vaultHost.sync(project: project, progress: { f in
+            view?.evaluateJavaScript("window.__neededLoad && window.__neededLoad.set(\(f))", completionHandler: nil)
+        }, done: { [weak self] result in
+            guard let self = self else { return }
+            view?.evaluateJavaScript("window.__neededLoad && window.__neededLoad.done()", completionHandler: nil)
+            self.lastIndexStamp = -1                                  // Home re-reads the list
+            Labels.forget()                                            // and any labels changed in Finder
+            // Every open tool refreshes what it shows: Home, the Vault, Shots, Grab…
+            var views: [WKWebView] = [self.home]
+            views += self.hosts.values.compactMap { $0.webView }
+            for v in views { v.evaluateJavaScript("window.__neededSynced && window.__neededSynced()", completionHandler: nil) }
+            let waiting = self.syncWaiting; self.syncWaiting = []
+            for r in waiting { r(result, nil) }
+        })
     }
 
     // MARK: Home's calendar: whatever macOS Calendar has — Google too, if it's added there
@@ -625,6 +742,9 @@ final class Shell: NSObject, NSApplicationDelegate, NSWindowDelegate, WKScriptMe
             "vaultName": Shared.vault?.lastPathComponent ?? "",
             "project": Shared.project,
             "projects": Shared.projects(),
+            "label": Labels.of(Shared.project),                          // this project's label
+            "labels": Labels.names(),                                    // the ones to choose from
+            "projectLabels": Labels.all(),                               // every project's, for search and Home
             "grabGo": hosts["vault"] != nil ? vaultHost.grabGo.on : false,
             "tab": current,
             "canBack": !backStack.isEmpty || current != "home",
@@ -697,6 +817,12 @@ final class Shell: NSObject, NSApplicationDelegate, NSWindowDelegate, WKScriptMe
             if let name = body["name"] as? String { Shared.project = Shell.clean(name) }
             reply(replyHandler)
 
+        case "setLabel":
+            // the dropdown beside the project: this project's label, or a new one
+            Labels.set((body["label"] as? String) ?? "", for: Shared.project)
+            Shared.notify()
+            reply(replyHandler)
+
         case "newProject":
             let name = Shell.clean((body["name"] as? String) ?? "")
             if !name.isEmpty {
@@ -707,6 +833,9 @@ final class Shell: NSObject, NSApplicationDelegate, NSWindowDelegate, WKScriptMe
                 Shared.project = name
             }
             reply(replyHandler)
+
+        case "sync":
+            sync(replyHandler)
 
         case "grabGo":
             if Shared.vault == nil {

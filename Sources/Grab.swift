@@ -518,13 +518,13 @@ extension GrabHost {
         return n.isEmpty ? "Needed Grab" : n
     }
 
-    /// Vault › project › Grabs › Stills, GIFs or Motion — each made the first
-    /// time something goes in it. (The Vault's own saves go in References.)
+    /// Vault › Lexus › Lexus_Grab › Stills_Grab, GIFs_Grab or Motion_Grab — each
+    /// made the first time something goes in it. (The Vault's own go in Lexus_Vault.)
     func outputFolder(_ kind: String, project: String?) -> URL? {
         guard let base = saveFolder else { return nil }
-        let folder = base.appendingPathComponent(projectName(project), isDirectory: true)
-                         .appendingPathComponent("Grabs", isDirectory: true)
-                         .appendingPathComponent(kind, isDirectory: true)
+        let name = projectName(project)
+        let folder = base.appendingPathComponent(name, isDirectory: true)
+                         .appendingPathComponent(Folders.sub(kind, project: name, grab: true), isDirectory: true)
         do { try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true) }
         catch { return nil }
         return folder

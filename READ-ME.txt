@@ -164,3 +164,38 @@ ROUND 2 (final changes) — HOME
   • Every picture gets a colour palette — however it came in — and older
     ones are filled in as Home loads. The viewer shows it; click a colour
     to find more like it.
+
+ROUND 3 (final changes) — VAULT AND GRAB
+  • Shapes for each one: every still has its own Original · 16:9 · 4:5 ·
+    1:1 · 9:16, right under it — bigger buttons, dark when on. "Frame
+    these shapes" chooses what's in shot. The row below the stills is what
+    each new still starts with. The GIF and the MP4 each have their own
+    shapes too: pick several and each saves as its own file.
+  • New folder names, so Grab and the Vault never share one (Lexus is
+    just the example — it's always your project's name):
+        Lexus/Lexus_Grab/    Stills_Grab · GIFs_Grab · Motion_Grab   ← Grab
+        Lexus/Lexus_Vault/   Stills_Ref  · GIFs_Ref  · Motion_Ref    ← Vault
+        Lexus/Lexus_Vault/Mood/                                      ← mood boards
+    Your existing files stay where they are and are still found.
+    Moving a reference to another project renames its folder to match.
+  • Sync, top right, left of your vault: looks through the project you're
+    in — files from Grab or Finder, missing previews, missing colour
+    palettes — then brings Home, the Vault, Shots and Grab up to date.
+    Nothing scans by itself any more, so opening the Vault is quick.
+  • The Vault showing nothing: fixed at the root. The tools were each
+    keeping their own copy of the vault's list and saving it back, so one
+    could wipe out what another had just added; and a list that couldn't
+    be read for a moment was treated as empty. Every save now starts from
+    the list as it is on disk, and an unreadable list is never shown (or
+    saved) as empty.
+  • Mood tab in the Vault: a PDF of stills and no words — from a project,
+    a board, a tag or a colour. 1, 4, 6 or 9 pictures a page, light or
+    dark, each in its own shape. The preview shows the pages as they'll
+    print. It saves into Lexus_Vault › Mood.
+  • Project labels: Sports, Comedy, Fashion and your own, in the dropdown
+    beside the project. The label lives in the project folder (a hidden
+    .needed file), so it travels with it. Search for a label in the Vault
+    or on Home; Home's "By label" shows every project with that label.
+  • The loading pill is on Home too now (Sync shows it), and the top bar's
+    messages — Grab & Go, Sync, labels — actually show.
+  • The walkthroughs and the welcome cover all of the above.

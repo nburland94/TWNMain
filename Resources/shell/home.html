@@ -88,6 +88,10 @@ main{position:relative;height:100vh;display:grid;grid-template-columns:minmax(0,
 .seg2{display:flex;padding:3px;border-radius:100px;gap:2px}
 .seg2 button{border:none;background:transparent;border-radius:100px;padding:6px 11px;font-size:12px;white-space:nowrap;color:#6d4e3d;transition:background .2s var(--ease-out),color .2s}
 .seg2 button.on{background:var(--ink);color:#fff}
+/* By label: a dropdown that sits in the same pill as Entire vault and This project */
+.seg2 select{appearance:none;-webkit-appearance:none;border:none;border-radius:100px;padding:6px 24px 6px 11px;font:inherit;font-size:12px;color:#6d4e3d;cursor:pointer;
+  background:transparent url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='9' height='6'%3E%3Cpath d='M1 1l3.5 3.5L8 1' fill='none' stroke='%236d4e3d' stroke-width='1.3'/%3E%3C/svg%3E") no-repeat right 9px center}
+.seg2 select.on{background-color:var(--ink);color:#fff;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='9' height='6'%3E%3Cpath d='M1 1l3.5 3.5L8 1' fill='none' stroke='white' stroke-width='1.3'/%3E%3C/svg%3E")}
 
 /* ---- the vault wall ---- */
 .wall{flex-grow:1;min-height:0;display:flex;flex-direction:column;gap:4px;overflow-y:auto;overflow-x:hidden;border-radius:14px;scrollbar-width:none}
@@ -216,9 +220,9 @@ main{position:relative;height:100vh;display:grid;grid-template-columns:minmax(0,
     <div class="line">
       <div class="filters">
       <div class="g seg2" id="showSeg" role="group" aria-label="Show"><button data-v="references">References</button><button data-v="grabs">Grabs</button><button data-v="both">Both</button></div>
-      <div class="g seg2" id="scopeSeg" role="group" aria-label="From"><button data-v="all">Entire vault</button><button data-v="project">This project</button></div>
+      <div class="g seg2" id="scopeSeg" role="group" aria-label="From"><button data-v="all">Entire vault</button><button data-v="project">This project</button><label><span style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">By label</span><select id="labelSeg" title="Every project with this label"></select></label></div>
         <label class="g search"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#6d4e3d" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
-          <input id="q" placeholder="Search — tags, boards, red…" spellcheck="false" aria-label="Search your vault"></label>
+          <input id="q" placeholder="Search — tags, boards, labels, red…" spellcheck="false" aria-label="Search your vault"></label>
         <button class="g shuffle" id="shuffle" title="A different mix every time you open Needed Tools"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6d4e3d" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 3h5v5M4 20L21 3M21 16v5h-5M15 15l6 6M4 4l5 5"/></svg>Shuffle</button>
       </div>
       <div class="quick" id="quick">
@@ -302,6 +306,7 @@ main{position:relative;height:100vh;display:grid;grid-template-columns:minmax(0,
 </div>
 <div class="veil" id="veil"><div class="g">Drop to send it to the right tool</div></div>
 <div class="toast" id="toast"></div>
+<script src="load.js"></script>
 <script>
 (function () {
   const $ = id => document.getElementById(id);
@@ -351,20 +356,30 @@ main{position:relative;height:100vh;display:grid;grid-template-columns:minmax(0,
   let items = [], hasVault = true;
   const pref = (k, d) => { try { return localStorage.getItem('home.' + k) || d; } catch (e) { return d; } };
   const setPref = (k, v) => { try { localStorage.setItem('home.' + k, v); } catch (e) { /* fine */ } };
-  let show = pref('show', 'both'), scope = pref('scope', 'all');
+  let show = pref('show', 'both'), scope = pref('scope', 'all'), label = pref('label', ''), labels = [];
+  if (scope === 'label' && !label) scope = 'all';
   function paintSegs() {
     $('showSeg').querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.v === show));
     $('scopeSeg').querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.v === scope));
+    // By label: Sports, Comedy, Fashion and your own — every project with that label
+    const list = [...new Set([...labels, ...(label ? [label] : [])])];
+    $('labelSeg').innerHTML = `<option value="">By label</option>` + list.map(l => `<option${scope === 'label' && l === label ? ' selected' : ''}>${esc(l)}</option>`).join('');
+    $('labelSeg').classList.toggle('on', scope === 'label');
   }
+  $('labelSeg').addEventListener('change', () => {
+    const v = $('labelSeg').value;
+    if (v) { scope = 'label'; label = v; setPref('label', v); } else scope = 'all';
+    setPref('scope', scope); paintSegs(); loadWall();
+  });
   $('showSeg').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; show = b.dataset.v; setPref('show', show); paintSegs(); loadWall(); });
   $('scopeSeg').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; scope = b.dataset.v; setPref('scope', scope); paintSegs(); loadWall(); });
   paintSegs();
 
   let lastSig = '';
   async function loadWall() {
-    let r; try { r = await call('homeData', { show, scope, q: $('q').value.trim() }); } catch (e) { r = null; }
+    let r; try { r = await call('homeData', { show, scope, label, q: $('q').value.trim() }); } catch (e) { r = null; }
     const next = ordered((r && r.items) || []);
-    const sig = next.map(it => it.id).join(',') + '|' + show + scope;
+    const sig = next.map(it => it.id).join(',') + '|' + show + scope + label;
     hasVault = !r || r.vault !== false;
     if (sig === lastSig && $('wall').childElementCount) return;      // nothing's changed: leave the wall be
     lastSig = sig; items = next;
@@ -398,6 +413,7 @@ main{position:relative;height:100vh;display:grid;grid-template-columns:minmax(0,
     wall.hidden = false;
     if (empty) {
       wall.innerHTML = `<p class="quiet" style="border:none;padding:20px 4px">${!hasVault ? 'Choose your vault — top right — and your work will gather here.' : $('q').value.trim() ? 'Nothing matches that search.' :
+        scope === 'label' ? `No ${esc(label)} projects have anything yet — label a project beside the project picker, top right.` :
         show === 'grabs' ? 'No grabs yet.' : show === 'references' ? 'No references yet.' : 'Nothing here yet.'}${scope === 'project' ? ' Try Entire vault.' : ''}</p>`;
       return;
     }
@@ -497,7 +513,7 @@ main{position:relative;height:100vh;display:grid;grid-template-columns:minmax(0,
     else el.addEventListener('loadedmetadata', () => fit(el), { once: true });
     $('vTitle').textContent = it.title || it.file.split('/').pop();
     const at = typeof it.at === 'number' ? ` · ${Math.floor(it.at / 60)}:${String(Math.floor(it.at % 60)).padStart(2, '0')}` : '';
-    $('vMeta').textContent = `${it.project} · ${it.origin === 'grab' ? 'Grab' : 'Reference'}${at}`;
+    $('vMeta').textContent = `${it.project}${it.label ? ' · ' + it.label : ''} · ${it.origin === 'grab' ? 'Grab' : 'Reference'}${at}`;
     $('vSource').hidden = !/^https?:/.test(it.url || '');
     $('vPalette').innerHTML = (it.palette || []).map(c => `<button style="background:${esc(c)}" title="Find more ${colourName(c)}" data-c="${esc(c)}" aria-label="Find more ${colourName(c)}"></button>`).join('');
     $('vPalette').hidden = !(it.palette || []).length;
@@ -765,7 +781,10 @@ main{position:relative;height:100vh;display:grid;grid-template-columns:minmax(0,
 
   /* ---------------- the app talks to Home ---------------- */
   let lastProject = null;
+  let lastLabels = '';
   window.__neededShared = s => {
+    const sig = JSON.stringify(s.projectLabels || {}) + (s.labels || []).join('|');
+    if (sig !== lastLabels) { lastLabels = sig; labels = s.labels || []; paintSegs(); if (scope === 'label') lastSig = ''; }
     if (s.tab === 'home' || (s.project !== lastProject && scope === 'project')) loadWall();
     lastProject = s.project;
   };
@@ -784,6 +803,7 @@ main{position:relative;height:100vh;display:grid;grid-template-columns:minmax(0,
     return false;
   };
   window.__homeRefresh = loadWall;
+  window.__neededSynced = () => { lastSig = ''; loadWall(); };     // Sync found new work or colours
   window.__homeToast = toast;
   window.__homeDrag = on => $('veil').classList.toggle('on', !!on);
   loadWall();
