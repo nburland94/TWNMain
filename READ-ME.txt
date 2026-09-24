@@ -433,3 +433,8 @@ ROUND 9 — DESIGN, SIMPLER AND FILLED FOR YOU
     a new page, lay them out on new pages, make a mood board, show in the
     Vault, pick none.
   • The guide no longer mentions Keynote, and describes the one panel.
+  • Round 9.1: "Pictures on this page" changes only the page you're on.
+    Each page keeps its own count; the stills flow through the pages in
+    order, so the pages after it move along but keep their own counts.
+    "Use N on every page" sets them all. The cover, Free pages and pages of
+    words only keep their own pictures.

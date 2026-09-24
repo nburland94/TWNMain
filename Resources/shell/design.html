@@ -766,8 +766,11 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
       const presets = ['#f4f1ec', '#ffffff', '#ece6dc', '#141414', '#0a0a0a', '#1e2227'];
       const pickedN = doc.from === 'picked' ? (doc.fromIds || []).length : trayPick.size, offN = (doc.off || []).length;
       h += `
-        <div class="psec"><span class="cap">Pictures a page</span>${range('perPage', '', perOf(), 1, 12, 1)}
+        <div class="psec"><span class="cap">Pictures on this page</span>
+          ${isDealt(p, cur) ? `${range('perPage', '', perFor(p), 1, 12, 1)}
           <span class="empty" id="dealInfo" style="margin-top:-4px">${esc(dealInfo())}</span>
+          <button class="tbtn" id="perAll" style="align-self:flex-start;padding-left:0" title="Every page, and new ones">Use ${perFor(p)} on every page</button>`
+          : `<span class="empty">${p.layout === 'free' ? 'A Free page keeps the pictures you placed.' : cur === 0 && p.layout === 'bleed' ? 'The cover keeps its picture.' : 'A page of words only.'}</span>`}
           <span class="cap" style="margin-top:4px">From</span>
           <div class="seg"><button data-from="project" class="${doc.from !== 'picked' ? 'on' : ''}">The project</button><button data-from="picked" class="${doc.from === 'picked' ? 'on' : ''}" title="The stills picked in the tray">Picked${pickedN ? ` (${pickedN})` : ''}</button></div>
           ${offN ? `<button class="tbtn" id="unOff" style="align-self:flex-start;padding-left:0">Bring back the ${offN} taken off</button>` : ''}</div>`;
@@ -934,28 +937,33 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
     for (const st of src) { if (pool.length >= DEAL_MAX) break; if (!seen.has(st.id) && !off.has(st.id) && !held.has(st.id)) { seen.add(st.id); pool.push(picFromRaw(st)); } }
     return pool;
   }
+  // Each page keeps its own count (p.per); a page without one uses the design's. The stills flow through the pages in
+  // order, so changing one page's count moves the ones after it along — their own counts stay as they were.
+  const perFor = pg => (pg && pg.per) || perOf();
   function redeal() {
-    const n = perOf(), pool = dealPool(), chunks = [];
-    for (let i = 0; i < pool.length; i += n) chunks.push(pool.slice(i, i + n));
+    const def = perOf(), pool = dealPool(), here = page();
+    let i = 0;
     if (doc.mode === 'mood') {
-      doc.pages = chunks.map((c, i) => { const p = doc.pages[i] || newPage('rows'); p.pics = c; return p; });
-      if (!doc.pages.length) doc.pages = [newPage('rows')];
+      const out = [];
+      for (let pi = 0; i < pool.length; pi++) { const pg = doc.pages[pi] || newPage('rows'); const n = perFor(pg); pg.pics = pool.slice(i, i + n); i += n; out.push(pg); }
+      doc.pages = out.length ? out : [newPage('rows')];
     } else {
-      const out = []; let c = 0;
-      doc.pages.forEach((p, i) => {
-        if (!isDealt(p, i)) { out.push(p); return; }
-        if (c < chunks.length) { p.pics = chunks[c++]; out.push(p); }
-        else if (hasWords(p)) { p.pics = []; out.push(p); }     // its words stay, waiting for pictures
+      const out = [];
+      doc.pages.forEach((pg, pi) => {
+        if (!isDealt(pg, pi)) { out.push(pg); return; }
+        if (i < pool.length) { const n = perFor(pg); pg.pics = pool.slice(i, i + n); i += n; out.push(pg); }
+        else if (hasWords(pg)) { pg.pics = []; out.push(pg); }     // its words stay, waiting for pictures
       });
       const cycle = ['left', 'right', 'rows'];
-      while (c < chunks.length) { const p = newPage(n > 4 ? 'rows' : cycle[out.length % 3]); p.pics = chunks[c++]; out.push(p); }
+      while (i < pool.length) { const pg = newPage(def > 4 ? 'rows' : cycle[out.length % 3]); pg.pics = pool.slice(i, i + def); i += def; out.push(pg); }
       doc.pages = out.length ? out : [newPage('left')];
     }
-    cur = clamp(cur, 0, doc.pages.length - 1);
+    const at = doc.pages.indexOf(here);
+    cur = at >= 0 ? at : clamp(cur, 0, doc.pages.length - 1);
     sel.clear();
     return pool.length;
   }
-  const dealInfo = () => { const n = dealPool().length; return `${n} still${n === 1 ? '' : 's'} → ${Math.ceil(n / perOf()) || 0} page${Math.ceil(n / perOf()) === 1 ? '' : 's'}, changing as you slide`; };
+  const dealInfo = () => { const n = dealPool().length, pages = doc.pages.filter((pg, i) => isDealt(pg, i) && pg.pics.length).length; return `${n} still${n === 1 ? '' : 's'} across ${pages} page${pages === 1 ? '' : 's'} — only this page changes as you slide`; };
 
   async function makeNew(mode, ids) {
     const info = await call('designProject').catch(() => ({}));
@@ -1316,6 +1324,11 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
       change(() => { doc.from = 'project'; redeal(); });
       return toast(`All of ${project}'s stills, ${perOf()} a page`);
     }
+    if (t.id === 'perAll') {
+      const n = perFor(page());
+      change(() => { if (doc.mode === 'mood') doc.perPage = n; else doc.tPerPage = n; doc.pages.forEach(pg => { delete pg.per; }); redeal(); });
+      return toast(`${n} a page, on every page`);
+    }
     if (t.id === 'unOff') { change(() => { doc.off = []; redeal(); }); return toast('They\u2019re back'); }
     if (t.id === 'featTog') return toggleFeature();
     if (t.id === 'reframeBtn') { reframe = reframe == null ? [...sel][0] : null; drawStage(); return drawPanel(); }
@@ -1448,7 +1461,7 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
       return;
     }
     const bx = boxById(bsel) || {};
-    const liveRange = { perPage: v => { if (doc.mode === 'mood') doc.perPage = +v; else doc.tPerPage = +v; redeal(); }, fadeStr: v => { page().fade.strength = +v; },
+    const liveRange = { perPage: v => { page().per = +v; redeal(); }, fadeStr: v => { page().fade.strength = +v; },
       picOp: v => { [...sel].forEach(k => { page().pics[k].opacity = +v; }); },
       pRadius: v => { [...sel].forEach(k => { page().pics[k].radius = +v; }); },
       bSize: v => { bx.size = +v; }, bTrack: v => { bx.tracking = +v; }, bLead: v => { bx.leading = +v; }, bOp: v => { bx.opacity = +v; } }[t.id];
@@ -1460,7 +1473,7 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
       const v = t.parentElement.querySelector('.val'); if (v) v.textContent = /Op|Str/.test(t.id) ? Math.round(t.value * 100) + '%' : /Track|Lead/.test(t.id) ? (+t.value).toFixed(2) : /Radius/.test(t.id) ? t.value + ' pt' : t.value;
       if (t.id === 'bSize') { const pb = $('panel').querySelector('.seg [data-preset].on'); if (pb) pb.classList.remove('on'); }
       if (t.id !== 'perPage') { drawStage(); clearTimeout(drawStrip.t); drawStrip.t = setTimeout(drawStrip, 250); }
-      else { drawStage(); drawStrip(); const di = $('dealInfo'); if (di) di.textContent = dealInfo(); }
+      else { drawStage(); drawStrip(); const di = $('dealInfo'); if (di) di.textContent = dealInfo(); const pa = $('perAll'); if (pa) pa.textContent = `Use ${t.value} on every page`; }
     }
     if (t.id === 'bgPick') { const all = !page().bg; change(() => { if (all) doc.bg = t.value; else page().bg = t.value; }, { quiet: true }); drawStage(); drawStrip(); }
     if (t.id === 'bFillPick') { const b = boxById(bsel); if (b) { change(() => { b.fill = t.value; }, { quiet: true }); drawStage(); } return; }
