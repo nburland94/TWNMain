@@ -345,3 +345,6 @@ ROUND 6 — NEEDED DESIGN
   • Export a PDF, page images, or both — every export a new version, in
     Lexus_Design/Mood or /Treatments. The mark switch is there (Pro later).
   • The Vault's grid is just pictures now, each in its own shape, like Home.
+  • The final film: open the finished film in Grab and press "Save as the
+    final film". It's copied into Lexus_Docs › Final film, into the Vault as
+    a clip, and it leads the project page — Mood sits beneath it.

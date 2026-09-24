@@ -467,6 +467,7 @@ extension GrabHost {
             let size = (body["size"] as? NSNumber)?.int64Value ?? -1
             var candidates: [URL] = []
             if let picked = lastPicked { candidates.append(picked) }
+            if let handed = GrabSchemeHandler.film { candidates.append(handed) }     // dropped on Home
             if let dragged = NSPasteboard(name: .drag).readObjects(
                 forClasses: [NSURL.self], options: [.urlReadingFileURLsOnly: true]) as? [URL] {
                 candidates += dragged
@@ -475,6 +476,9 @@ extension GrabHost {
                 url.lastPathComponent == name && (size < 0 || fileSize(url) == size)
             }
             reply(["ok": currentFilm != nil], nil)
+
+        case "saveFinalFilm":
+            saveFinalFilm(body, reply)
 
         case "makeGif":
             makeGif(body, reply)
@@ -723,3 +727,34 @@ extension GrabHost {
     }
 }
 
+// MARK: - The final film
+
+extension GrabHost {
+    /// The finished film, kept with its project: Lexus/Lexus_Docs/Final film/,
+    /// in the vault as a clip, and first on the project page.
+    func saveFinalFilm(_ b: [String: Any], _ reply: @escaping (Any?, String?) -> Void) {
+        guard let film = currentFilm, let base = saveFolder else { return reply(["ok": false, "error": "Open the film from Finder or Home first"], nil) }
+        let project = projectName((b["project"] as? String) ?? Shared.project)
+        let dir = base.appendingPathComponent(project, isDirectory: true).appendingPathComponent("\(project)_Docs/Final film", isDirectory: true)
+        try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+        let target = uniqueURL(in: dir, name: film.lastPathComponent)
+        webView.evaluateJavaScript("window.__neededLoad && window.__neededLoad.start(\(Shell.js("Saving the final film")))", completionHandler: nil)
+        DispatchQueue.global(qos: .userInitiated).async {
+            let ok = (try? FileManager.default.copyItem(at: film, to: target)) != nil
+            DispatchQueue.main.async {
+                self.webView.evaluateJavaScript("window.__neededLoad && window.__neededLoad.done()", completionHandler: nil)
+                guard ok else { return reply(["ok": false, "error": "Couldn't copy the film — is there room on the drive?"], nil) }
+                let meta: [String: Any] = ["source": ["type": "file", "title": film.deletingPathExtension().lastPathComponent], "origin": "final", "tags": ["final film"]]
+                let item = VaultStore.shared.register(kind: "clip", file: target, meta: meta, project: project)
+                let rel = target.path.replacingOccurrences(of: base.path + "/", with: "")
+                ProjectFile.change(project) { o in
+                    o["finalFilm"] = ["rel": rel, "id": (item["id"] as? String) ?? "", "name": film.deletingPathExtension().lastPathComponent,
+                                      "at": ISO8601DateFormatter().string(from: Date())]
+                }
+                Shared.notify()
+                Shell.post("Final film saved", "\(film.lastPathComponent) is \(project)'s final film — first on the project page.")
+                reply(["ok": true, "rel": rel, "project": project], nil)
+            }
+        }
+    }
+}

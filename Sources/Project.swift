@@ -1203,6 +1203,14 @@ extension Shell {
         out["docs"] = Docs.list(project)
         out["kinds"] = Docs.kinds.map { $0.name }
         out["mood"] = projectMood(project)
+        // The final film, if Grab has kept one: first on the page.
+        if let f = o["finalFilm"] as? [String: Any], let rel = f["rel"] as? String, let base = Shared.vault,
+           FileManager.default.fileExists(atPath: base.appendingPathComponent(rel).path) {
+            var film = f
+            let item = VaultStore.shared.items.first { ($0["file"] as? String) == rel }
+            film["thumb"] = (item?["thumb"] as? String) ?? ""
+            out["finalFilm"] = film
+        } else { out.removeValue(forKey: "finalFilm") }
         out["contacts"] = Contacts.all()
         if let a = Mailer.account() { out["mail"] = ["from": a.from, "name": a.name, "ready": PayKeychain.read(a.from) != nil] }
         else { out["mail"] = ["ready": false] }

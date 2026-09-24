@@ -73,6 +73,9 @@ h1[contenteditable]:focus{border-bottom-color:var(--accent)}
 .lineadd.solo{position:static;justify-content:flex-start;margin-top:8px}
 .lineadd .field{padding:6px 10px;font-size:12.5px}
 
+/* ---- the final film ---- */
+.film{display:flex;flex-direction:column;gap:12px;min-width:0}
+.film video{display:block;width:100%;aspect-ratio:16/9;border-radius:16px;background:#0c0e12;object-fit:contain}
 /* ---- mood ---- */
 .mood{display:flex;flex-direction:column;gap:12px;min-width:0}
 .bento{display:grid;gap:8px}
@@ -319,7 +322,8 @@ main>*{animation:rise .45s var(--ease-out) both}
   }
 
   /* ------------------------------------------------------------ the page */
-  const hasMood = () => ((D.mood || {}).items || []).length > 0;
+  const hasFilm = () => !!(D.finalFilm && D.finalFilm.rel);
+  const hasMood = () => ((D.mood || {}).items || []).length > 0 || hasFilm();
   function render() {
     closeMenu();
     if (!D.vault) {
@@ -333,7 +337,7 @@ main>*{animation:rise .45s var(--ease-out) both}
       <div class="head" id="head"></div>
       <div id="phasesWrap"></div>
       <div class="row1" style="display:grid;grid-template-columns:minmax(0,1fr) 400px;gap:22px;align-items:start">
-        ${mood ? '<section class="mood" id="mood" aria-label="Mood"></section>' : '<section class="g card" id="dels" aria-label="Deliverables"></section>'}
+        ${mood ? `<div style="display:flex;flex-direction:column;gap:22px;min-width:0">${hasFilm() ? '<section class="film" id="film" aria-label="The final film"></section>' : ''}${((D.mood || {}).items || []).length ? '<section class="mood" id="mood" aria-label="Mood"></section>' : ''}</div>` : '<section class="g card" id="dels" aria-label="Deliverables"></section>'}
         <section class="g card" id="todos" aria-label="To do" style="padding:20px 20px 16px;gap:10px"></section>
       </div>
       <section class="g card" id="docs" aria-label="Documents" style="padding:20px 22px 22px;gap:14px"></section>
@@ -342,7 +346,8 @@ main>*{animation:rise .45s var(--ease-out) both}
         ${mood ? '<section class="g card" id="dels" aria-label="Deliverables"></section>' : ''}
       </div>`;
     renderHead(); renderPhases();
-    if (mood) renderMood();
+    if (hasFilm()) renderFilm();
+    if (((D.mood || {}).items || []).length) renderMood();
     renderDels(); renderTodos(); renderDocs(); renderCrew();
   }
 
@@ -446,6 +451,15 @@ main>*{animation:rise .45s var(--ease-out) both}
       <div class="lineadd${steps.length ? '' : ' solo'}" id="lineAdd"><button class="addtag" id="addDate">+ date</button></div>`;
   }
 
+  // The finished film, when Grab has kept one — the thing the project was for.
+  function renderFilm() {
+    const f = D.finalFilm;
+    $('film').innerHTML = `
+      <div style="display:flex;align-items:baseline;gap:12px"><h2>The film</h2><span class="sub">${esc(f.name || '')}</span><span class="grow"></span>
+        <button class="txt" data-reveal="${esc(f.rel)}">Show in Finder</button></div>
+      <video controls preload="metadata" playsinline ${f.thumb ? `poster="vault/${esc(encodeURI(f.thumb))}"` : ''} src="vault/${esc(encodeURI(f.rel))}"></video>`;
+  }
+
   // Bento: the first eight in the mock-up's pattern; fewer, a simpler one.
   function renderMood() {
     const m = D.mood;
@@ -460,7 +474,7 @@ main>*{animation:rise .45s var(--ease-out) both}
     const w = m.weights || [], total = w.reduce((a, b) => a + b, 0);
     $('mood').innerHTML = `
       <div style="display:flex;align-items:baseline;gap:12px"><h2>Mood</h2><span class="sub">${bits.join(' · ')}</span><span class="grow"></span>
-        <button class="txt o" id="makeMood">Make a mood PDF</button><button class="txt" id="openVault">Open in Vault →</button></div>
+        <button class="txt o" id="makeMood" title="Opens Needed Design with this project's stills">Make a mood board</button><button class="txt" id="openVault">Open in Vault →</button></div>
       <div class="bento" style="${grid}">${items.map((it, i) => `<button class="ref" data-ref="${esc(it.id)}" title="Open in the Vault" style="grid-column:span ${spans[i][0]};grid-row:span ${spans[i][1]}"><img alt="" loading="lazy" src="vault/${encodeURI(it.kind === 'gif' ? it.file : it.thumb)}"></button>`).join('')}</div>
       ${(m.palette || []).length ? `<div class="palette"><span class="cap">The project's colours</span><div class="strip">${m.palette.map((h, i) => `<div title="${esc(h)}" style="flex-grow:${total ? w[i] || 1 : 1};background:${esc(h)}"></div>`).join('')}</div></div>` : ''}`;
   }
@@ -662,6 +676,7 @@ main>*{animation:rise .45s var(--ease-out) both}
     if (d.undate) { const ids = d.undate.split(','); D.dates = list('dates').filter(x => !ids.includes(x.id)); save('dates', D.dates, true); renderPhases(); renderCount(); return; }
     if (t.id === 'makeMood') return call('projectMood');
     if (t.id === 'openVault') return call('projectTool', { id: 'vault' });
+    if (d.reveal) return call('projectReveal', { rel: d.reveal });
     if (d.ref) return call('openRef', { id: d.ref });
     if (d.read) return readBrief(d.read);
     if (d.editdel != null && !t.closest('.edit')) { editingDel = d.editdel; renderDels(); const f = $('dels').querySelector('.edit input'); if (f) f.focus(); return; }

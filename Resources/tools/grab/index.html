@@ -294,6 +294,7 @@ select{font-family:var(--mono);font-size:11.5px;padding:0.3rem 0.5rem;border:1px
             <option value="30">30</option><option value="50">50</option>
             <option value="59.94">59.94</option><option value="60">60</option>
           </select></span>
+        <button class="pill" id="finalBtn" hidden title="Keeps a copy with the project: Lexus_Docs › Final film, in the Vault, and first on the project page">Save as the final film</button>
       </div>
       <p class="note warn" id="filmMsg"></p>
       <div class="project" id="projBlock" hidden>
@@ -608,6 +609,9 @@ select{font-family:var(--mono);font-size:11.5px;padding:0.3rem 0.5rem;border:1px
       try { const r = await fileCall('film', { name: file.name, size: file.size }); nativeFilm = !!(r && r.ok); }
       catch (e) { nativeFilm = false; }
     }
+    // The finished film can be kept with its project.
+    $('finalBtn').hidden = !(filesBridge && nativeFilm);
+    $('finalBtn').disabled = false; $('finalBtn').textContent = `Save as ${sharedProject || 'the project'}'s final film`;
 
     const found = await detectFps();
     fps = found || 24;
@@ -1467,6 +1471,12 @@ select{font-family:var(--mono);font-size:11.5px;padding:0.3rem 0.5rem;border:1px
   // Sync: the project list, and where things save, fresh.
   window.__neededSynced = () => { if (filesBridge && dest) loadProjects(); };
   // A film dropped on Home: played from the app, found by name for saving.
+  $('finalBtn').addEventListener('click', async () => {
+    const b = $('finalBtn'); b.disabled = true; b.textContent = 'Saving…';
+    let r; try { r = await fileCall('saveFinalFilm', { project: sharedProject }); } catch (e) { r = null; }
+    if (r && r.ok) { b.textContent = `Saved — ${r.project}'s final film`; toast(`Saved into ${r.project} › ${r.project}_Docs › Final film — it's first on the project page`); }
+    else { b.disabled = false; b.textContent = `Save as ${sharedProject || 'the project'}'s final film`; toast((r && r.error) || "Couldn't save it"); }
+  });
   window.__neededOpenFilm = (name, size) => {
     const type = /[.]webm$/i.test(name) ? 'video/webm' : 'video/mp4';
     loadFilm({ name, size, type, __url: new URL('film/' + encodeURIComponent(name) + '?t=' + Date.now(), location.href).href });
