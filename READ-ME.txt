@@ -438,3 +438,6 @@ ROUND 9 — DESIGN, SIMPLER AND FILLED FOR YOU
     order, so the pages after it move along but keep their own counts.
     "Use N on every page" sets them all. The cover, Free pages and pages of
     words only keep their own pictures.
+  • The guide (? in Design), the start screen and the welcome now describe
+    "Pictures on this page" page by page, and the key list includes
+    right-click.
