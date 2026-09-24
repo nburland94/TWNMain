@@ -14,7 +14,8 @@
 .pg{position:relative;overflow:hidden;flex-shrink:0}
 .pg .pic{position:absolute;overflow:hidden;background:#d9cfc4}
 .pg .pic img{display:block;width:100%;height:100%;object-fit:cover;-webkit-user-drag:none;user-select:none}
-.pg .fade{position:absolute;pointer-events:none}
+.pg .fade{position:absolute;pointer-events:none;z-index:500}
+.pg .mark,.pg .ttl{z-index:5000}
 .pg .tb{position:absolute;white-space:pre-wrap;word-wrap:break-word;margin:0;box-sizing:border-box}
 .pg .ttl{position:absolute;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;font-weight:400;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .pg .mark{position:absolute;display:block}
@@ -78,8 +79,8 @@ select.sel{appearance:none;-webkit-appearance:none;border:1px solid rgba(28,28,2
 .pagewrap{position:relative;box-shadow:0 20px 60px rgba(80,30,10,0.16),0 0 0 0.5px rgba(0,0,0,0.1)}
 .pagewrap .pg{transform-origin:0 0;position:absolute;left:0;top:0}
 .pagewrap .pic{cursor:pointer}
-.pagewrap .pic.sel{outline:solid #F05A22;outline-offset:-1px;z-index:2}
-.pagewrap .pic.reframe{cursor:grab;outline:dashed #F05A22;z-index:3}
+.pagewrap .pic.sel{outline:solid #F05A22;outline-offset:-1px}
+.pagewrap .pic.reframe{cursor:grab;outline:dashed #F05A22}
 .pagewrap .pic.feat::after{content:'★';position:absolute;right:0.4em;top:0.2em;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,0.5)}
 .pagewrap .pic.dropbefore{box-shadow:inset 6px 0 0 #F05A22}
 .pagewrap .tb{cursor:move;-webkit-user-select:none;user-select:none;min-height:0.9em}
@@ -103,6 +104,14 @@ select.sel{appearance:none;-webkit-appearance:none;border:1px solid rgba(28,28,2
 .fadesel .fh[data-fh=tl]{left:-6px;top:-6px;cursor:nwse-resize}.fadesel .fh[data-fh=tr]{right:-6px;top:-6px;cursor:nesw-resize}
 .fadesel .fh[data-fh=bl]{left:-6px;bottom:-6px;cursor:nesw-resize}.fadesel .fh[data-fh=br]{right:-6px;bottom:-6px;cursor:nwse-resize}
 .fadelbl{position:absolute;left:8px;top:8px;font-size:11.5px;color:#fff;background:rgba(240,90,34,0.9);border-radius:100px;padding:3px 10px;white-space:nowrap;pointer-events:none}
+.arrbar[hidden]{display:none}
+.arrbar{position:absolute;z-index:9;display:flex;gap:0;border-radius:100px;padding:3px;white-space:nowrap}
+.arrbar button{border:none;background:transparent;border-radius:100px;padding:5px 10px;font-size:12px;color:#141414}
+@media (hover:hover) and (pointer:fine){.arrbar button:hover{background:rgba(240,90,34,0.12)}}
+.gapmark{position:absolute;z-index:8;pointer-events:none;background:#F05A22;opacity:0.55}
+.gapmark.hit{opacity:1}
+.gapmark span{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-family:'Courier Prime',monospace;font-size:11px;color:#fff;background:#8a8784;border-radius:100px;padding:1px 7px;white-space:nowrap}
+.gapmark.hit span{background:#F05A22}
 .splitbar[hidden]{display:none}
 .splitbar{position:absolute;z-index:6;display:flex;align-items:center;justify-content:center}
 .splitbar::before{content:'';border-radius:4px;background:#F05A22;opacity:0.35;transition:opacity .15s}
@@ -296,7 +305,7 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
   <header class="bar" id="bar"></header>
   <div class="strip" id="strip"></div>
   <div class="work" id="work">
-    <div class="stage" id="stage"><div class="scroller" id="scroller"><div class="pagewrap" id="pagewrap"></div><div class="boxsel" id="boxsel" hidden><i class="h" data-h="l"></i><i class="h" data-h="r"></i><i class="h" data-h="br"></i><i class="h" data-h="b"></i></div><div class="fadesel" id="fadesel" hidden><i class="fh" data-fh="tl"></i><i class="fh" data-fh="tr"></i><i class="fh" data-fh="bl"></i><i class="fh" data-fh="br"></i><span class="fadelbl">Fade — drag to move · corners to size · R rotates · Esc done</span></div><div class="splitbar" id="splitbar" hidden title="Drag: more or less room for the pictures"></div><div class="guide v" id="guideX" hidden></div><div class="guide hz" id="guideY" hidden></div></div><div class="swapbar g" id="swapbar" hidden></div><div class="stagehint" id="stagehint"></div>
+    <div class="stage" id="stage"><div class="scroller" id="scroller"><div class="pagewrap" id="pagewrap"></div><div class="boxsel" id="boxsel" hidden><i class="h" data-h="l"></i><i class="h" data-h="r"></i><i class="h" data-h="br"></i><i class="h" data-h="b"></i></div><div class="fadesel" id="fadesel" hidden><i class="fh" data-fh="tl"></i><i class="fh" data-fh="tr"></i><i class="fh" data-fh="bl"></i><i class="fh" data-fh="br"></i><span class="fadelbl">Fade — drag to move · corners to size · R rotates · Esc done</span></div><div class="arrbar g" id="arrbar" hidden><button type="button" data-z="front" title="To the front">⤒ Front</button><button type="button" data-z="forward" title="Forward one">↑</button><button type="button" data-z="backward" title="Back one">↓</button><button type="button" data-z="back" title="To the back">⤓ Back</button><button type="button" data-arr="reframe" class="arrpic" title="Reframe — or double-click">Reframe</button></div><div class="splitbar" id="splitbar" hidden title="Drag: more or less room for the pictures"></div><div class="guide v" id="guideX" hidden></div><div class="guide hz" id="guideY" hidden></div></div><div class="swapbar g" id="swapbar" hidden></div><div class="stagehint" id="stagehint"></div>
       <div class="zoombar g" id="zoombar" role="group" aria-label="Zoom"><button type="button" data-zoom="out" aria-label="Zoom out — ⌘−">−</button><button type="button" id="zoomPct" data-zoom="fit" title="Fit the page — ⌘0">100%</button><button type="button" data-zoom="in" aria-label="Zoom in — ⌘+">+</button><button type="button" data-zoom="fit" class="zfit" title="⌘0">Fit</button></div></div>
   </div>
   <aside class="panel" id="panel"></aside>
@@ -404,6 +413,8 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
   // Which edge the fade comes from: yours if you've turned it, else the side the words are on.
   const fadeFrom = (page, lay) => (page.fade && page.fade.from) || (lay === 'left' ? 'right' : lay === 'right' ? 'left' : lay === 'bottom' ? 'top' : 'bottom');
   const FROMS = ['bottom', 'left', 'top', 'right'];          // clockwise
+  // One stacking order for pictures and words on a page: pictures start at the back (in order), then the fade, then the words.
+  const zOf = (o, i, kind) => o.z != null ? o.z : kind === 'pic' ? i : 1000 + i;
   const hasWords = page => (page.boxes || []).some(b => (b.text || '').trim());
   // Boxes one under another in an area, from the top — or sitting on its bottom edge.
   function stackIn(G, T, items, anchor) {
@@ -496,7 +507,7 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
       const src = 'vault/' + encodeURI(opt.thumbs ? (p.thumb || p.file) : p.file);
       const cls = 'pic' + (sel.has(k) ? ' sel' : '') + (opt.reframe === k ? ' reframe' : '') + (opt.edit && p.featured ? ' feat' : '');
       const deco = (p.border ? `;border:${(p.border.w || 2) * u}px solid ${esc(p.border.c || '#ffffff')}` : '') + (p.shadow ? `;box-shadow:0 ${14 * u}px ${44 * u}px rgba(0,0,0,0.38)` : '') + (p.radius ? `;border-radius:${p.radius * u}px` : '');
-      h += `<div class="${cls}" data-k="${k}"${opt.edit && L.lay !== 'free' ? ' draggable="true"' : ''} style="left:${r.x.toFixed(1)}px;top:${r.y.toFixed(1)}px;width:${r.w.toFixed(1)}px;height:${r.h.toFixed(1)}px;opacity:${p.opacity == null ? 1 : p.opacity}${deco}${opt.edit ? `;outline-width:${Math.max(2, 3 / (opt.scale || 1))}px` : ''}">`
+      h += `<div class="${cls}" data-k="${k}"${opt.edit && L.lay !== 'free' ? ' draggable="true"' : ''} style="left:${r.x.toFixed(1)}px;top:${r.y.toFixed(1)}px;width:${r.w.toFixed(1)}px;height:${r.h.toFixed(1)}px;opacity:${p.opacity == null ? 1 : p.opacity};z-index:${zOf(p, k, 'pic')}${deco}${opt.edit ? `;outline-width:${Math.max(2, 3 / (opt.scale || 1))}px` : ''}">`
         + `<img alt="" draggable="false" src="${esc(src)}" style="object-position:${c.x}% ${c.y}%;transform:scale(${c.z});transform-origin:${c.x}% ${c.y}%"></div>`;
     });
     // The fade: from the side the words are on, to black or to the page colour.
@@ -534,7 +545,7 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
     return (page.boxes || []).map(b => {
       if (!(b.text || '').trim() && !opt.edit) return '';
       const ed = opt.editing === b.id;
-      return `<div class="tb" data-b="${esc(b.id)}"${ed ? ' contenteditable="plaintext-only" spellcheck="false"' : ''}${opt.edit ? ' data-ph="Type here"' : ''} style="${boxCss(b, G, dark)}">${esc(b.text)}</div>`;
+      return `<div class="tb" data-b="${esc(b.id)}"${ed ? ' contenteditable="plaintext-only" spellcheck="false"' : ''}${opt.edit ? ' data-ph="Type here"' : ''} style="${boxCss(b, G, dark)};z-index:${zOf(b, (page.boxes || []).indexOf(b), 'box')}">${esc(b.text)}</div>`;
     }).join('');
   }
 
@@ -688,8 +699,23 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
     drawBoxSel();
     drawSplit();
     drawFadeSel();
+    drawArrBar();
     drawSwap();
   }
+  // The little bar above what you've picked: front, forward, backward, back (and reframe, for a picture).
+  function drawArrBar() {
+    const bar = $('arrbar');
+    const k = !bsel && sel.size === 1 ? [...sel][0] : null;
+    const el = editing || reframe != null || drag ? null : bsel ? boxEl(bsel) : k != null ? $('pagewrap').querySelector(`.pic[data-k="${k}"]`) : null;
+    if (!el) { bar.hidden = true; return; }
+    const sc = $('scroller'), sr = sc.getBoundingClientRect(), r = el.getBoundingClientRect();
+    bar.querySelector('.arrpic').hidden = !!bsel;
+    bar.hidden = false;
+    const bw = bar.offsetWidth, top = r.top - sr.top + sc.scrollTop - 44;
+    bar.style.left = Math.max(4, r.left - sr.left + sc.scrollLeft + r.width / 2 - bw / 2) + 'px';
+    bar.style.top = (top < sc.scrollTop + 4 ? r.bottom - sr.top + sc.scrollTop + 10 : top) + 'px';
+  }
+  $('arrbar').addEventListener('mousedown', e => e.stopPropagation());
   // The divider between the pictures and the words, on Left, Right, Top and Bottom pages.
   function drawSplit() {
     const bar = $('splitbar'), L = doc && layout(doc, page()), dv = L && L.divider;
@@ -817,6 +843,13 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
     const p = page(); if (!p) return null;
     const b = bsel && boxById(bsel); if (b) return { kind: 'box', o: b };
     if (sel.size === 1 && layoutOf(doc, p) === 'free') { const k = [...sel][0]; return p.pics[k] ? { kind: 'pic', o: p.pics[k], k } : null; }
+    return null;
+  }
+  // What front / back moves: the picked text box, or the picked picture on any page.
+  function stackTarget() {
+    const p = page(); if (!p) return null;
+    const b = bsel && boxById(bsel); if (b) return { kind: 'box', o: b };
+    if (sel.size === 1) { const k = [...sel][0]; return p.pics[k] ? { kind: 'pic', o: p.pics[k], k } : null; }
     return null;
   }
   // One column, no tabs: for words — the words, the box, where it sits; for pictures — the picture, its look, where it sits.
@@ -1310,6 +1343,56 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
     return { x: sx ? sx.pos : x, y: sy ? sy.pos : y, gx: sx ? sx.line : null, gy: sy ? sy.line : null };
   }
 
+  /* ---------------------------------------------------------------- equal spacing, measured */
+  // Everything else on the page, as rectangles in page pixels.
+  function otherRects(skipPic, skipBox) {
+    const p = page(), L = layout(doc, p), G = L.G, out = [];
+    L.rects.forEach((r, k) => { if (r && k !== skipPic) out.push(r); });
+    (p.boxes || []).forEach(b => { if (b.id === skipBox || !(b.text || '').trim()) return; const el = boxEl(b.id); out.push({ x: b.x * G.W, y: b.y * G.H, w: b.w * G.W, h: el ? el.offsetHeight : 20 }); });
+    return out;
+  }
+  // While you drag: the gap to your neighbours, in points; snap to (and mark) a gap already on the page.
+  function spacing(M, others) {
+    const tol = 7 / scale, marks = [], gapsX = [], gapsY = [];
+    const overlapY = (a, b) => Math.min(a.y + a.h, b.y + b.h) - Math.max(a.y, b.y) > 4;
+    const overlapX = (a, b) => Math.min(a.x + a.w, b.x + b.w) - Math.max(a.x, b.x) > 4;
+    others.forEach(a => others.forEach(b => {
+      if (a === b) return;
+      if (overlapY(a, b) && b.x >= a.x + a.w - 0.5) gapsX.push({ g: b.x - (a.x + a.w), a, b });
+      if (overlapX(a, b) && b.y >= a.y + a.h - 0.5) gapsY.push({ g: b.y - (a.y + a.h), a, b });
+    }));
+    let x = M.x, y = M.y, hitX = null, hitY = null;
+    const nearest = (list, pick) => list.reduce((best, o) => { const d = pick(o); return d >= -0.5 && (!best || d < best.d) ? { o, d } : best; }, null);
+    const L = nearest(others.filter(o => overlapY(o, M)), o => M.x - (o.x + o.w)), R = nearest(others.filter(o => overlapY(o, M)), o => o.x - (M.x + M.w));
+    const T = nearest(others.filter(o => overlapX(o, M)), o => M.y - (o.y + o.h)), B = nearest(others.filter(o => overlapX(o, M)), o => o.y - (M.y + M.h));
+    const match = (d, list) => list.find(q => Math.abs(q.g - d) <= tol && q.g > 1);
+    if (L) { const m = match(L.d, gapsX); if (m) { x = L.o.x + L.o.w + m.g; hitX = m; } }
+    if (!hitX && R) { const m = match(R.d, gapsX); if (m) { x = R.o.x - m.g - M.w; hitX = m; } }
+    if (T) { const m = match(T.d, gapsY); if (m) { y = T.o.y + T.o.h + m.g; hitY = m; } }
+    if (!hitY && B) { const m = match(B.d, gapsY); if (m) { y = B.o.y - m.g - M.h; hitY = m; } }
+    const N = { x, y, w: M.w, h: M.h };
+    const hgap = (a, b, hit) => { const y0 = Math.max(a.y, b.y), y1 = Math.min(a.y + a.h, b.y + b.h); marks.push({ axis: 'x', x: a.x + a.w, y: (y0 + y1) / 2, len: b.x - (a.x + a.w), hit }); };
+    const vgap = (a, b, hit) => { const x0 = Math.max(a.x, b.x), x1 = Math.min(a.x + a.w, b.x + b.w); marks.push({ axis: 'y', x: (x0 + x1) / 2, y: a.y + a.h, len: b.y - (a.y + a.h), hit }); };
+    if (L && L.d < 400) hgap(L.o, N, !!hitX); if (R && R.d < 400) hgap(N, R.o, !!hitX);
+    if (T && T.d < 400) vgap(T.o, N, !!hitY); if (B && B.d < 400) vgap(N, B.o, !!hitY);
+    if (hitX) hgap(hitX.a, hitX.b, true); if (hitY) vgap(hitY.a, hitY.b, true);
+    return { x, y, marks, snappedX: !!hitX, snappedY: !!hitY };
+  }
+  function drawGaps(marks) {
+    document.querySelectorAll('.gapmark').forEach(m => m.remove());
+    if (!marks || !marks.length) return;
+    const sc = $('scroller'), sr = sc.getBoundingClientRect(), w = $('pagewrap').getBoundingClientRect();
+    const ox = w.left - sr.left + sc.scrollLeft, oy = w.top - sr.top + sc.scrollTop;
+    marks.forEach(m => {
+      if (m.len < 1) return;
+      const el = document.createElement('div'); el.className = 'gapmark' + (m.hit ? ' hit' : '');
+      if (m.axis === 'x') Object.assign(el.style, { left: (ox + m.x * scale) + 'px', top: (oy + m.y * scale) + 'px', width: (m.len * scale) + 'px', height: '1.5px' });
+      else Object.assign(el.style, { left: (ox + m.x * scale) + 'px', top: (oy + m.y * scale) + 'px', height: (m.len * scale) + 'px', width: '1.5px' });
+      el.innerHTML = `<span>${Math.round(m.len)} pt</span>`;
+      sc.appendChild(el);
+    });
+  }
+
   /* ---------------------------------------------------------------- the fade, as its own thing on the page */
   function rotateFade(dir) {
     const p = page(); if (!p.fade || !p.fade.on) return;
@@ -1341,13 +1424,19 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
   }
   const editPics = fn => { if (sel.size) change(() => [...sel].forEach(k => { const x = page().pics[k]; if (x) fn(x); })); };
   function ensureBox(k) { const p = page(), x = p.pics[k]; if (x && !x.box) x.box = defaultBox(geometry(doc), x, k); return x && x.box; }
+  // Front and back across pictures and words together.
   function arrangeZ(dir) {
-    const t = arrangeTarget(); if (!t) return;
-    const p = page(), list = t.kind === 'box' ? p.boxes : p.pics, i = list.indexOf(t.o);
-    const to = dir === 'back' ? 0 : dir === 'front' ? list.length - 1 : clamp(i + (dir === 'forward' ? 1 : -1), 0, list.length - 1);
+    const t = stackTarget(); if (!t) return;
+    const p = page();
+    const all = p.pics.map((o, i) => ({ o, z: zOf(o, i, 'pic') })).concat((p.boxes || []).map((o, i) => ({ o, z: zOf(o, i, 'box') }))).sort((a, b) => a.z - b.z);
+    const i = all.findIndex(x => x.o === t.o);
+    const to = dir === 'back' ? 0 : dir === 'front' ? all.length - 1 : clamp(i + (dir === 'forward' ? 1 : -1), 0, all.length - 1);
     if (to === i) return toast(dir === 'back' || dir === 'backward' ? 'Already at the back' : 'Already at the front');
-    change(() => { list.splice(i, 1); list.splice(to, 0, t.o); if (t.kind === 'pic') sel = new Set([to]); });
-    if (t.kind === 'box') toast('Words always sit above the pictures — this moves it among the other text');
+    change(() => {
+      const [x] = all.splice(i, 1); all.splice(to, 0, x);
+      all.forEach((y, n) => { y.o.z = n; });              // the stack, written out
+    });
+    toast({ front: 'To the front', back: 'To the back', forward: 'Forward one', backward: 'Back one' }[dir]);
   }
   function alignTo(a) {
     const t = arrangeTarget(); if (!t) return;
@@ -1533,6 +1622,7 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
     if (t.id === 'pBorderTog') return editPics(x => { x.border = x.border ? null : { c: '#ffffff', w: 2 }; });
     if (t.id === 'pShadowTog') { const on = !(page().pics[[...sel][0]] || {}).shadow; return editPics(x => { x.shadow = on; }); }
     if (d.z) return arrangeZ(d.z);
+    if (d.arr === 'reframe') { const k = [...sel][0]; if (k != null) { reframe = reframe === k ? null : k; drawStage(); drawPanel(); } return; }
     if (d.al) return alignTo(d.al);
     if (t.id === 'aDup') return bsel ? dupBox(bsel) : dupPic();
     if (t.id === 'aDel') return bsel ? deleteBox(bsel) : removePics([...sel]);
@@ -1587,6 +1677,11 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
   const closeCtx = () => { $('ctxmenu').hidden = true; };
   async function runCtx(what) {
     const ids = ctxIds.slice(); closeCtx();
+    if (what.startsWith('z:')) return arrangeZ(what.slice(2));
+    if (what === 'obj:reframe') { const k = [...sel][0]; reframe = k; drawStage(); return drawPanel(); }
+    if (what === 'obj:type') return bsel && startEditing(bsel);
+    if (what === 'obj:dup') return bsel ? dupBox(bsel) : dupPic();
+    if (what === 'obj:del') return bsel ? deleteBox(bsel) : removePics([...sel]);
     if (what === 'none') { trayPick.clear(); return paintTrayPick(); }
     if (what === 'vault') return call('openRef', { id: ids[0] });
     if (what === 'mood' || what === 'treatment') { await flushSave(); trayPick.clear(); return makeNew(what, ids); }
@@ -1608,6 +1703,24 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
     e.preventDefault();
     if (!trayPick.has(st.dataset.id)) { trayPick = new Set([st.dataset.id]); paintTrayPick(); }
     openCtx(e.clientX, e.clientY, [...trayPick]);
+  });
+  // Right-click a picture or a text box on the page: its stacking, and copy or delete.
+  $('stage').addEventListener('contextmenu', e => {
+    if (!doc) return;
+    const pic = e.target.closest('#pagewrap .pic'), tb = e.target.closest('#pagewrap .tb');
+    if (!pic && !tb) return;
+    e.preventDefault();
+    stopEditing();
+    if (tb) { bsel = tb.dataset.b; sel.clear(); } else { bsel = null; sel = new Set([+pic.dataset.k]); }
+    drawStage(); drawPanel();
+    const m = $('ctxmenu'); ctxIds = []; ctxHi = 0;
+    const items = [['z:front', 'Bring to front', ''], ['z:forward', 'Bring forward', ''], ['z:backward', 'Send backward', ''], ['z:back', 'Send to back', ''], null]
+      .concat(pic ? [['obj:reframe', 'Reframe', 'double-click']] : [['obj:type', 'Type in it', 'Return']]).concat([['obj:dup', 'Duplicate', '⌘D'], ['obj:del', tb ? 'Delete' : 'Take off the page', '⌫']]);
+    m.innerHTML = items.map(it => it ? `<button role="menuitem" data-ctx="${it[0]}"><span>${esc(it[1])}</span><small>${it[2]}</small></button>` : '<hr>').join('');
+    m.hidden = false;
+    const r = m.getBoundingClientRect();
+    m.style.left = Math.min(e.clientX, innerWidth - r.width - 8) + 'px'; m.style.top = Math.min(e.clientY, innerHeight - r.height - 8) + 'px';
+    paintCtx();
   });
   $('ctxmenu').addEventListener('click', e => { const b = e.target.closest('[data-ctx]'); if (b) runCtx(b.dataset.ctx); });
   document.addEventListener('mousedown', e => { if (!$('ctxmenu').hidden && !e.target.closest('#ctxmenu')) closeCtx(); }, true);
@@ -1795,7 +1908,12 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
     if (drag.kind === 'move') {
       const dy = (e.clientY - drag.y0) / scale, w = b.w * G.W, h = el.offsetHeight;
       let x = drag.b.x * G.W + dx, y = drag.b.y * G.H + dy, gx = null, gy = null;
-      if (!(e.metaKey || e.ctrlKey)) { const sn = snapTo(x, y, w, h, b.id); x = sn.x; y = sn.y; gx = sn.gx; gy = sn.gy; }   // ⌘ while dragging: no snapping
+      if (!(e.metaKey || e.ctrlKey)) {   // ⌘ while dragging: no snapping
+        const sn = snapTo(x, y, w, h, b.id); x = sn.x; y = sn.y; gx = sn.gx; gy = sn.gy;
+        const sp = spacing({ x, y, w, h }, otherRects(null, b.id));
+        if (sp.snappedX) { x = sp.x; gx = null; } if (sp.snappedY) { y = sp.y; gy = null; }
+        drawGaps(spacing({ x, y, w, h }, otherRects(null, b.id)).marks);
+      }
       b.x = clamp(x, 0, G.W - w) / G.W; b.y = clamp(y, 0, Math.max(0, G.H - h)) / G.H;
       guides(gx, gy);
     } else {
@@ -1816,7 +1934,12 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
     const min = 40 * G.u;
     if (drag.kind === 'pmove') {
       X += dx; Y += dy;
-      if (!(e.metaKey || e.ctrlKey)) { const sn = snapTo(X, Y, W, H, null, drag.k); X = sn.x; Y = sn.y; gx = sn.gx; gy = sn.gy; }
+      if (!(e.metaKey || e.ctrlKey)) {
+        const sn = snapTo(X, Y, W, H, null, drag.k); X = sn.x; Y = sn.y; gx = sn.gx; gy = sn.gy;
+        const sp = spacing({ x: X, y: Y, w: W, h: H }, otherRects(drag.k, null));   // equal gaps win over the edge lines
+        if (sp.snappedX) { X = sp.x; gx = null; } if (sp.snappedY) { Y = sp.y; gy = null; }
+        drawGaps(spacing({ x: X, y: Y, w: W, h: H }, otherRects(drag.k, null)).marks);
+      }
       X = clamp(X, 0, Math.max(0, G.W - W)); Y = clamp(Y, 0, Math.max(0, G.H - H));
     } else if (drag.h === 'r') W = clamp(W + dx, min, G.W - X);
     else if (drag.h === 'l') { const nx = clamp(X + dx, 0, X + W - min); W = X + W - nx; X = nx; }
@@ -1828,7 +1951,7 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
   }
   document.addEventListener('mouseup', () => {
     if (drag && drag.kind) {
-      const d = drag; drag = null; guides(null, null);
+      const d = drag; drag = null; guides(null, null); drawGaps(null); drawArrBar();
       if (d.moved) { undo.push(d.before); if (undo.length > 120) undo.shift(); redo = []; persist(); drawStrip(); drawPanel(); }
       else if (d.kind === 'move' && d.was) startEditing(d.id, d.pt);    // a click on the picked box: type in it
       return;
@@ -1858,7 +1981,7 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
   $('stage').addEventListener('gesturestart', e => { if (!doc) return; e.preventDefault(); pinch0 = scale; });
   $('stage').addEventListener('gesturechange', e => { if (!doc) return; e.preventDefault(); setZoom(pinch0 * e.scale, e.clientX, e.clientY); });
   $('stage').addEventListener('gestureend', e => e.preventDefault());
-  $('scroller').addEventListener('scroll', () => { drawBoxSel(); drawSplit(); drawFadeSel(); });
+  $('scroller').addEventListener('scroll', () => { drawBoxSel(); drawSplit(); drawFadeSel(); drawArrBar(); });
 
   // Drag and drop: stills from the tray, pictures between places, pages in the strip.
   let dragData = null;
