@@ -161,6 +161,9 @@ body.resizing,body.resizing *{cursor:ns-resize!important;user-select:none}
 .trayhead{display:flex;align-items:center;gap:8px;padding:8px 20px;flex-wrap:nowrap;min-width:0}
 .trayhead .q{border:1px solid rgba(28,28,28,0.1);border-radius:100px;padding:6px 12px;font-size:12.5px;background:rgba(255,255,255,0.75);outline:none;width:160px;min-width:80px}
 .trayhead .q:focus{border-color:var(--accent)}
+.trayper{display:flex;align-items:center;gap:9px;white-space:nowrap;flex-shrink:0;margin-left:8px;padding:5px 12px;border-radius:100px;background:rgba(255,255,255,0.6);border:1px solid rgba(240,90,34,0.3)}
+.trayper input{width:130px;accent-color:#F05A22}
+.trayper .val{font-family:'Courier Prime',monospace;font-size:12px;width:16px;text-align:right}
 .trayhead .count{font-size:12px;color:#6b6964;white-space:nowrap}
 .traygrid{position:relative;flex-grow:1;overflow-y:auto;padding:4px 20px 14px;display:flex;flex-wrap:wrap;gap:6px;align-content:flex-start;user-select:none}
 .still{position:relative;flex-shrink:0;border-radius:5px;overflow:hidden;background:#e9d3c4;cursor:pointer;outline-offset:1px}
@@ -760,17 +763,15 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
     const range = (id, label, v, min, max, step, fmt) => `<div class="prow"><label for="${id}">${label}</label><input type="range" id="${id}" min="${min}" max="${max}" step="${step}" value="${v}"><span class="val">${fmt ? fmt(v) : v}</span></div>`;
     const pct = v => Math.round(v * 100) + '%';
     const pal = paletteOf(p.pics);
-    let h = `<div class="phead"><b>${ctx === 'text' ? 'Text' : ctx === 'pic' ? (sel.size > 1 ? `${sel.size} pictures` : 'Picture') : `Page ${cur + 1}`}</b>${ctx !== 'page' ? '<button class="tbtn" id="panelPage" title="Esc">Page ›</button>' : ''}</div>`;
+    let h = `<div class="phead"><b>${ctx === 'text' ? 'Text' : ctx === 'pic' ? (sel.size > 1 ? `${sel.size} pictures` : 'Picture') : `Page ${cur + 1}`}</b>${ctx !== 'page' ? '<button class="tbtn" id="panelPage" title="Esc">Page ›</button>' : mood ? '' : `<button class="tbtn" id="panelText" title="${(p.boxes || []).length ? 'The words on this page' : 'Add a text box — T'}" style="color:#d2440f">Text ›</button>`}</div>`;
     if (ctx === 'page') {
       const bgNow = p.bg || doc.bg;
       const presets = ['#f4f1ec', '#ffffff', '#ece6dc', '#141414', '#0a0a0a', '#1e2227'];
       const pickedN = doc.from === 'picked' ? (doc.fromIds || []).length : trayPick.size, offN = (doc.off || []).length;
       h += `
         <div class="psec"><span class="cap">Pictures on this page</span>
-          ${isDealt(p, cur) ? `${range('perPage', '', Math.min(12, p.pics.length), 0, 12, 1)}
-          <span class="empty" id="dealInfo" style="margin-top:-4px">${esc(pageInfo())}</span>
-          <button class="tbtn" id="perAll" style="align-self:flex-start;padding-left:0" title="Fills or trims every page to this many">Make every page ${Math.min(12, p.pics.length)}</button>`
-          : `<span class="empty">${p.layout === 'free' ? 'A Free page keeps the pictures you placed.' : cur === 0 && p.layout === 'bleed' ? 'The cover keeps its picture.' : 'A page of words only.'}</span>`}
+          <span class="empty" id="dealInfo" style="margin-top:-4px">${esc(pageInfo())} — the slider is in the stills bar below</span>
+          <button class="tbtn" id="perAll" style="align-self:flex-start;padding-left:0" title="Fills or trims every page to this many">Make every page ${Math.min(12, p.pics.length)}</button>
           <span class="cap" style="margin-top:4px">From</span>
           <div class="seg"><button data-from="project" class="${doc.from !== 'picked' ? 'on' : ''}">The project</button><button data-from="picked" class="${doc.from === 'picked' ? 'on' : ''}" title="The stills picked in the tray">Picked${pickedN ? ` (${pickedN})` : ''}</button></div>
           ${offN ? `<button class="tbtn" id="unOff" style="align-self:flex-start;padding-left:0" title="Stills you took off are skipped when the slider adds more">Let the ${offN} taken off back in</button>` : ''}</div>`;
@@ -819,6 +820,7 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
       <div class="seg"><button data-scope="project" class="${scope === 'project' ? 'on' : ''}">${esc(project || 'This project')}</button><button data-scope="vault" class="${scope === 'vault' ? 'on' : ''}">Entire vault</button></div>
       <input class="q" id="trayQ" placeholder="Search" value="${esc(trayQ)}" spellcheck="false">
       <span class="count">${list.length} still${list.length === 1 ? '' : 's'}${trayPick.size ? ` · ${trayPick.size} picked` : ''}</span>
+      ${doc && page() ? `<label class="trayper" title="How many pictures on this page — only this page changes"><span class="cap">This page</span><input type="range" id="perPage" min="0" max="12" step="1" value="${Math.min(12, page().pics.length)}"><span class="val">${Math.min(12, page().pics.length)}</span></label>` : ''}
       <span style="flex-grow:1"></span>
       ${doc ? `<button class="tbtn" id="addPicked" ${trayPick.size ? '' : 'disabled'} title="Or double-click, drag them onto the page, or right-click for more">Add to page</button>` : ''}
       <button class="tbtn" id="photosBtn2" title="Photos, or whole folders of them, from your Mac">+ Photos</button>
@@ -1293,6 +1295,11 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
     if (!doc) { if (d.scope || d.tsize) trayHead(d); if (t.classList.contains('still')) trayClick(e, t); return; }
     if (swap && !t.closest('#stage')) swapEnd(true);
     if (t.id === 'textBtn' || t.id === 'addText') return addBox();
+    if (t.id === 'panelText') {
+      const first = (page().boxes || [])[0];
+      if (!first) return addBox();
+      sel.clear(); reframe = null; bsel = first.id; drawStage(); return drawPanel();
+    }
     if (t.id === 'panelPage') { sel.clear(); bsel = null; reframe = null; stopEditing(); drawStage(); return drawPanel(); }
     if (t.id === 'docsBtn') return openDocs();
     if (d.mode && d.mode !== doc.mode) {
@@ -1493,6 +1500,7 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
   function drawTrayKeepFocus() { const pos = $('trayQ').selectionStart; drawTray(); const q = $('trayQ'); q.focus(); q.setSelectionRange(pos, pos); }
   document.addEventListener('change', async e => {
     const t = e.target; if (!doc) return;
+    if (t.id === 'perPage') { drawTray(); drawPanel(); return; }
     if (t.id === 'sizeSel') { change(() => { doc.size = t.value; }); return toast(`${SIZE_NAMES[t.value]} — every page re-flows to fit`); }
     if (t.id === 'bFont') return editBox(b => { b.font = t.value; });
     if (t.id === 'bPreset' && t.value) return editBox(b => Object.assign(b, preset(t.value)));

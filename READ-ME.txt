@@ -447,3 +447,7 @@ ROUND 9 — DESIGN, SIMPLER AND FILLED FOR YOU
     to unused). No other page moves. New designs start empty — slide to fill
     a page. Stills picked in the Vault or with right-click still arrive
     placed. "Make every page N" fills or trims them all, on purpose.
+  • Round 9.4: the "This page" slider lives in the stills bar and is always
+    there, on every page (cover and Free pages too); it only changes the
+    page you're on. The panel's header has "Text ›" beside "Page N" to jump
+    to the page's words (or add a text box), and "Page ›" to come back.
