@@ -146,10 +146,18 @@
     }
     return null;
   };
-  // Click the blur around a pop-up and it closes, same as its Done button.
+  // Click the blur around a pop-up and it closes, same as its Done button —
+  // and that click doesn't then land on whatever was underneath the pop-up.
+  let swallowClick = false;
   document.addEventListener('mousedown', e => {
     const o = openOne();
-    if (o && e.target === o[0] && o[1]) { e.preventDefault(); o[1].click(); }
+    if (o && e.target === o[0] && o[1]) {
+      e.preventDefault(); o[1].click();
+      swallowClick = true; setTimeout(() => { swallowClick = false; }, 600);
+    }
+  }, true);
+  document.addEventListener('click', e => {
+    if (swallowClick) { swallowClick = false; e.stopPropagation(); e.preventDefault(); }
   }, true);
   // ← in the top bar closes what's open before going back a tab.
   window.__neededBack = () => {

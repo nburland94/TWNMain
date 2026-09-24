@@ -554,7 +554,7 @@ final class Shell: NSObject, NSApplicationDelegate, NSWindowDelegate, WKScriptMe
             return (src?["type"] as? String) == "file" && it["at"] == nil ? "grab" : "reference"
         }
         // (Kept in small, typed steps: older Swift compilers give up on one big closure.)
-        let picked = v.index.filter { (it: [String: Any]) -> Bool in
+        let matching = v.index.filter { (it: [String: Any]) -> Bool in
             let kind = it["kind"] as? String ?? ""
             guard kind == "still" || kind == "gif" || kind == "clip" else { return false }
             let proj = it["project"] as? String ?? "Unsorted"
@@ -570,6 +570,20 @@ final class Shell: NSObject, NSApplicationDelegate, NSWindowDelegate, WKScriptMe
             let tagWords: String = (projectTags[proj] ?? []).joined(separator: " ")
             let text: String = Shell.searchText(it, label: (labels[proj] ?? "") + " " + tagWords)
             return words.allSatisfy { text.contains($0) }
+        }
+        // Home's colour picker: which colours are in what's showing, and — if one is
+        // picked — only the pictures that have it in their palette.
+        let colour = ((body["colour"] as? String) ?? "").lowercased()
+        var colourCounts: [String: Int] = [:]
+        for it in matching {
+            var names = Set<String>()
+            for hex in (it["palette"] as? [String]) ?? [] { for n in Shell.colourNames(hex) where Shell.families.contains(n) { names.insert(n) } }
+            for n in names { colourCounts[n, default: 0] += 1 }
+        }
+        let picked = matching.filter { (it: [String: Any]) -> Bool in
+            if colour.isEmpty { return true }
+            let palette: [String] = (it["palette"] as? [String]) ?? []
+            return palette.contains { Shell.colourNames($0).contains(colour) }
         }.sorted { ($0["created"] as? String ?? "") > ($1["created"] as? String ?? "") }.prefix(300)
         let items: [[String: Any]] = picked.compactMap { (it: [String: Any]) -> [String: Any]? in
             guard let id = it["id"] as? String, let thumb = it["thumb"] as? String, let file = it["file"] as? String else { return nil }
@@ -594,7 +608,7 @@ final class Shell: NSObject, NSApplicationDelegate, NSWindowDelegate, WKScriptMe
             out["palette"] = (it["palette"] as? [String]) ?? [String]()
             return out
         }
-        return ["items": items, "vault": true, "project": Shared.project]
+        return ["items": items, "vault": true, "project": Shared.project, "colours": colourCounts]
     }
 
     /// Everything Home's search looks through for one item: title, source, project,
@@ -614,6 +628,9 @@ final class Shell: NSObject, NSApplicationDelegate, NSWindowDelegate, WKScriptMe
         for hex in (it["palette"] as? [String]) ?? [] { hay.append(contentsOf: colourNames(hex)) }
         return hay.joined(separator: " ").lowercased()
     }
+
+    /// The colours Home's picker offers, in the order it shows them.
+    static let families = ["red", "orange", "yellow", "green", "teal", "blue", "purple", "pink", "brown", "black", "grey", "white"]
 
     /// Names for a colour, so "red" or "teal" finds pictures with it in their palette.
     static func colourNames(_ hex: String) -> [String] {

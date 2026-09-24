@@ -102,6 +102,15 @@ main{position:relative;height:100vh;display:grid;grid-template-columns:minmax(0,
 .seg2 select.on{background-color:var(--ink);color:#fff;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='9' height='6'%3E%3Cpath d='M1 1l3.5 3.5L8 1' fill='none' stroke='white' stroke-width='1.3'/%3E%3C/svg%3E")}
 
 /* ---- the vault wall ---- */
+/* Home's colour picker: the colours in what's showing — pick one to see only those */
+.colours{display:flex;gap:7px;align-items:center;flex-shrink:0;min-height:22px}
+.colours:empty{display:none}
+.colours .lab{font-family:'Courier Prime',monospace;font-size:10.5px;letter-spacing:0.16em;text-transform:uppercase;color:#7a5a48;margin-right:4px}
+.colours button{width:20px;height:20px;border-radius:50%;padding:0;border:1px solid rgba(28,28,28,0.14);cursor:pointer;transition:transform .15s var(--ease-out),box-shadow .15s var(--ease-out)}
+.colours button.on{box-shadow:0 0 0 2px #fcf2ec,0 0 0 3.5px #F05A22}
+.colours button:active{transform:scale(0.92)}
+@media (hover:hover) and (pointer:fine){.colours button:hover{transform:scale(1.12)}}
+.colours .clear{width:auto;height:auto;border:none;background:none;border-radius:0;font-size:12px;color:#6b6964;padding:2px 4px;margin-left:4px}
 .wall{flex-grow:1;min-height:0;display:flex;flex-direction:column;gap:4px;overflow-y:auto;overflow-x:hidden;border-radius:14px;scrollbar-width:none}
 .wall::-webkit-scrollbar{display:none}
 .wall[hidden]{display:none}
@@ -241,6 +250,7 @@ main{position:relative;height:100vh;display:grid;grid-template-columns:minmax(0,
       <button class="g qa" data-q="invoice" data-tip="Invoice|Opens Pay with a new invoice for this project." aria-label="Invoice"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1c1c1c" stroke-width="1.5" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6M9 12h6"/></svg><span>Invoice</span></button>
       </div>
     </div>
+    <div class="colours" id="colourRow" role="group" aria-label="Colour"></div>
     <div class="wall" id="wall"></div>
   </div>
   <div class="right">
@@ -402,13 +412,37 @@ main{position:relative;height:100vh;display:grid;grid-template-columns:minmax(0,
   $('scopeSeg').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; scope = b.dataset.v; setPref('scope', scope); paintSegs(); loadWall(); });
   paintSegs();
 
+  // The colours the picker shows, and how each looks as a swatch.
+  const SWATCH = { red: '#c0392b', orange: '#e67e22', yellow: '#d4b106', green: '#3a9d4a', teal: '#199aa8', blue: '#2f6fd0',
+    purple: '#7a51c8', pink: '#d24d8c', brown: '#7a4a2a', black: '#1c1c1c', grey: '#9a9a95', white: '#f2f1ef' };
+  let colour = pref('colour', '');
+  function paintColours(counts) {
+    counts = counts || {};
+    if (colour && !counts[colour]) counts[colour] = 0;              // keep the picked one showing, even at 0
+    const names = Object.keys(SWATCH).filter(n => counts[n] != null && (counts[n] > 0 || n === colour));
+    $('colourRow').innerHTML = names.length ? '<span class="lab">Colour</span>' + names.map(n =>
+      `<button class="${n === colour ? 'on' : ''}" data-colour="${n}" style="background:${SWATCH[n]}" title="${n} · ${counts[n]}" aria-label="${n}, ${counts[n]}" aria-pressed="${n === colour}"></button>`).join('') +
+      (colour ? '<button class="clear" data-colour="">All colours</button>' : '') : '';
+  }
+  $('colourRow').addEventListener('click', e => {
+    const b = e.target.closest('[data-colour]'); if (!b) return;
+    colour = b.dataset.colour === colour ? '' : b.dataset.colour;
+    setPref('colour', colour); lastSig = ''; loadWall();
+  });
+
   let lastSig = '';
   async function loadWall() {
-    let r; try { r = await call('homeData', { show, scope, label, q: $('q').value.trim() }); } catch (e) { r = null; }
+    let r; try { r = await call('homeData', { show, scope, label, colour, q: $('q').value.trim() }); } catch (e) { r = null; }
     const next = ordered((r && r.items) || []);
-    const sig = next.map(it => it.id).join(',') + '|' + show + scope + label;
+    const sig = next.map(it => it.id).join(',') + '|' + show + scope + label + colour;
     hasVault = !r || r.vault !== false;
-    if (sig === lastSig && $('wall').childElementCount) return;      // nothing's changed: leave the wall be
+    paintColours(r && r.colours);
+    if (sig === lastSig && $('wall').childElementCount) {
+      // Same pictures: keep the wall as it is, but take the fresh details (colours arrive after a picture does).
+      items = next;
+      if (viewing >= 0 && items[viewing]) paintPalette(items[viewing]);
+      return;
+    }
     lastSig = sig; items = next;
     layoutWall();
   }
@@ -542,10 +576,13 @@ main{position:relative;height:100vh;display:grid;grid-template-columns:minmax(0,
     const at = typeof it.at === 'number' ? ` · ${Math.floor(it.at / 60)}:${String(Math.floor(it.at % 60)).padStart(2, '0')}` : '';
     $('vMeta').textContent = `${it.project}${it.label ? ' · ' + it.label : ''} · ${it.origin === 'grab' ? 'Grab' : 'Reference'}${at}`;
     $('vSource').hidden = !/^https?:/.test(it.url || '');
-    $('vPalette').innerHTML = (it.palette || []).map(c => `<button style="background:${esc(c)}" title="Find more ${colourName(c)}" data-c="${esc(c)}" aria-label="Find more ${colourName(c)}"></button>`).join('');
-    $('vPalette').hidden = !(it.palette || []).length;
+    paintPalette(it);
     $('vPrev').disabled = i === 0; $('vNext').disabled = i === items.length - 1;
     $('viewer').classList.add('on');
+  }
+  function paintPalette(it) {
+    $('vPalette').innerHTML = (it.palette || []).map(c => `<button style="background:${esc(c)}" title="Find more ${colourName(c)}" data-c="${esc(c)}" aria-label="Find more ${colourName(c)}"></button>`).join('');
+    $('vPalette').hidden = !(it.palette || []).length;
   }
   function closeView() {
     $('viewer').classList.remove('on'); viewing = -1;
@@ -553,7 +590,12 @@ main{position:relative;height:100vh;display:grid;grid-template-columns:minmax(0,
     setTimeout(() => { if (viewing < 0) $('vMedia').innerHTML = ''; }, 300);
   }
   $('wall').addEventListener('click', e => { const b = e.target.closest('.shot'); if (b) view(items.findIndex(it => it.id === b.dataset.id)); });
-  $('viewer').addEventListener('mousedown', e => { if (e.target === $('viewer') || e.target === $('vMedia')) closeView(); });
+  let swallowClick = false;
+  $('viewer').addEventListener('mousedown', e => {
+    if (e.target === $('viewer') || e.target === $('vMedia')) { closeView(); swallowClick = true; setTimeout(() => { swallowClick = false; }, 600); }
+  });
+  // The click that closed the viewer mustn't open whatever was underneath it.
+  document.addEventListener('click', e => { if (swallowClick) { swallowClick = false; e.stopPropagation(); e.preventDefault(); } }, true);
   $('vOpen').addEventListener('click', () => { const it = items[viewing]; closeView(); call('openRef', { id: it.id }); });
   $('vReveal').addEventListener('click', () => call('revealItem', { file: items[viewing].file }));
   $('vSource').addEventListener('click', () => call('openURL', { url: items[viewing].url }));
@@ -567,7 +609,8 @@ main{position:relative;height:100vh;display:grid;grid-template-columns:minmax(0,
   });
   $('vPalette').addEventListener('click', e => {
     const b = e.target.closest('[data-c]'); if (!b) return;
-    closeView(); $('q').value = colourName(b.dataset.c); lastSig = ''; loadWall();
+    // "Find more" this colour: the colour picker, set to it
+    closeView(); colour = colourName(b.dataset.c); setPref('colour', colour); lastSig = ''; loadWall();
   });
   $('vPrev').addEventListener('click', () => view(viewing - 1));
   $('vNext').addEventListener('click', () => view(viewing + 1));

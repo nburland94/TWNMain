@@ -139,7 +139,11 @@ select{font-family:var(--mono);font-size:11.5px;padding:0.3rem 0.5rem;border:1px
 /* ---- stills tray ---- */
 .tray{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px}
 .still{position:relative;background:var(--panel);border:1px solid var(--hair);border-radius:var(--r);overflow:hidden;
-  opacity:0;transform:translateY(6px);animation:rise .28s var(--ease-out) forwards}
+  animation:cardIn .28s var(--ease-out) backwards}
+/* cards are visible by default and fade in as a flourish — if the Mac pauses animations
+   (a tab that was hidden a moment ago), they still show */
+@keyframes cardIn{from{opacity:0;transform:translateY(6px)}}
+.settled > *{animation:none!important}
 @keyframes rise{to{opacity:1;transform:none}}
 .still img{display:block;width:100%;height:auto;object-fit:contain;background:#111;cursor:pointer}
 .still .meta{display:flex;justify-content:space-between;align-items:center;padding:0.45rem 0.6rem 0.2rem;
@@ -705,6 +709,8 @@ select{font-family:var(--mono);font-size:11.5px;padding:0.3rem 0.5rem;border:1px
   const shapesOf = s => SHAPES.filter(a => (s.shapes || cropAspects()).includes(a));   // this still's own
 
   function renderTray() {
+    $('tray').classList.remove('settled'); clearTimeout(renderTray.t);
+    renderTray.t = setTimeout(() => $('tray').classList.add('settled'), 900);   // whatever happens, they end up visible
     $('tray').innerHTML = stills.map((s, i) => `
       <div class="still" data-id="${s.id}" style="animation-delay:${Math.min(i, 14) * 40}ms">
         <img alt="" src="${s.preview}" title="Jump to ${tc(s.t)}" style="aspect-ratio:${film.w} / ${film.h}">

@@ -233,3 +233,19 @@ ROUND 4 — FOUNDATIONS AND FIXES
   • No orange ring round the GIF / MP4 player in Grab and the Vault.
   • The kit clears macOS's download flag itself. If macOS still says it's
     damaged, run it with bash (see BUILDING).
+
+ROUND 4.1 — FIXES
+  • Home's viewer shows the colour palette. (Home was keeping the details
+    it had when the wall first loaded, so colours filled in afterwards
+    didn't show until something else changed.)
+  • Home has a colour picker under the search line: the colours in what's
+    showing — pick one and only pictures with it stay. Click a colour in
+    the viewer and the picker is set to it. "All colours" clears it.
+  • Open in Vault from Home: it waits for the vault to load, then opens
+    the reference. If it's from another project, the vault behind it
+    shows everything, so closing it never lands on an empty page.
+  • The Vault's pictures are always visible. They used to start invisible
+    and fade in — and if the Mac paused that fade (a tab that was hidden a
+    moment before), they stayed invisible: the blank Vault.
+  • Clicking out of a picture (on Home or in any tool) closes it — and
+    that click no longer lands on the picture underneath and opens it.
