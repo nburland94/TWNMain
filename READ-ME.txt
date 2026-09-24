@@ -1,0 +1,166 @@
+NEEDED TOOLS — BUILD KIT (Rounds A, B and C)
+
+All six tools in one app: Grab, Vault, Shots, Sort, Credit and Pay.
+
+BUILDING
+  Double-click "Build-Needed-Tools". Allow it once in System Settings →
+  Privacy & Security if macOS blocks it. It compiles, signs and opens
+  Needed Tools.
+
+  This is the first time six apps' code has been compiled together, so
+  it may stop with errors. If it does, a file called build-errors.txt
+  appears beside the script — drop it into the chat and I'll fix it.
+
+WHAT'S IN ROUND A
+  • Sign-in (placeholder) — press Sign in; nothing's checked yet.
+  • The top bar: Home and the six tools as tabs (⌘1 to ⌘7), your vault,
+    the project (orange), and Grab & Go.
+  • One vault and one project for everything. Change them in the top
+    bar or inside any tool — every tool follows.
+  • Each tool keeps its work while you switch tabs. Tools open the first
+    time you visit them, so launch stays quick.
+  • Home (Round B):
+      – The six tools along the top.
+      – Drop anything onto Home from Finder: a film opens in Grab, a
+        card or folder in Sort, a call sheet (PDF or text) in Credit,
+        and images save straight into the project's Stills.
+      – The vault wall: the project's newest stills, GIFs and clips in
+        their real shapes. Click one to open it in the Vault. An empty
+        project shows a big drop zone instead.
+      – Focus timer: ± in fives, Start, Pause, Resume, Reset. macOS
+        tells you when it's done, even if you're in another app —
+        allow notifications the first time.
+      – Calendar: your week from macOS Calendar, which includes Google
+        calendars if your Google account is added in System Settings →
+        Internet Accounts. Press "Show my calendar" and allow access.
+
+BEFORE YOU SWITCH FROM THE SEPARATE APPS
+  • Needed Credit: your contacts live inside the old app. Open the old
+    Needed Credit → Crew memory → Export backup, then in Needed Tools →
+    Credit → Import that file.
+  • Pay, Vault, Shots and Sort keep everything in files and folders, so
+    they carry across on their own.
+
+ROUND C
+  • Each tool keeps its title — Needed Grab, Needed Vault and so on.
+  • The welcome: full glass over the app, after you sign in. Eight
+    pages — Needed Tools, Grab & Go, then each tool's steps. "Don't
+    show this again" keeps it away; ? in the top bar brings it back,
+    opened at the tool you're in.
+  • Hints: the first time you open a tool, glass hints point at its
+    main controls, one at a time. "Got it" moves on; "All the steps"
+    opens that tool's page of the welcome.
+  • Undocking: the small arrow beside the open tool's tab moves it into
+    its own window — nothing's lost. Press Dock in that window's title
+    bar, or close it, and it goes back into its tab.
+
+ROUND D
+  • Drop anything works: files from Finder, and images dragged straight
+    from a browser.
+  • Focus timer: at zero, a chime and "Time's up" over Home, with Reset
+    or Five more. macOS notifies you too.
+  • ← and → in the top bar. ← closes whatever's open first (a reference,
+    a pop-up), then goes back a tab. Clicking the blur around a pop-up
+    closes it too.
+  • Every tool on the apricot glow, and filling the window at any size.
+  • A sleeker sign-in. The welcome in Home's light glass, with Grab & Go
+    as the last page.
+
+ROUND E — HOME
+  • Above the wall: References · Grabs · Both, and Entire vault · This
+    project. Your choice is remembered.
+    (References are what the Vault saved; grabs are what Needed Grab —
+    or you, in Finder — put in a project.)
+  • The wall: tighter, scrolls for more, and GIFs play.
+  • Click anything: it floats over a blurred Home, no frame, with its
+    details and options in a glass panel — Open in Vault, Open the
+    source, Show in Finder, ← →. Click outside, Esc or ← to close.
+  • Drop images on Home (from Finder or a browser): a pop-up asks which
+    project, and whether they're references or grabs.
+
+ROUND F
+  • Folders, for everything new (your existing files stay where they are):
+        Project/Grabs/       Stills · GIFs · Motion   ← Needed Grab
+        Project/References/  Stills · GIFs · Motion   ← Needed Vault
+    Images dropped on Home go to whichever you pick in the pop-up. The
+    Vault, Home and Shots look in the old folders and both new ones.
+  • Needed Shots: Shot list · Scene breakdown. Breakdown hides the
+    dropdowns — one free line per beat — and the PDF follows. Flip back
+    and your shot details are all still there.
+  • Calendar: Week · Month (remembered), ‹ › and Today, click any day
+    for its events. "Add Google Calendar" opens your Mac's Internet
+    Accounts — add Google there once and its calendars appear here.
+
+OVERNIGHT
+  • Order everywhere follows a project: Vault → Shots → Sort → Grab →
+    Credit → Pay (tabs, Home, the welcome, ⌘2–⌘7).
+  • Home: quick actions (Paste a link · New shot list · Scan a card ·
+    Open a film · New invoice) in place of Drop anything. Clips play on
+    the wall. Drag pictures to reorder — your order is kept. The viewer
+    shows the picture instantly and never a broken icon; Move to Trash.
+  • Faster: Home only re-reads the vault when it has changed, and
+    remembers each picture's shape.
+  • Grab & Go names files by what they really are (AVIF, WebP…), and
+    the vault serves files by their real type — so mislabelled ones open.
+  • Each tool shows its own intro the first time you open it.
+  • The Vault refreshes every time you open its tab; clips without a
+    preview frame show the clip itself.
+  • Grab and the Vault: a progress bar while a film comes in; players
+    in the film's own shape; "Shape of the GIF or MP4". The Vault's
+    viewer floats frameless over the blur.
+  • Shots: references stay in Scene breakdown, and print.
+  • Pay: optional Job number; no quantity column when every line is 1;
+    Email it — a new email in Mail to the client, PDF attached.
+  • A touch more contrast and gloss throughout.
+
+SENDING INVOICES
+  • Pay → Settings → Sending email: pick Gmail, Outlook, iCloud or Other,
+    your address, and an app password (Gmail: Google Account → Security
+    → 2-Step Verification must be on → App passwords). Save, then "Send
+    me a test". The password is kept in your Mac's Keychain.
+  • On an invoice, Send: it's exported if needed, then a panel with the
+    client's address, subject and message filled in. Send — the PDF goes
+    attached, with a copy to you — and the invoice notes when and to whom.
+  • "In Mail" still opens it in Apple Mail instead, if you prefer.
+
+WALKTHROUGHS
+  • The big welcome is for first launch and Home only. Inside each tool,
+    small glass notes appear beside the thing to click, in order —
+    Next, Back, Got it — with a ring round the control. Steps wait for
+    their controls (Sort's scene breaks appear after you scan).
+    ✕ closes it for now; "Don't show again" stops it; ? replays it.
+  • Home: the References/Grabs and vault/project switches and the quick
+    actions share one line; narrow windows show the actions as icons.
+  • Vault: Add to vault — choose images, GIFs or clips from Finder, or
+    drag them onto the window (several at once). They go into the
+    project's References. A single film dropped still opens in the player.
+
+ROUND 1 (final changes)
+  • No orange ring round the players — the Mac's focus ring is off for them.
+  • Opening a film: waits properly and quietly retries, so the false
+    "This Mac can't play that file" is gone.
+  • The Frames player starts by itself (muted) once a film or link is in.
+    Grab and the step buttons pause first, so you get the exact frame.
+  • The "Bringing it in" pill everywhere: fetching links, adding to the
+    vault, making GIFs and MP4s, scanning and copying cards, reading call
+    sheets, making PDFs, sending.
+  • Vault: opening a new link with stills you haven't saved warns first.
+  • Add Google Calendar: when you come back from System Settings it says
+    "Google Calendar added", or what's missing.
+  • Pay: Apple Mail removed. Send goes straight from your account; a copy
+    of each sent email is saved beside the invoice, in Invoices › Sent.
+  • Walkthroughs: every step, in order, every time you open a tool, until
+    "Don't show again". Steps that aren't on screen yet point to where
+    they'll appear. J K L removed; every note reread.
+
+ROUND 2 (final changes) — HOME
+  • Right-hand side: World clock (+ to add a city, × to remove), Notes —
+    a blank space that saves as you type (Clear; ⌘Z brings them back) —
+    the calendar, and the focus timer, now a slim bar.
+  • Search the vault from Home: titles, tags, boards, projects, sources,
+    and colours ("red", "teal", "dark").
+  • Shuffle: a different mix every time you open the app. Dragging a
+    picture into your own order switches it off.
+  • Every picture gets a colour palette — however it came in — and older
+    ones are filled in as Home loads. The viewer shows it; click a colour
+    to find more like it.

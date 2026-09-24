@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><title>Sign in</title>
+<link rel="stylesheet" href="base.css">
+<style>
+body{background:#fcf2ec;display:flex;flex-direction:column;align-items:center;justify-content:center;-webkit-user-select:auto;user-select:auto}
+body::before{content:'';position:fixed;inset:0;z-index:-1;background:radial-gradient(ellipse 60% 66% at 50% 52%,#fad9c2 0%,#fbe6d7 40%,#fcf1e9 72%,#fdf6f1 100%)}
+@keyframes resolve{from{opacity:0;filter:blur(14px);transform:translateY(6px)}to{opacity:1;filter:blur(0);transform:none}}
+@keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.mark{width:168px;animation:resolve 1.3s var(--ease-out) both}
+.title{margin-top:20px;font-weight:300;font-size:11px;letter-spacing:0.46em;color:#7a6358;animation:rise .6s var(--ease-out) .85s both}
+form{margin-top:40px;width:300px;border-radius:16px;padding:12px;display:flex;flex-direction:column;gap:8px;animation:rise .7s var(--ease-out) 1.05s both;
+  background:rgba(255,255,255,0.36);border:1px solid rgba(255,255,255,0.8);
+  box-shadow:0 18px 50px rgba(160,70,20,0.07),inset 0 1px 0 rgba(255,255,255,0.95);
+  -webkit-backdrop-filter:blur(20px) saturate(1.4);backdrop-filter:blur(20px) saturate(1.4)}
+label{display:block}
+input{display:block;width:100%;background:rgba(255,255,255,0.72);border:1px solid rgba(28,28,28,0.06);border-radius:10px;padding:11px 13px;
+  font-size:13.5px;outline:none;transition:border-color .2s var(--ease-out)}
+input::placeholder{color:#9a8f89}
+input:focus{border-color:var(--accent)}
+.go{margin-top:2px;width:100%;border:none;background:var(--accent);color:#fff;border-radius:10px;padding:11px;font-size:13.5px;letter-spacing:0.05em;transition:background .2s var(--ease-out)}
+@media (hover:hover) and (pointer:fine){.go:hover{background:var(--accent-ink)}}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+</style></head>
+<body>
+<img class="mark" src="mark.png" alt="This Was Needed">
+<div class="title">NEEDED TOOLS</div>
+<form id="f">
+  <label><span class="sr">Email</span><input type="email" placeholder="Email" autocomplete="email"></label>
+  <label><span class="sr">Licence key</span><input type="text" placeholder="Licence key" spellcheck="false"></label>
+  <button class="go" type="submit">Sign in</button>
+</form>
+<script>
+  // Placeholder: nothing is checked yet — Sign in opens the app.
+  document.getElementById('f').addEventListener('submit', e => {
+    e.preventDefault();
+    window.webkit.messageHandlers.shell.postMessage({ action: 'signIn' });
+  });
+</script>
+</body></html>

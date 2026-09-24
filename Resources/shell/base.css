@@ -1,0 +1,15 @@
+@font-face{font-family:'Raleway';font-weight:200;font-display:swap;src:url('fonts/raleway-latin-200-normal.woff2') format('woff2')}
+@font-face{font-family:'Raleway';font-weight:300;font-display:swap;src:url('fonts/raleway-latin-300-normal.woff2') format('woff2')}
+@font-face{font-family:'Raleway';font-weight:400;font-display:swap;src:url('fonts/raleway-latin-400-normal.woff2') format('woff2')}
+@font-face{font-family:'Oswald';font-weight:400;font-display:swap;src:url('fonts/oswald-latin-400-normal.woff2') format('woff2')}
+@font-face{font-family:'Courier Prime';font-weight:400;font-display:swap;src:url('fonts/courier-prime-latin-400-normal.woff2') format('woff2')}
+:root{--bg:#f4f3f1;--ink:#1c1c1c;--mid:#4a4945;--dim:#6b6964;--accent:#F05A22;--accent-ink:#d2440f;
+  --ease-out:cubic-bezier(0.23,1,0.32,1)}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{background:transparent;color:var(--ink);font-family:'Raleway',Georgia,serif;-webkit-font-smoothing:antialiased;
+  -webkit-user-select:none;user-select:none;cursor:default}
+button,select,input{font:inherit;color:inherit}
+button{cursor:pointer}
+button:active{transform:scale(0.97)}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}

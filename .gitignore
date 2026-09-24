@@ -1,0 +1,7 @@
+.DS_Store
+# Sort's ffprobe binaries — too large for the repo; keep your own copy in Resources/bin
+Resources/bin/
+# Build outputs
+Needed Tools.app/
+Needed Tools.zip
+build-errors.txt

@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><title>Welcome</title>
+<link rel="stylesheet" href="base.css">
+<style>
+body{background:rgba(252,238,228,0.38);display:flex;align-items:center;justify-content:center;color:var(--ink)}
+@keyframes rise{from{opacity:0;transform:translateY(16px) scale(0.985)}to{opacity:1;transform:none}}
+.card{position:relative;overflow:hidden;width:min(1080px,calc(100vw - 80px));min-height:540px;border-radius:28px;padding:36px 46px 32px;
+  display:flex;flex-direction:column;gap:22px;animation:rise .6s var(--ease-out) both;
+  background:linear-gradient(160deg,rgba(255,255,255,0.62),rgba(255,255,255,0.36) 55%,rgba(255,255,255,0.46));border:1px solid rgba(255,255,255,0.7);
+  box-shadow:inset 0 1.5px 0 rgba(255,255,255,0.95),inset 0 -1px 0 rgba(255,255,255,0.35),0 40px 110px rgba(160,70,20,0.16),0 2px 8px rgba(160,70,20,0.05);
+  -webkit-backdrop-filter:blur(40px) saturate(1.7);backdrop-filter:blur(40px) saturate(1.7)}
+.sheen{position:absolute;inset:0;pointer-events:none;background:radial-gradient(120% 70% at 12% -10%,rgba(255,255,255,0.55),rgba(255,255,255,0) 55%)}
+.top{display:flex;align-items:center;gap:8px;position:relative;flex-wrap:wrap}
+.pill{border-radius:100px;border:1px solid rgba(28,28,28,0.08);background:rgba(255,255,255,0.4);color:#6b5a52;
+  padding:8px 14px;font-family:Oswald,sans-serif;font-size:12px;letter-spacing:0.12em;text-transform:uppercase;transition:all .2s var(--ease-out)}
+.pill.on{color:#fff;border-color:var(--ink);background:var(--ink)}
+.count{margin-left:auto;font-size:12.5px;color:#8a6a58}
+.close{width:36px;height:36px;border-radius:50%;border:1px solid rgba(28,28,28,0.08);background:rgba(255,255,255,0.5);color:var(--ink);font-size:17px;margin-left:10px}
+h1{margin:12px 0 0;font-weight:200;font-size:70px;line-height:0.95;letter-spacing:0.01em;position:relative}
+.line{margin:0;font-size:17px;color:#7a5a48;line-height:1.5;position:relative}
+ol{margin:10px 0 0;padding:0;list-style:none;display:grid;gap:12px;position:relative}
+li{border-radius:18px;padding:20px 20px 22px;display:flex;flex-direction:column;gap:12px;
+  background:linear-gradient(160deg,rgba(255,255,255,0.5),rgba(255,255,255,0.26));border:1px solid rgba(255,255,255,0.6);box-shadow:inset 0 1px 0 rgba(255,255,255,0.9)}
+li b{font-weight:200;font-size:40px;line-height:1;color:var(--accent)}
+li span{font-size:14.5px;line-height:1.5;color:var(--ink)}
+.slide{display:flex;flex-direction:column;gap:12px;flex-grow:1}
+.slide.enter{animation:rise .45s var(--ease-out) both}
+.foot{display:flex;align-items:center;gap:12px;position:relative}
+label{display:flex;align-items:center;gap:8px;font-size:13px;color:#6b5a52;cursor:pointer}
+label input{accent-color:#F05A22;width:15px;height:15px}
+.spacer{flex:1}
+.mark{width:44px;margin-right:8px}
+.back{border:1px solid rgba(28,28,28,0.1);background:rgba(255,255,255,0.5);border-radius:100px;padding:12px 24px;font-size:13.5px;color:var(--ink)}
+.next{border:none;background:var(--ink);border-radius:100px;padding:12px 30px;color:#fff;font-size:13.5px}
+html.only label{visibility:hidden}
+</style></head>
+<body>
+<section class="card" aria-label="Welcome">
+  <div class="sheen"></div>
+  <nav class="top" id="pills" aria-label="Welcome pages"></nav>
+  <div class="slide" id="slide"></div>
+  <div class="foot">
+    <label><input type="checkbox" id="hide"> Don't show this again</label>
+    <div class="spacer"></div>
+    <img class="mark" src="mark.png" alt="This Was Needed">
+    <button class="back" id="back">Back</button>
+    <button class="next" id="next">Next</button>
+  </div>
+</section>
+<script>
+(function () {
+  const $ = id => document.getElementById(id);
+  const call = (action, x) => window.webkit.messageHandlers.shell.postMessage(Object.assign({ action }, x || {}));
+  const SLIDES = [
+    { key: 'Welcome', id: 'welcome', title: 'Needed Tools', line: 'Six tools, one vault. Everything you make files into the project you\u2019re in.',
+      steps: ['Choose your vault \u2014 the folder everything lives in.', 'Pick a project. Every tool follows it.', 'Open any tool from the tabs, or from Home.'] },
+    { key: 'Vault', id: 'vault', title: 'Needed Vault', line: 'Your reference library, sorted by project.',
+      steps: ['Paste a link \u2014 YouTube, Vimeo or Instagram.', 'Grab stills, GIFs or MP4 clips from it.', 'Tag them, and add them to boards.',
+              'Find anything again by project, board, tag or colour.'] },
+    { key: 'Shots', id: 'shots', title: 'Needed Shots', line: 'Treatment in, shot list out.',
+      steps: ['Paste your beats or treatment \u2014 each one becomes a shot.', 'Add the details, and stills from your vault.',
+              'Preview it \u2014 page, layout, size.', 'Export the PDF.'] },
+    { key: 'Sort', id: 'sort', title: 'Needed Sort', line: 'Cards in, scenes out.',
+      steps: ['Scan your cards or drive \u2014 camera and sound together.', 'Set your scene breaks: how long a pause starts a new scene.',
+              'Fine-tune \u2014 drag clips between scenes, rename the folders.', 'Sort. Every file is copied and checked against the card.'] },
+    { key: 'Grab', id: 'grab', title: 'Needed Grab', line: 'Stills, GIFs and clips from a finished film.',
+      steps: ['Drop in a video.', 'Grab stills \u2014 or mark a GIF or clip with I and O.', 'Save. It all files into your project\u2019s Stills, GIFs and Motion.'] },
+    { key: 'Credit', id: 'credit', title: 'Needed Credit', line: 'Call sheet in, credits out.',
+      steps: ['Paste the call sheet.', 'Handles fill in from your contacts.', 'Copy the credit list for socials.'] },
+    { key: 'Pay', id: 'pay', title: 'Needed Pay', line: 'Invoices, and what you\u2019re owed.',
+      steps: ['Set your details in Settings \u2014 once.', 'Make the invoice.', 'Export it.', 'Flip it to paid when the money lands.'] },
+    { key: 'Grab & Go', id: 'grabgo', title: 'Grab & Go', line: 'Save any image from the web straight into your project.',
+      steps: ['Switch on Grab & Go, top right.', 'In any browser, right-click an image and choose Copy Image \u2014 or drag it onto Needed Tools.',
+              'It lands in your project\u2019s Stills, at the biggest size the site offers.'] },
+  ];
+  const want = new URLSearchParams(location.search).get('tool');
+  let i = Math.max(0, SLIDES.findIndex(s => s.id === want));
+  // Opened for one tool, the first time you use it: just its page, then Got it.
+  const only = new URLSearchParams(location.search).get('only') === '1';
+  if (only) document.documentElement.classList.add('only');
+  function render() {
+    const s = SLIDES[i], last = i === SLIDES.length - 1;
+    $('pills').innerHTML = SLIDES.map((x, n) => `<button class="pill${n === i ? ' on' : ''}" data-n="${n}">${x.key}</button>`).join('')
+      + `<span class="count">${i + 1} of ${SLIDES.length}</span><button class="close" id="close" aria-label="Close">\u00d7</button>`;
+    $('slide').className = 'slide';
+    void $('slide').offsetWidth;
+    $('slide').className = 'slide enter';
+    $('slide').innerHTML = `<h1></h1><p class="line"></p><ol style="grid-template-columns:repeat(${s.steps.length},minmax(0,1fr))">`
+      + s.steps.map((t, n) => `<li><b>${n + 1}</b><span></span></li>`).join('') + '</ol>';
+    $('slide').querySelector('h1').textContent = s.title;
+    $('slide').querySelector('.line').textContent = s.line;
+    $('slide').querySelectorAll('li span').forEach((el, n) => { el.textContent = s.steps[n]; });
+    $('back').hidden = i === 0 || only;
+    $('next').textContent = only ? 'Got it' : last ? 'Start' : 'Next';
+    if (only) { $('pills').innerHTML = `<span class="pill on">${SLIDES[i].key}</span><span class="count"></span><button class="close" id="close" aria-label="Close">\u00d7</button>`; }
+    $('close').onclick = finish;
+  }
+  function finish() { call('welcomeDone', only ? { keep: true } : { hide: $('hide').checked }); }
+  $('pills').addEventListener('click', e => { const b = e.target.closest('.pill'); if (b) { i = +b.dataset.n; render(); } });
+  $('next').addEventListener('click', () => { if (only || i === SLIDES.length - 1) finish(); else { i++; render(); } });
+  $('back').addEventListener('click', () => { i = Math.max(0, i - 1); render(); });
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') finish();
+    else if (!only && e.key === 'ArrowRight' && i < SLIDES.length - 1) { i++; render(); }
+    else if (!only && e.key === 'ArrowLeft' && i > 0) { i--; render(); }
+  });
+  call('welcomeState').then(r => { $('hide').checked = !!(r && r.hidden); }).catch(() => {});
+  render();
+})();
+</script>
+</body></html>

@@ -1,0 +1,958 @@
+// Needed Tools — This Was Needed.
+// One window holding six tools. Each tool keeps its own view and engine
+// (so it keeps its work when you switch tabs, and can move into its own
+// window later); the vault and project are shared by all of them.
+
+import AppKit
+import WebKit
+import EventKit
+import UserNotifications
+
+let toolsScheme = "neededtools"
+
+// MARK: - One vault, one project
+
+extension Notification.Name {
+    static let neededShared = Notification.Name("NeededToolsShared")
+}
+
+enum Shared {
+    /// The vault folder, shared by every tool.
+    static var vault: URL? {
+        get {
+            guard let path = UserDefaults.standard.string(forKey: "saveFolder") else { return nil }
+            var isDir: ObjCBool = false
+            return FileManager.default.fileExists(atPath: path, isDirectory: &isDir) && isDir.boolValue
+                ? URL(fileURLWithPath: path, isDirectory: true) : nil
+        }
+        set {
+            if let u = newValue { UserDefaults.standard.set(u.path, forKey: "saveFolder") }
+            else { UserDefaults.standard.removeObject(forKey: "saveFolder") }
+            notify()
+        }
+    }
+
+    /// The project you're in, shared by every tool.
+    static var project: String {
+        get { UserDefaults.standard.string(forKey: "project") ?? "Unsorted" }
+        set {
+            guard newValue != project else { return }
+            UserDefaults.standard.set(newValue, forKey: "project")
+            notify()
+        }
+    }
+
+    /// The project folders in the vault.
+    static func projects() -> [String] {
+        guard let base = vault else { return [] }
+        let names = ((try? FileManager.default.contentsOfDirectory(at: base, includingPropertiesForKeys: [.isDirectoryKey],
+                                                                    options: [.skipsHiddenFiles])) ?? [])
+            .filter { (try? $0.resourceValues(forKeys: [.isDirectoryKey]))?.isDirectory == true }
+            .map { $0.lastPathComponent }
+        return Array(Set(names + [project])).sorted { $0.localizedCaseInsensitiveCompare($1) == .orderedAscending }
+    }
+
+    /// Changes gather for a moment, then everyone hears once.
+    private static var pending = false
+    static func notify() {
+        guard !pending else { return }
+        pending = true
+        DispatchQueue.main.async {
+            pending = false
+            NotificationCenter.default.post(name: .neededShared, object: nil)
+        }
+    }
+
+    /// Every tool gets the glass hints (Resources/shell/hints.js). Its own
+    /// title — NEEDED GRAB and so on — stays, as in the separate apps.
+    static let embedded: WKUserScript = {
+        let dir = Bundle.main.resourceURL?.appendingPathComponent("shell")
+        let read = { (name: String) in dir.flatMap { try? String(contentsOf: $0.appendingPathComponent(name), encoding: .utf8) } ?? "" }
+        // embed.js: the glow, full width, click-outside and ←. hints.js: the glass hints.
+        return WKUserScript(source: read("embed.js") + "\n" + read("hints.js"), injectionTime: .atDocumentEnd, forMainFrameOnly: true)
+    }()
+}
+
+// MARK: - The tools
+
+protocol ToolHost: AnyObject {
+    var webView: WKWebView! { get }
+    func start()
+}
+extension GrabHost: ToolHost {}
+extension VaultHost: ToolHost {}
+extension ShotsHost: ToolHost {}
+extension SortHost: ToolHost {}
+extension CreditHost: ToolHost {}
+extension PayHost: ToolHost {}
+
+let TOOL_IDS = ["vault", "shots", "sort", "grab", "credit", "pay"]     // the flow of a project
+
+// MARK: - Home takes drops
+
+/// Home's view: files dragged from Finder go to Needed Tools to route;
+/// anything else (text, a link) the page handles as usual.
+final class DropWebView: WKWebView {
+    var onFiles: (([URL]) -> Void)?
+    var onHover: ((Bool) -> Void)?
+    /// Which file drops to take; the rest go to the page as usual (a single film in the Vault's player).
+    var accepts: (([URL]) -> Bool)?
+    private func files(_ info: NSDraggingInfo) -> [URL] {
+        let all = (info.draggingPasteboard.readObjects(forClasses: [NSURL.self],
+                                                       options: [.urlReadingFileURLsOnly: true]) as? [URL]) ?? []
+        if let ok = accepts, !ok(all) { return [] }
+        return all
+    }
+    override func draggingEntered(_ sender: NSDraggingInfo) -> NSDragOperation {
+        if !files(sender).isEmpty { onHover?(true); return .copy }
+        return super.draggingEntered(sender)
+    }
+    override func draggingUpdated(_ sender: NSDraggingInfo) -> NSDragOperation {
+        if !files(sender).isEmpty { return .copy }
+        return super.draggingUpdated(sender)
+    }
+    override func draggingExited(_ sender: NSDraggingInfo?) {
+        onHover?(false)
+        super.draggingExited(sender)
+    }
+    // macOS asks "ready for this?" before it hands over a drop. WebKit only
+    // says yes for drags it has been following itself — so for files we say yes.
+    override func prepareForDragOperation(_ sender: NSDraggingInfo) -> Bool {
+        if !files(sender).isEmpty { return true }
+        return super.prepareForDragOperation(sender)
+    }
+    override func concludeDragOperation(_ sender: NSDraggingInfo?) {
+        if let s = sender, !files(s).isEmpty { return }
+        super.concludeDragOperation(sender)
+    }
+    override func performDragOperation(_ sender: NSDraggingInfo) -> Bool {
+        let f = files(sender)
+        guard !f.isEmpty else { return super.performDragOperation(sender) }
+        onHover?(false)
+        onFiles?(f)
+        return true
+    }
+}
+
+// MARK: - The app
+
+final class Shell: NSObject, NSApplicationDelegate, NSWindowDelegate, WKScriptMessageHandlerWithReply, WKUIDelegate,
+                   UNUserNotificationCenterDelegate {
+    static var shared: Shell!
+    var window: NSWindow!
+    private var content = NSView()
+    private var chrome: WKWebView!
+    private var home: WKWebView!
+    private var signin: WKWebView?
+    private let area = NSView()
+    private var hosts: [String: ToolHost] = [:]
+    private(set) var current = "home"
+    static let barHeight: CGFloat = 64
+    private let calendarStore = EKEventStore()
+    private var welcome: (NSVisualEffectView, WKWebView)?
+    private var undocked: [String: NSWindow] = [:]
+    static let names = ["grab": "Grab", "vault": "Vault", "shots": "Shots", "sort": "Sort", "credit": "Credit", "pay": "Pay"]
+
+    // The Vault starts with the app: Grab & Go listens from the moment you open it.
+    lazy var vaultHost: VaultHost = {
+        let v = VaultHost()
+        v.start()
+        v.webView.configuration.userContentController.addScriptMessageHandler(self, contentWorld: .page, name: "shell")
+        return v
+    }()
+
+    func applicationDidFinishLaunching(_ notification: Notification) {
+        Shell.shared = self
+        buildMenu()
+
+        window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 1440, height: 920),
+                          styleMask: [.titled, .closable, .miniaturizable, .resizable],
+                          backing: .buffered, defer: false)
+        window.title = "Needed Tools"
+        window.titlebarAppearsTransparent = true
+        window.titleVisibility = .hidden
+        window.backgroundColor = NSColor(srgbRed: 0xFC / 255.0, green: 0xF2 / 255.0, blue: 0xEC / 255.0, alpha: 1)
+        window.minSize = NSSize(width: 980, height: 640)
+        window.delegate = self
+        window.contentView = content
+        let size = content.bounds.size
+
+        chrome = page("chrome.html")
+        chrome.frame = NSRect(x: 0, y: size.height - Shell.barHeight, width: size.width, height: Shell.barHeight)
+        chrome.autoresizingMask = [.width, .minYMargin]
+        area.frame = NSRect(x: 0, y: 0, width: size.width, height: size.height - Shell.barHeight)
+        area.autoresizingMask = [.width, .height]
+        content.addSubview(area)
+        content.addSubview(chrome)
+
+        home = page("home.html", drop: true)
+        if let h = home as? DropWebView {
+            h.onFiles = { [weak self] urls in self?.route(urls) }
+            h.onHover = { [weak self] on in self?.home.evaluateJavaScript("window.__homeDrag && window.__homeDrag(\(on))", completionHandler: nil) }
+        }
+        place(home)
+        UNUserNotificationCenter.current().delegate = self
+
+        hosts["vault"] = vaultHost
+        place(vaultHost.webView)
+        vaultHost.webView.isHidden = true
+
+        // The way in. For now it's a placeholder: Sign in simply opens the app.
+        let s = page("signin.html")
+        s.frame = content.bounds
+        s.autoresizingMask = [.width, .height]
+        content.addSubview(s)
+        signin = s
+
+        NotificationCenter.default.addObserver(forName: .neededShared, object: nil, queue: .main) { [weak self] _ in
+            self?.broadcast()
+        }
+        // Back from System Settings after "Add Google Calendar": say whether it worked.
+        NotificationCenter.default.addObserver(forName: NSApplication.didBecomeActiveNotification, object: nil, queue: .main) { [weak self] _ in
+            guard let self = self, self.waitingForGoogle else { return }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) { self.checkGoogle() }
+        }
+
+        window.center()
+        window.setFrameAutosaveName("NeededToolsMain")
+        window.makeKeyAndOrderFront(nil)
+        NSApp.activate(ignoringOtherApps: true)
+    }
+
+    func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool { true }
+
+    /// One of the app's own pages: the top bar, Home, sign-in.
+    private func page(_ name: String, drop: Bool = false) -> WKWebView {
+        let config = WKWebViewConfiguration()
+        config.websiteDataStore = .default()
+        let resources = Bundle.main.resourceURL ?? URL(fileURLWithPath: ".")
+        let scheme = VaultSchemeHandler(root: resources.appendingPathComponent("shell"))
+        scheme.vaultRoot = { Shared.vault }                    // Home shows the vault's work
+        config.setURLSchemeHandler(scheme, forURLScheme: toolsScheme)
+        config.userContentController.addScriptMessageHandler(self, contentWorld: .page, name: "shell")
+        let view: WKWebView = drop ? DropWebView(frame: .zero, configuration: config) : WKWebView(frame: .zero, configuration: config)
+        view.uiDelegate = self
+        view.setValue(false, forKey: "drawsBackground")
+        if let url = URL(string: "\(toolsScheme)://app/\(name)") { view.load(URLRequest(url: url)) }
+        return view
+    }
+
+    private func place(_ view: WKWebView) {
+        view.frame = area.bounds
+        view.autoresizingMask = [.width, .height]
+        if view.superview !== area { area.addSubview(view) }
+    }
+
+    private func host(_ id: String) -> ToolHost? {
+        if let h = hosts[id] { return h }
+        let h: ToolHost
+        switch id {
+        case "grab": h = GrabHost()
+        case "vault": return vaultHost
+        case "shots": h = ShotsHost()
+        case "sort": h = SortHost()
+        case "credit": h = CreditHost()
+        case "pay": h = PayHost()
+        default: return nil
+        }
+        h.start()                                   // tools open the first time you need them
+        h.webView.configuration.userContentController.addScriptMessageHandler(self, contentWorld: .page, name: "shell")
+        hosts[id] = h
+        return h
+    }
+
+    /// Show a tab. Every other tool stays exactly as you left it.
+    // Where you've been, for ← and →.
+    private var backStack: [String] = []
+    private var forwardStack: [String] = []
+
+    func show(_ id: String, remember: Bool = true) {
+        if remember, id != current {
+            backStack.append(current)
+            if backStack.count > 50 { backStack.removeFirst() }
+            forwardStack.removeAll()
+        }
+        if let w = undocked[id] { w.makeKeyAndOrderFront(nil); return }
+        let target: WKWebView?
+        if id == "home" { target = home } else { target = host(id)?.webView }
+        guard let view = target else { return }
+        place(view)
+        for sub in area.subviews { sub.isHidden = sub !== view }
+        current = id
+        window.makeFirstResponder(view)
+        broadcast()
+    }
+
+    // MARK: Drop anything: each file to the tool it belongs to
+
+    static let filmExt: Set<String> = ["mov", "mp4", "m4v", "webm"]
+    static let imageExt: Set<String> = ["jpg", "jpeg", "png", "webp", "heic", "gif", "tif", "tiff"]
+    static let sheetExt: Set<String> = ["pdf", "txt", "csv", "tsv", "rtf"]
+
+    func route(_ urls: [URL]) {
+        let fm = FileManager.default
+        var folders: [URL] = [], images: [URL] = [], film: URL? = nil, sheet: URL? = nil
+        for u in urls {
+            var isDir: ObjCBool = false
+            _ = fm.fileExists(atPath: u.path, isDirectory: &isDir)
+            let ext = u.pathExtension.lowercased()
+            if isDir.boolValue { folders.append(u) }
+            else if Shell.filmExt.contains(ext) { if film == nil { film = u } }
+            else if Shell.imageExt.contains(ext) { images.append(u) }
+            else if Shell.sheetExt.contains(ext) { if sheet == nil { sheet = u } }
+        }
+        if !folders.isEmpty {                                   // a card, or a folder of footage → Sort
+            show("sort")
+            let paths = (try? JSONSerialization.data(withJSONObject: folders.map { $0.path })).flatMap { String(data: $0, encoding: .utf8) } ?? "[]"
+            if let v = host("sort")?.webView { whenReady(v, "__neededAddCards", "window.__neededAddCards(\(paths))") }
+        } else if let f = film {                                 // a film → Grab
+            GrabSchemeHandler.film = f
+            let size = (try? fm.attributesOfItem(atPath: f.path)[.size] as? NSNumber)?.int64Value ?? 0
+            show("grab")
+            if let v = host("grab")?.webView {
+                whenReady(v, "__neededOpenFilm", "window.__neededOpenFilm(\(Shell.js(f.lastPathComponent)), \(size))")
+            }
+        } else if !images.isEmpty {                              // images: ask where they go first
+            guard Shared.vault != nil else { return homeToast("Choose your vault first") }
+            pendingImages = images
+            pendingWeb = nil
+            askWhere(count: images.count, sample: images.first?.lastPathComponent ?? "")
+        } else if let s = sheet, let data = try? Data(contentsOf: s), data.count < 30_000_000 {   // a call sheet → Credit
+            show("credit")
+            let type = s.pathExtension.lowercased() == "pdf" ? "application/pdf" : "text/plain"
+            if let v = host("credit")?.webView {
+                whenReady(v, "__neededOpenFile", "window.__neededOpenFile(\(Shell.js(s.lastPathComponent)), \(Shell.js(type)), \(Shell.js(data.base64EncodedString())))")
+            }
+        } else {
+            homeToast("Not sure which tool that's for")
+        }
+    }
+
+    // Images dropped on Home wait here while the pop-up asks where they go.
+    private var pendingImages: [URL] = []
+    private var pendingWeb: (url: String, html: String)? = nil
+
+    private func askWhere(count: Int, sample: String) {
+        guard let data = try? JSONSerialization.data(withJSONObject: ["count": count, "sample": sample,
+                                                                      "projects": Shared.projects(), "project": Shared.project]),
+              let json = String(data: data, encoding: .utf8) else { return }
+        if current != "home" { show("home") }
+        home.evaluateJavaScript("window.__homeAskWhere && window.__homeAskWhere(\(json))", completionHandler: nil)
+    }
+
+    /// An image dropped on Home goes into the project you chose, as a reference or a grab.
+    private func saveImage(_ url: URL, into project: String? = nil, origin: String = "reference") -> Bool {
+        let v = vaultHost
+        let project = project ?? Shared.project
+        guard let folder = v.outputFolder("Stills", project: project, area: origin == "grab" ? "Grabs" : "References") else { return false }
+        let target = v.uniqueURL(in: folder, name: url.lastPathComponent)
+        guard (try? FileManager.default.copyItem(at: url, to: target)) != nil else { return false }
+        let meta: [String: Any] = ["source": ["type": "file", "title": url.deletingPathExtension().lastPathComponent]]
+        var m = meta; m["origin"] = origin
+        _ = v.register(kind: url.pathExtension.lowercased() == "gif" ? "gif" : "still", file: target, meta: m, project: project)
+        return true
+    }
+
+    /// A tool opened a moment ago may still be loading: wait until its page is ready.
+    func whenReady(_ view: WKWebView, _ hook: String, _ js: String, tries: Int = 50) {
+        view.evaluateJavaScript("typeof window.\(hook) === 'function'") { r, _ in
+            if (r as? Bool) == true { view.evaluateJavaScript(js, completionHandler: nil) }
+            else if tries > 0 {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) { self.whenReady(view, hook, js, tries: tries - 1) }
+            }
+        }
+    }
+
+    private func homeToast(_ text: String) {
+        home.evaluateJavaScript("window.__homeToast && window.__homeToast(\(Shell.js(text)))", completionHandler: nil)
+    }
+
+    static func js(_ s: String) -> String {
+        (try? JSONSerialization.data(withJSONObject: [s])).flatMap { String(data: $0, encoding: .utf8) }.map { String($0.dropFirst().dropLast()) } ?? "\"\""
+    }
+
+    // MARK: Home's vault wall: the project's newest work
+
+    private var lastIndexStamp: Double = -1
+    private var lastAdopt: Double = 0
+    private var aspects: [String: Double] = [:]              // each picture's shape, worked out once
+
+    private func homeData(_ body: [String: Any]) -> [String: Any] {
+        guard let base = Shared.vault else { return ["items": [], "vault": false] }
+        let show = (body["show"] as? String) ?? "both"                   // references, grabs or both
+        let wholeVault = ((body["scope"] as? String) ?? "all") == "all"  // the entire vault, or this project
+        let v = vaultHost
+        // Only re-read and re-scan when something could have changed — this runs every time Home shows.
+        let indexFile = base.appendingPathComponent(".vault/index.json")
+        let stamp = (try? FileManager.default.attributesOfItem(atPath: indexFile.path)[.modificationDate] as? Date)?.timeIntervalSince1970 ?? 0
+        if stamp != lastIndexStamp || v.index.isEmpty { v.loadIndex(); lastIndexStamp = stamp }
+        if Date().timeIntervalSince1970 - lastAdopt > 12 { v.adoptLoose(); lastAdopt = Date().timeIntervalSince1970 }
+        v.fillPalettes(limit: 30)                                        // anything that came in without its colours
+        // Search: every word has to match something — title, tags, boards, project, source or a colour's name.
+        let words = ((body["q"] as? String) ?? "").lowercased().split(whereSeparator: { $0 == " " || $0 == "," }).map(String.init)
+        // Where it came from: saved by the Vault → a reference; put in a project by Grab or Finder → a grab.
+        let originOf = { (it: [String: Any]) -> String in
+            let file = it["file"] as? String ?? ""
+            if file.contains("/Grabs/") { return "grab" }
+            if file.contains("/References/") { return "reference" }
+            if let o = it["origin"] as? String { return o }
+            let src = it["source"] as? [String: Any]
+            return (src?["type"] as? String) == "file" && it["at"] == nil ? "grab" : "reference"
+        }
+        let picked = v.index.filter { it in
+            guard ["still", "gif", "clip"].contains(it["kind"] as? String ?? "") else { return false }
+            if !wholeVault && (it["project"] as? String ?? "Unsorted") != Shared.project { return false }
+            let o = originOf(it)
+            guard show == "both" || (show == "references" && o == "reference") || (show == "grabs" && o == "grab") else { return false }
+            if words.isEmpty { return true }
+            let src = it["source"] as? [String: Any]
+            var hay = [src?["title"] as? String ?? "", src?["url"] as? String ?? "", src?["site"] as? String ?? "",
+                       it["project"] as? String ?? "", it["note"] as? String ?? "", it["kind"] as? String ?? ""]
+            hay += (it["tags"] as? [String]) ?? []
+            hay += (it["boards"] as? [String]) ?? []
+            hay += ((it["palette"] as? [String]) ?? []).flatMap { Shell.colourNames($0) }
+            let text = hay.joined(separator: " ").lowercased()
+            return words.allSatisfy { text.contains($0) }
+        }.sorted { ($0["created"] as? String ?? "") > ($1["created"] as? String ?? "") }.prefix(300)
+        let items: [[String: Any]] = picked.compactMap { it in
+            guard let id = it["id"] as? String, let thumb = it["thumb"] as? String, let file = it["file"] as? String else { return nil }
+            var a = 16.0 / 9.0
+            if let w = (it["w"] as? NSNumber)?.doubleValue, let h = (it["h"] as? NSNumber)?.doubleValue, w > 0, h > 0 { a = w / h }
+            else if let known = aspects[id] { a = known }
+            else if let src = CGImageSourceCreateWithURL(base.appendingPathComponent(thumb) as CFURL, nil),
+                    let p = CGImageSourceCopyPropertiesAtIndex(src, 0, nil) as? [CFString: Any],
+                    let w = p[kCGImagePropertyPixelWidth] as? Double, let h = p[kCGImagePropertyPixelHeight] as? Double, h > 0 { a = w / h; aspects[id] = a }
+            let src = it["source"] as? [String: Any]
+            return ["id": id, "kind": it["kind"] as? String ?? "still", "thumb": thumb, "file": file, "a": a,
+                    "title": src?["title"] as? String ?? "", "url": src?["url"] as? String ?? "", "at": it["at"] ?? NSNull(),
+                    "project": it["project"] as? String ?? "Unsorted", "origin": originOf(it), "tags": (it["tags"] as? [String]) ?? [String](),
+                    "boards": (it["boards"] as? [String]) ?? [String](), "palette": (it["palette"] as? [String]) ?? [String]()]
+        }
+        return ["items": items, "vault": true, "project": Shared.project]
+    }
+
+    /// Names for a colour, so "red" or "teal" finds pictures with it in their palette.
+    static func colourNames(_ hex: String) -> [String] {
+        let h = hex.hasPrefix("#") ? String(hex.dropFirst()) : hex
+        guard h.count == 6, let n = Int(h, radix: 16) else { return [] }
+        let r = Double((n >> 16) & 255) / 255, g = Double((n >> 8) & 255) / 255, b = Double(n & 255) / 255
+        let mx = max(r, g, b), mn = min(r, g, b), d = mx - mn
+        let sat = mx == 0 ? 0 : d / mx
+        if sat < 0.18 { return mx < 0.22 ? ["black", "dark"] : mx > 0.85 ? ["white", "light"] : ["grey", "gray"] }
+        var hue: Double
+        if d == 0 { hue = 0 } else if mx == r { hue = 60 * ((g - b) / d).truncatingRemainder(dividingBy: 6) }
+        else if mx == g { hue = 60 * ((b - r) / d + 2) } else { hue = 60 * ((r - g) / d + 4) }
+        if hue < 0 { hue += 360 }
+        var names: [String]
+        switch hue {
+        case ..<15, 340...: names = ["red"]
+        case ..<40: names = mx < 0.6 ? ["brown", "orange"] : ["orange"]
+        case ..<65: names = ["yellow"]
+        case ..<160: names = ["green"]
+        case ..<200: names = ["teal", "cyan"]
+        case ..<250: names = ["blue"]
+        case ..<290: names = ["purple"]
+        default: names = ["pink"]
+        }
+        if mx < 0.3 { names.append("dark") } else if sat < 0.35 && mx > 0.75 { names.append("pastel") }
+        return names
+    }
+
+    // MARK: Home's calendar: whatever macOS Calendar has — Google too, if it's added there
+
+    private func calendarAllowed() -> Bool {
+        let st = EKEventStore.authorizationStatus(for: .event)
+        // macOS 14 renamed "authorized" to "fullAccess" (same value). Older
+        // developer tools don't know the new name, so it's only compiled when they do.
+        #if compiler(>=5.9)
+        if #available(macOS 14.0, *) { return st == .fullAccess }
+        #endif
+        return st == .authorized
+    }
+
+    private func calendarWeek(_ reply: @escaping (Any?, String?) -> Void, from: Double? = nil, to: Double? = nil) {
+        var cal = Calendar.current
+        cal.firstWeekday = 2                                         // weeks start on Monday
+        let today = cal.startOfDay(for: Date())
+        let weekStart = cal.dateInterval(of: .weekOfYear, for: today)?.start ?? today
+        // Home asks for the week or month it's showing; otherwise this week.
+        let start = from.map { Date(timeIntervalSince1970: $0 / 1000) } ?? weekStart
+        let end = to.map { Date(timeIntervalSince1970: $0 / 1000) } ?? (cal.date(byAdding: .day, value: 7, to: weekStart) ?? today)
+        let found = calendarStore.events(matching: calendarStore.predicateForEvents(withStart: start, end: end, calendars: nil))
+        let events: [[String: Any]] = found.map { e in
+            var hex = "#F05A22"
+            if let c = e.calendar?.color?.usingColorSpace(.sRGB) {
+                hex = String(format: "#%02X%02X%02X", Int(c.redComponent * 255), Int(c.greenComponent * 255), Int(c.blueComponent * 255))
+            }
+            return ["title": e.title ?? "", "start": e.startDate.timeIntervalSince1970 * 1000,
+                    "end": e.endDate.timeIntervalSince1970 * 1000, "allDay": e.isAllDay, "color": hex]
+        }
+        reply(["allowed": true, "weekStart": start.timeIntervalSince1970 * 1000, "events": events], nil)
+    }
+
+    // MARK: Did Google Calendar arrive?
+
+    private var waitingForGoogle = false
+    private func googleCalendars() -> Int {
+        calendarStore.calendars(for: .event).filter { c in
+            let src = (c.source?.title ?? "").lowercased()
+            return src.contains("google") || src.contains("gmail")
+        }.count
+    }
+    private func checkGoogle() {
+        waitingForGoogle = false
+        let result: [String: Any]
+        if !calendarAllowed() {
+            result = ["ok": false, "text": "Allow calendar access first — press Show my calendar, then add Google again."]
+        } else {
+            calendarStore.reset()                                      // pick up accounts added a moment ago
+            let n = googleCalendars()
+            result = n > 0
+                ? ["ok": true, "text": "Google Calendar added — \(n) calendar\(n == 1 ? "" : "s")"]
+                : ["ok": false, "text": "Google Calendar couldn't be added yet. In Internet Accounts, add Google and turn Calendars on."]
+        }
+        guard let data = try? JSONSerialization.data(withJSONObject: result), let json = String(data: data, encoding: .utf8) else { return }
+        home.evaluateJavaScript("window.__homeCalendarResult && window.__homeCalendarResult(\(json))", completionHandler: nil)
+    }
+
+    // MARK: Focus: macOS says when the time's up, even if you're in another app
+
+    func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification,
+                                withCompletionHandler done: @escaping (UNNotificationPresentationOptions) -> Void) {
+        if #available(macOS 11.0, *) { done([.banner, .sound]) } else { done([.sound]) }
+    }
+
+    // MARK: The welcome: full glass over whatever's behind it
+
+    func showWelcome(_ tool: String, only: Bool = false) {
+        let welcomePage = "welcome.html?tool=\(tool)" + (only ? "&only=1" : "")
+        if let open = welcome {                                    // already open: jump to that tool's page
+            let (fx, web) = open
+            web.load(URLRequest(url: URL(string: "\(toolsScheme)://app/\(welcomePage)")!))
+            fx.window?.makeFirstResponder(web)
+            return
+        }
+        let fx = NSVisualEffectView(frame: content.bounds)         // macOS blurs the app behind the glass
+        fx.autoresizingMask = [.width, .height]
+        fx.material = .popover                                  // light, like Home's glass
+        fx.blendingMode = .withinWindow
+        fx.state = .active
+        fx.appearance = NSAppearance(named: .aqua)
+        let web = page(welcomePage)
+        web.frame = content.bounds
+        web.autoresizingMask = [.width, .height]
+        fx.alphaValue = 0; web.alphaValue = 0
+        content.addSubview(fx)
+        content.addSubview(web)
+        welcome = (fx, web)
+        NSAnimationContext.runAnimationGroup { ctx in
+            ctx.duration = 0.35
+            fx.animator().alphaValue = 1
+            web.animator().alphaValue = 1
+        }
+        window.makeFirstResponder(web)
+    }
+
+    private func closeWelcome() {
+        guard let open = welcome else { return }
+        let (fx, web) = open
+        welcome = nil
+        NSAnimationContext.runAnimationGroup({ ctx in
+            ctx.duration = 0.25
+            fx.animator().alphaValue = 0
+            web.animator().alphaValue = 0
+        }, completionHandler: {
+            fx.removeFromSuperview(); web.removeFromSuperview()
+        })
+    }
+
+    // MARK: A tool in its own window — same view, so nothing is lost
+
+    func undock(_ id: String) {
+        guard undocked[id] == nil, let h = host(id), let view = h.webView else { return }
+        view.removeFromSuperview()
+        view.isHidden = false
+        let w = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 1240, height: 860),
+                         styleMask: [.titled, .closable, .miniaturizable, .resizable], backing: .buffered, defer: false)
+        w.isReleasedWhenClosed = false
+        w.title = "Needed \(Shell.names[id] ?? "") — \(Shared.project)"
+        w.backgroundColor = window.backgroundColor
+        w.minSize = NSSize(width: 720, height: 560)
+        view.frame = NSRect(origin: .zero, size: w.contentRect(forFrameRect: w.frame).size)
+        view.autoresizingMask = [.width, .height]
+        w.contentView = view
+        w.delegate = self
+        let dock = NSButton(title: "Dock", target: self, action: #selector(dockPressed(_:)))
+        dock.identifier = NSUserInterfaceItemIdentifier(id)
+        dock.bezelStyle = .recessed
+        dock.controlSize = .small
+        let holder = NSView(frame: NSRect(x: 0, y: 0, width: 64, height: 24))
+        dock.frame = NSRect(x: 6, y: 1, width: 54, height: 22)
+        holder.addSubview(dock)
+        let acc = NSTitlebarAccessoryViewController()
+        acc.view = holder
+        acc.layoutAttribute = .trailing
+        w.addTitlebarAccessoryViewController(acc)
+        w.setFrameAutosaveName("NeededTools-\(id)")
+        undocked[id] = w
+        if current == id { show("home") }
+        w.makeKeyAndOrderFront(nil)
+        broadcast()
+    }
+
+    @objc private func dockPressed(_ sender: NSButton) { dock(sender.identifier?.rawValue ?? "") }
+
+    func dock(_ id: String) {
+        guard let w = undocked.removeValue(forKey: id), let view = hosts[id]?.webView else { return }
+        w.delegate = nil
+        w.contentView = NSView()
+        w.orderOut(nil)
+        place(view)
+        show(id)
+    }
+
+    /// Closing a tool's own window puts it back in its tab, work and all.
+    func windowWillClose(_ notification: Notification) {
+        guard let w = notification.object as? NSWindow, let id = undocked.first(where: { $0.value === w })?.key else { return }
+        DispatchQueue.main.async { self.dock(id) }
+    }
+
+    // MARK: Everyone hears about the vault, the project and the tab
+
+    private func state() -> [String: Any] {
+        [
+            "vault": Shared.vault?.path ?? "",
+            "vaultName": Shared.vault?.lastPathComponent ?? "",
+            "project": Shared.project,
+            "projects": Shared.projects(),
+            "grabGo": hosts["vault"] != nil ? vaultHost.grabGo.on : false,
+            "tab": current,
+            "canBack": !backStack.isEmpty || current != "home",
+            "canForward": !forwardStack.isEmpty,
+            "undocked": Array(undocked.keys),
+        ]
+    }
+
+    func broadcast() {
+        guard let data = try? JSONSerialization.data(withJSONObject: state()),
+              let json = String(data: data, encoding: .utf8) else { return }
+        let js = "window.__neededShared && window.__neededShared(\(json))"
+        var views: [WKWebView] = [chrome, home]
+        views += hosts.values.compactMap { $0.webView }
+        for v in views { v.evaluateJavaScript(js, completionHandler: nil) }
+        for (id, w) in undocked { w.title = "Needed \(Shell.names[id] ?? "") — \(Shared.project)" }
+    }
+
+    // MARK: The app's own pages talk to it here
+
+    func userContentController(_ controller: WKUserContentController, didReceive message: WKScriptMessage,
+                               replyHandler: @escaping (Any?, String?) -> Void) {
+        let body = message.body as? [String: Any] ?? [:]
+        switch (body["action"] as? String) ?? "" {
+        case "state":
+            reply(replyHandler)
+
+        case "navBack":
+            // First close whatever's open on top — a reference, a pop-up — then go back a tab.
+            let view: WKWebView? = current == "home" ? home : hosts[current]?.webView
+            let goBack = {
+                guard let prev = self.backStack.popLast() else {
+                    if self.current != "home" { self.forwardStack.append(self.current); self.show("home", remember: false) }
+                    return self.reply(replyHandler)
+                }
+                self.forwardStack.append(self.current)
+                self.show(prev, remember: false)
+                self.reply(replyHandler)
+            }
+            guard let v = view else { return goBack() }
+            v.evaluateJavaScript("window.__neededBack ? window.__neededBack() : false") { r, _ in
+                if (r as? Bool) == true { self.reply(replyHandler) } else { goBack() }
+            }
+
+        case "navForward":
+            if let next = forwardStack.popLast() {
+                backStack.append(current)
+                show(next, remember: false)
+            }
+            reply(replyHandler)
+
+        case "tab":
+            show((body["id"] as? String) ?? "home")
+            reply(replyHandler)
+
+        case "chooseVault":
+            let panel = NSOpenPanel()
+            panel.canChooseFiles = false
+            panel.canChooseDirectories = true
+            panel.canCreateDirectories = true
+            panel.prompt = "Use This Vault"
+            panel.message = "Choose your vault — the folder every tool saves into"
+            if let v = Shared.vault { panel.directoryURL = v }
+            panel.beginSheetModal(for: window) { r in
+                if r == .OK, let u = panel.url { Shared.vault = u }
+                self.reply(replyHandler)
+            }
+
+        case "setProject":
+            if let name = body["name"] as? String { Shared.project = Shell.clean(name) }
+            reply(replyHandler)
+
+        case "newProject":
+            let name = Shell.clean((body["name"] as? String) ?? "")
+            if !name.isEmpty {
+                if let v = Shared.vault {
+                    try? FileManager.default.createDirectory(at: v.appendingPathComponent(name, isDirectory: true),
+                                                             withIntermediateDirectories: true)
+                }
+                Shared.project = name
+            }
+            reply(replyHandler)
+
+        case "grabGo":
+            if Shared.vault == nil {
+                replyHandler(["ok": false, "error": "Choose your vault first"], nil)
+            } else {
+                vaultHost.grabGo.setOn(!vaultHost.grabGo.on)
+                reply(replyHandler)
+            }
+
+        case "welcome":
+            // On Home, ? opens the welcome. In a tool, it replays that tool's walkthrough, beside its controls.
+            let asked = (body["tool"] as? String) ?? current
+            if TOOL_IDS.contains(asked), (body["page"] as? Bool) != true, let v = hosts[asked]?.webView {
+                v.evaluateJavaScript("window.__neededHints && window.__neededHints.replay()", completionHandler: nil)
+            } else {
+                showWelcome(asked == "home" ? "welcome" : asked)
+            }
+            replyHandler(["ok": true], nil)
+
+        case "welcomeState":
+            replyHandler(["hidden": UserDefaults.standard.bool(forKey: "welcomeHidden")], nil)
+
+        case "welcomeDone":
+            if (body["keep"] as? Bool) != true {        // a single tool's intro leaves the setting alone
+                UserDefaults.standard.set((body["hide"] as? Bool) ?? false, forKey: "welcomeHidden")
+            }
+            closeWelcome()
+            replyHandler(["ok": true], nil)
+
+        case "undock":
+            undock((body["id"] as? String) ?? "")
+            reply(replyHandler)
+
+        case "dropWeb":
+            // an image dragged from a browser onto Home: the Vault fetches the biggest version
+            guard Shared.vault != nil else { homeToast("Choose your vault first"); return replyHandler(["ok": false], nil) }
+            pendingWeb = (url: (body["url"] as? String) ?? "", html: (body["html"] as? String) ?? "")
+            pendingImages = []
+            askWhere(count: 1, sample: URL(string: pendingWeb!.url)?.host ?? "the web")
+            replyHandler(["ok": true], nil)
+
+        case "homeData":
+            replyHandler(homeData(body), nil)
+
+        case "saveDropped":
+            // the pop-up said where: that project, as references or grabs
+            let project = Shell.clean((body["project"] as? String) ?? Shared.project)
+            let origin = (body["as"] as? String) == "grab" ? "grab" : "reference"
+            if let v = Shared.vault { try? FileManager.default.createDirectory(at: v.appendingPathComponent(project), withIntermediateDirectories: true) }
+            if let web = pendingWeb {
+                vaultHost.grab(imageData: nil, html: web.html, imageURL: web.url, page: "", via: "drop", into: project, origin: origin)
+                homeToast("Saving into \(project)…")
+            } else {
+                let saved = pendingImages.filter { saveImage($0, into: project, origin: origin) }.count
+                homeToast(saved > 0 ? "\(saved) saved into \(project) as \(origin == "grab" ? "grabs" : "references")" : "Couldn't save those")
+                home.evaluateJavaScript("window.__homeRefresh && window.__homeRefresh()", completionHandler: nil)
+            }
+            pendingImages = []; pendingWeb = nil
+            replyHandler(["ok": true], nil)
+
+        case "cancelDropped":
+            pendingImages = []; pendingWeb = nil
+            replyHandler(["ok": true], nil)
+
+        case "deleteItem":
+            // to the Trash — recoverable — and gone from the vault
+            let ok = vaultHost.removeItem((body["id"] as? String) ?? "")
+            lastIndexStamp = -1
+            replyHandler(["ok": ok], nil)
+
+        case "quick":
+            let what = (body["what"] as? String) ?? ""
+            let tool = ["link": "vault", "list": "shots", "card": "sort", "invoice": "pay"][what]
+            if what == "film" {
+                // Open a film: chosen here, then handed to Grab the same way a drop is
+                let panel = NSOpenPanel()
+                panel.allowedFileTypes = ["mov", "mp4", "m4v", "webm"]
+                panel.message = "Choose a film to grab from"
+                panel.beginSheetModal(for: window) { r in if r == .OK, let u = panel.url { self.route([u]) } }
+            } else if let t = tool {
+                show(t)
+                if let v = host(t)?.webView { whenReady(v, "__neededQuick", "window.__neededQuick(\(Shell.js(what)))") }
+            }
+            replyHandler(["ok": true], nil)
+
+        case "revealItem":
+            if let v = Shared.vault, let f = body["file"] as? String {
+                NSWorkspace.shared.activateFileViewerSelecting([v.appendingPathComponent(f)])
+            }
+            replyHandler(["ok": true], nil)
+
+        case "openURL":
+            if let s = body["url"] as? String, let u = URL(string: s), ["http", "https"].contains(u.scheme ?? "") { NSWorkspace.shared.open(u) }
+            replyHandler(["ok": true], nil)
+
+        case "openRef":
+            let id = (body["id"] as? String) ?? ""
+            show("vault")
+            whenReady(vaultHost.webView, "__neededOpen", "window.__neededOpen(\(Shell.js(id)))")
+            replyHandler(["ok": true], nil)
+
+        case "openAccounts":
+            // Google calendars come in through the Mac: add the account once, and it shows up here.
+            let urls = ["x-apple.systempreferences:com.apple.Internet-Accounts-Settings.extension",
+                        "x-apple.systempreferences:com.apple.preferences.internetaccounts"]
+            if let u = urls.compactMap({ URL(string: $0) }).first(where: { NSWorkspace.shared.open($0) }) { _ = u; waitingForGoogle = true }
+            replyHandler(["ok": waitingForGoogle, "already": calendarAllowed() ? googleCalendars() : 0], nil)
+
+        case "calendar":
+            let from = (body["from"] as? NSNumber)?.doubleValue, to = (body["to"] as? NSNumber)?.doubleValue
+            if calendarAllowed() { return calendarWeek(replyHandler, from: from, to: to) }
+            let undecided = EKEventStore.authorizationStatus(for: .event) == .notDetermined
+            guard (body["ask"] as? Bool) == true, undecided else {
+                return replyHandler(["allowed": false, "canAsk": undecided], nil)
+            }
+            let answered: (Bool, Error?) -> Void = { ok, _ in
+                DispatchQueue.main.async {
+                    if ok { self.calendarWeek(replyHandler, from: from, to: to) } else { replyHandler(["allowed": false, "canAsk": false], nil) }
+                }
+            }
+            #if compiler(>=5.9)
+            if #available(macOS 14.0, *) { calendarStore.requestFullAccessToEvents(completion: answered) }
+            else { calendarStore.requestAccess(to: .event, completion: answered) }
+            #else
+            calendarStore.requestAccess(to: .event, completion: answered)
+            #endif
+
+        case "focus":
+            let secs = (body["secs"] as? NSNumber)?.doubleValue ?? 0
+            let centre = UNUserNotificationCenter.current()
+            centre.removePendingNotificationRequests(withIdentifiers: ["needed-focus"])
+            if secs > 0 {
+                let mins = Int((body["mins"] as? NSNumber)?.intValue ?? Int(secs / 60))
+                centre.requestAuthorization(options: [.alert, .sound]) { ok, _ in
+                    guard ok else { return }
+                    let content = UNMutableNotificationContent()
+                    content.title = "Focus done"
+                    content.body = "\(mins) minutes. Take a breath."
+                    content.sound = .default
+                    let trigger = UNTimeIntervalNotificationTrigger(timeInterval: max(1, secs), repeats: false)
+                    centre.add(UNNotificationRequest(identifier: "needed-focus", content: content, trigger: trigger))
+                }
+            }
+            replyHandler(["ok": true], nil)
+
+        case "signIn":
+            // Placeholder: no account or key is checked yet.
+            if let s = signin {
+                NSAnimationContext.runAnimationGroup({ ctx in
+                    ctx.duration = 0.35
+                    s.animator().alphaValue = 0
+                }, completionHandler: {
+                    s.removeFromSuperview()
+                    self.signin = nil
+                    self.show("home")
+                    if !UserDefaults.standard.bool(forKey: "welcomeHidden") { self.showWelcome("welcome") }
+                })
+            }
+            replyHandler(["ok": true], nil)
+
+        default:
+            replyHandler(nil, "unknown action")
+        }
+    }
+
+    private func reply(_ r: @escaping (Any?, String?) -> Void) { r(state(), nil) }
+
+    static func clean(_ raw: String) -> String {
+        var s = raw.replacingOccurrences(of: "/", with: "-").replacingOccurrences(of: ":", with: "-")
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        while s.hasPrefix(".") { s.removeFirst() }
+        return s.isEmpty ? "Unsorted" : String(s.prefix(80))
+    }
+
+    // MARK: Dialogs from the app's own pages
+
+    func webView(_ webView: WKWebView, runJavaScriptTextInputPanelWithPrompt prompt: String, defaultText: String?,
+                 initiatedByFrame frame: WKFrameInfo, completionHandler: @escaping (String?) -> Void) {
+        let alert = NSAlert()
+        alert.messageText = prompt
+        alert.addButton(withTitle: "OK")
+        alert.addButton(withTitle: "Cancel")
+        let field = NSTextField(frame: NSRect(x: 0, y: 0, width: 300, height: 24))
+        field.stringValue = defaultText ?? ""
+        alert.accessoryView = field
+        alert.window.initialFirstResponder = field
+        alert.beginSheetModal(for: window) { r in completionHandler(r == .alertFirstButtonReturn ? field.stringValue : nil) }
+    }
+
+    func webView(_ webView: WKWebView, runJavaScriptAlertPanelWithMessage message: String,
+                 initiatedByFrame frame: WKFrameInfo, completionHandler: @escaping () -> Void) {
+        let alert = NSAlert()
+        alert.messageText = message
+        alert.addButton(withTitle: "OK")
+        alert.beginSheetModal(for: window) { _ in completionHandler() }
+    }
+
+    // MARK: Menus — ⌘1 Home, ⌘2 to ⌘7 the tools
+
+    @objc private func pickTab(_ item: NSMenuItem) {
+        guard signin == nil, welcome == nil else { return }
+        show(item.tag == 0 ? "home" : TOOL_IDS[item.tag - 1])
+    }
+
+    private func buildMenu() {
+        let bar = NSMenu()
+        let appItem = NSMenuItem(); bar.addItem(appItem)
+        let appMenu = NSMenu()
+        appMenu.addItem(withTitle: "About Needed Tools", action: #selector(NSApplication.orderFrontStandardAboutPanel(_:)), keyEquivalent: "")
+        appMenu.addItem(.separator())
+        appMenu.addItem(withTitle: "Hide Needed Tools", action: #selector(NSApplication.hide(_:)), keyEquivalent: "h")
+        let others = appMenu.addItem(withTitle: "Hide Others", action: #selector(NSApplication.hideOtherApplications(_:)), keyEquivalent: "h")
+        others.keyEquivalentModifierMask = [.command, .option]
+        appMenu.addItem(withTitle: "Show All", action: #selector(NSApplication.unhideAllApplications(_:)), keyEquivalent: "")
+        appMenu.addItem(.separator())
+        appMenu.addItem(withTitle: "Quit Needed Tools", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
+        appItem.submenu = appMenu
+
+        let editItem = NSMenuItem(); bar.addItem(editItem)
+        let edit = NSMenu(title: "Edit")
+        edit.addItem(withTitle: "Undo", action: Selector(("undo:")), keyEquivalent: "z")
+        let redo = edit.addItem(withTitle: "Redo", action: Selector(("redo:")), keyEquivalent: "z")
+        redo.keyEquivalentModifierMask = [.command, .shift]
+        edit.addItem(.separator())
+        edit.addItem(withTitle: "Cut", action: #selector(NSText.cut(_:)), keyEquivalent: "x")
+        edit.addItem(withTitle: "Copy", action: #selector(NSText.copy(_:)), keyEquivalent: "c")
+        edit.addItem(withTitle: "Paste", action: #selector(NSText.paste(_:)), keyEquivalent: "v")
+        edit.addItem(withTitle: "Select All", action: #selector(NSText.selectAll(_:)), keyEquivalent: "a")
+        editItem.submenu = edit
+
+        let viewItem = NSMenuItem(); bar.addItem(viewItem)
+        let view = NSMenu(title: "View")
+        for (i, name) in (["Home"] + ["Vault", "Shots", "Sort", "Grab", "Credit", "Pay"]).enumerated() {
+            let item = view.addItem(withTitle: name, action: #selector(pickTab(_:)), keyEquivalent: "\(i + 1)")
+            item.target = self
+            item.tag = i
+        }
+        viewItem.submenu = view
+
+        let windowItem = NSMenuItem(); bar.addItem(windowItem)
+        let windowMenu = NSMenu(title: "Window")
+        windowMenu.addItem(withTitle: "Minimize", action: #selector(NSWindow.performMiniaturize(_:)), keyEquivalent: "m")
+        windowMenu.addItem(withTitle: "Close", action: #selector(NSWindow.performClose(_:)), keyEquivalent: "w")
+        windowItem.submenu = windowMenu
+
+        NSApp.mainMenu = bar
+        NSApp.windowsMenu = windowMenu
+    }
+}

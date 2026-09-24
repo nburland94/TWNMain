@@ -1,0 +1,794 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><title>Home</title>
+<link rel="stylesheet" href="base.css">
+<style>
+body{background:#fbf3ed;overflow:hidden}
+.glow{position:fixed;inset:0;background:radial-gradient(ellipse 72% 78% at 50% 54%,#f7bf99 0%,#f9cfb1 26%,#fbdfca 50%,#fcebdf 72%,#fdf5ef 100%)}
+main{position:relative;height:100vh;display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:24px;padding:26px 28px 28px}
+.left{display:flex;flex-direction:column;gap:16px;min-width:0;min-height:0}
+.right{display:flex;flex-direction:column;gap:12px;min-height:0;overflow-y:auto;scrollbar-width:none}
+.right::-webkit-scrollbar{display:none}
+.head{display:flex;justify-content:space-between;align-items:center}
+.head b{font-weight:300;font-size:17px}
+.mini{width:26px;height:26px;border-radius:50%;border:1px solid rgba(28,28,28,0.08);background:rgba(255,255,255,0.55);font-size:15px;line-height:1;color:var(--ink)}
+.mini.text{width:auto;padding:0 10px;font-size:12px;border-radius:100px}
+/* world clock */
+.clocks{padding:16px 18px;display:flex;flex-direction:column;gap:8px;flex-shrink:0}
+.zone{display:grid;grid-template-columns:minmax(0,1fr) auto 18px;align-items:baseline;gap:10px;padding:6px 0;border-top:1px solid rgba(28,28,28,0.045)}
+.zone .city{font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.zone .city small{display:block;font-size:11px;color:#7a5a48}
+.zone time{font-weight:200;font-size:24px;font-variant-numeric:tabular-nums;line-height:1}
+.zone .x{border:none;background:none;color:#9a8378;font-size:14px;opacity:0;transition:opacity .15s}
+.zone:hover .x{opacity:1}
+.zonepick input{width:100%;border:1px solid rgba(28,28,28,0.08);border-radius:10px;background:rgba(255,255,255,0.72);padding:9px 11px;font-size:13px;outline:none}
+.zonepick input:focus{border-color:var(--accent)}
+/* notes: a clear blank space */
+.notes{padding:16px 18px;display:flex;flex-direction:column;gap:8px;flex:1 1 170px;min-height:150px;
+  background:linear-gradient(160deg,rgba(255,255,255,0.72),rgba(255,255,255,0.5))}
+.notes textarea{flex-grow:1;min-height:96px;resize:none;border:none;outline:none;background:transparent;font:15px/1.6 Raleway,sans-serif;color:var(--ink);
+  background-image:repeating-linear-gradient(to bottom,transparent 0,transparent 23px,rgba(120,55,20,0.07) 23px,rgba(120,55,20,0.07) 24px);background-attachment:local;padding:0}
+.notes textarea::placeholder{color:#a08a7e}
+/* the timer, half the height */
+.focus{padding:12px 16px;display:grid;grid-template-columns:64px auto minmax(0,1fr);align-items:center;gap:12px;flex-shrink:0}
+.focus .ring{position:relative;width:64px;height:64px}
+.focus .n{display:flex;flex-direction:column}
+.focus .n b{font-weight:200;font-size:30px;line-height:1;font-variant-numeric:tabular-nums}
+.focus .n span{font-size:11px;color:#7a5a48;margin-top:2px}
+.focus .ctrls{justify-self:end;display:flex;gap:6px;align-items:center;flex-wrap:wrap;justify-content:flex-end}
+.focus .round{width:32px;height:32px;font-size:15px}
+.focus .start{padding:9px 18px;font-size:13px}
+.focus .reset{font-size:11.5px}
+/* the wall's line: search and shuffle */
+.search{display:flex;align-items:center;gap:6px;padding:0 10px;border-radius:100px;height:34px;min-width:120px;flex:0 1 190px}
+.search input{border:none;outline:none;background:transparent;font-size:12.5px;width:100%;color:var(--ink)}
+.search input::placeholder{color:#8a6a58}
+.shuffle{border:none;height:34px;padding:0 12px;border-radius:100px;display:flex;align-items:center;gap:6px;font-size:12px;color:#6d4e3d}
+.shuffle.on{background:linear-gradient(180deg,#2b2b2b,#111) !important;color:#fff}
+.shuffle.on svg{stroke:#fff}
+/* palette in the viewer */
+.swatches{display:flex;gap:6px}
+.swatches button{flex:1;height:28px;border-radius:8px;border:1px solid rgba(0,0,0,0.06);cursor:pointer;box-shadow:inset 0 1px 0 rgba(255,255,255,0.25)}
+
+/* ---- glass ---- */
+.g{position:relative;overflow:hidden;border-radius:20px;outline:0.5px solid rgba(120,55,20,0.10);outline-offset:-0.5px;
+  background:linear-gradient(160deg,rgba(255,255,255,0.46),rgba(255,255,255,0.22) 55%,rgba(255,255,255,0.3));border:1px solid rgba(255,255,255,0.38);
+  box-shadow:inset 0 1.5px 0 rgba(255,255,255,0.95),inset 1px 0 0 rgba(255,255,255,0.45),inset 0 -1px 0 rgba(255,255,255,0.28),
+    inset 0 -18px 30px -24px rgba(255,255,255,0.5),0 18px 50px rgba(160,70,20,0.08),0 2px 6px rgba(160,70,20,0.04);
+  -webkit-backdrop-filter:blur(30px) saturate(1.8) brightness(1.04);backdrop-filter:blur(30px) saturate(1.8) brightness(1.04)}
+.g::before{content:'';position:absolute;left:8%;right:8%;top:0;height:1px;pointer-events:none;background:linear-gradient(90deg,rgba(255,255,255,0),rgba(255,255,255,0.95),rgba(255,255,255,0))}
+.g::after{content:'';position:absolute;inset:0;border-radius:inherit;pointer-events:none;
+  background:radial-gradient(320px circle at var(--mx,30%) var(--my,0%),rgba(255,255,255,0.6),rgba(255,255,255,0) 62%);mix-blend-mode:soft-light;opacity:var(--glow,0.35)}
+
+/* ---- tools ---- */
+.tiles{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px}
+.tile{border:none;text-align:left;padding:16px 15px;display:flex;flex-direction:column;gap:16px;color:var(--ink);transition:transform .25s var(--ease-out)}
+.tile b{font-family:Oswald,sans-serif;font-weight:400;font-size:15px;letter-spacing:0.08em;text-transform:uppercase}
+@media (hover:hover) and (pointer:fine){.tile:hover{transform:translateY(-2px)}}
+
+/* ---- one line: what the wall shows on the left, quick actions on the right ---- */
+.line{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:nowrap;flex-shrink:0;min-width:0}
+.quick{display:flex;gap:6px;flex-wrap:nowrap;justify-content:flex-end;min-width:0}
+.quick.compact .qa span{display:none}
+.quick.compact .qa{padding:9px}
+.qa{flex-shrink:0;border:none;display:flex;align-items:center;gap:6px;padding:7px 11px;font-size:12px;white-space:nowrap;color:var(--ink);border-radius:100px;transition:transform .2s var(--ease-out)}
+.qa svg{flex-shrink:0}
+@media (hover:hover) and (pointer:fine){.qa:hover{transform:translateY(-1px)}}
+.shot video{display:block;width:100%;height:100%;object-fit:cover}
+.shot.dragging{opacity:0.35}
+.shot.over{box-shadow:0 0 0 2px var(--accent)}
+
+/* ---- drop ---- */
+.drop{height:64px;flex-shrink:0;display:flex;align-items:center;gap:12px;padding:0 20px;color:#6d4e3d;font-size:14px;
+  background:linear-gradient(160deg,rgba(255,255,255,0.3),rgba(255,255,255,0.14));transition:height .5s var(--ease-out)}
+.drop.big{flex-grow:1;height:auto;flex-direction:column;justify-content:center;font-size:17px;gap:14px}
+.drop.big small{font-size:14px;color:#8a6a58}
+
+/* ---- what the wall shows ---- */
+.filters{display:flex;gap:8px;align-items:center;flex-shrink:0}
+.seg2{display:flex;padding:3px;border-radius:100px;gap:2px}
+.seg2 button{border:none;background:transparent;border-radius:100px;padding:6px 11px;font-size:12px;white-space:nowrap;color:#6d4e3d;transition:background .2s var(--ease-out),color .2s}
+.seg2 button.on{background:var(--ink);color:#fff}
+
+/* ---- the vault wall ---- */
+.wall{flex-grow:1;min-height:0;display:flex;flex-direction:column;gap:4px;overflow-y:auto;overflow-x:hidden;border-radius:14px;scrollbar-width:none}
+.wall::-webkit-scrollbar{display:none}
+.wall[hidden]{display:none}
+.row{display:flex;gap:4px;flex-shrink:0}
+.shot{position:relative;border:none;padding:0;border-radius:8px;overflow:hidden;background:#e9d3c4;cursor:pointer;
+  transition:transform .3s var(--ease-out)}
+.shot img{display:block;width:100%;height:100%;object-fit:cover}
+@media (hover:hover) and (pointer:fine){.shot:hover{transform:scale(1.015)}}
+.badge{position:absolute;left:9px;top:9px;background:rgba(12,14,18,0.55);color:#fff;border-radius:100px;font-size:10.5px;font-weight:400;
+  padding:3px 9px;letter-spacing:0.06em;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
+.badge.play{width:24px;height:24px;padding:0;display:flex;align-items:center;justify-content:center}
+@keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.shot{animation:rise .5s var(--ease-out) both}
+
+/* ---- focus ---- */
+.ring svg{display:block}
+.round{border-radius:50%;border:1px solid rgba(28,28,28,0.06);background:rgba(255,255,255,0.45);transition:opacity .2s}
+.round:disabled{opacity:0.3;cursor:default}
+.start{border:none;border-radius:100px;padding:12px 30px;font-size:14px;font-weight:400;background:linear-gradient(180deg,#2b2b2b,#111);color:#fff;box-shadow:inset 0 1px 0 rgba(255,255,255,0.14),0 3px 10px rgba(20,20,20,0.18)}
+.start.on{background:rgba(28,28,28,0.08);color:var(--ink)}
+.reset{border:none;background:none;font-size:12.5px;color:#7a5a48;text-decoration:underline;text-underline-offset:3px}
+
+/* ---- calendar ---- */
+.cal{padding:16px 18px;display:flex;flex-direction:column;gap:10px;flex-shrink:0}
+.cal .head{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.cal .ctl{display:flex;gap:4px;align-items:center}
+.cal .ctl .arrow{width:28px;height:28px;border-radius:50%;border:1px solid rgba(28,28,28,0.06);background:rgba(255,255,255,0.45);font-size:13px}
+.cal .ctl .today{border:none;background:none;font-size:12px;color:#7a5a48;padding:0 6px}
+.cal .seg3{display:flex;padding:2px;border-radius:100px;background:rgba(255,255,255,0.4);align-self:flex-start}
+.cal .seg3 button{border:none;background:transparent;border-radius:100px;padding:5px 12px;font-size:12px;color:#6d4e3d}
+.cal .seg3 button.on{background:var(--ink);color:#fff}
+.month{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:2px}
+.month .dow{font-size:10.5px;color:#7a5a48;text-align:center;padding-bottom:3px}
+.mday{border:none;background:transparent;border-radius:9px;padding:5px 0 6px;font-size:13px;display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--ink)}
+.mday.out{opacity:0.35}
+.mday i{width:4px;height:4px;border-radius:50%;background:transparent}
+.mday.dot i{background:var(--accent)}
+.mday.today{background:var(--ink);color:#fff}
+.mday.sel:not(.today){background:rgba(255,255,255,0.7)}
+.day{cursor:pointer;border:none;background:transparent;color:inherit}
+.day.sel:not(.today){background:rgba(255,255,255,0.7)}
+.addgoogle{border:none;background:none;align-self:flex-start;font-size:12.5px;color:#7a5a48;text-decoration:underline;text-underline-offset:3px;padding:0}
+.evhead{font-size:12.5px;color:#7a5a48;padding-top:4px}
+.cal .head b{font-weight:300;font-size:18px}
+.cal .head span{font-size:12.5px;color:#7a5a48}
+.week{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:3px}
+.day{display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 0;border-radius:11px;font-size:15px}
+.day span{font-size:11px;color:#7a5a48}
+.day i{width:5px;height:5px;border-radius:50%;background:transparent}
+.day.dot i{background:var(--accent)}
+.day.today{background:var(--ink);color:#fff}
+.day.today span{color:rgba(255,255,255,0.7)}
+.events{overflow:auto;max-height:150px}
+.ev{display:grid;grid-template-columns:52px minmax(0,1fr);gap:10px;align-items:center;padding:10px 0;border-top:1px solid rgba(28,28,28,0.045);font-size:14px}
+.ev time{font-family:'Courier Prime',monospace;font-size:12px;color:var(--mid)}
+.ev div{display:flex;align-items:center;gap:9px;overflow:hidden}
+.ev div i{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.ev div span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.quiet{font-size:13.5px;color:#7a5a48;padding:10px 0;border-top:1px solid rgba(28,28,28,0.045)}
+.connect{border:none;background:var(--ink);color:#fff;border-radius:100px;padding:11px 18px;font-size:13px;align-self:flex-start}
+
+/* ---- the viewer: the picture floating over a blurred Home ---- */
+.viewer{position:fixed;inset:0;z-index:15;display:flex;align-items:center;justify-content:center;gap:28px;padding:48px;
+  background:rgba(251,243,237,0.28);-webkit-backdrop-filter:blur(26px) saturate(1.3);backdrop-filter:blur(26px) saturate(1.3);
+  opacity:0;pointer-events:none;transition:opacity .3s var(--ease-out)}
+.viewer.on{opacity:1;pointer-events:auto}
+.viewer .media{max-width:calc(100vw - 460px);max-height:calc(100vh - 96px);display:flex;align-items:center;justify-content:center;
+  transform:scale(0.97);transition:transform .45s var(--ease-out)}
+.viewer.on .media{transform:none}
+.viewer .media img,.viewer .media video{display:block;max-width:100%;max-height:calc(100vh - 96px);border-radius:10px;
+  box-shadow:0 30px 90px rgba(80,30,10,0.28)}
+.viewer .panel{width:300px;padding:22px;display:flex;flex-direction:column;gap:14px;flex-shrink:0}
+.viewer .panel h3{margin:0;font-weight:300;font-size:20px;line-height:1.25;word-break:break-word}
+.viewer .panel .meta{font-size:13px;color:#7a5a48;line-height:1.5}
+.viewer .panel button{border:none;border-radius:100px;padding:11px 16px;font-size:13.5px;text-align:left;background:rgba(255,255,255,0.55);color:var(--ink)}
+.viewer .panel button.main{background:var(--ink);color:#fff}
+.viewer .nav2{display:flex;gap:8px}
+.viewer .nav2 button{flex:1;text-align:center}
+
+/* ---- where should these go? ---- */
+.where{position:fixed;inset:0;z-index:16;display:flex;align-items:center;justify-content:center;
+  background:rgba(251,243,237,0.3);-webkit-backdrop-filter:blur(18px) saturate(1.3);backdrop-filter:blur(18px) saturate(1.3);
+  opacity:0;pointer-events:none;transition:opacity .25s var(--ease-out)}
+.where.on{opacity:1;pointer-events:auto}
+.where .g{width:360px;padding:24px;display:flex;flex-direction:column;gap:14px}
+.where h3{margin:0;font-weight:300;font-size:21px}
+.where p{margin:0;font-size:13px;color:#7a5a48}
+.where select{width:100%;border:1px solid rgba(28,28,28,0.08);border-radius:10px;background:rgba(255,255,255,0.7);padding:10px 12px;font-size:14px}
+.where .seg2{align-self:flex-start;background:rgba(255,255,255,0.4)}
+.where .row3{display:flex;gap:8px;justify-content:flex-end}
+.where .row3 button{border:none;border-radius:100px;padding:11px 20px;font-size:13.5px}
+.where .save{background:var(--ink);color:#fff}
+.where .cancel{background:rgba(255,255,255,0.55)}
+
+/* ---- time's up ---- */
+.alarm{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:20;
+  background:rgba(251,243,237,0.35);-webkit-backdrop-filter:blur(18px) saturate(1.4);backdrop-filter:blur(18px) saturate(1.4);
+  opacity:0;pointer-events:none;transition:opacity .35s var(--ease-out)}
+.alarm.on{opacity:1;pointer-events:auto}
+.alarm .g{padding:34px 40px;display:flex;flex-direction:column;align-items:center;gap:18px;min-width:340px;transform:scale(0.96);transition:transform .45s var(--ease-out)}
+.alarm.on .g{transform:none}
+.alarm h2{margin:0;font-weight:200;font-size:44px}
+.alarm p{margin:0;color:#7a5a48;font-size:15px}
+.alarm .row2{display:flex;gap:10px}
+.alarm button{border:none;border-radius:100px;padding:12px 24px;font-size:14px}
+.alarm .again{background:var(--ink);color:#fff}
+.alarm .more5{background:rgba(255,255,255,0.6);color:var(--ink)}
+@keyframes ring{0%,100%{transform:rotate(0)}20%{transform:rotate(-8deg)}40%{transform:rotate(8deg)}60%{transform:rotate(-5deg)}80%{transform:rotate(5deg)}}
+.alarm.on svg{animation:ring .9s var(--ease-out) 2}
+
+/* ---- drop veil and toast ---- */
+.veil{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;opacity:0;transition:opacity .2s var(--ease-out)}
+.veil.on{opacity:1}
+.veil div{padding:26px 40px;border-radius:24px;font-size:19px;font-weight:300}
+.toast{position:fixed;left:50%;bottom:26px;transform:translate(-50%,8px);background:var(--ink);color:#fff;border-radius:100px;padding:9px 18px;font-size:13px;
+  opacity:0;transition:opacity .25s var(--ease-out),transform .25s var(--ease-out)}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+</style></head>
+<body>
+<div class="glow"></div>
+<main>
+  <div class="left">
+    <div class="tiles" id="tiles"></div>
+    <div class="line">
+      <div class="filters">
+      <div class="g seg2" id="showSeg" role="group" aria-label="Show"><button data-v="references">References</button><button data-v="grabs">Grabs</button><button data-v="both">Both</button></div>
+      <div class="g seg2" id="scopeSeg" role="group" aria-label="From"><button data-v="all">Entire vault</button><button data-v="project">This project</button></div>
+        <label class="g search"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#6d4e3d" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+          <input id="q" placeholder="Search — tags, boards, red…" spellcheck="false" aria-label="Search your vault"></label>
+        <button class="g shuffle" id="shuffle" title="A different mix every time you open Needed Tools"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6d4e3d" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 3h5v5M4 20L21 3M21 16v5h-5M15 15l6 6M4 4l5 5"/></svg>Shuffle</button>
+      </div>
+      <div class="quick" id="quick">
+      <button class="g qa" data-q="link" title="Paste a link" aria-label="Paste a link"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1c1c1c" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg><span>Paste a link</span></button>
+      <button class="g qa" data-q="list" title="Shot list" aria-label="Shot list"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1c1c1c" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01"/></svg><span>Shot list</span></button>
+      <button class="g qa" data-q="card" title="Scan a card" aria-label="Scan a card"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1c1c1c" stroke-width="1.5" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h9l3 3v15H6z"/><path d="M9 3v4M12 3v4M15 3v4"/></svg><span>Scan a card</span></button>
+      <button class="g qa" data-q="film" title="Open a film" aria-label="Open a film"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1c1c1c" stroke-width="1.5" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M10 9l5 3-5 3z"/></svg><span>Open a film</span></button>
+      <button class="g qa" data-q="invoice" title="Invoice" aria-label="Invoice"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1c1c1c" stroke-width="1.5" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6M9 12h6"/></svg><span>Invoice</span></button>
+      </div>
+    </div>
+    <div class="wall" id="wall"></div>
+  </div>
+  <div class="right">
+    <section class="g clocks" aria-label="World clock">
+      <div class="head"><b>World clock</b><button class="mini" id="addZone" aria-label="Add a city" title="Add a city">+</button></div>
+      <div id="zones"></div>
+      <div class="zonepick" id="zonePick" hidden>
+        <input id="zoneInput" list="zoneList" placeholder="Type a city — Tokyo, Lagos, New York…" spellcheck="false" autocomplete="off">
+        <datalist id="zoneList"></datalist>
+      </div>
+    </section>
+    <section class="g notes" aria-label="Notes">
+      <div class="head"><b>Notes</b><button class="mini text" id="clearNotes">Clear</button></div>
+      <textarea id="notes" spellcheck="true" placeholder="A blank space for you — ideas, reminders, a line you don’t want to lose. It saves as you type."></textarea>
+    </section>
+    <section class="g cal" aria-label="Calendar">
+      <div class="head"><b id="calTitle"></b>
+        <div class="ctl"><button class="arrow" id="calPrev" aria-label="Earlier">‹</button><button class="today" id="calToday">Today</button><button class="arrow" id="calNext" aria-label="Later">›</button></div></div>
+      <div class="seg3" id="calMode" role="group" aria-label="View"><button data-v="week">Week</button><button data-v="month">Month</button></div>
+      <div id="calGrid"></div>
+      <div class="evhead" id="evHead"></div>
+      <div class="events" id="events"></div>
+      <button class="addgoogle" id="addGoogle">Add Google Calendar</button>
+    </section>
+    <section class="g focus" aria-label="Focus">
+      <div class="ring">
+        <svg width="64" height="64" viewBox="0 0 64 64" aria-hidden="true">
+          <circle cx="32" cy="32" r="28" fill="none" stroke="rgba(28,28,28,0.08)" stroke-width="3"/>
+          <circle id="arc" cx="32" cy="32" r="28" fill="none" stroke="#F05A22" stroke-width="3" stroke-linecap="round" transform="rotate(-90 32 32)"/>
+        </svg>
+      </div>
+      <div class="n"><b id="clock">25</b><span id="unit">minutes</span></div>
+      <div class="ctrls">
+        <button class="round" id="less" aria-label="Five minutes less">−</button>
+        <button class="start" id="start">Start</button>
+        <button class="round" id="more" aria-label="Five minutes more">+</button>
+        <button class="reset" id="reset" hidden>Reset</button>
+      </div>
+    </section>
+  </div>
+</main>
+<div class="viewer" id="viewer" role="dialog" aria-label="Reference">
+  <div class="media" id="vMedia"></div>
+  <aside class="g panel">
+    <h3 id="vTitle"></h3>
+    <div class="meta" id="vMeta"></div>
+    <button class="main" id="vOpen">Open in Vault</button>
+    <button id="vSource" hidden>Open the source</button>
+    <button id="vReveal">Show in Finder</button>
+    <div class="swatches" id="vPalette"></div>
+    <div class="nav2"><button id="vPrev" aria-label="Previous">←</button><button id="vNext" aria-label="Next">→</button></div>
+    <button id="vDelete" style="color:#b0391a">Move to Trash</button>
+  </aside>
+</div>
+<div class="where" id="where" role="dialog" aria-label="Where should these go">
+  <div class="g">
+    <h3 id="wTitle">Save this image</h3>
+    <p id="wSample"></p>
+    <label><span style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">Project</span><select id="wProject"></select></label>
+    <div class="seg2" id="wAs" role="group" aria-label="Save as"><button data-v="reference" class="on">References</button><button data-v="grab">Grabs</button></div>
+    <div class="row3"><button class="cancel" id="wCancel">Cancel</button><button class="save" id="wSave">Save</button></div>
+  </div>
+</div>
+<div class="alarm" id="alarm" role="alertdialog" aria-label="Focus done">
+  <div class="g">
+    <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#F05A22" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 8a6 6 0 1 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
+    <h2>Time's up</h2>
+    <p id="alarmText">25 minutes of focus.</p>
+    <div class="row2"><button class="more5" id="more5">Five more</button><button class="again" id="again">Reset</button></div>
+  </div>
+</div>
+<div class="veil" id="veil"><div class="g">Drop to send it to the right tool</div></div>
+<div class="toast" id="toast"></div>
+<script>
+(function () {
+  const $ = id => document.getElementById(id);
+  const call = (action, x) => window.webkit.messageHandlers.shell.postMessage(Object.assign({ action }, x || {}));
+  const esc = v => String(v == null ? '' : v).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const toast = t => { $('toast').textContent = t; $('toast').classList.add('show'); clearTimeout(toast.t); toast.t = setTimeout(() => $('toast').classList.remove('show'), Math.max(2200, t.length * 55)); };
+
+  /* ---------------- tools ---------------- */
+  const ICON = {
+    grab: '<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 9h18M8 5v4M16 5v4"/>',
+    vault: '<path d="M4 7h16v12H4z"/><path d="M7 4h10"/><path d="M9 12h6"/>',
+    shots: '<path d="M8 6h12M8 12h12M8 18h12"/><circle cx="4" cy="6" r="1"/><circle cx="4" cy="12" r="1"/><circle cx="4" cy="18" r="1"/>',
+    sort: '<path d="M3 7h7l2 2h9v10H3z"/><path d="M8 14h8"/>',
+    credit: '<circle cx="12" cy="12" r="4"/><path d="M16 12v1.5a2.5 2.5 0 0 0 5 0V12a9 9 0 1 0-3.5 7.1"/>',
+    pay: '<path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6M9 12h6"/>',
+  };
+  const TOOLS = [['vault', 'Vault'], ['shots', 'Shots'], ['sort', 'Sort'], ['grab', 'Grab'], ['credit', 'Credit'], ['pay', 'Pay']];   // the flow of a project
+  $('tiles').innerHTML = TOOLS.map(([id, name]) => `<button class="g tile" data-id="${id}">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1c1c1c" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICON[id]}</svg>
+    <b>${name}</b></button>`).join('');
+  // Everything on one line: when the window's too narrow, the quick actions drop to icons.
+  function fitLine() {
+    const q = $('quick'), line = q.parentElement;
+    q.classList.remove('compact');
+    const edge = line.getBoundingClientRect().right, last = q.lastElementChild.getBoundingClientRect().right;
+    const first = q.firstElementChild.getBoundingClientRect().left, filters = line.firstElementChild.getBoundingClientRect().right;
+    if (last > edge + 1 || first < filters + 6) q.classList.add('compact');
+  }
+  new ResizeObserver(fitLine).observe(document.querySelector('.line'));
+  $('quick').addEventListener('click', e => { const b = e.target.closest('[data-q]'); if (b) call('quick', { what: b.dataset.q }); });
+  $('tiles').addEventListener('click', e => { const b = e.target.closest('.tile'); if (b) call('tab', { id: b.dataset.id }); });
+
+  // the light follows the cursor across each pane of glass
+  document.addEventListener('pointermove', e => {
+    const g = e.target.closest && e.target.closest('.g'); if (!g) return;
+    const r = g.getBoundingClientRect();
+    g.style.setProperty('--mx', ((e.clientX - r.left) / r.width * 100).toFixed(1) + '%');
+    g.style.setProperty('--my', ((e.clientY - r.top) / r.height * 100).toFixed(1) + '%');
+    g.style.setProperty('--glow', '1');
+  });
+  document.addEventListener('pointerout', e => {
+    const g = e.target.closest && e.target.closest('.g');
+    if (g && !g.contains(e.relatedTarget)) g.style.setProperty('--glow', '0.35');
+  });
+
+  /* ---------------- the vault wall: the project's newest work, in its real shapes ---------------- */
+  let items = [], hasVault = true;
+  const pref = (k, d) => { try { return localStorage.getItem('home.' + k) || d; } catch (e) { return d; } };
+  const setPref = (k, v) => { try { localStorage.setItem('home.' + k, v); } catch (e) { /* fine */ } };
+  let show = pref('show', 'both'), scope = pref('scope', 'all');
+  function paintSegs() {
+    $('showSeg').querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.v === show));
+    $('scopeSeg').querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.v === scope));
+  }
+  $('showSeg').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; show = b.dataset.v; setPref('show', show); paintSegs(); loadWall(); });
+  $('scopeSeg').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; scope = b.dataset.v; setPref('scope', scope); paintSegs(); loadWall(); });
+  paintSegs();
+
+  let lastSig = '';
+  async function loadWall() {
+    let r; try { r = await call('homeData', { show, scope, q: $('q').value.trim() }); } catch (e) { r = null; }
+    const next = ordered((r && r.items) || []);
+    const sig = next.map(it => it.id).join(',') + '|' + show + scope;
+    hasVault = !r || r.vault !== false;
+    if (sig === lastSig && $('wall').childElementCount) return;      // nothing's changed: leave the wall be
+    lastSig = sig; items = next;
+    layoutWall();
+  }
+  // The same colour names the Mac searches with.
+  function colourName(hex) {
+    const n = parseInt(String(hex).replace('#', ''), 16), r = (n >> 16 & 255) / 255, g = (n >> 8 & 255) / 255, b = (n & 255) / 255;
+    const mx = Math.max(r, g, b), mn = Math.min(r, g, b), d = mx - mn, sat = mx ? d / mx : 0;
+    if (sat < 0.18) return mx < 0.22 ? 'black' : mx > 0.85 ? 'white' : 'grey';
+    let h = d === 0 ? 0 : mx === r ? 60 * (((g - b) / d) % 6) : mx === g ? 60 * ((b - r) / d + 2) : 60 * ((r - g) / d + 4);
+    if (h < 0) h += 360;
+    return h < 15 || h >= 340 ? 'red' : h < 40 ? (mx < 0.6 ? 'brown' : 'orange') : h < 65 ? 'yellow' : h < 160 ? 'green' : h < 200 ? 'teal' : h < 250 ? 'blue' : h < 290 ? 'purple' : 'pink';
+  }
+  const media = it => it.kind === 'gif' ? it.file : it.thumb;           // GIFs play on the wall
+  // Your own order: drag pictures around the wall; anything new arrives first.
+  const savedOrder = () => { try { return JSON.parse(localStorage.getItem('home.order') || '[]'); } catch (e) { return []; } };
+  // Shuffle: a different mix every time you open the app (the same mix while it's open).
+  let shuffleOn = pref('shuffle', 'off') === 'on';
+  const seed = Math.floor(Math.random() * 1e9);
+  const rank = id => { let h = seed; for (let i = 0; i < id.length; i++) h = Math.imul(h ^ id.charCodeAt(i), 2654435761) >>> 0; return h; };
+  function ordered(list) {
+    if (shuffleOn) return list.slice().sort((a, b) => rank(a.id) - rank(b.id));
+    const pos = new Map(savedOrder().map((id, i) => [id, i]));
+    const fresh = list.filter(it => !pos.has(it.id)), kept = list.filter(it => pos.has(it.id)).sort((a, b) => pos.get(a.id) - pos.get(b.id));
+    return fresh.concat(kept);
+  }
+  function layoutWall() {
+    const wall = $('wall');
+    const empty = !items.length;
+    wall.hidden = false;
+    if (empty) {
+      wall.innerHTML = `<p class="quiet" style="border:none;padding:20px 4px">${!hasVault ? 'Choose your vault — top right — and your work will gather here.' : $('q').value.trim() ? 'Nothing matches that search.' :
+        show === 'grabs' ? 'No grabs yet.' : show === 'references' ? 'No references yet.' : 'Nothing here yet.'}${scope === 'project' ? ' Try Entire vault.' : ''}</p>`;
+      return;
+    }
+    const W = wall.clientWidth, gap = 4;
+    const target = Math.max(160, Math.min(260, wall.clientHeight / 2.6));
+    const rows = []; let row = [], sum = 0;
+    for (const it of items) {
+      const a = Math.max(0.45, Math.min(2.6, it.a || 1.78));
+      row.push({ it, a }); sum += a;
+      const h = (W - gap * (row.length - 1)) / sum;
+      if (h <= target) { rows.push({ row, h }); row = []; sum = 0; }
+    }
+    if (row.length) rows.push({ row, h: Math.min(target, (W - gap * (row.length - 1)) / sum) });
+    let html = '', n = 0;
+    for (const r of rows) {
+      html += `<div class="row" style="height:${r.h.toFixed(1)}px">` + r.row.map(({ it, a }) => {
+        const badge = it.kind === 'gif' ? '<span class="badge">GIF</span>'
+          : it.kind === 'clip' ? '<span class="badge play"><svg width="9" height="9" viewBox="0 0 10 10" aria-hidden="true"><path d="M2 1l7 4-7 4z" fill="#fff"/></svg></span>' : '';
+        const pic = it.kind === 'clip'
+          ? `<video muted loop playsinline preload="none" poster="vault/${encodeURI(it.thumb)}" data-src="vault/${encodeURI(it.file)}"></video>`
+          : `<img alt="" loading="lazy" decoding="async" draggable="false" src="vault/${encodeURI(media(it))}">`;
+        return `<button class="shot" draggable="true" data-id="${esc(it.id)}" style="width:${(a * r.h).toFixed(1)}px;animation-delay:${Math.min(n++, 14) * 30}ms">${pic}${badge}</button>`;
+      }).join('') + '</div>';
+    }
+    wall.innerHTML = html;
+    wall.querySelectorAll('video[data-src]').forEach(v => seen.observe(v));
+  }
+  // Clips play while they're on screen, and stop when they scroll away — a big vault stays smooth.
+  const seen = new IntersectionObserver(entries => {
+    for (const e of entries) {
+      const v = e.target;
+      if (e.isIntersecting) { if (!v.src) v.src = v.dataset.src; v.play().catch(() => {}); }
+      else v.pause();
+    }
+  }, { root: document.getElementById('wall'), rootMargin: '120px' });
+  let dragId = null;
+  const paintShuffle = () => $('shuffle').classList.toggle('on', shuffleOn);
+  paintShuffle();
+  $('shuffle').addEventListener('click', () => { shuffleOn = !shuffleOn; setPref('shuffle', shuffleOn ? 'on' : 'off'); paintShuffle(); lastSig = ''; loadWall(); });
+  let qT = null;
+  $('q').addEventListener('input', () => { clearTimeout(qT); qT = setTimeout(() => { lastSig = ''; loadWall(); }, 220); });
+  $('q').addEventListener('keydown', e => { if (e.key === 'Escape' && $('q').value) { $('q').value = ''; lastSig = ''; loadWall(); e.stopPropagation(); } });
+  $('wall').addEventListener('dragstart', e => {
+    const b = e.target.closest('.shot'); if (!b) return;
+    dragId = b.dataset.id; b.classList.add('dragging'); e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', dragId);
+  });
+  $('wall').addEventListener('dragover', e => {
+    if (!dragId) return; e.preventDefault(); e.stopPropagation();
+    $('wall').querySelectorAll('.over').forEach(x => x.classList.remove('over'));
+    const b = e.target.closest('.shot'); if (b && b.dataset.id !== dragId) b.classList.add('over');
+  });
+  $('wall').addEventListener('drop', e => {
+    if (!dragId) return; e.preventDefault(); e.stopPropagation();
+    const b = e.target.closest('.shot');
+    if (b && b.dataset.id !== dragId) {
+      if (shuffleOn) { shuffleOn = false; setPref('shuffle', 'off'); paintShuffle(); }
+      const from = items.findIndex(it => it.id === dragId), to = items.findIndex(it => it.id === b.dataset.id);
+      const [moved] = items.splice(from, 1); items.splice(to, 0, moved);
+      const all = savedOrder().filter(id => !items.some(it => it.id === id));
+      try { localStorage.setItem('home.order', JSON.stringify(items.map(it => it.id).concat(all))); } catch (x) { /* fine */ }
+      lastSig = ''; layoutWall();
+    }
+  });
+  $('wall').addEventListener('dragend', () => { dragId = null; $('wall').querySelectorAll('.dragging,.over').forEach(x => x.classList.remove('dragging', 'over')); });
+
+  /* ---------------- the viewer: over Home, not off to the Vault ---------------- */
+  let viewing = -1, fitNow = () => {};
+  function view(i) {
+    if (i < 0 || i >= items.length) return;
+    viewing = i;
+    const it = items[i], src = 'vault/' + encodeURI(it.file);
+    $('vMedia').innerHTML = it.kind === 'clip'
+      ? `<video src="${src}" autoplay loop playsinline controls></video>`
+      : `<img alt="" src="vault/${encodeURI(it.kind === 'gif' ? it.file : it.thumb)}">`;
+    if (it.kind === 'still') {                    // swap in the full-size original once it has loaded
+      const full = new Image();
+      full.onload = () => { const el = $('vMedia').querySelector('img'); if (el && viewing === i) { el.src = full.src; fitNow(el, full); } };
+      full.src = src;
+    }
+    // Fill the space, keeping its shape — small grabs are shown big too.
+    const fit = el => {
+      const nw = el.naturalWidth || el.videoWidth, nh = el.naturalHeight || el.videoHeight; if (!nw || !nh) return;
+      const W = window.innerWidth - 460, H = window.innerHeight - 96;
+      const k = Math.min(W / nw, H / nh, 4);
+      el.style.width = Math.round(nw * k) + 'px'; el.style.height = Math.round(nh * k) + 'px';
+    };
+    fitNow = (el, img) => { const nw = img.naturalWidth, nh = img.naturalHeight; if (!nw) return;
+      const W = window.innerWidth - 460, H = window.innerHeight - 96, k = Math.min(W / nw, H / nh, 4);
+      el.style.width = Math.round(nw * k) + 'px'; el.style.height = Math.round(nh * k) + 'px'; };
+    const el = $('vMedia').firstElementChild;
+    if (it.a && el.tagName === 'IMG') {           // size it straight away from its known shape
+      const W = window.innerWidth - 460, H = window.innerHeight - 96, w = Math.min(W, H * it.a);
+      el.style.width = Math.round(w) + 'px'; el.style.height = Math.round(w / it.a) + 'px';
+    }
+    if (el.tagName === 'IMG') el.addEventListener('load', () => { if (!it.a) fit(el); }, { once: true });
+    else el.addEventListener('loadedmetadata', () => fit(el), { once: true });
+    $('vTitle').textContent = it.title || it.file.split('/').pop();
+    const at = typeof it.at === 'number' ? ` · ${Math.floor(it.at / 60)}:${String(Math.floor(it.at % 60)).padStart(2, '0')}` : '';
+    $('vMeta').textContent = `${it.project} · ${it.origin === 'grab' ? 'Grab' : 'Reference'}${at}`;
+    $('vSource').hidden = !/^https?:/.test(it.url || '');
+    $('vPalette').innerHTML = (it.palette || []).map(c => `<button style="background:${esc(c)}" title="Find more ${colourName(c)}" data-c="${esc(c)}" aria-label="Find more ${colourName(c)}"></button>`).join('');
+    $('vPalette').hidden = !(it.palette || []).length;
+    $('vPrev').disabled = i === 0; $('vNext').disabled = i === items.length - 1;
+    $('viewer').classList.add('on');
+  }
+  function closeView() {
+    $('viewer').classList.remove('on'); viewing = -1;
+    const v = $('vMedia').querySelector('video'); if (v) v.pause();
+    setTimeout(() => { if (viewing < 0) $('vMedia').innerHTML = ''; }, 300);
+  }
+  $('wall').addEventListener('click', e => { const b = e.target.closest('.shot'); if (b) view(items.findIndex(it => it.id === b.dataset.id)); });
+  $('viewer').addEventListener('mousedown', e => { if (e.target === $('viewer') || e.target === $('vMedia')) closeView(); });
+  $('vOpen').addEventListener('click', () => { const it = items[viewing]; closeView(); call('openRef', { id: it.id }); });
+  $('vReveal').addEventListener('click', () => call('revealItem', { file: items[viewing].file }));
+  $('vSource').addEventListener('click', () => call('openURL', { url: items[viewing].url }));
+  $('vDelete').addEventListener('click', async () => {
+    const it = items[viewing]; if (!it) return;
+    const r = await call('deleteItem', { id: it.id });
+    if (!r || !r.ok) return toast("Couldn't move that to the Trash");
+    const at = viewing; items.splice(at, 1); lastSig = ''; layoutWall();
+    toast('Moved to the Trash');
+    if (items.length) view(Math.min(at, items.length - 1)); else closeView();
+  });
+  $('vPalette').addEventListener('click', e => {
+    const b = e.target.closest('[data-c]'); if (!b) return;
+    closeView(); $('q').value = colourName(b.dataset.c); lastSig = ''; loadWall();
+  });
+  $('vPrev').addEventListener('click', () => view(viewing - 1));
+  $('vNext').addEventListener('click', () => view(viewing + 1));
+  document.addEventListener('keydown', e => {
+    if (viewing < 0) return;
+    if (e.key === 'Escape') closeView();
+    else if (e.key === 'ArrowLeft') view(viewing - 1);
+    else if (e.key === 'ArrowRight') view(viewing + 1);
+  });
+
+  /* ---------------- where should dropped images go? ---------------- */
+  let whereAs = 'reference';
+  window.__homeAskWhere = w => {
+    $('wTitle').textContent = w.count === 1 ? 'Save this image' : `Save ${w.count} images`;
+    $('wSample').textContent = w.sample || '';
+    $('wProject').innerHTML = (w.projects || []).map(p => `<option${p === w.project ? ' selected' : ''}>${esc(p)}</option>`).join('') + '<option value="__new">New project…</option>';
+    $('where').classList.add('on');
+  };
+  $('wAs').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; whereAs = b.dataset.v;
+    $('wAs').querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b)); });
+  $('wSave').addEventListener('click', () => {
+    let project = $('wProject').value;
+    if (project === '__new') { project = (prompt('Name the new project') || '').trim(); if (!project) return; }
+    $('where').classList.remove('on');
+    call('saveDropped', { project, as: whereAs });
+  });
+  const cancelWhere = () => { $('where').classList.remove('on'); call('cancelDropped'); };
+  $('wCancel').addEventListener('click', cancelWhere);
+  $('where').addEventListener('mousedown', e => { if (e.target === $('where')) cancelWhere(); });
+  let lastW = 0, resizeT = null;
+  new ResizeObserver(() => {                          // only when the width really changes, and not every pixel
+    const w = $('wall').clientWidth; if (Math.abs(w - lastW) < 2) return; lastW = w;
+    clearTimeout(resizeT); resizeT = setTimeout(layoutWall, 90);
+  }).observe($('wall'));
+
+  /* ---------------- focus ---------------- */
+  const C = 2 * Math.PI * 28;
+  $('arc').style.strokeDasharray = `${C} ${C}`;
+  let setMins = 25, remaining = null, endAt = 0, running = false, ticker = null;
+  const fmt = s => { s = Math.max(0, Math.ceil(s)); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`; };
+  function paint() {
+    const left = running ? (endAt - Date.now()) / 1000 : remaining;
+    const frac = left == null ? Math.min(1, setMins / 120) : left / (setMins * 60);
+    if (left === 0 && !running) { $('clock').textContent = '0:00'; $('unit').textContent = 'done'; }
+    $('arc').style.strokeDashoffset = (C * (1 - Math.max(0, Math.min(1, frac)))).toFixed(1);
+    $('clock').textContent = left == null ? String(setMins) : fmt(left);
+    $('unit').textContent = left == null ? 'minutes' : running ? 'focus' : 'paused';
+    $('start').textContent = running ? 'Pause' : left == null ? 'Start' : 'Resume';
+    $('start').classList.toggle('on', running);
+    $('less').disabled = $('more').disabled = running;
+    $('reset').hidden = running || left == null;
+  }
+  function tick() {
+    if (!running) return;
+    if (Date.now() >= endAt) {
+      running = false; remaining = 0; clearInterval(ticker);
+      timeUp();
+    }
+    paint();
+  }
+  $('start').addEventListener('click', () => {
+    if (running) {                                   // pause
+      remaining = (endAt - Date.now()) / 1000; running = false; clearInterval(ticker);
+      call('focus', { secs: 0 });
+    } else {                                         // start or resume
+      const secs = remaining == null ? setMins * 60 : remaining;
+      endAt = Date.now() + secs * 1000; running = true; remaining = null;
+      clearInterval(ticker); ticker = setInterval(tick, 250);
+      call('focus', { secs, mins: setMins });        // macOS says when it's done, even in another app
+    }
+    paint();
+  });
+  // A soft three-note chime, made here — no sound file needed.
+  function chime() {
+    try {
+      const ac = new (window.AudioContext || window.webkitAudioContext)();
+      [0, 0.28, 0.56].forEach((t, i) => {
+        const o = ac.createOscillator(), g = ac.createGain();
+        o.type = 'sine'; o.frequency.value = [880, 1175, 1568][i];
+        g.gain.setValueAtTime(0.0001, ac.currentTime + t);
+        g.gain.exponentialRampToValueAtTime(0.25, ac.currentTime + t + 0.02);
+        g.gain.exponentialRampToValueAtTime(0.0001, ac.currentTime + t + 1.1);
+        o.connect(g); g.connect(ac.destination); o.start(ac.currentTime + t); o.stop(ac.currentTime + t + 1.2);
+      });
+    } catch (e) { /* no sound: the alarm still shows */ }
+  }
+  function timeUp() {
+    $('alarmText').textContent = `${setMins} minutes of focus.`;
+    $('alarm').classList.add('on');
+    chime();
+  }
+  const closeAlarm = () => $('alarm').classList.remove('on');
+  $('again').addEventListener('click', () => { closeAlarm(); remaining = null; paint(); });
+  $('more5').addEventListener('click', () => {
+    closeAlarm(); remaining = null;
+    endAt = Date.now() + 5 * 60000; running = true;
+    clearInterval(ticker); ticker = setInterval(tick, 250);
+    call('focus', { secs: 300, mins: 5 });
+    paint();
+  });
+  $('alarm').addEventListener('mousedown', e => { if (e.target === $('alarm')) $('again').click(); });
+  const nudge = d => { setMins = Math.max(5, Math.min(180, setMins + d)); remaining = null; paint(); };
+  $('less').addEventListener('click', () => nudge(-5));
+  $('more').addEventListener('click', () => nudge(5));
+  $('reset').addEventListener('click', () => { remaining = null; call('focus', { secs: 0 }); paint(); });
+  paint();
+
+  /* ---------------- calendar: a week or a month, and any day's events ---------------- */
+  const DAY = 86400000;
+  const hhmm = ms => { const d = new Date(ms); return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`; };
+  const midnight = d => { const x = new Date(d); x.setHours(0, 0, 0, 0); return x; };
+  const mondayOf = d => { const x = midnight(d); x.setDate(x.getDate() - ((x.getDay() + 6) % 7)); return x; };
+  let calMode = pref('cal', 'week'), anchor = midnight(new Date()), selected = midnight(new Date()).getTime(), calEvents = [], calOk = false, calCanAsk = false;
+  function range() {
+    if (calMode === 'week') { const s0 = mondayOf(anchor); return [s0.getTime(), s0.getTime() + 7 * DAY]; }
+    const first = new Date(anchor.getFullYear(), anchor.getMonth(), 1), s0 = mondayOf(first);
+    return [s0.getTime(), s0.getTime() + 42 * DAY];
+  }
+  function title() {
+    if (calMode === 'month') return anchor.toLocaleDateString('en-GB', { month: 'long', year: 'numeric' });
+    const [a0] = range(), a = new Date(a0), z = new Date(a0 + 6 * DAY);
+    return a.getMonth() === z.getMonth() ? `${a.getDate()} – ${z.getDate()} ${z.toLocaleDateString('en-GB', { month: 'long' })}`
+      : `${a.getDate()} ${a.toLocaleDateString('en-GB', { month: 'short' })} – ${z.getDate()} ${z.toLocaleDateString('en-GB', { month: 'short' })}`;
+  }
+  const on = (e, d0) => e.start < d0 + DAY && e.end > d0;
+  function drawCal() {
+    $('calTitle').textContent = title();
+    $('calMode').querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.v === calMode));
+    const [a0] = range(), today = midnight(new Date()).getTime(), month = anchor.getMonth();
+    if (calMode === 'week') {
+      $('calGrid').className = 'week';
+      $('calGrid').innerHTML = Array.from({ length: 7 }, (_, i) => {
+        const d0 = a0 + i * DAY, d = new Date(d0);
+        return `<button class="day${d0 === today ? ' today' : ''}${d0 === selected ? ' sel' : ''}${calEvents.some(e => on(e, d0)) ? ' dot' : ''}" data-d="${d0}">
+          <span>${d.toLocaleDateString('en-GB', { weekday: 'short' })}</span>${d.getDate()}<i></i></button>`;
+      }).join('');
+    } else {
+      $('calGrid').className = 'month';
+      $('calGrid').innerHTML = ['M', 'T', 'W', 'T', 'F', 'S', 'S'].map(x => `<span class="dow">${x}</span>`).join('') +
+        Array.from({ length: 42 }, (_, i) => {
+          const d0 = a0 + i * DAY, d = new Date(d0);
+          return `<button class="mday${d.getMonth() !== month ? ' out' : ''}${d0 === today ? ' today' : ''}${d0 === selected ? ' sel' : ''}${calEvents.some(e => on(e, d0)) ? ' dot' : ''}" data-d="${d0}">${d.getDate()}<i></i></button>`;
+        }).join('');
+    }
+    drawEvents();
+  }
+  function drawEvents() {
+    if (!calOk) {
+      $('evHead').textContent = '';
+      $('events').innerHTML = calCanAsk
+        ? '<p class="quiet">Your calendar from the Mac — Google too, once it\u2019s added.</p><button class="connect" id="connect">Show my calendar</button>'
+        : '<p class="quiet">Calendar access is off. Turn it on in System Settings → Privacy &amp; Security → Calendars.</p>';
+      const c = $('connect'); if (c) c.addEventListener('click', () => loadCalendar(true));
+      return;
+    }
+    const d = new Date(selected);
+    $('evHead').textContent = selected === midnight(new Date()).getTime() ? 'Today' : d.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' });
+    const list = calEvents.filter(e => on(e, selected)).sort((a, b) => (b.allDay - a.allDay) || (a.start - b.start));
+    $('events').innerHTML = list.length ? list.map(e => `<div class="ev"><time>${e.allDay ? 'All day' : hhmm(e.start)}</time>
+      <div><i style="background:${esc(e.color)}"></i><span>${esc(e.title)}</span></div></div>`).join('')
+      : '<p class="quiet">Nothing on.</p>';
+  }
+  async function loadCalendar(ask) {
+    const [from, to] = range();
+    let r; try { r = await call('calendar', Object.assign({ from, to }, ask ? { ask: true } : {})); } catch (e) { r = null; }
+    calOk = !!(r && r.allowed); calCanAsk = !!(r && r.canAsk); calEvents = calOk ? (r.events || []) : [];
+    drawCal();
+  }
+  $('calGrid').addEventListener('click', e => { const b = e.target.closest('[data-d]'); if (!b) return; selected = +b.dataset.d; drawCal(); });
+  const move = dir => {
+    if (calMode === 'week') anchor = new Date(anchor.getTime() + dir * 7 * DAY);
+    else anchor = new Date(anchor.getFullYear(), anchor.getMonth() + dir, 1);
+    const [a0, z0] = range(); if (selected < a0 || selected >= z0) selected = calMode === 'week' ? a0 : new Date(anchor.getFullYear(), anchor.getMonth(), 1).getTime();
+    loadCalendar(false);
+  };
+  $('calPrev').addEventListener('click', () => move(-1));
+  $('calNext').addEventListener('click', () => move(1));
+  $('calToday').addEventListener('click', () => { anchor = midnight(new Date()); selected = anchor.getTime(); loadCalendar(false); });
+  $('calMode').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; calMode = b.dataset.v; setPref('cal', calMode); loadCalendar(false); });
+  $('addGoogle').addEventListener('click', async () => {
+    const r = await call('openAccounts').catch(() => null);
+    if (!r || !r.ok) return toast("Couldn't open Internet Accounts — open System Settings → Internet Accounts");
+    toast(r.already ? 'Google is already connected — System Settings is open if you want to change it' : 'Add Google in Internet Accounts, then come back here');
+  });
+  // Back from System Settings: the Mac says whether Google arrived.
+  window.__homeCalendarResult = r => { toast(r.text); if (r.ok) loadCalendar(false); };
+
+  /* ---------------- world clock ---------------- */
+  const here = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  let zones = (() => { try { return JSON.parse(localStorage.getItem('home.zones') || 'null'); } catch (e) { return null; } })()
+    || [...new Set([here, 'Europe/London', 'America/Toronto', 'America/Los_Angeles'])].slice(0, 3);
+  const cityOf = z => z.split('/').pop().replace(/_/g, ' ');
+  function drawZones() {
+    const now = new Date(), today = now.toLocaleDateString('en-GB', { timeZone: here });
+    $('zones').innerHTML = zones.map(z => {
+      let time = '', note = '';
+      try {
+        time = now.toLocaleTimeString('en-GB', { timeZone: z, hour: '2-digit', minute: '2-digit' });
+        const day = now.toLocaleDateString('en-GB', { timeZone: z });
+        const dz = new Date(now.toLocaleString('en-US', { timeZone: z })), dh = new Date(now.toLocaleString('en-US', { timeZone: here }));
+        const hrs = Math.round((dz - dh) / 3600000);
+        note = (z === here ? 'Here' : (hrs === 0 ? 'Same time' : (hrs > 0 ? '+' : '') + hrs + 'h')) + (day === today ? '' : dz > dh ? ' · tomorrow' : ' · yesterday');
+      } catch (e) { note = 'Unknown place'; }
+      return `<div class="zone"><div class="city">${esc(cityOf(z))}<small>${esc(note)}</small></div><time>${time}</time>
+        <button class="x" data-z="${esc(z)}" aria-label="Remove ${esc(cityOf(z))}">\u00d7</button></div>`;
+    }).join('');
+  }
+  const saveZones = () => { try { localStorage.setItem('home.zones', JSON.stringify(zones)); } catch (e) { /* fine */ } };
+  const ALLZ = (() => { try { return Intl.supportedValuesOf('timeZone'); } catch (e) { return ['Europe/London', 'America/New_York', 'America/Toronto', 'America/Los_Angeles', 'Europe/Paris', 'Africa/Lagos', 'Asia/Tokyo', 'Australia/Sydney']; } })();
+  $('zoneList').innerHTML = ALLZ.map(z => `<option value="${esc(cityOf(z))}">${esc(z)}</option>`).join('');
+  $('addZone').addEventListener('click', () => { $('zonePick').hidden = !$('zonePick').hidden; if (!$('zonePick').hidden) $('zoneInput').focus(); });
+  const pickZone = () => {
+    const v = $('zoneInput').value.trim().toLowerCase(); if (!v) return;
+    const z = ALLZ.find(x => cityOf(x).toLowerCase() === v) || ALLZ.find(x => x.toLowerCase().includes(v.replace(/ /g, '_')));
+    if (!z) return toast('No time zone for that — try a nearby big city');
+    if (!zones.includes(z)) { zones.push(z); saveZones(); drawZones(); }
+    $('zoneInput').value = ''; $('zonePick').hidden = true;
+  };
+  $('zoneInput').addEventListener('change', pickZone);
+  $('zoneInput').addEventListener('keydown', e => { if (e.key === 'Enter') pickZone(); if (e.key === 'Escape') $('zonePick').hidden = true; });
+  $('zones').addEventListener('click', e => { const b = e.target.closest('[data-z]'); if (!b) return; zones = zones.filter(z => z !== b.dataset.z); saveZones(); drawZones(); });
+  drawZones(); setInterval(drawZones, 15000);
+
+  /* ---------------- notes: a blank space, saved as you type ---------------- */
+  const notes = $('notes');
+  try { notes.value = localStorage.getItem('home.notes') || ''; } catch (e) { /* fine */ }
+  let notesT = null, cleared = null;
+  notes.addEventListener('input', () => { clearTimeout(notesT); notesT = setTimeout(() => { try { localStorage.setItem('home.notes', notes.value); } catch (e) { /* fine */ } }, 300); });
+  $('clearNotes').addEventListener('click', () => {
+    if (!notes.value) return;
+    cleared = notes.value; notes.value = '';
+    try { localStorage.setItem('home.notes', ''); } catch (e) { /* fine */ }
+    toast('Notes cleared — press \u2318Z to bring them back');
+  });
+  notes.addEventListener('keydown', e => {
+    if ((e.metaKey || e.ctrlKey) && e.key === 'z' && !notes.value && cleared) { e.preventDefault(); notes.value = cleared; cleared = null; notes.dispatchEvent(new Event('input')); }
+  });
+
+  /* ---------------- the app talks to Home ---------------- */
+  let lastProject = null;
+  window.__neededShared = s => {
+    if (s.tab === 'home' || (s.project !== lastProject && scope === 'project')) loadWall();
+    lastProject = s.project;
+  };
+  document.addEventListener('dragover', e => { e.preventDefault(); });
+  document.addEventListener('drop', e => {
+    e.preventDefault();
+    const dt = e.dataTransfer; if (!dt) return;
+    const url = (dt.getData('text/uri-list') || '').split('\n')[0].trim(), html = dt.getData('text/html') || '';
+    if (url || html) { toast('Saving…'); call('dropWeb', { url, html }); }
+  });
+  // ← closes the alarm first
+  window.__neededBack = () => {
+    if ($('alarm').classList.contains('on')) { $('again').click(); return true; }
+    if ($('where').classList.contains('on')) { cancelWhere(); return true; }
+    if (viewing >= 0) { closeView(); return true; }
+    return false;
+  };
+  window.__homeRefresh = loadWall;
+  window.__homeToast = toast;
+  window.__homeDrag = on => $('veil').classList.toggle('on', !!on);
+  loadWall();
+  loadCalendar(false);
+  setInterval(() => loadCalendar(false), 10 * 60 * 1000);
+})();
+</script>
+</body></html>
