@@ -66,7 +66,15 @@ select.sel{appearance:none;-webkit-appearance:none;border:1px solid rgba(28,28,2
 
 /* stage and panel */
 .work{display:grid;grid-template-columns:minmax(0,1fr);min-height:0;min-width:0}
-.stage{position:relative;display:flex;align-items:center;justify-content:center;min-width:0;min-height:0;overflow:hidden}
+.stage{position:relative;min-width:0;min-height:0;overflow:hidden}
+/* The page sits in its own scroller, so zoomed in you can move around it. */
+.scroller{position:absolute;inset:0;overflow:auto;display:flex;padding:28px;box-sizing:border-box;scrollbar-width:thin}
+.scroller .pagewrap{margin:auto;flex-shrink:0}
+.zoombar{position:absolute;right:14px;bottom:10px;z-index:8;display:flex;align-items:center;gap:0;border-radius:100px;padding:3px}
+.zoombar button{border:none;background:transparent;border-radius:100px;min-width:30px;height:28px;padding:0 8px;font-size:13px;color:#141414}
+.zoombar #zoomPct{font-family:'Courier Prime',monospace;font-size:12px;min-width:52px}
+.zoombar .zfit{font-size:12px;color:#6b6964}
+@media (hover:hover) and (pointer:fine){.zoombar button:hover{background:rgba(255,255,255,0.8)}}
 .pagewrap{position:relative;box-shadow:0 20px 60px rgba(80,30,10,0.16),0 0 0 0.5px rgba(0,0,0,0.1)}
 .pagewrap .pg{transform-origin:0 0;position:absolute;left:0;top:0}
 .pagewrap .pic{cursor:pointer}
@@ -272,7 +280,8 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
   <header class="bar" id="bar"></header>
   <div class="strip" id="strip"></div>
   <div class="work" id="work">
-    <div class="stage" id="stage"><div class="pagewrap" id="pagewrap"></div><div class="boxsel" id="boxsel" hidden><i class="h" data-h="l"></i><i class="h" data-h="r"></i><i class="h" data-h="br"></i><i class="h" data-h="b"></i></div><div class="guide v" id="guideX" hidden></div><div class="guide hz" id="guideY" hidden></div><div class="swapbar g" id="swapbar" hidden></div><div class="stagehint" id="stagehint"></div></div>
+    <div class="stage" id="stage"><div class="scroller" id="scroller"><div class="pagewrap" id="pagewrap"></div><div class="boxsel" id="boxsel" hidden><i class="h" data-h="l"></i><i class="h" data-h="r"></i><i class="h" data-h="br"></i><i class="h" data-h="b"></i></div><div class="guide v" id="guideX" hidden></div><div class="guide hz" id="guideY" hidden></div></div><div class="swapbar g" id="swapbar" hidden></div><div class="stagehint" id="stagehint"></div>
+      <div class="zoombar g" id="zoombar" role="group" aria-label="Zoom"><button type="button" data-zoom="out" aria-label="Zoom out — ⌘−">−</button><button type="button" id="zoomPct" data-zoom="fit" title="Fit the page — ⌘0">100%</button><button type="button" data-zoom="in" aria-label="Zoom in — ⌘+">+</button><button type="button" data-zoom="fit" class="zfit" title="⌘0">Fit</button></div></div>
   </div>
   <aside class="panel" id="panel"></aside>
   <div class="tray" id="tray">
@@ -594,12 +603,32 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
     const t = $('strip').querySelector('.thumb.on'); if (t) t.scrollIntoView({ block: 'nearest', inline: 'nearest' });
   }
 
-  let scale = 1;
+  let scale = 1, fitScale = 1, zoom = null;     // zoom: null = fit the page to the window; else the page's scale (1 = its real size)
+  const ZMIN = 0.1, ZMAX = 4, ZSTEPS = [0.1, 0.25, 0.33, 0.5, 0.67, 0.75, 1, 1.25, 1.5, 2, 3, 4];
+  // Zoom, keeping the point under the cursor (or the middle) where it is.
+  function setZoom(z, cx, cy) {
+    if (!doc) return;
+    const sc = $('scroller'), before = $('pagewrap').getBoundingClientRect();
+    const r = sc.getBoundingClientRect();
+    if (cx == null) { cx = r.left + r.width / 2; cy = r.top + r.height / 2; }
+    const px = (cx - before.left) / scale, py = (cy - before.top) / scale;
+    z = z == null ? null : clamp(z, ZMIN, ZMAX);
+    zoom = z != null && Math.abs(z - fitScale) < 0.004 ? null : z;
+    drawStage();
+    const after = $('pagewrap').getBoundingClientRect();
+    sc.scrollLeft += (after.left + px * scale) - cx;
+    sc.scrollTop += (after.top + py * scale) - cy;
+    drawBoxSel();
+  }
+  const zoomStep = dir => { const now = scale; const next = dir > 0 ? ZSTEPS.find(z => z > now + 0.005) : [...ZSTEPS].reverse().find(z => z < now - 0.005); setZoom(next == null ? (dir > 0 ? ZMAX : ZMIN) : next); };
   function drawStage() {
     const p = page(); if (!p) return;
     const { W, H } = geometry(doc);
     const st = $('stage').getBoundingClientRect();
-    scale = Math.max(0.05, Math.min((st.width - 56) / W, (st.height - 56) / H));
+    fitScale = Math.max(0.05, Math.min((st.width - 56) / W, (st.height - 56) / H));
+    scale = zoom || fitScale;
+    const zp = $('zoomPct'); if (zp) zp.textContent = Math.round(scale * 100) + '%';
+    $('scroller').style.overflow = zoom && zoom > fitScale ? 'auto' : 'hidden';
     const wrap = $('pagewrap');
     wrap.style.width = Math.round(W * scale) + 'px';
     wrap.style.height = Math.round(H * scale) + 'px';
@@ -627,13 +656,15 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
     $('pagewrap').classList.toggle('free', !!doc && layoutOf(doc, page()) === 'free' && doc.mode !== 'mood');
     f.classList.toggle('pic', !bsel && k != null);
     if (!el) { f.hidden = true; return; }
-    const st = $('stage').getBoundingClientRect(), r = el.getBoundingClientRect();
+    const sc = $('scroller'), sr = sc.getBoundingClientRect(), r = el.getBoundingClientRect();
+    const st = { left: sr.left - sc.scrollLeft, top: sr.top - sc.scrollTop };
     Object.assign(f.style, { left: (r.left - st.left - 5) + 'px', top: (r.top - st.top - 5) + 'px', width: (r.width + 10) + 'px', height: (Math.max(r.height, 10) + 10) + 'px' });
     f.classList.toggle('editing', !!bsel && editing === bsel);
     f.hidden = false;
   }
   function guides(x, y) {
-    const st = $('stage').getBoundingClientRect(), w = $('pagewrap').getBoundingClientRect();
+    const sc = $('scroller'), sr = sc.getBoundingClientRect(), w = $('pagewrap').getBoundingClientRect();
+    const st = { left: sr.left - sc.scrollLeft, top: sr.top - sc.scrollTop };
     const gx = $('guideX'), gy = $('guideY');
     gx.hidden = x == null; gy.hidden = y == null;
     if (x != null) Object.assign(gx.style, { left: (w.left - st.left + x * scale) + 'px', top: (w.top - st.top) + 'px', height: w.height + 'px' });
@@ -1290,6 +1321,7 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
     const d = t.dataset;
     if (d.new) return makeNew(d.new, [...trayPick]);
     if (d.open) return openDesign(d.open);
+    if (d.zoom) return d.zoom === 'fit' ? setZoom(null) : zoomStep(d.zoom === 'in' ? 1 : -1);
     if (t.id === 'photosBtn' || t.id === 'photosBtn2') return bringPhotos();
     if (t.id === 'trayBig') return trayToggle();
     if (!doc) { if (d.scope || d.tsize) trayHead(d); if (t.classList.contains('still')) trayClick(e, t); return; }
@@ -1667,6 +1699,11 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
     if (marquee) { if (marquee.el) marquee.el.remove(); marquee = null; drawPanel(); drawBar(); }
   });
   $('stage').addEventListener('wheel', e => {
+    if (doc && e.ctrlKey && reframe == null) {          // a pinch on the trackpad arrives as ctrl + wheel
+      e.preventDefault();
+      setZoom(scale * Math.exp(-e.deltaY * 0.01), e.clientX, e.clientY);
+      return;
+    }
     if (reframe == null || !doc) return;
     e.preventDefault();
     const pic = page().pics[reframe]; if (!pic) return;
@@ -1678,6 +1715,12 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
     clearTimeout(zoomT); if (!zoomT) undo.push(was); zoomT = setTimeout(() => { zoomT = null; persist(); drawStrip(); }, 400);
   }, { passive: false });
   let zoomT = null;
+  // Safari's own pinch events (the Mac app's page is Safari underneath).
+  let pinch0 = 1;
+  $('stage').addEventListener('gesturestart', e => { if (!doc) return; e.preventDefault(); pinch0 = scale; });
+  $('stage').addEventListener('gesturechange', e => { if (!doc) return; e.preventDefault(); setZoom(pinch0 * e.scale, e.clientX, e.clientY); });
+  $('stage').addEventListener('gestureend', e => e.preventDefault());
+  $('scroller').addEventListener('scroll', () => drawBoxSel());
 
   // Drag and drop: stills from the tray, pictures between places, pages in the strip.
   let dragData = null;
@@ -1818,6 +1861,9 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
     const cmd = e.metaKey || e.ctrlKey;
     if (cmd && e.key.toLowerCase() === 'z') { if (typingIn && t.isContentEditable === false) return; e.preventDefault(); if (t.isContentEditable) t.blur(); return undoIt(!e.shiftKey); }
     if (cmd && e.key.toLowerCase() === 's') { e.preventDefault(); return keepVersion(); }
+    if (cmd && (e.key === '=' || e.key === '+')) { e.preventDefault(); return zoomStep(1); }
+    if (cmd && (e.key === '-' || e.key === '_')) { e.preventDefault(); return zoomStep(-1); }
+    if (cmd && e.key === '0') { e.preventDefault(); return setZoom(null); }
     if (cmd && e.key.toLowerCase() === 'd') { e.preventDefault(); if (editing) return; return bsel ? dupBox(bsel) : sel.size === 1 ? dupPic() : dupPage(); }
     if (typingIn) { if (e.key === 'Escape' && t.isContentEditable) { e.preventDefault(); stopEditing(); drawStage(); drawPanel(); } return; }
     if (swap) {
@@ -1932,6 +1978,7 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
       ['Right-click', 'Picked stills in the tray: add them to this page, to a new page, or lay them out on new pages'],
       ['L', 'Next layout for this page'], ['Paste', 'Words pasted onto the page become a text box'],
       ['Free page', 'Drag a picture anywhere · sides and bottom stretch it, the corner sizes it · ← → nudge (⌥ + any arrow) · ↑ ↓ still swap'],
+      ['⌘+  ⌘−  ⌘0', 'Zoom the page in, out, and back to fit — or pinch on the trackpad'],
       ['⌘D', 'Duplicate what\u2019s picked — or the page'], ['⌘Z  ⇧⌘Z', 'Undo, redo — everything'], ['⌘S', 'Keep a version'], ['Space', 'Play through the pages'], ['Tab', 'Hide the panel — just the page'], ['?', 'How it works']];
     openSheet('keys', `<div class="shead"><div class="grow"><h2>Keys</h2><span class="empty">The same few moves everywhere. <a href="#" data-guide="0">How it works ›</a></span></div>${closeX}</div>
       <div class="keys">${k.map(([a, b]) => `<kbd>${esc(a)}</kbd><span>${esc(b)}</span>`).join('')}</div>`);
