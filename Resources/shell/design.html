@@ -16,6 +16,8 @@
 .pg .pic img{display:block;width:100%;height:100%;object-fit:cover;-webkit-user-drag:none;user-select:none}
 .pg .fade{position:absolute;pointer-events:none;z-index:500}
 .pg .mark,.pg .ttl{z-index:5000}
+.pagewrap .runner.redit{cursor:pointer}
+.pagewrap .runner.rsel{outline:2px solid #F05A22;outline-offset:4px;border-radius:2px}
 .pg .tb{position:absolute;white-space:pre-wrap;word-wrap:break-word;margin:0;box-sizing:border-box}
 .pg .ttl{position:absolute;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;font-weight:400;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .pg .mark{position:absolute;display:block}
@@ -196,7 +198,7 @@ body.dragging,body.dragging *{cursor:grabbing!important;user-select:none}
 .traygrip::before{content:'';width:46px;height:4px;border-radius:4px;background:rgba(28,28,28,0.2);transition:background .15s}
 @media (hover:hover) and (pointer:fine){.traygrip:hover::before{background:#F05A22}}
 body.resizing,body.resizing *{cursor:ns-resize!important;user-select:none}
-.trayhead{display:flex;align-items:center;gap:8px;padding:8px 20px;flex-wrap:nowrap;min-width:0}
+.trayhead{display:flex;align-items:center;gap:6px 8px;padding:8px 20px;flex-wrap:wrap;min-width:0}
 .trayhead .q{border:1px solid rgba(28,28,28,0.1);border-radius:100px;padding:6px 12px;font-size:12.5px;background:rgba(255,255,255,0.75);outline:none;width:160px;min-width:80px}
 .trayhead .q:focus{border-color:var(--accent)}
 .trayper{display:flex;align-items:center;gap:9px;white-space:nowrap;flex-shrink:0;margin-left:8px;padding:5px 12px;border-radius:100px;background:rgba(255,255,255,0.6);border:1px solid rgba(240,90,34,0.3)}
@@ -530,6 +532,18 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
       const tc = onDark('#141414', lum(bg) < 0.42);
       h += `<div class="ttl" style="left:${m}px;top:${Math.round(34 * u)}px;right:${m}px;font-size:${Math.round(30 * u)}px;line-height:1.2;color:${tc}">${esc(doc.title)}</div>`;
     }
+    // The running header: your name and the project top left, the page number top right. Off on a page if you took it off.
+    const rn = doc.runner, hide = page.runnerHide || {};
+    if (rn && rn.on) {
+      const pos = doc.pages.indexOf(page), n = pos + 1, rs = (rn.size || 11) * u, ry = Math.round(Math.max(8 * u, (m - rs * 1.25) / 2));
+      const rc = rn.colour || onDark('#141414', dark), font = esc(fontStack(rn.font || HELV));
+      const base = `position:absolute;top:${ry}px;font-family:${font};font-size:${rs.toFixed(1)}px;line-height:1.25;color:${esc(rc)};white-space:nowrap;letter-spacing:${rn.upper === false ? 0 : 0.04}em;text-transform:${rn.upper === false ? 'none' : 'uppercase'};z-index:5000`;
+      const cls = k => `runner${opt.edit ? ' redit' : ''}${opt.rsel === k ? ' rsel' : ''}`;
+      if (!hide.left && ((rn.name || '').trim() || (rn.title || '').trim()))
+        h += `<div class="${cls('left')}" data-r="left" style="${base};left:${m}px">${(rn.name || '').trim() ? `<b style="font-weight:700">${esc(rn.name)}</b>` : ''}${(rn.name || '').trim() && (rn.title || '').trim() ? ' · ' : ''}${esc(rn.title || '')}</div>`;
+      if (!hide.right && rn.num !== false && pos >= 0)
+        h += `<div class="${cls('right')}" data-r="right" style="${base};right:${m}px">${esc(rn.style === 'num' ? String(n) : rn.style === 'pad' ? String(n).padStart(2, '0') : 'Page ' + n)}</div>`;
+    }
     if (doc.mark && opt.mark !== false) {
       const mh = Math.round(22 * u);
       h += `<img class="mark" alt="" src="mark.png" style="right:${m}px;bottom:${Math.round((L.bottom - mh) / 2)}px;height:${mh}px;${dark ? 'filter:brightness(0) invert(1)' : ''}">`;   // the mark, all white on dark pages
@@ -582,6 +596,7 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
   let undo = [], redo = [], swap = null;
   let trayH = +pref('trayH', 230) || 230;
   let fadeEdit = false;                                // moving and sizing the fade
+  let rsel = null;                                     // the picked part of the running header: 'left' or 'right'
 
   /* ---------------------------------------------------------------- saving and undo */
   let saveT = null;
@@ -690,7 +705,7 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
     wrap.style.height = Math.round(H * scale) + 'px';
     if (doc.mode === 'mood') { bsel = null; editing = null; }
     if (fadeEdit && !(p.fade && p.fade.on)) fadeEdit = false;
-    wrap.innerHTML = pageHTML(doc, p, { edit: true, sel, editing, reframe, scale, fadeEdit });
+    wrap.innerHTML = pageHTML(doc, p, { edit: true, sel, editing, reframe, scale, fadeEdit, rsel });
     const pg = wrap.querySelector('.pg'); pg.style.transform = `scale(${scale})`;
     if (editing) { const el = boxEl(editing); if (el && document.activeElement !== el) { el.focus(); placeCaretEnd(el); } }
     const b = bsel && boxById(bsel);
@@ -961,6 +976,11 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
           ${!['free', 'bleed', 'text'].includes(p.layout) ? `<div class="prow"><label>Run off the page edge</label><span style="flex-grow:1"></span><button class="tog${p.bleed ? ' on' : ''}" id="bleedTog" aria-pressed="${!!p.bleed}"></button></div>` : ''}
           ${p.layout === 'bleed' && p.pics.length > 1 ? '<span class="empty">Full bleed shows the first picture — the others wait on this page.</span>' : ''}</div>`;
       h += `
+        <div class="psec"><div class="prow"><span class="cap" style="margin:0">Name and page numbers</span><span style="flex-grow:1"></span><button class="tog${doc.runner && doc.runner.on ? ' on' : ''}" id="runTog" aria-pressed="${!!(doc.runner && doc.runner.on)}" title="Top left and top right, on every page"></button></div>
+          ${doc.runner && doc.runner.on ? `<div class="kpair"><input type="text" class="kselect" id="runName" value="${esc(doc.runner.name || '')}" placeholder="Your name" spellcheck="false"><input type="text" class="kselect" id="runTitle" value="${esc(doc.runner.title || '')}" placeholder="The project" spellcheck="false"></div>
+          <div class="kpair"><select class="kselect" id="runStyle">${[['page', 'Page 7'], ['pad', '07'], ['num', '7'], ['off', 'No numbers']].map(([k, n]) => `<option value="${k}"${(doc.runner.num === false ? 'off' : doc.runner.style || 'page') === k ? ' selected' : ''}>${n}</option>`).join('')}</select>${num('runSize', Math.round((doc.runner.size || 11) * geometry(doc).u * 10) / 10, 'pt', 0.5)}</div>
+          <div class="kpair"><select class="kselect" id="runFont">${BUNDLED.concat(fonts.filter(f => !BUNDLED.includes(f))).map(f => `<option${f === (doc.runner.font || HELV) ? ' selected' : ''}>${esc(f)}</option>`).join('')}</select><label class="prow" style="gap:6px;font-size:12.5px">Caps <button class="tog${doc.runner.upper === false ? '' : ' on'}" id="runCaps"></button></label></div>
+          ${p.runnerHide && (p.runnerHide.left || p.runnerHide.right) ? '<button class="tbtn" id="runBack" style="align-self:flex-start;padding-left:0">Show them on this page again</button>' : '<span class="empty">Click either one on the page and press ⌫ to take it off just that page.</span>'}` : ''}</div>
         <div class="psec"><span class="cap">Background</span>
           <div class="sw">${presets.map(c => `<button data-bg="${c}" class="${bgNow === c ? 'on' : ''}" style="background:${c}" title="${c}"></button>`).join('')}<input type="color" id="bgPick" value="${esc(bgNow)}" title="Any colour"></div>
           ${pal.length ? `<span class="cap" style="margin-top:4px">From these stills</span><div class="sw">${pal.map(c => `<button data-bg="${esc(c)}" class="pal${bgNow === c ? ' on' : ''}" style="background:${esc(c)}" title="${esc(c)}"></button>`).join('')}</div>` : ''}
@@ -1575,6 +1595,20 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
     // panel
     if (d.lay) return setLayout(d.lay);
     if (t.id === 'bleedTog') { change(() => { page().bleed = !page().bleed; }); return; }
+    if (t.id === 'runTog') {
+      const on = !(doc.runner && doc.runner.on);
+      if (on && !doc.runner) {
+        const info = await call('designProject').catch(() => ({})) || {};
+        doc.runner = { on: false, name: info.director || 'This Was Needed', title: info.title || project, num: true, style: 'page', size: 11, font: HELV, upper: true };
+      }
+      change(() => {
+        doc.runner.on = on;
+        if (on && doc.mode === 'treatment' && doc.pages[0] && doc.pages[0].layout === 'bleed' && !doc.pages[0].runnerHide) doc.pages[0].runnerHide = { left: true, right: true };   // not on the cover
+      });
+      return toast(on ? 'Your name and the page number, on every page' : 'Off on every page');
+    }
+    if (t.id === 'runCaps') { change(() => { doc.runner.upper = doc.runner.upper === false; }); return; }
+    if (t.id === 'runBack') { change(() => { delete page().runnerHide; }); return; }
     if (t.id === 'bleedAll') { const on = !!page().bleed; change(() => doc.pages.forEach(pg => { pg.bleed = on; })); return toast(on ? 'Every page runs off the edge' : 'Every page keeps its margin'); }
     if (d.bg) {
       const all = !page().bg;
@@ -1778,6 +1812,7 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
       }
     }
     if (t.id === 'bgPick') { const all = !page().bg; change(() => { if (all) doc.bg = t.value; else page().bg = t.value; }, { quiet: true }); drawStage(); drawStrip(); }
+    if (t.id === 'runName' || t.id === 'runTitle') { change(() => { doc.runner[t.id === 'runName' ? 'name' : 'title'] = t.value; }, { quiet: true }); drawStage(); clearTimeout(drawStrip.t); drawStrip.t = setTimeout(drawStrip, 300); return; }
     if (t.id === 'bFillPick') { const b = boxById(bsel); if (b) { change(() => { b.fill = t.value; }, { quiet: true }); drawStage(); } return; }
     if (t.id === 'bBorderPick') { const b = boxById(bsel); if (b && b.border) { change(() => { b.border.c = t.value; }, { quiet: true }); drawStage(); } return; }
     if (t.id === 'pBorderPick') { change(() => [...sel].forEach(k => { const x = page().pics[k]; if (x && x.border) x.border.c = t.value; }), { quiet: true }); drawStage(); return; }
@@ -1790,6 +1825,9 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
     if (t.id === 'perPage') { drawTray(); drawPanel(); return; }
     if (t.id === 'sizeSel') { change(() => { doc.size = t.value; }); return toast(`${SIZE_NAMES[t.value]} — every page re-flows to fit`); }
     if (t.id === 'bFont') return editBox(b => { b.font = t.value; });
+    if (t.id === 'runStyle') { change(() => { if (t.value === 'off') doc.runner.num = false; else { doc.runner.num = true; doc.runner.style = t.value; } }); return; }
+    if (t.id === 'runFont') { change(() => { doc.runner.font = t.value; }); return; }
+    if (t.id === 'runSize' && parseFloat(t.value) > 0) { change(() => { doc.runner.size = clamp(parseFloat(t.value) / geometry(doc).u, 4, 60); }); return; }
     if (t.id === 'bPreset' && t.value) return editBox(b => Object.assign(b, preset(t.value)));
     const G = geometry(doc), n = parseFloat(t.value);
     if (t.id === 'bPt' && n > 0) return editBox(b => { b.size = clamp(n / G.u, 3, 400); });
@@ -1823,6 +1861,9 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
   let marquee = null, drag = null;
   $('stage').addEventListener('mousedown', e => {
     if (!doc || e.button !== 0) return;
+    const rn = e.target.closest('#pagewrap .runner');
+    if (rn) { e.preventDefault(); stopEditing(); rsel = rn.dataset.r; sel.clear(); bsel = null; drawStage(); drawPanel(); $('stagehint').textContent = '⌫ takes it off this page · the switch in the panel turns it off everywhere'; return; }
+    if (rsel) { rsel = null; }
     const pic = e.target.closest('.pic'), tb = e.target.closest('#pagewrap .tb'), handle = e.target.closest('#boxsel .h');
     if (handle && bsel) {                   // a handle: width from the sides, size from the corner
       const b = boxById(bsel), el = boxEl(bsel); if (!b || !el) return;
@@ -2152,6 +2193,8 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
       swapEnd(true);
     }
     if (fadeEdit && e.key === 'Escape') { fadeEdit = false; drawStage(); drawPanel(); return; }
+    if (rsel && (e.key === 'Backspace' || e.key === 'Delete')) { e.preventDefault(); const k = rsel; rsel = null; change(() => { const p = page(); p.runnerHide = Object.assign({}, p.runnerHide, { [k]: true }); }); return toast('Off this page — the panel brings it back'); }
+    if (rsel && e.key === 'Escape') { rsel = null; drawStage(); return; }
     if (e.key === 'Escape') { if (reframe != null) { reframe = null; } else { sel.clear(); bsel = null; } drawStage(); drawPanel(); drawBar(); return; }
     if (e.key === ' ') { e.preventDefault(); return play(true); }
     if (e.key === 'Tab') { e.preventDefault(); $('app').classList.toggle('nopanel'); setTimeout(drawStage, 30); return; }
