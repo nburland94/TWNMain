@@ -12,6 +12,7 @@ import AppKit
 import WebKit
 import AVFoundation
 import ImageIO
+import CoreText
 import Network
 
 let vaultScheme = "neededvault"
@@ -1778,6 +1779,7 @@ extension VaultHost {
         guard !rels.isEmpty else { return reply(["ok": false, "error": "No stills to put on it"], nil) }
         let perPage = max(1, min(12, (b["perPage"] as? NSNumber)?.intValue ?? 6))
         let dark = (b["background"] as? String) == "dark"
+        let title = String(((b["title"] as? String) ?? "").trimmingCharacters(in: .whitespacesAndNewlines).prefix(80))
         let project = projectName((b["project"] as? String) ?? currentProject)
         var name = ((b["name"] as? String) ?? "Mood board").replacingOccurrences(of: "/", with: "-").replacingOccurrences(of: ":", with: "-")
         while name.hasPrefix(".") { name.removeFirst() }
@@ -1809,8 +1811,14 @@ extension VaultHost {
             guard let ctx = CGContext(target as CFURL, mediaBox: &page, nil) else {
                 return DispatchQueue.main.async { reply(["ok": false, "error": "Couldn't write the PDF"], nil) }
             }
-            let margin: CGFloat = 40, gap: CGFloat = 12
-            let area = page.insetBy(dx: margin, dy: margin)
+            // The same page the Vault previews: 40pt at the sides, room at the bottom
+            // for the mark, a band at the top when there's a title, 6pt between pictures.
+            let side: CGFloat = 40, bottom: CGFloat = 56, gap: CGFloat = 6
+            let top: CGFloat = title.isEmpty ? 40 : 96
+            let area = CGRect(x: side, y: bottom, width: page.width - side * 2, height: page.height - bottom - top)
+            let ink: CGColor = dark ? CGColor(srgbRed: 0.957, green: 0.953, blue: 0.945, alpha: 1) : CGColor(srgbRed: 0.08, green: 0.08, blue: 0.08, alpha: 1)
+            let titleLine: CTLine? = title.isEmpty ? nil : VaultHost.moodTitleLine(title, colour: ink)
+            let mark: CGImage? = VaultHost.moodMark(white: dark)
             var pages = 0
             var i = 0
             while i < pics.count {
@@ -1827,6 +1835,15 @@ extension VaultHost {
                     ctx.interpolationQuality = .high
                     ctx.draw(img, in: r)
                 }
+                if let line = titleLine {                           // the title, top left, light
+                    ctx.textPosition = CGPoint(x: side, y: page.height - 34 - 26)
+                    CTLineDraw(line, ctx)
+                }
+                if let m = mark {                                   // This Was Needed, small, bottom right
+                    let w: CGFloat = 52
+                    let h: CGFloat = w * CGFloat(m.height) / CGFloat(max(1, m.width))
+                    ctx.draw(m, in: CGRect(x: page.width - side - w, y: 10, width: w, height: h))
+                }
                 ctx.endPDFPage()
                 pages += 1
             }
@@ -1837,6 +1854,43 @@ extension VaultHost {
                 reply(["ok": true, "name": target.lastPathComponent, "file": rel, "pages": pages, "count": pics.count], nil)
             }
         }
+    }
+
+    /// The mood board's title: Raleway ExtraLight from the app's own fonts, or the
+    /// Mac's light system font if that can't be loaded.
+    static func moodTitleLine(_ text: String, colour: CGColor) -> CTLine {
+        let font: CTFont
+        if let dir = Bundle.main.resourceURL?.appendingPathComponent("shell/fonts/raleway-latin-200-normal.woff2"),
+           let descs = CTFontManagerCreateFontDescriptorsFromURL(dir as CFURL) as? [CTFontDescriptor], let d = descs.first {
+            font = CTFontCreateWithFontDescriptor(d, 30, nil)
+        } else {
+            font = NSFont.systemFont(ofSize: 30, weight: .light) as CTFont
+        }
+        let attrs: [NSAttributedString.Key: Any] = [
+            NSAttributedString.Key(kCTFontAttributeName as String): font,
+            NSAttributedString.Key(kCTForegroundColorAttributeName as String): colour,
+            NSAttributedString.Key(kCTKernAttributeName as String): 0.6,
+        ]
+        return CTLineCreateWithAttributedString(NSAttributedString(string: text, attributes: attrs))
+    }
+
+    /// The This Was Needed mark for the corner: as it is on light pages, all white
+    /// on dark ones. Any white background in the file is made see-through.
+    static func moodMark(white: Bool) -> CGImage? {
+        guard let url = Bundle.main.resourceURL?.appendingPathComponent("logo.png"),
+              let src = CGImageSourceCreateWithURL(url as CFURL, nil),
+              let img = CGImageSourceCreateImageAtIndex(src, 0, nil) else { return nil }
+        let w = img.width, h = img.height
+        var px = [UInt8](repeating: 0, count: w * h * 4)
+        guard let ctx = CGContext(data: &px, width: w, height: h, bitsPerComponent: 8, bytesPerRow: w * 4,
+                                  space: CGColorSpaceCreateDeviceRGB(), bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue) else { return img }
+        ctx.draw(img, in: CGRect(x: 0, y: 0, width: w, height: h))
+        for i in stride(from: 0, to: px.count, by: 4) {
+            let r = Int(px[i]), g = Int(px[i + 1]), b = Int(px[i + 2]), a = Int(px[i + 3])
+            if a > 0 && r > 236 && g > 236 && b > 236 { px[i] = 0; px[i + 1] = 0; px[i + 2] = 0; px[i + 3] = 0; continue }
+            if white && a > 0 { px[i] = UInt8(a); px[i + 1] = UInt8(a); px[i + 2] = UInt8(a) }   // premultiplied white
+        }
+        return ctx.makeImage() ?? img
     }
 
     /// Justified rows: the pictures in order, in as many rows as fills the space

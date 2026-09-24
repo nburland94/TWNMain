@@ -249,3 +249,16 @@ ROUND 4.1 — FIXES
     moment before), they stayed invisible: the blank Vault.
   • Clicking out of a picture (on Home or in any tool) closes it — and
     that click no longer lands on the picture underneath and opens it.
+
+ROUND 4.2 — MOOD BOARDS
+  • Pick the stills: every still from the project, board, tag or colour
+    you chose is shown small — tap to take one off or put it back (All /
+    None). Only the ones you've picked go on the board.
+  • Pictures a page: a slider from 1 up to 12 — never more than you've
+    picked, and never more than 12, which is where a 16:9 page stops
+    working as a mood board.
+  • A title, if you want one — top left of every page, light. It also
+    names the file.
+  • The This Was Needed mark, small, bottom right of every page (white
+    on dark pages).
+  • Tighter: 6pt between pictures.

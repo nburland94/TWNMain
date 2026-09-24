@@ -167,10 +167,26 @@ main{padding:0 3rem;max-width:1180px}
 .moodopts{display:flex;gap:2rem;flex-wrap:wrap;margin:1.2rem 0 1.6rem;align-items:flex-start}
 .moodopts select{font-family:var(--body);font-size:13px;padding:7px 12px;border:1px solid var(--hair);border-radius:100px;background:var(--panel);color:var(--ink);min-width:180px}
 .moodpages{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:14px}
-.moodpage{position:relative;aspect-ratio:16/9;border-radius:6px;overflow:hidden;background:#f4f3f1;box-shadow:0 8px 26px rgba(80,30,10,0.12),0 0 0 0.5px rgba(0,0,0,0.08)}
+.moodpage{position:relative;container-type:inline-size;aspect-ratio:16/9;border-radius:6px;overflow:hidden;background:#f4f3f1;box-shadow:0 8px 26px rgba(80,30,10,0.12),0 0 0 0.5px rgba(0,0,0,0.08)}
 .moodpage.dark{background:#121212}
 .moodpage img{position:absolute;display:block}
 .moodrow{display:flex;gap:0.8rem;align-items:center;flex-wrap:wrap;margin-top:1.4rem}
+.moodslider{width:220px;accent-color:#F05A22;margin-top:0.35rem}
+.moodtitle{display:flex;flex-direction:column;gap:0.4rem;margin:0 0 1.2rem;max-width:520px}
+.moodtitle input{font-family:var(--body);font-size:15px;padding:10px 14px;border:1px solid var(--hair);border-radius:12px;background:var(--panel);color:var(--ink)}
+.moodtitle input:focus{outline:none;border-color:var(--accent)}
+.moodchoosehead{display:flex;align-items:center;gap:0.9rem;margin-bottom:0.6rem}
+.moodchoose{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:6px;margin-bottom:1.6rem;max-height:236px;overflow-y:auto;padding:2px}
+.moodchoose button{position:relative;aspect-ratio:1;border:none;padding:0;border-radius:8px;overflow:hidden;background:#111;cursor:pointer;
+  opacity:0.35;transition:opacity .15s var(--ease-out),box-shadow .15s var(--ease-out)}
+.moodchoose button.on{opacity:1;box-shadow:0 0 0 2px #F05A22}
+.moodchoose button img{width:100%;height:100%;object-fit:cover;display:block}
+.moodchoose button i{position:absolute;right:5px;top:5px;width:16px;height:16px;border-radius:5px;background:rgba(255,255,255,0.85);display:none;
+  font-style:normal;font-size:11px;line-height:16px;text-align:center;color:#fff}
+.moodchoose button.on i{display:block;background:#F05A22}
+.moodchoose button:active{transform:scale(0.97)}
+.moodpage .mtitle{position:absolute;font-family:var(--body);font-weight:200;letter-spacing:0.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.moodpage .mmark{position:absolute;opacity:0.9}
 .moodrow .status{font-size:12.5px;color:var(--mid)}
 .search{flex:1;min-width:240px;background:var(--panel);border:1px solid var(--hair);border-radius:var(--r);
   padding:0.62rem 0.9rem;font-family:var(--body);font-size:13px;color:var(--ink)}
@@ -659,18 +675,23 @@ body.marqueeing{user-select:none;-webkit-user-select:none;cursor:crosshair}
   </div>
 
   <div id="moodView" hidden>
-    <p class="note" style="margin:0;max-width:640px">A mood board: a PDF of stills and nothing else — no titles, no words. Choose where the stills come from; it saves into this project's Mood folder.</p>
+    <p class="note" style="margin:0;max-width:680px">A mood board: a PDF of your stills — a title if you want one, the This Was Needed mark in the corner, no other words. Choose where the stills come from, pick the ones you want, and it saves into this project's Mood folder.</p>
     <div class="moodopts">
       <div class="opt"><span class="label">From</span>
         <div class="seg" id="moodFrom"><button data-v="project" class="on">A project</button><button data-v="board">A board</button><button data-v="tag">A tag</button><button data-v="colour">A colour</button></div></div>
       <div class="opt"><span class="label" id="moodPickLabel">Project</span>
         <label><span style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">Which one</span><select id="moodPick"></select></label>
         <div class="swatches" id="moodColours" hidden></div></div>
-      <div class="opt"><span class="label">Pictures a page</span>
-        <div class="seg" id="moodPer"><button data-v="1">1</button><button data-v="4">4</button><button data-v="6" class="on">6</button><button data-v="9">9</button></div></div>
+      <div class="opt"><label class="label" for="moodPer">Pictures a page · <b id="moodPerVal" style="color:var(--ink)">6</b></label>
+        <input type="range" id="moodPer" class="moodslider" min="1" max="12" step="1" value="6"></div>
       <div class="opt"><span class="label">Background</span>
         <div class="seg" id="moodBg"><button data-v="light" class="on">Light</button><button data-v="dark">Dark</button></div></div>
     </div>
+    <div class="moodtitle"><label class="label" for="moodTitle">Title</label>
+      <input type="text" id="moodTitle" placeholder="Optional — e.g. Lexus RZ · Quiet Power" maxlength="80" spellcheck="false"></div>
+    <div class="moodchoosehead"><span class="label" id="moodChooseLabel">Pick the stills</span>
+      <button class="textbtn" id="moodAll">All</button><button class="textbtn" id="moodNone">None</button></div>
+    <div class="moodchoose" id="moodChoose"></div>
     <div class="moodpages" id="moodPages"></div>
     <p class="empty" id="moodEmpty" hidden></p>
     <div class="moodrow">
@@ -2773,16 +2794,22 @@ body.marqueeing{user-select:none;-webkit-user-select:none;cursor:crosshair}
   /* ---- Mood: a text-free PDF of stills, from a project, a board, a tag or a colour ---- */
 
   let moodFrom = 'project', moodWhat = '', moodPer = 6, moodBg = 'light';
+  let moodPicked = new Set(), moodPickKey = '';   // the stills you've picked for the board
   const moodAspect = {};                       // each still's shape, from its preview
   const moodKeys = it => moodFrom === 'project' ? [it.project || 'Unsorted'] : moodFrom === 'board' ? (it.boards || [])
     : moodFrom === 'tag' ? (it.tags || []).map(t => t.toLowerCase()) : familiesOf(it);
   const moodStills = () => items.filter(it => it.kind === 'still' && moodKeys(it).includes(moodWhat));
-  const moodName = () => `Mood — ${moodFrom === 'colour' ? moodWhat : moodWhat.replace(/[\/:]/g, '-')}`;
+  const moodChosen = () => moodStills().filter(it => moodPicked.has(it.id));
+  const moodTitle = () => $('moodTitle').value.trim();
+  const moodName = () => moodTitle() ? `Mood — ${moodTitle().replace(/[\/:]/g, '-')}` : `Mood — ${moodFrom === 'colour' ? moodWhat : moodWhat.replace(/[\/:]/g, '-')}`;
+  // The page, in PDF points, exactly as the Mac draws it: a 16:9 page, a band for
+  // the title when there is one, room at the bottom for the mark, 6pt between pictures.
+  const MOOD = { W: 1600, H: 900, side: 40, bottom: 56, gap: 6, top: () => moodTitle() ? 96 : 40 };
 
   // The same layout the Mac draws the PDF with: rows of pictures in their own
   // shapes, each row the full width, as many rows as fill the page best.
-  function moodLayout(aspects, W, H, margin, gap) {
-    const n = aspects.length, aw = W - margin * 2, ah = H - margin * 2;
+  function moodLayout(aspects, W, H, margin, gap, top = margin, bottom = margin) {
+    const n = aspects.length, aw = W - margin * 2, ah = H - top - bottom;
     let best = { score: -1, rects: [] };
     for (let rowsCount = 1; rowsCount <= n; rowsCount++) {
       const total = aspects.reduce((a, b) => a + b, 0), aim = total / rowsCount;
@@ -2796,7 +2823,7 @@ body.marqueeing{user-select:none;-webkit-user-select:none;cursor:crosshair}
       const k = Math.min(1, (ah - gap * (rows.length - 1)) / Math.max(1, hs.reduce((a, b) => a + b, 0)));
       hs = hs.map(h => h * k);
       const blockH = hs.reduce((a, b) => a + b, 0) + gap * (rows.length - 1);
-      let y = margin + (ah - blockH) / 2, covered = 0; const rects = [];
+      let y = top + (ah - blockH) / 2, covered = 0; const rects = [];
       rows.forEach((r, ri) => {
         const h = hs[ri], w = r.reduce((t, i) => t + aspects[i] * h, 0) + gap * (r.length - 1);
         let x = margin + (aw - w) / 2;
@@ -2826,10 +2853,20 @@ body.marqueeing{user-select:none;-webkit-user-select:none;cursor:crosshair}
       $('moodPick').innerHTML = keys.map(k => `<option value="${esc(k)}"${k === moodWhat ? ' selected' : ''}>${esc(k)} · ${counts[k]}</option>`).join('');
       $('moodPick').disabled = !keys.length;
     }
-    const list = moodStills();
+    const all = moodStills();
+    const key = moodFrom + '|' + moodWhat;
+    if (key !== moodPickKey) { moodPickKey = key; moodPicked = new Set(all.map(it => it.id)); }   // a new source: everything picked
+    $('moodChoose').innerHTML = all.map(it => `<button type="button" class="${moodPicked.has(it.id) ? 'on' : ''}" data-id="${esc(it.id)}" aria-pressed="${moodPicked.has(it.id)}" title="${esc(refTitle(it))}"><img loading="lazy" alt="" src="${vaultURL(it.thumb || it.file)}"><i>✓</i></button>`).join('');
+    const list = moodChosen();
+    $('moodChooseLabel').textContent = all.length ? `Pick the stills · ${list.length} of ${all.length}` : 'Pick the stills';
+    // the slider: 1 up to 12 a page, never more than you've picked
+    const top = Math.max(1, Math.min(12, list.length || 1));
+    $('moodPer').max = top;
+    if (moodPer > top) moodPer = top;
+    $('moodPer').value = moodPer; $('moodPerVal').textContent = moodPer;
     $('moodEmpty').hidden = !!list.length;
     $('moodEmpty').textContent = !stills.length ? 'No stills in your vault yet — save some, then make a mood board from them.'
-      : `Nothing to put on it — pick a ${moodFrom} that has stills.`;
+      : all.length ? 'Nothing picked — tap the stills you want on the board.' : `Nothing to put on it — pick a ${moodFrom} that has stills.`;
     const pages = Math.ceil(list.length / moodPer);
     $('moodMake').disabled = !list.length;
     $('moodMake').textContent = list.length ? `Make the PDF — ${list.length} still${list.length === 1 ? '' : 's'}, ${pages} page${pages === 1 ? '' : 's'}` : 'Make the PDF';
@@ -2844,11 +2881,17 @@ body.marqueeing{user-select:none;-webkit-user-select:none;cursor:crosshair}
       .then(img => { moodAspect[it.id] = img.naturalWidth / Math.max(1, img.naturalHeight); }, () => { moodAspect[it.id] = 16 / 9; })));
     if (ticket !== moodDraw) return;                         // a newer choice is already drawing
     let html = '';
+    const title = moodTitle(), dark = moodBg === 'dark';
+    const mark = (document.querySelector('.brand img') || {}).src || '';
     for (let i = 0; i < list.length; i += moodPer) {
       const set = list.slice(i, i + moodPer);
-      const rects = moodLayout(set.map(it => moodAspect[it.id] || 16 / 9), 1600, 900, 40, 12);
-      html += `<div class="moodpage${moodBg === 'dark' ? ' dark' : ''}">` + set.map((it, k) => { const r = rects[k];
-        return `<img alt="" loading="lazy" src="${vaultURL(it.thumb || it.file)}" style="left:${(r.x / 16).toFixed(3)}%;top:${(r.y / 9).toFixed(3)}%;width:${(r.w / 16).toFixed(3)}%;height:${(r.h / 9).toFixed(3)}%">`; }).join('') + '</div>';
+      const rects = moodLayout(set.map(it => moodAspect[it.id] || 16 / 9), MOOD.W, MOOD.H, MOOD.side, MOOD.gap, MOOD.top(), MOOD.bottom);
+      const pct = (v, of) => (v / of * 100).toFixed(3) + '%';
+      html += `<div class="moodpage${dark ? ' dark' : ''}">` +
+        (title ? `<span class="mtitle" style="left:${pct(40, 1600)};top:${pct(34, 900)};right:${pct(40, 1600)};font-size:1.9cqw;color:${dark ? '#f4f3f1' : '#141414'}">${esc(title)}</span>` : '') +
+        set.map((it, k) => { const r = rects[k];
+          return `<img alt="" loading="lazy" src="${vaultURL(it.thumb || it.file)}" style="left:${pct(r.x, 1600)};top:${pct(r.y, 900)};width:${pct(r.w, 1600)};height:${pct(r.h, 900)}">`; }).join('') +
+        (mark ? `<img class="mmark" alt="This Was Needed" src="${mark}" style="right:${pct(40, 1600)};bottom:${pct(10, 900)};width:${pct(52, 1600)};${dark ? 'filter:brightness(0) invert(1);' : ''}">` : '') + '</div>';
     }
     $('moodPages').innerHTML = html;
   }
@@ -2856,7 +2899,17 @@ body.marqueeing{user-select:none;-webkit-user-select:none;cursor:crosshair}
   $('moodFrom').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; moodFrom = b.dataset.v; moodWhat = ''; renderMood(); });
   $('moodPick').addEventListener('change', () => { moodWhat = $('moodPick').value; renderMood(); });
   $('moodColours').addEventListener('click', e => { const b = e.target.closest('[data-colour]'); if (!b) return; moodWhat = b.dataset.colour; renderMood(); });
-  [['moodPer', x => { moodPer = +x; }], ['moodBg', x => { moodBg = x; }]].forEach(([id, set]) => {
+  $('moodPer').addEventListener('input', () => { moodPer = +$('moodPer').value; $('moodPerVal').textContent = moodPer; renderMood(); });
+  let moodTitleT = null;
+  $('moodTitle').addEventListener('input', () => { clearTimeout(moodTitleT); moodTitleT = setTimeout(renderMood, 200); });
+  $('moodChoose').addEventListener('click', e => {
+    const b = e.target.closest('[data-id]'); if (!b) return;
+    moodPicked.has(b.dataset.id) ? moodPicked.delete(b.dataset.id) : moodPicked.add(b.dataset.id);
+    renderMood();
+  });
+  $('moodAll').addEventListener('click', () => { moodStills().forEach(it => moodPicked.add(it.id)); renderMood(); });
+  $('moodNone').addEventListener('click', () => { moodPicked.clear(); renderMood(); });
+  [['moodBg', x => { moodBg = x; }]].forEach(([id, set]) => {
     $(id).addEventListener('click', e => {
       const b = e.target.closest('button'); if (!b) return;
       $(id).querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b));
@@ -2864,10 +2917,10 @@ body.marqueeing{user-select:none;-webkit-user-select:none;cursor:crosshair}
     });
   });
   $('moodMake').addEventListener('click', async () => {
-    const list = moodStills(); if (!list.length) return;
+    const list = moodChosen(); if (!list.length) return;
     if (!dest) { await chooseFolder(); if (!dest) return; }
     $('moodMake').disabled = true; $('moodReveal').hidden = true; $('moodStatus').textContent = 'Making the mood board…';
-    let r; try { r = await fileCall('moodBoard', { files: list.map(it => it.file), perPage: moodPer, background: moodBg, project, name: moodName() }); }
+    let r; try { r = await fileCall('moodBoard', { files: list.map(it => it.file), perPage: moodPer, background: moodBg, project, name: moodName(), title: moodTitle() }); }
     catch (e) { r = null; }
     $('moodMake').disabled = false;
     if (r && r.ok) {
