@@ -19,7 +19,7 @@ nav{display:flex;gap:22px;align-items:center}
 .tabwrap.away .tab{opacity:0.45}
 .undock{border:none;background:none;padding:3px;display:flex;opacity:0.55;transition:opacity .2s var(--ease-out)}
 @media (hover:hover) and (pointer:fine){.undock:hover{opacity:1}}
-.help{width:34px;height:34px;border-radius:50%;border:1px solid rgba(28,28,28,0.06);background:rgba(255,255,255,0.5);color:var(--mid);font-size:14px}
+.help{display:flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:50%;border:1px solid rgba(28,28,28,0.06);background:rgba(255,255,255,0.5);color:var(--mid);font-size:14px}
 .pill{display:flex;align-items:center;gap:8px;border-radius:100px;padding:8px 14px;font-size:13px;border:1px solid rgba(28,28,28,0.09);background:linear-gradient(180deg,rgba(255,255,255,0.85),rgba(255,255,255,0.55));box-shadow:inset 0 1px 0 #fff,0 1px 2px rgba(80,30,10,0.05)}
 .vault{max-width:220px}
 .sync svg{transition:transform .3s var(--ease-out)}
@@ -73,6 +73,7 @@ nav{display:flex;gap:22px;align-items:center}
       <span>Project</span></button>
   </div>
   <button class="go" id="go" aria-label="Grab &amp; Go" title="Grab &amp; Go — copied images save into your project"><i></i><span id="goLabel">Grab &amp; Go</span></button>
+  <button class="help" id="themeBtn" aria-label="Dark mode" title="Dark mode — a calm blue night"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#4a4945" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg></button>
   <button class="help" id="help" aria-label="Show the welcome">?</button>
 </div>
 <div class="toast" id="toast"></div>
@@ -102,6 +103,8 @@ nav{display:flex;gap:22px;align-items:center}
     $('projBtn').disabled = !S.vault;
     $('projBtn').classList.toggle('on', S.tab === 'project');
     $('go').classList.toggle('on', !!S.grabGo);
+    $('themeBtn').title = S.theme === 'dark' ? 'Light mode' : 'Dark mode — a calm blue night';
+    $('themeBtn').setAttribute('aria-label', S.theme === 'dark' ? 'Light mode' : 'Dark mode');
     $('goLabel').textContent = S.grabGo ? 'Grab & Go · on' : 'Grab & Go';
     $('go').setAttribute('aria-label', S.grabGo ? 'Grab & Go, on' : 'Grab & Go');
   }
@@ -113,6 +116,7 @@ nav{display:flex;gap:22px;align-items:center}
     const b = e.target.closest('.tab'); if (b) call('tab', { id: b.dataset.id }).then(render);
   });
   $('help').addEventListener('click', () => call('welcome', { tool: S.tab }));
+  $('themeBtn').addEventListener('click', () => call('theme').then(render));
   $('projBtn').addEventListener('click', () => call('tab', { id: 'project' }).then(render));
   $('vault').addEventListener('click', () => call('chooseVault').then(render));
   $('proj').addEventListener('change', async () => {

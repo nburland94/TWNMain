@@ -64,14 +64,32 @@ enum Shared {
         }
     }
 
+    /// Light, or the calm blue night (Resources/shell/theme.js).
+    static var theme: String {
+        get { UserDefaults.standard.string(forKey: "theme") == "dark" ? "dark" : "light" }
+        set { UserDefaults.standard.set(newValue == "dark" ? "dark" : "light", forKey: "theme") }
+    }
+    private static let shellDir = Bundle.main.resourceURL?.appendingPathComponent("shell")
+    private static func read(_ name: String) -> String {
+        shellDir.flatMap { try? String(contentsOf: $0.appendingPathComponent(name), encoding: .utf8) } ?? ""
+    }
+    private static let embeddedSource = read("load.js") + "\n" + read("embed.js") + "\n" + read("hints.js")
+    private static let themeSource = read("theme.js")
+
     /// Every tool gets the glass hints (Resources/shell/hints.js). Its own
     /// title — NEEDED GRAB and so on — stays, as in the separate apps.
-    static let embedded: WKUserScript = {
-        let dir = Bundle.main.resourceURL?.appendingPathComponent("shell")
-        let read = { (name: String) in dir.flatMap { try? String(contentsOf: $0.appendingPathComponent(name), encoding: .utf8) } ?? "" }
-        // load.js: the one loading pill. embed.js: the glow, full width, click-outside and ←. hints.js: the glass hints.
-        return WKUserScript(source: read("load.js") + "\n" + read("embed.js") + "\n" + read("hints.js"), injectionTime: .atDocumentEnd, forMainFrameOnly: true)
-    }()
+    /// load.js: the one loading pill. embed.js: the glow, full width, click-outside and ←. hints.js: the glass hints.
+    /// theme.js: dark mode — made fresh, so a tool opened later starts in the theme you're in.
+    static var embedded: WKUserScript {
+        WKUserScript(source: embeddedSource + "\n" + themeScriptSource, injectionTime: .atDocumentEnd, forMainFrameOnly: true)
+    }
+    static var themeScriptSource: String { "window.__neededThemeNow = '\(theme)';\n" + themeSource }
+    /// The app's own pages (Home, the project page, Design…): the theme alone.
+    static var themeScript: WKUserScript { WKUserScript(source: themeScriptSource, injectionTime: .atDocumentEnd, forMainFrameOnly: true) }
+    static var windowColour: NSColor {
+        theme == "dark" ? NSColor(srgbRed: 0x0D / 255.0, green: 0x15 / 255.0, blue: 0x21 / 255.0, alpha: 1)
+            : NSColor(srgbRed: 0xFC / 255.0, green: 0xF2 / 255.0, blue: 0xEC / 255.0, alpha: 1)
+    }
 }
 
 // MARK: - Where stills, GIFs and clips live in a project
@@ -342,7 +360,7 @@ final class Shell: NSObject, NSApplicationDelegate, NSWindowDelegate, WKScriptMe
         window.title = "Needed Tools"
         window.titlebarAppearsTransparent = true
         window.titleVisibility = .hidden
-        window.backgroundColor = NSColor(srgbRed: 0xFC / 255.0, green: 0xF2 / 255.0, blue: 0xEC / 255.0, alpha: 1)
+        window.backgroundColor = Shared.windowColour
         window.minSize = NSSize(width: 980, height: 640)
         window.delegate = self
         window.contentView = content
@@ -430,6 +448,7 @@ final class Shell: NSObject, NSApplicationDelegate, NSWindowDelegate, WKScriptMe
         scheme.vaultRoot = { Shared.vault }                    // Home shows the vault's work
         config.setURLSchemeHandler(scheme, forURLScheme: toolsScheme)
         config.userContentController.addScriptMessageHandler(self, contentWorld: .page, name: "shell")
+        config.userContentController.addUserScript(Shared.themeScript)
         let view: WKWebView = drop ? DropWebView(frame: .zero, configuration: config) : WKWebView(frame: .zero, configuration: config)
         view.uiDelegate = self
         view.setValue(false, forKey: "drawsBackground")
@@ -904,7 +923,7 @@ final class Shell: NSObject, NSApplicationDelegate, NSWindowDelegate, WKScriptMe
                          styleMask: [.titled, .closable, .miniaturizable, .resizable], backing: .buffered, defer: false)
         w.isReleasedWhenClosed = false
         w.title = "Needed \(Shell.names[id] ?? "") — \(Shared.project)"
-        w.backgroundColor = window.backgroundColor
+        w.backgroundColor = Shared.windowColour
         w.minSize = NSSize(width: 720, height: 560)
         view.frame = NSRect(origin: .zero, size: w.contentRect(forFrameRect: w.frame).size)
         view.autoresizingMask = [.width, .height]
@@ -945,6 +964,20 @@ final class Shell: NSObject, NSApplicationDelegate, NSWindowDelegate, WKScriptMe
         DispatchQueue.main.async { self.dock(id) }
     }
 
+    /// Every page, and the window behind them, in the theme you chose.
+    func applyTheme() {
+        window.backgroundColor = Shared.windowColour
+        for w in undocked.values { w.backgroundColor = Shared.windowColour }
+        var views: [WKWebView] = [chrome, home]
+        if let p = projectPage { views.append(p) }
+        if let d = designPage { views.append(d) }
+        if let s = signin { views.append(s) }
+        if let w = welcome?.1 { views.append(w) }
+        views += hosts.values.compactMap { $0.webView }
+        let js = "window.__neededTheme && window.__neededTheme('\(Shared.theme)')"
+        for v in views { v.evaluateJavaScript(js, completionHandler: nil) }
+    }
+
     // MARK: Everyone hears about the vault, the project and the tab
 
     private func state() -> [String: Any] {
@@ -960,6 +993,7 @@ final class Shell: NSObject, NSApplicationDelegate, NSWindowDelegate, WKScriptMe
             "projectTags": Labels.allTags(),
             "tagNames": Labels.tagNames(),
             "grabGo": hosts["vault"] != nil ? vaultHost.grabGo.on : false,
+            "theme": Shared.theme,
             "tab": current,
             "canBack": !backStack.isEmpty || current != "home",
             "canForward": !forwardStack.isEmpty,
@@ -1057,6 +1091,12 @@ final class Shell: NSObject, NSApplicationDelegate, NSWindowDelegate, WKScriptMe
 
         case "sync":
             sync(replyHandler)
+
+        case "theme":
+            // Light, or the calm blue night — every page at once.
+            Shared.theme = (body["theme"] as? String) ?? (Shared.theme == "dark" ? "light" : "dark")
+            applyTheme()
+            reply(replyHandler)
 
         case "notify":
             // a tool finished something: say so

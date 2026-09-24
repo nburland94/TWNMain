@@ -348,3 +348,10 @@ ROUND 6 — NEEDED DESIGN
   • The final film: open the finished film in Grab and press "Save as the
     final film". It's copied into Lexus_Docs › Final film, into the Vault as
     a clip, and it leads the project page — Mood sits beneath it.
+
+DARK MODE
+  • The moon, top right: a calm blue night across every page — deep navy
+    instead of the apricot light, a blue glow, soft blue accents. Press it
+    again for light. It's remembered.
+  • Your pictures, colour swatches and Design pages keep their true colours,
+    and exports are never affected. (Resources/shell/theme.js)
