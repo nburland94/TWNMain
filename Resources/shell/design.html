@@ -97,6 +97,13 @@ select.sel{appearance:none;-webkit-appearance:none;border:1px solid rgba(28,28,2
 .boxsel .h[data-h=b]{left:50%;bottom:-6px;margin-left:-6px;cursor:ns-resize;display:none}
 .boxsel.pic .h[data-h=b]{display:block}
 .pagewrap.free .pic{cursor:move}
+.splitbar[hidden]{display:none}
+.splitbar{position:absolute;z-index:6;display:flex;align-items:center;justify-content:center}
+.splitbar::before{content:'';border-radius:4px;background:#F05A22;opacity:0.35;transition:opacity .15s}
+.splitbar.x{cursor:ew-resize}.splitbar.x::before{width:4px;height:56px}
+.splitbar.y{cursor:ns-resize}.splitbar.y::before{height:4px;width:56px}
+@media (hover:hover) and (pointer:fine){.splitbar:hover::before{opacity:1}}
+.splitbar.on::before{opacity:1}
 .guide{position:absolute;background:#F05A22;pointer-events:none;z-index:7}
 .guide[hidden]{display:none}
 .guide.v{width:1px}
@@ -111,6 +118,9 @@ select.sel{appearance:none;-webkit-appearance:none;border:1px solid rgba(28,28,2
 .swapbar .k{font-size:11.5px;color:#6b6964;padding:0 8px;white-space:nowrap}
 .panel{border-left:1px solid rgba(28,28,28,0.05);overflow-y:auto;padding:14px 16px 20px;display:flex;flex-direction:column;gap:16px;min-width:0}
 .panel .phead{display:flex;align-items:baseline;justify-content:space-between;gap:8px}
+.phbtns{display:flex;align-items:center;gap:6px}
+.freesw{display:flex;align-items:center;gap:6px;font-size:12.5px;color:#2a2926}
+.freesw .tog{transform:scale(0.85)}
 .panel .phead b{font-weight:300;font-size:22px}
 .light.small{padding:7px 12px;font-size:12.5px}
 .kdiv{border-top:1px solid rgba(28,28,28,0.08);margin:2px 0 -4px}
@@ -135,7 +145,7 @@ select.sel{appearance:none;-webkit-appearance:none;border:1px solid rgba(28,28,2
 @media (hover:hover) and (pointer:fine){.kbtn:hover:not(.on),.kicon:hover:not(.on){background:rgba(240,90,34,0.1)}}
 .sw button.none{background:linear-gradient(135deg,#fff 46%,#d2440f 46%,#d2440f 54%,#fff 54%)}
 .sw button.auto{background:linear-gradient(135deg,#141414 50%,#ffffff 50%)}
-.laynames{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin-top:-2px}
+.laynames{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-top:-2px}
 .laynames span{font-size:10px;color:#6b6964;text-align:center;line-height:1.2}
 .psec{display:flex;flex-direction:column;gap:8px}
 .prow{display:flex;align-items:center;gap:8px;font-size:12.5px;min-width:0}
@@ -144,8 +154,8 @@ select.sel{appearance:none;-webkit-appearance:none;border:1px solid rgba(28,28,2
 .prow input[type=range]{flex-grow:1;accent-color:#F05A22;min-width:0}
 .prow select,.prow input[type=text],.prow input[type=number]{border:1px solid rgba(28,28,28,0.12);border-radius:8px;padding:5px 7px;font-size:12.5px;background:#fff;min-width:0}
 .prow input[type=color]{width:34px;height:26px;border:1px solid rgba(28,28,28,0.12);border-radius:6px;padding:1px;background:#fff}
-.lays{display:grid;grid-template-columns:repeat(6,1fr);gap:6px}
-.lay{border:1.5px solid rgba(28,28,28,0.1);border-radius:8px;background:rgba(255,255,255,0.6);padding:6px;height:42px;position:relative}
+.lays{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.lay{border:1.5px solid rgba(28,28,28,0.1);border-radius:8px;background:rgba(255,255,255,0.6);padding:6px;height:38px;position:relative;min-width:0}
 .lay.on{border-color:#F05A22;background:#fff}
 .lay i{position:absolute;background:#8a7a72;border-radius:1px}
 .lay b{position:absolute;height:2px;background:#c9b8ad;border-radius:1px}
@@ -280,7 +290,7 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
   <header class="bar" id="bar"></header>
   <div class="strip" id="strip"></div>
   <div class="work" id="work">
-    <div class="stage" id="stage"><div class="scroller" id="scroller"><div class="pagewrap" id="pagewrap"></div><div class="boxsel" id="boxsel" hidden><i class="h" data-h="l"></i><i class="h" data-h="r"></i><i class="h" data-h="br"></i><i class="h" data-h="b"></i></div><div class="guide v" id="guideX" hidden></div><div class="guide hz" id="guideY" hidden></div></div><div class="swapbar g" id="swapbar" hidden></div><div class="stagehint" id="stagehint"></div>
+    <div class="stage" id="stage"><div class="scroller" id="scroller"><div class="pagewrap" id="pagewrap"></div><div class="boxsel" id="boxsel" hidden><i class="h" data-h="l"></i><i class="h" data-h="r"></i><i class="h" data-h="br"></i><i class="h" data-h="b"></i></div><div class="splitbar" id="splitbar" hidden title="Drag: more or less room for the pictures"></div><div class="guide v" id="guideX" hidden></div><div class="guide hz" id="guideY" hidden></div></div><div class="swapbar g" id="swapbar" hidden></div><div class="stagehint" id="stagehint"></div>
       <div class="zoombar g" id="zoombar" role="group" aria-label="Zoom"><button type="button" data-zoom="out" aria-label="Zoom out — ⌘−">−</button><button type="button" id="zoomPct" data-zoom="fit" title="Fit the page — ⌘0">100%</button><button type="button" data-zoom="in" aria-label="Zoom in — ⌘+">+</button><button type="button" data-zoom="fit" class="zfit" title="⌘0">Fit</button></div></div>
   </div>
   <aside class="panel" id="panel"></aside>
@@ -312,7 +322,12 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
   /* ================================================================ the page model */
   const SIZES = { '16:9': [1920, 1080], '2:1': [2160, 1080], '4:3': [1440, 1080], 'A4': [1754, 1240], '1:1': [1080, 1080], '4:5': [1080, 1350], '9:16': [1080, 1920] };
   const SIZE_NAMES = { '16:9': '16:9 · 1920 × 1080', '2:1': '2:1 wide', '4:3': '4:3', 'A4': 'A4 landscape', '1:1': '1:1 square', '4:5': '4:5 portrait', '9:16': '9:16 vertical' };
-  const LAYOUTS = [['rows', 'Rows of pictures'], ['left', 'Pictures left, words right'], ['right', 'Words left, pictures right'], ['bleed', 'Full bleed, words on it'], ['text', 'Words only'], ['free', 'Free — place pictures anywhere by hand']];
+  // Where the pictures go. (Free isn't one of these: it's the switch at the top of the panel.)
+  const LAYOUTS = [['rows', 'Rows of pictures'], ['left', 'Pictures left, words right'], ['right', 'Words left, pictures right'], ['top', 'Pictures on top, words below'], ['bottom', 'Words on top, pictures below'], ['bleed', 'Full bleed, words on it'], ['text', 'Words only']];
+  const LAYNAMES = ['Rows', 'Left', 'Right', 'Top', 'Bottom', 'Full', 'None'];
+  // How much of the page the pictures take on Left, Right, Top and Bottom pages — drag the divider on the page.
+  const SPLIT_MIN = 0.3, SPLIT_MAX = 0.8;
+  const splitOf = (page, lay) => clamp(page.split || (lay === 'top' || lay === 'bottom' ? 0.62 : 0.58), SPLIT_MIN, SPLIT_MAX);
   // Words are text boxes: put one anywhere, drag it, size it. Helvetica unless you say otherwise.
   const HELV = 'Helvetica Neue';
   const BUNDLED = ['Helvetica Neue', 'Helvetica', 'Raleway', 'Oswald', 'Cormorant Garamond', 'Inter', 'Courier Prime'];
@@ -345,7 +360,8 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
     return { W, H, u, m: Math.round(40 * u), g: Math.max(2, Math.round(6 * u)) };
   }
   // The rows you already know from mood boards: justified, filling the space.
-  function rowLayout(aspects, x0, y0, aw, ah, gap) {
+  // align: which edge the block of rows sits against when it doesn't fill the area ('top', 'bottom', 'left', 'right'; else centred).
+  function rowLayout(aspects, x0, y0, aw, ah, gap, align) {
     const n = aspects.length;
     if (!n || aw <= 0 || ah <= 0) return [];
     let best = { score: -1, rects: [] };
@@ -361,10 +377,10 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
       const k = Math.min(1, (ah - gap * (rows.length - 1)) / Math.max(1, hs.reduce((a, b) => a + b, 0)));
       hs = hs.map(h => h * k);
       const blockH = hs.reduce((a, b) => a + b, 0) + gap * (rows.length - 1);
-      let y = y0 + (ah - blockH) / 2, covered = 0; const rects = [];
+      let y = y0 + (align === 'top' ? 0 : align === 'bottom' ? ah - blockH : (ah - blockH) / 2), covered = 0; const rects = [];
       rows.forEach((r, ri) => {
         const h = hs[ri], w = r.reduce((t, i) => t + aspects[i] * h, 0) + gap * (r.length - 1);
-        let x = x0 + (aw - w) / 2;
+        let x = x0 + (align === 'left' ? 0 : align === 'right' ? aw - w : (aw - w) / 2);
         r.forEach(i => { const rw = aspects[i] * h; rects[i] = { x, y, w: rw, h }; covered += rw * h; x += rw + gap; });
         y += h + gap;
       });
@@ -399,7 +415,7 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
     const bottom = doc.mark ? Math.round(56 * u) : m;
     const lay = layoutOf(doc, page);
     const aspects = page.pics.map(p => (p.featured ? 1.9 : 1) * (p.a || 1.5));
-    let rects = [], text = null, hole = null;
+    let rects = [], text = null, hole = null, divider = null;
     if (lay === 'bleed') {
       if (page.pics.length) rects = [{ x: 0, y: 0, w: W, h: H }];
       else hole = { x: 0, y: 0, w: W, h: H };
@@ -407,12 +423,24 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
     } else if (lay === 'text') {
       text = { x: m, y: top, w: Math.round((W - 2 * m) * 0.62), h: H - top - bottom };
     } else if (lay === 'left' || lay === 'right') {
-      const cw = W - 2 * m, pw = Math.round(cw * 0.58);
+      // Pictures on one side, words on the other. Run off: the pictures go to the page's edges on their side.
+      const cw = W - 2 * m, pw = Math.round(cw * splitOf(page, lay)), bl = !!page.bleed;
       const px = lay === 'left' ? m : W - m - pw, tx = lay === 'left' ? m + pw + m : m;
-      rects = rowLayout(aspects, px, top, pw, H - top - bottom, g);
+      const ax = bl ? (lay === 'left' ? 0 : px) : px, aw = bl ? pw + m : pw, ay = bl ? 0 : top, ah = bl ? H : H - top - bottom;
+      rects = rowLayout(aspects, ax, ay, aw, ah, bl ? 0 : g, bl ? lay : null);
       const b = boundsOf(rects);
       if (!page.pics.length) hole = { x: px, y: top, w: pw, h: H - top - bottom };
-      text = { x: tx, y: b ? b.y : top, w: cw - pw - m, h: b ? b.h : H - top - bottom };
+      text = { x: tx, y: b && !bl ? b.y : top, w: cw - pw - m, h: b && !bl ? b.h : H - top - bottom };
+      divider = { axis: 'x', at: lay === 'left' ? m + pw + m / 2 : W - m - pw - m / 2 };
+    } else if (lay === 'top' || lay === 'bottom') {
+      // Pictures above or below, words in the other band.
+      const ch = H - top - bottom, ph = Math.round((ch - m) * splitOf(page, lay)), bl = !!page.bleed;
+      const py = lay === 'top' ? top : H - bottom - ph, ty = lay === 'top' ? top + ph + m : top;
+      const ay = bl ? (lay === 'top' ? 0 : py) : py, ah = bl ? ph + (lay === 'top' ? top : bottom) : ph, ax = bl ? 0 : m, aw = bl ? W : W - 2 * m;
+      rects = rowLayout(aspects, ax, ay, aw, ah, bl ? 0 : g, bl ? lay : null);
+      if (!page.pics.length) hole = { x: m, y: py, w: W - 2 * m, h: ph };
+      text = { x: m, y: ty, w: Math.round((W - 2 * m) * 0.62), h: ch - ph - m };
+      divider = { axis: 'y', at: lay === 'top' ? top + ph + m / 2 : H - bottom - ph - m / 2 };
     } else if (lay === 'free') {
       // Free: every picture where you put it — x, y, w, h as fractions of the page.
       rects = page.pics.map((p, k) => { const b = p.box || defaultBox(G, p, k); return { x: b.x * W, y: b.y * H, w: b.w * W, h: b.h * H }; });
@@ -424,7 +452,7 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
       rects = rowLayout(aspects, x0, y0, W - 2 * x0, H - y0 - (bleed ? 0 : bottom), bleed ? 0 : g);
       if (!page.pics.length) hole = { x: m, y: top, w: W - 2 * m, h: H - top - bottom };
     }
-    return { G, lay, rects, text, hole, top, bottom };
+    return { G, lay, rects, text, hole, top, bottom, divider };
   }
 
   // Where a picture lands on a Free page when it has no place yet: 40% wide, a little down and right of the one before.
@@ -645,8 +673,43 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
       : sel.size > 1 ? `${sel.size} picked · ⌘← → another page · ⌫ remove`
       : doc.mode === 'mood' ? 'Double-click stills below to add them · drag to reorder' : 'Click a picture, then ↑ ↓ to swap it · T or double-click the page for text';
     drawBoxSel();
+    drawSplit();
     drawSwap();
   }
+  // The divider between the pictures and the words, on Left, Right, Top and Bottom pages.
+  function drawSplit() {
+    const bar = $('splitbar'), L = doc && layout(doc, page()), dv = L && L.divider;
+    if (!dv || doc.mode === 'mood') { bar.hidden = true; return; }
+    const sc = $('scroller'), sr = sc.getBoundingClientRect(), w = $('pagewrap').getBoundingClientRect();
+    const ox = w.left - sr.left + sc.scrollLeft, oy = w.top - sr.top + sc.scrollTop;
+    bar.className = 'splitbar ' + dv.axis;
+    if (dv.axis === 'x') Object.assign(bar.style, { left: (ox + dv.at * scale - 9) + 'px', top: oy + 'px', width: '18px', height: w.height + 'px' });
+    else Object.assign(bar.style, { top: (oy + dv.at * scale - 9) + 'px', left: ox + 'px', height: '18px', width: w.width + 'px' });
+    bar.hidden = false;
+  }
+  let splitDrag = null;
+  $('splitbar').addEventListener('mousedown', e => {
+    if (e.button !== 0 || !doc) return;
+    e.preventDefault(); e.stopPropagation();
+    const p = page(), lay = layoutOf(doc, p);
+    splitDrag = { lay, start: splitOf(p, lay), x0: e.clientX, y0: e.clientY, before: JSON.stringify(doc) };
+    $('splitbar').classList.add('on');
+  });
+  document.addEventListener('mousemove', e => {
+    if (!splitDrag) return;
+    const p = page(), G = geometry(doc), L = layout(doc, p), lay = splitDrag.lay;
+    let f;
+    if (lay === 'left' || lay === 'right') { const cw = G.W - 2 * G.m, d = (e.clientX - splitDrag.x0) / scale / cw; f = splitDrag.start + (lay === 'left' ? d : -d); }
+    else { const ch = G.H - L.top - L.bottom - G.m, d = (e.clientY - splitDrag.y0) / scale / ch; f = splitDrag.start + (lay === 'top' ? d : -d); }
+    p.split = Math.round(clamp(f, SPLIT_MIN, SPLIT_MAX) * 100) / 100;
+    drawStage();
+    $('stagehint').textContent = `Pictures take ${Math.round(p.split * 100)}% — up to 80%`;
+  });
+  document.addEventListener('mouseup', () => {
+    if (!splitDrag) return;
+    const d = splitDrag; splitDrag = null; $('splitbar').classList.remove('on');
+    if (JSON.stringify(doc) !== d.before) { undo.push(d.before); redo = []; persist(); drawStrip(); }
+  });
   // The frame around the picked text box, with its handles — drawn over the page, the same size at any zoom.
   // The picked picture on a Free page, if there is one.
   const freeK = () => (doc && doc.mode !== 'mood' && !bsel && reframe == null && sel.size === 1 && layoutOf(doc, page()) === 'free') ? [...sel][0] : null;
@@ -682,6 +745,8 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
 
   /* ---------------------------------------------------------------- the panel */
   const layIcon = k => ({
+    top: '<i style="left:6px;right:6px;top:6px;height:15px"></i><b style="left:6px;bottom:10px;width:50%"></b><b style="left:6px;bottom:6px;width:34%"></b>',
+    bottom: '<b style="left:6px;top:8px;width:50%"></b><b style="left:6px;top:12px;width:34%"></b><i style="left:6px;right:6px;bottom:6px;height:15px"></i>',
     rows: '<i style="left:6px;top:6px;width:46%;height:12px"></i><i style="right:6px;top:6px;width:38%;height:12px"></i><i style="left:6px;bottom:6px;width:30%;height:12px"></i><i style="right:6px;bottom:6px;width:54%;height:12px"></i>',
     left: '<i style="left:6px;top:6px;width:52%;bottom:6px"></i><b style="right:6px;top:10px;width:28%"></b><b style="right:6px;top:16px;width:22%"></b><b style="right:6px;top:22px;width:26%"></b>',
     right: '<i style="right:6px;top:6px;width:52%;bottom:6px"></i><b style="left:6px;top:10px;width:28%"></b><b style="left:6px;top:16px;width:22%"></b><b style="left:6px;top:22px;width:26%"></b>',
@@ -794,7 +859,7 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
     const range = (id, label, v, min, max, step, fmt) => `<div class="prow"><label for="${id}">${label}</label><input type="range" id="${id}" min="${min}" max="${max}" step="${step}" value="${v}"><span class="val">${fmt ? fmt(v) : v}</span></div>`;
     const pct = v => Math.round(v * 100) + '%';
     const pal = paletteOf(p.pics);
-    let h = `<div class="phead"><b>${ctx === 'text' ? 'Text' : ctx === 'pic' ? (sel.size > 1 ? `${sel.size} pictures` : 'Picture') : `Page ${cur + 1}`}</b>${ctx !== 'page' ? '<button class="tbtn" id="panelPage" title="Esc">Page ›</button>' : mood ? '' : `<button class="tbtn" id="panelText" title="${(p.boxes || []).length ? 'The words on this page' : 'Add a text box — T'}" style="color:#d2440f">Text ›</button>`}</div>`;
+    let h = `<div class="phead"><b>${ctx === 'text' ? 'Text' : ctx === 'pic' ? (sel.size > 1 ? `${sel.size} pictures` : 'Picture') : `Page ${cur + 1}`}</b>${ctx !== 'page' ? '<button class="tbtn" id="panelPage" title="Esc">Page ›</button>' : mood ? '' : `<span class="phbtns"><button class="tbtn" id="panelText" title="${(p.boxes || []).length ? 'The words on this page' : 'Add a text box — T'}" style="color:#d2440f">Text ›</button><label class="freesw" title="Free: move and size the pictures by hand. Off: they lay themselves out again."><span>Free</span><button class="tog${p.layout === 'free' ? ' on' : ''}" id="freeTog" aria-pressed="${p.layout === 'free'}"></button></label></span>`}</div>`;
     if (ctx === 'page') {
       const bgNow = p.bg || doc.bg;
       const presets = ['#f4f1ec', '#ffffff', '#ece6dc', '#141414', '#0a0a0a', '#1e2227'];
@@ -807,12 +872,15 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
           <div class="seg"><button data-from="project" class="${doc.from !== 'picked' ? 'on' : ''}">The project</button><button data-from="picked" class="${doc.from === 'picked' ? 'on' : ''}" title="The stills picked in the tray">Picked${pickedN ? ` (${pickedN})` : ''}</button></div>
           ${offN ? `<button class="tbtn" id="unOff" style="align-self:flex-start;padding-left:0" title="Stills you took off are skipped when the slider adds more">Let the ${offN} taken off back in</button>` : ''}</div>`;
       h += mood ? `
+        <div class="psec"><div class="prow"><label>Run the pictures off the page edge</label><span style="flex-grow:1"></span><button class="tog${p.bleed ? ' on' : ''}" id="bleedTog" aria-pressed="${!!p.bleed}"></button></div>
+          <button class="tbtn" id="bleedAll" style="align-self:flex-start;padding-left:0">${p.bleed ? 'Run off on every page' : 'Keep the margin on every page'}</button></div>
         <div class="psec"><span class="cap">Title — top left of every page</span><div class="prow"><input type="text" id="moodTitle" value="${esc(doc.title || '')}" placeholder="Optional" style="flex-grow:1"></div></div>`
       : `
         <div class="psec"><span class="cap">Where the pictures go</span><div class="lays">${LAYOUTS.map(([k, n]) => `<button class="lay${p.layout === k ? ' on' : ''}" data-lay="${k}" title="${esc(n)}" aria-label="${esc(n)}">${layIcon(k)}</button>`).join('')}</div>
-          <div class="laynames">${['Rows', 'Left', 'Right', 'Full', 'None', 'Free'].map(n => `<span>${n}</span>`).join('')}</div>
-          ${p.layout === 'free' ? '<span class="empty">Free: drop pictures where you want them, drag them about, pull a corner to size them.</span>' : ''}
-          ${p.layout === 'rows' ? `<div class="prow"><label>Run off the page edge</label><span style="flex-grow:1"></span><button class="tog${p.bleed ? ' on' : ''}" id="bleedTog" aria-pressed="${!!p.bleed}"></button></div>` : ''}
+          <div class="laynames">${LAYNAMES.map(n => `<span>${n}</span>`).join('')}</div>
+          ${p.layout === 'free' ? '<span class="empty">This page is Free — switch Free off at the top to lay the pictures out again.</span>' : ''}
+          ${['left', 'right', 'top', 'bottom'].includes(p.layout) ? '<span class="empty">Drag the divider on the page to give the pictures more or less room.</span>' : ''}
+          ${!['free', 'bleed', 'text'].includes(p.layout) ? `<div class="prow"><label>Run off the page edge</label><span style="flex-grow:1"></span><button class="tog${p.bleed ? ' on' : ''}" id="bleedTog" aria-pressed="${!!p.bleed}"></button></div>` : ''}
           ${p.layout === 'bleed' && p.pics.length > 1 ? '<span class="empty">Full bleed shows the first picture — the others wait on this page.</span>' : ''}</div>`;
       h += `
         <div class="psec"><span class="cap">Background</span>
@@ -1207,6 +1275,7 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
     change(() => {
       if (lay === 'free' && p.layout !== 'free') {
         const L = layout(doc, p), G = L.G;
+        p.prevLayout = p.layout;
         p.pics.forEach((x, k) => { const r = L.rects[k]; x.box = r ? { x: r.x / G.W, y: r.y / G.H, w: r.w / G.W, h: r.h / G.H } : defaultBox(G, x, k); });
       }
       p.layout = lay;
@@ -1327,6 +1396,11 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
     if (!doc) { if (d.scope || d.tsize) trayHead(d); if (t.classList.contains('still')) trayClick(e, t); return; }
     if (swap && !t.closest('#stage')) swapEnd(true);
     if (t.id === 'textBtn' || t.id === 'addText') return addBox();
+    if (t.id === 'freeTog') {
+      const p = page();
+      if (p.layout === 'free') { const back = p.prevLayout || 'left'; change(() => { p.layout = back; }); return toast('Laid out again — your Free places are kept if you switch back'); }
+      setLayout('free'); return toast('Free: drag pictures anywhere, pull a corner to size them');
+    }
     if (t.id === 'panelText') {
       const first = (page().boxes || [])[0];
       if (!first) return addBox();
@@ -1349,6 +1423,7 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
     // panel
     if (d.lay) return setLayout(d.lay);
     if (t.id === 'bleedTog') { change(() => { page().bleed = !page().bleed; }); return; }
+    if (t.id === 'bleedAll') { const on = !!page().bleed; change(() => doc.pages.forEach(pg => { pg.bleed = on; })); return toast(on ? 'Every page runs off the edge' : 'Every page keeps its margin'); }
     if (d.bg) {
       const all = !page().bg;
       change(() => { if (all) doc.bg = d.bg; else page().bg = d.bg; });
@@ -1720,7 +1795,7 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
   $('stage').addEventListener('gesturestart', e => { if (!doc) return; e.preventDefault(); pinch0 = scale; });
   $('stage').addEventListener('gesturechange', e => { if (!doc) return; e.preventDefault(); setZoom(pinch0 * e.scale, e.clientX, e.clientY); });
   $('stage').addEventListener('gestureend', e => e.preventDefault());
-  $('scroller').addEventListener('scroll', () => drawBoxSel());
+  $('scroller').addEventListener('scroll', () => { drawBoxSel(); drawSplit(); });
 
   // Drag and drop: stills from the tray, pictures between places, pages in the strip.
   let dragData = null;
