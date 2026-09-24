@@ -74,7 +74,7 @@ enum Designs {
         try? FileManager.default.createDirectory(at: target.deletingLastPathComponent(), withIntermediateDirectories: true)
         guard let d = try? JSONSerialization.data(withJSONObject: doc, options: [.sortedKeys]),
               (try? d.write(to: target, options: .atomic)) != nil else { return ["ok": false, "error": "Couldn't save the design"] }
-        return ["ok": true, "rel": rel(target)]
+        return ["ok": true, "rel": Designs.rel(target)]
     }
 
     static func load(_ rel: String) -> [String: Any]? {
