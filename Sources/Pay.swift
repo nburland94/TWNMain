@@ -1024,11 +1024,8 @@ extension PayHost {
             put(v, CGRect(x: valX, y: ry - 12, width: valW, height: 12), bodyF, ink, align: .right)
             ry -= 16
         }
-        ry -= 4
-        wash.setFill(); ctx.fill(CGRect(x: keyX - 8, y: ry - 20, width: m + usable - keyX + 8, height: 24))
-        put("Amount due (\(str("currency")))", CGRect(x: keyX, y: ry - 15, width: keyW, height: 13), medF, ink, align: .right)
-        put(str("amountDue"), CGRect(x: valX, y: ry - 15, width: valW, height: 13), payFont("HelveticaNeue-Medium", 11), accent, align: .right)
-        y = min(leftEnd, ry - 24) - 26
+        // The amount due is shown once, in the totals — the header keeps to plain facts (and the job number, when there is one).
+        y = min(leftEnd, ry) - 26
 
         // ---- the items
         let qtyX = m + usable * 0.56, rateX = m + usable * 0.66, amtX = m + usable * 0.82

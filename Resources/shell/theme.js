@@ -1,8 +1,8 @@
 /* Needed Tools — dark mode: a calm blue night, across every page.
    Rather than a second copy of every page's colours, the colours on screen are
    turned into their night versions as they appear: light surfaces become deep
-   navy, dark words become light, the apricot glow becomes a blue one, and the
-   orange accents a soft blue. Your pictures, colour swatches and Design pages
+   navy, dark words become light, the apricot glow becomes a blue one; the
+   orange accents stay orange. Your pictures, colour swatches and Design pages
    keep their true colours. Switching back puts every colour back exactly. */
 (function () {
   if (window.__neededTheme) return;
@@ -38,8 +38,8 @@
     const warm = hue >= 4 && hue <= 42;
     // The glow and pale tints: the lightest become the deepest navy, the warmest a blue light.
     if (L > 0.7 && s > 0.1 && warm) return [...lerp([46, 86, 132], [13, 22, 35], Math.min(1, (L - 0.7) / 0.28)), a];
-    // The accents: orange becomes a calm blue — lighter where it's words, fuller where it's a button.
-    if (warm && s >= 0.6) return [...(L < 0.45 ? [140, 190, 255] : [74, 140, 232]), a];
+    // The accents stay the Needed orange — the one colour that's the same by day and by night (a touch brighter for words).
+    if (warm && s >= 0.6) return [...(L < 0.45 ? [255, 122, 69] : [240, 90, 34]), a];
     // Neutrals: light becomes night, dark becomes light.
     if (s < 0.6 || L > 0.85) { const t = Math.pow(1 - L, 1.05); return [...lerp([13, 21, 33], [234, 240, 247], t), a]; }
     // Every other colour (a red number, a green "paid"): the same, a little lighter.
@@ -83,7 +83,7 @@
     if (!night_.dataset.base) { night_.dataset.base = '1'; add += `html[data-theme=dark]{color-scheme:dark}
       html[data-theme=dark] body{background-color:#0d1521}
       html[data-theme=dark] img[src$="mark.png"]:not(.pg *),html[data-theme=dark] img[src*="/_blob/"]:not(.pg *),html[data-theme=dark] .brand img,html[data-theme=dark] .markrow img{filter:brightness(0) invert(1)}
-      html[data-theme=dark] ::selection{background:rgba(74,140,232,0.35)}
+      html[data-theme=dark] ::selection{background:rgba(240,90,34,0.4)}
       html[data-theme=dark] input,html[data-theme=dark] textarea,html[data-theme=dark] select{color:#eaf0f7}
       html[data-theme=dark] ::placeholder{color:rgba(234,240,247,0.38)}`; }
     night_.textContent += add;
