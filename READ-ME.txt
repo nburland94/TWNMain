@@ -7,6 +7,12 @@ BUILDING
   Privacy & Security if macOS blocks it. It compiles, signs and opens
   Needed Tools.
 
+  If macOS says the kit "is damaged and can't be opened": it isn't — it's
+  the download flag macOS puts on anything from the web. Press Cancel,
+  open Terminal, type  bash  and a space, drag Build-Needed-Tools into
+  the window, and press Return. The script clears the flag from the kit
+  and builds as normal.
+
   This is the first time six apps' code has been compiled together, so
   it may stop with errors. If it does, a file called build-errors.txt
   appears beside the script — drop it into the chat and I'll fix it.

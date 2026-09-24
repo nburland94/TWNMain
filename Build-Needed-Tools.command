@@ -3,6 +3,9 @@
 # Needs Apple's command line tools and nothing else.
 
 cd "$(dirname "$0")" || exit 1
+# A kit downloaded from the web (or from Claude) carries macOS's quarantine
+# flag, which makes it call things "damaged". Clear it from the whole kit.
+xattr -dr com.apple.quarantine . 2>/dev/null || true
 say() { echo "  $*"; }
 finish() { echo; read -r -p "  Press return to close." _; exit "${1:-0}"; }
 
