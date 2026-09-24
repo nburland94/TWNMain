@@ -73,6 +73,14 @@ main{position:relative;height:100vh;display:grid;grid-template-columns:minmax(0,
 .qa{flex-shrink:0;border:none;display:flex;align-items:center;gap:6px;padding:7px 11px;font-size:12px;white-space:nowrap;color:var(--ink);border-radius:100px;transition:transform .2s var(--ease-out)}
 .qa svg{flex-shrink:0}
 @media (hover:hover) and (pointer:fine){.qa:hover{transform:translateY(-1px)}}
+/* hover notes for the quick actions: what each one does */
+.qtip{position:fixed;z-index:60;max-width:250px;padding:11px 14px;border-radius:14px;font-size:12.5px;line-height:1.45;color:#141414;pointer-events:none;
+  background:linear-gradient(160deg,rgba(255,255,255,0.9),rgba(255,255,255,0.7));border:1px solid rgba(255,255,255,0.95);
+  box-shadow:inset 0 1px 0 #fff,0 14px 40px rgba(160,70,20,0.18);-webkit-backdrop-filter:blur(24px) saturate(1.5);backdrop-filter:blur(24px) saturate(1.5);
+  opacity:0;transform:translateY(-4px);transition:opacity .18s var(--ease-out),transform .18s var(--ease-out)}
+.qtip.on{opacity:1;transform:none}
+.qtip b{display:block;font-weight:500;margin-bottom:2px}
+@media (prefers-reduced-motion:reduce){.qtip{transition:none}}
 .shot video{display:block;width:100%;height:100%;object-fit:cover}
 .shot.dragging{opacity:0.35}
 .shot.over{box-shadow:0 0 0 2px var(--accent)}
@@ -226,11 +234,11 @@ main{position:relative;height:100vh;display:grid;grid-template-columns:minmax(0,
         <button class="g shuffle" id="shuffle" title="A different mix every time you open Needed Tools"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6d4e3d" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 3h5v5M4 20L21 3M21 16v5h-5M15 15l6 6M4 4l5 5"/></svg>Shuffle</button>
       </div>
       <div class="quick" id="quick">
-      <button class="g qa" data-q="link" title="Paste a link" aria-label="Paste a link"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1c1c1c" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg><span>Paste a link</span></button>
-      <button class="g qa" data-q="list" title="Shot list" aria-label="Shot list"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1c1c1c" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01"/></svg><span>Shot list</span></button>
-      <button class="g qa" data-q="card" title="Scan a card" aria-label="Scan a card"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1c1c1c" stroke-width="1.5" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h9l3 3v15H6z"/><path d="M9 3v4M12 3v4M15 3v4"/></svg><span>Scan a card</span></button>
-      <button class="g qa" data-q="film" title="Open a film" aria-label="Open a film"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1c1c1c" stroke-width="1.5" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M10 9l5 3-5 3z"/></svg><span>Open a film</span></button>
-      <button class="g qa" data-q="invoice" title="Invoice" aria-label="Invoice"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1c1c1c" stroke-width="1.5" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6M9 12h6"/></svg><span>Invoice</span></button>
+      <button class="g qa" data-q="link" data-tip="Paste a link|Opens the Vault ready for a YouTube, Vimeo or Instagram link — grab stills, GIFs and clips from it." aria-label="Paste a link"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1c1c1c" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg><span>Paste a link</span></button>
+      <button class="g qa" data-q="list" data-tip="Shot list|Opens Shots with a new list for this project — paste your beats and each becomes a shot." aria-label="Shot list"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1c1c1c" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01"/></svg><span>Shot list</span></button>
+      <button class="g qa" data-q="card" data-tip="Scan a card|Opens Sort to read camera and sound cards and group every clip into scenes." aria-label="Scan a card"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1c1c1c" stroke-width="1.5" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h9l3 3v15H6z"/><path d="M9 3v4M12 3v4M15 3v4"/></svg><span>Scan a card</span></button>
+      <button class="g qa" data-q="film" data-tip="Open a film|Choose a finished film and open it in Grab for stills, GIFs and MP4s." aria-label="Open a film"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1c1c1c" stroke-width="1.5" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M10 9l5 3-5 3z"/></svg><span>Open a film</span></button>
+      <button class="g qa" data-q="invoice" data-tip="Invoice|Opens Pay with a new invoice for this project." aria-label="Invoice"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1c1c1c" stroke-width="1.5" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6M9 12h6"/></svg><span>Invoice</span></button>
       </div>
     </div>
     <div class="wall" id="wall"></div>
@@ -337,6 +345,25 @@ main{position:relative;height:100vh;display:grid;grid-template-columns:minmax(0,
   }
   new ResizeObserver(fitLine).observe(document.querySelector('.line'));
   $('quick').addEventListener('click', e => { const b = e.target.closest('[data-q]'); if (b) call('quick', { what: b.dataset.q }); });
+  // Hover (or tab to) a quick action and a small note says what it does.
+  const qtip = document.createElement('div'); qtip.className = 'qtip'; qtip.setAttribute('role', 'tooltip'); document.body.appendChild(qtip);
+  let qtipT = null;
+  const showTip = b => {
+    clearTimeout(qtipT);
+    qtipT = setTimeout(() => {
+      const [title, text] = b.dataset.tip.split('|');
+      qtip.innerHTML = `<b>${esc(title)}</b>${esc(text)}`;
+      const r = b.getBoundingClientRect();
+      qtip.style.left = Math.max(12, Math.min(innerWidth - qtip.offsetWidth - 12, r.left + r.width / 2 - qtip.offsetWidth / 2)) + 'px';
+      qtip.style.top = (r.bottom + 10) + 'px';
+      qtip.classList.add('on');
+    }, 300);
+  };
+  const hideTip = () => { clearTimeout(qtipT); qtip.classList.remove('on'); };
+  $('quick').querySelectorAll('[data-tip]').forEach(b => {
+    b.addEventListener('pointerenter', () => showTip(b)); b.addEventListener('pointerleave', hideTip);
+    b.addEventListener('focus', () => showTip(b)); b.addEventListener('blur', hideTip); b.addEventListener('click', hideTip);
+  });
   $('tiles').addEventListener('click', e => { const b = e.target.closest('.tile'); if (b) call('tab', { id: b.dataset.id }); });
 
   // the light follows the cursor across each pane of glass
@@ -361,7 +388,7 @@ main{position:relative;height:100vh;display:grid;grid-template-columns:minmax(0,
   function paintSegs() {
     $('showSeg').querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.v === show));
     $('scopeSeg').querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.v === scope));
-    // By label: Sports, Comedy, Fashion and your own — every project with that label
+    // By label: the kind of work — Commercial, Music video, Documentary… — every project with that label
     const list = [...new Set([...labels, ...(label ? [label] : [])])];
     $('labelSeg').innerHTML = `<option value="">By label</option>` + list.map(l => `<option${scope === 'label' && l === label ? ' selected' : ''}>${esc(l)}</option>`).join('');
     $('labelSeg').classList.toggle('on', scope === 'label');

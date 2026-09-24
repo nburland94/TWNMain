@@ -113,11 +113,15 @@ final class SortHost: NSObject, NSApplicationDelegate, NSWindowDelegate,
     var jobLabel: String = ""                   // the file being read or copied right now
     var lastRoot: URL?                          // the project folder just built
     var currentProcess: Process?                // a running lookup or pull
-    var index: [[String: Any]] = []             // the vault's library
     /// Where new things are filed inside the vault. Boards are labels that
     /// cut across projects; a project is the folder a file actually lives in.
     var currentProject: String { get { Shared.project } set { Shared.project = newValue } }
-    var indexLoadedFor: String = ""
+    // The vault's list lives in one place for the whole app (Store.swift).
+    var index: [[String: Any]] {
+        get { VaultStore.shared.items }
+        set { VaultStore.shared.items = newValue }
+    }
+    var indexLoadedFor: String { VaultStore.shared.loadedFor }
     var downloadObservation: NSKeyValueObservation?
     var jobCancel = false
 

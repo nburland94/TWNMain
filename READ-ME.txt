@@ -205,3 +205,31 @@ ROUND 3 (final changes) — VAULT AND GRAB
   • The loading pill is on Home too now (Sync shows it), and the top bar's
     messages — Grab & Go, Sync, labels — actually show.
   • The walkthroughs and the welcome cover all of the above.
+
+ROUND 4 — FOUNDATIONS AND FIXES
+  • One list for the whole app. The vault's list now lives in one place
+    and every tool reads and writes through it — no tool can overwrite
+    another's saves any more. It's still a plain file in your vault.
+  • Every picture has its colour palette, whichever tool it came in
+    through: Vault, Grab & Go, Shots, Pay, drops on Home, Sync. Clips with
+    no preview frame get their colours from the clip itself. Anything
+    older without a palette is filled in quietly, a few seconds after the
+    app opens (only the list is read — never your folders).
+  • Labels are the kind of work: Commercial, Music video, Documentary,
+    Short film, Feature, Branded content, Social / content, Campaign
+    stills, Editorial, Lookbook, Event, Live session, Pitch / spec,
+    Personal — or your own. Tags are the world it's in (sports, fashion,
+    automotive…), as many as you like: the label menu → Tags…
+    A project labelled Sports, Comedy or Fashion keeps it, as a tag.
+    Labels and tags are both searchable in the Vault and on Home.
+  • Notifications: when something finishes, macOS tells you — even if
+    you're in another app. Footage in, files added, Grab & Go saves,
+    stills / GIFs / MP4s saved, PDFs and mood boards made, cards scanned,
+    Sort finished (or anything it couldn't match), emails sent, Sync done,
+    and the focus timer. Allow notifications the first time it asks.
+  • Home: hover a quick action and a small note says what it does.
+  • Shots: the column titles sit on their own band, larger and darker;
+    rows have a firmer edge.
+  • No orange ring round the GIF / MP4 player in Grab and the Vault.
+  • The kit clears macOS's download flag itself. If macOS still says it's
+    damaged, run it with bash (see BUILDING).

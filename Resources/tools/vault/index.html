@@ -1348,7 +1348,8 @@ body.marqueeing{user-select:none;-webkit-user-select:none;cursor:crosshair}
   let project = 'Unsorted';  // the folder inside it that new things are filed into
   let projects = [];
   let projectFilter = '';
-  let projectLabels = {};          // project → its label: Sports, Comedy, Fashion or your own
+  let projectLabels = {};          // project → its label: the kind of work — Commercial, Music video…
+  let projectTags = {};            // project → its tags: the sector — sports, fashion, automotive…
   let scope = 'project';          // the Vault tab: this project, or everything
   let dirHandle = null;     // browser fallback where supported
 
@@ -2386,6 +2387,7 @@ body.marqueeing{user-select:none;-webkit-user-select:none;cursor:crosshair}
       if (!q) return true;
       const src = it.source || {};
       return [src.title, src.uploader, src.site, it.note, it.file, it.title, it.text, it.project, projectLabels[it.project || 'Unsorted'],
+              ...(projectTags[it.project || 'Unsorted'] || []),
               ...(it.tags || []), ...(it.boards || [])]
         .some(x => String(x || '').toLowerCase().includes(q));
     });
@@ -2986,9 +2988,9 @@ body.marqueeing{user-select:none;-webkit-user-select:none;cursor:crosshair}
   // Inside Needed Tools: the vault, project and Grab & Go are shared by every tool.
   window.__neededShared = s => {
     const d = s.vault || '', changed = d !== dest || (s.project && s.project !== project);
-    // every project's label (Sports, Comedy…), so a search for one finds its projects
-    if (s.projectLabels && JSON.stringify(s.projectLabels) !== JSON.stringify(projectLabels)) {
-      projectLabels = s.projectLabels;
+    // every project's label (Commercial, Music video…) and tags (sports, fashion…), so a search finds its projects
+    if (s.projectLabels && JSON.stringify([s.projectLabels, s.projectTags]) !== JSON.stringify([projectLabels, projectTags])) {
+      projectLabels = s.projectLabels; projectTags = s.projectTags || {};
       if (!$('vaultView').hidden) renderVault();
     }
     dest = d; if (s.project) project = s.project; projects = s.projects || projects;

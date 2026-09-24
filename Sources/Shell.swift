@@ -108,14 +108,20 @@ enum Folders {
     }
 }
 
-// MARK: - Project labels
+// MARK: - Project labels and tags
 
-/// Sports, Comedy, Fashion and your own. A project's label sits in a small
-/// hidden file in its folder (Lexus/.needed/project.json), so it travels with
-/// the project; the labels you've made up are remembered on this Mac too.
+/// A project has one label — the kind of work: Commercial, Music video,
+/// Documentary… — and any number of tags for its sector or world: sports,
+/// fashion, automotive. Both sit in a small hidden file in the project folder
+/// (Lexus/.needed/project.json), so they travel with it; labels and tags
+/// you've made up are remembered on this Mac too.
 enum Labels {
-    static let starters = ["Sports", "Comedy", "Fashion"]
-    private static var cache: [String: String]? = nil          // project → label
+    static let starters = ["Commercial", "Music video", "Documentary", "Short film", "Feature", "Branded content",
+                           "Social / content", "Campaign stills", "Editorial", "Lookbook", "Event", "Live session",
+                           "Pitch / spec", "Personal"]
+    /// Round 3's labels were sectors: a project that has one gets it as a tag instead.
+    private static let oldSectorLabels: Set<String> = ["sports", "comedy", "fashion"]
+    private static var cache: [String: [String: Any]]? = nil     // project → its file
 
     private static func file(_ project: String) -> URL? {
         Shared.vault?.appendingPathComponent(project, isDirectory: true).appendingPathComponent(".needed/project.json")
@@ -125,28 +131,73 @@ enum Labels {
               let o = try? JSONSerialization.jsonObject(with: d) as? [String: Any] else { return [:] }
         return o
     }
+    private static func write(_ o: [String: Any], for project: String) {
+        guard let u = file(project) else { return }
+        try? FileManager.default.createDirectory(at: u.deletingLastPathComponent(), withIntermediateDirectories: true)
+        if let d = try? JSONSerialization.data(withJSONObject: o, options: [.prettyPrinted, .sortedKeys]) { try? d.write(to: u, options: .atomic) }
+    }
+
+    /// Every project's file, read once and kept until something changes.
+    private static func files() -> [String: [String: Any]] {
+        if let c = cache { return c }
+        var out: [String: [String: Any]] = [:]
+        for p in Shared.projects() {
+            var o = read(p)
+            // One-time move: a sector used as a label (Sports, Comedy, Fashion) becomes a tag.
+            if let l = o["label"] as? String, oldSectorLabels.contains(l.lowercased()) {
+                var tags = (o["tags"] as? [String]) ?? []
+                if !tags.contains(where: { $0.caseInsensitiveCompare(l) == .orderedSame }) { tags.append(l.lowercased()) }
+                o["tags"] = tags
+                o.removeValue(forKey: "label")
+                write(o, for: p)
+            }
+            if !o.isEmpty { out[p] = o }
+        }
+        cache = out
+        return out
+    }
 
     /// Every project's label.
     static func all() -> [String: String] {
-        if let c = cache { return c }
         var out: [String: String] = [:]
-        for p in Shared.projects() { if let l = read(p)["label"] as? String, !l.isEmpty { out[p] = l } }
-        cache = out
+        for (p, o) in files() { if let l = o["label"] as? String, !l.isEmpty { out[p] = l } }
         return out
     }
     static func of(_ project: String) -> String { all()[project] ?? "" }
 
+    /// Every project's tags.
+    static func allTags() -> [String: [String]] {
+        var out: [String: [String]] = [:]
+        for (p, o) in files() { if let t = o["tags"] as? [String], !t.isEmpty { out[p] = t } }
+        return out
+    }
+    static func tags(of project: String) -> [String] { allTags()[project] ?? [] }
+
     static func set(_ label: String, for project: String) {
-        guard let u = file(project) else { return }
         var o = read(project)                                          // keep anything else in the file
         let clean = label.trimmingCharacters(in: .whitespacesAndNewlines)
         if clean.isEmpty { o.removeValue(forKey: "label") } else { o["label"] = String(clean.prefix(40)); add(clean) }
-        try? FileManager.default.createDirectory(at: u.deletingLastPathComponent(), withIntermediateDirectories: true)
-        if let d = try? JSONSerialization.data(withJSONObject: o, options: [.prettyPrinted, .sortedKeys]) { try? d.write(to: u, options: .atomic) }
+        write(o, for: project)
         cache = nil
     }
 
-    /// The labels to choose from: the three to start with, yours, and any a project already has.
+    /// Tags as typed: "Sports, luxury,  #Automotive" → sports, luxury, automotive.
+    static func setTags(_ raw: [String], for project: String) {
+        var seen = Set<String>()
+        var tags: [String] = []
+        for t in raw {
+            var c = t.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+            while c.hasPrefix("#") { c.removeFirst() }
+            c = String(c.prefix(30))
+            if !c.isEmpty && seen.insert(c).inserted { tags.append(c) }
+        }
+        var o = read(project)
+        if tags.isEmpty { o.removeValue(forKey: "tags") } else { o["tags"] = tags }
+        write(o, for: project)
+        cache = nil
+    }
+
+    /// The labels to choose from: the ones to start with, yours, and any a project already has.
     static func names() -> [String] {
         let mine = (UserDefaults.standard.array(forKey: "projectLabels") as? [String]) ?? []
         var every: [String] = starters
@@ -154,8 +205,14 @@ enum Labels {
         every.append(contentsOf: all().values.sorted())
         var seen = Set<String>()
         var out: [String] = []
-        for l in every where !l.isEmpty && seen.insert(l.lowercased()).inserted { out.append(l) }
+        for l in every where !l.isEmpty && !oldSectorLabels.contains(l.lowercased()) && seen.insert(l.lowercased()).inserted { out.append(l) }
         return out
+    }
+    /// Every tag used on any project — suggestions when you type one.
+    static func tagNames() -> [String] {
+        var seen = Set<String>()
+        for list in allTags().values { for t in list { seen.insert(t) } }
+        return seen.sorted()
     }
     static func add(_ label: String) {
         var mine = (UserDefaults.standard.array(forKey: "projectLabels") as? [String]) ?? []
@@ -299,6 +356,14 @@ final class Shell: NSObject, NSApplicationDelegate, NSWindowDelegate, WKScriptMe
 
         NotificationCenter.default.addObserver(forName: .neededShared, object: nil, queue: .main) { [weak self] _ in
             self?.broadcast()
+            // A new vault chosen: anything in it without a colour palette gets one, in the background.
+            let here = Shared.vault?.path ?? ""
+            if here != self?.paletteVault { self?.paletteVault = here; VaultStore.shared.fillMissingPalettes() }
+        }
+        // Every picture has its colours: fill in any that are missing, a moment after launch.
+        DispatchQueue.main.asyncAfter(deadline: .now() + 3) { [weak self] in
+            self?.paletteVault = Shared.vault?.path ?? ""
+            VaultStore.shared.fillMissingPalettes()
         }
         // Back from System Settings after "Add Google Calendar": say whether it worked.
         NotificationCenter.default.addObserver(forName: NSApplication.didBecomeActiveNotification, object: nil, queue: .main) { [weak self] _ in
@@ -466,7 +531,6 @@ final class Shell: NSObject, NSApplicationDelegate, NSWindowDelegate, WKScriptMe
 
     // MARK: Home's vault wall: the project's newest work
 
-    private var lastIndexStamp: Double = -1
     private var aspects: [String: Double] = [:]              // each picture's shape, worked out once
 
     private func homeData(_ body: [String: Any]) -> [String: Any] {
@@ -475,12 +539,11 @@ final class Shell: NSObject, NSApplicationDelegate, NSWindowDelegate, WKScriptMe
         let scope = (body["scope"] as? String) ?? "all"                  // the entire vault, this project, or a label
         let wantLabel = ((body["label"] as? String) ?? "").lowercased()
         let labels = Labels.all()
+        let projectTags = Labels.allTags()
         let v = vaultHost
-        // Only re-read the saved list when it has changed. Nothing here looks through
-        // the folders — that's Sync's job, when you ask for it.
-        let indexFile = base.appendingPathComponent(".vault/index.json")
-        let stamp = (try? FileManager.default.attributesOfItem(atPath: indexFile.path)[.modificationDate] as? Date)?.timeIntervalSince1970 ?? 0
-        if stamp != lastIndexStamp || v.index.isEmpty { v.loadIndex(); lastIndexStamp = stamp }
+        // The store only re-reads the list when it has changed. Nothing here looks
+        // through the folders — that's Sync's job, when you ask for it.
+        v.loadIndex()
         // Search: every word has to match something — title, tags, boards, project, source or a colour's name.
         let words = ((body["q"] as? String) ?? "").lowercased().split(whereSeparator: { $0 == " " || $0 == "," }).map(String.init)
         // Where it came from: saved by the Vault → a reference; put in a project by Grab or Finder → a grab.
@@ -504,7 +567,8 @@ final class Shell: NSObject, NSApplicationDelegate, NSWindowDelegate, WKScriptMe
             let wanted: Bool = show == "both" || (show == "references" && o == "reference") || (show == "grabs" && o == "grab")
             guard wanted else { return false }
             if words.isEmpty { return true }
-            let text: String = Shell.searchText(it, label: labels[proj] ?? "")
+            let tagWords: String = (projectTags[proj] ?? []).joined(separator: " ")
+            let text: String = Shell.searchText(it, label: (labels[proj] ?? "") + " " + tagWords)
             return words.allSatisfy { text.contains($0) }
         }.sorted { ($0["created"] as? String ?? "") > ($1["created"] as? String ?? "") }.prefix(300)
         let items: [[String: Any]] = picked.compactMap { (it: [String: Any]) -> [String: Any]? in
@@ -581,6 +645,7 @@ final class Shell: NSObject, NSApplicationDelegate, NSWindowDelegate, WKScriptMe
     // MARK: Sync: rescan the project you're in, then bring every tool up to date
 
     private var syncWaiting: [(Any?, String?) -> Void] = []
+    private var paletteVault = ""
     private func sync(_ reply: @escaping (Any?, String?) -> Void) {
         guard Shared.vault != nil else { return reply(["ok": false, "error": "Choose your vault first"], nil) }
         syncWaiting.append(reply)
@@ -594,12 +659,15 @@ final class Shell: NSObject, NSApplicationDelegate, NSWindowDelegate, WKScriptMe
         }, done: { [weak self] result in
             guard let self = self else { return }
             view?.evaluateJavaScript("window.__neededLoad && window.__neededLoad.done()", completionHandler: nil)
-            self.lastIndexStamp = -1                                  // Home re-reads the list
             Labels.forget()                                            // and any labels changed in Finder
             // Every open tool refreshes what it shows: Home, the Vault, Shots, Grab…
             var views: [WKWebView] = [self.home]
             views += self.hosts.values.compactMap { $0.webView }
             for v in views { v.evaluateJavaScript("window.__neededSynced && window.__neededSynced()", completionHandler: nil) }
+            if (result["ok"] as? Bool) == true {
+                let added = (result["added"] as? Int) ?? 0
+                Shell.post("\(project) synced", added > 0 ? "\(added) new — every tool is up to date." : "Everything's up to date.")
+            }
             let waiting = self.syncWaiting; self.syncWaiting = []
             for r in waiting { r(result, nil) }
         })
@@ -660,6 +728,26 @@ final class Shell: NSObject, NSApplicationDelegate, NSWindowDelegate, WKScriptMe
         }
         guard let data = try? JSONSerialization.data(withJSONObject: result), let json = String(data: data, encoding: .utf8) else { return }
         home.evaluateJavaScript("window.__homeCalendarResult && window.__homeCalendarResult(\(json))", completionHandler: nil)
+    }
+
+    // MARK: Notifications: anything that finishes tells you, even if you're in another app
+
+    private static var askedToNotify = false
+    /// A macOS notification: footage in, files saved, cards sorted, sent… The
+    /// first one asks permission; after that they just arrive.
+    static func post(_ title: String, _ body: String, sound: Bool = false) {
+        let centre = UNUserNotificationCenter.current()
+        let send = {
+            let content = UNMutableNotificationContent()
+            content.title = title
+            content.body = body
+            if sound { content.sound = .default }
+            centre.add(UNNotificationRequest(identifier: "needed-" + UUID().uuidString, content: content, trigger: nil))
+        }
+        if askedToNotify { return send() }
+        centre.requestAuthorization(options: [.alert, .sound]) { ok, _ in
+            DispatchQueue.main.async { askedToNotify = true; if ok { send() } }
+        }
     }
 
     // MARK: Focus: macOS says when the time's up, even if you're in another app
@@ -775,6 +863,9 @@ final class Shell: NSObject, NSApplicationDelegate, NSWindowDelegate, WKScriptMe
             "label": Labels.of(Shared.project),                          // this project's label
             "labels": Labels.names(),                                    // the ones to choose from
             "projectLabels": Labels.all(),                               // every project's, for search and Home
+            "tags": Labels.tags(of: Shared.project),                     // this project's sector tags
+            "projectTags": Labels.allTags(),
+            "tagNames": Labels.tagNames(),
             "grabGo": hosts["vault"] != nil ? vaultHost.grabGo.on : false,
             "tab": current,
             "canBack": !backStack.isEmpty || current != "home",
@@ -853,6 +944,11 @@ final class Shell: NSObject, NSApplicationDelegate, NSWindowDelegate, WKScriptMe
             Shared.notify()
             reply(replyHandler)
 
+        case "setTags":
+            Labels.setTags((body["tags"] as? [String]) ?? [], for: Shared.project)
+            Shared.notify()
+            reply(replyHandler)
+
         case "newProject":
             let name = Shell.clean((body["name"] as? String) ?? "")
             if !name.isEmpty {
@@ -866,6 +962,11 @@ final class Shell: NSObject, NSApplicationDelegate, NSWindowDelegate, WKScriptMe
 
         case "sync":
             sync(replyHandler)
+
+        case "notify":
+            // a tool finished something: say so
+            Shell.post((body["title"] as? String) ?? "Needed Tools", (body["body"] as? String) ?? "", sound: (body["sound"] as? Bool) ?? false)
+            replyHandler(["ok": true], nil)
 
         case "grabGo":
             if Shared.vault == nil {
@@ -921,6 +1022,7 @@ final class Shell: NSObject, NSApplicationDelegate, NSWindowDelegate, WKScriptMe
             } else {
                 let saved = pendingImages.filter { saveImage($0, into: project, origin: origin) }.count
                 homeToast(saved > 0 ? "\(saved) saved into \(project) as \(origin == "grab" ? "grabs" : "references")" : "Couldn't save those")
+                if saved > 0 { Shell.post("Saved into \(project)", "\(saved) image\(saved == 1 ? "" : "s"), as \(origin == "grab" ? "grabs" : "references").") }
                 home.evaluateJavaScript("window.__homeRefresh && window.__homeRefresh()", completionHandler: nil)
             }
             pendingImages = []; pendingWeb = nil
@@ -933,7 +1035,6 @@ final class Shell: NSObject, NSApplicationDelegate, NSWindowDelegate, WKScriptMe
         case "deleteItem":
             // to the Trash — recoverable — and gone from the vault
             let ok = vaultHost.removeItem((body["id"] as? String) ?? "")
-            lastIndexStamp = -1
             replyHandler(["ok": ok], nil)
 
         case "quick":

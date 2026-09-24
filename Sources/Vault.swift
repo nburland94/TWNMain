@@ -172,15 +172,22 @@ final class VaultHost: NSObject, NSApplicationDelegate, NSWindowDelegate,
     private var currentExport: AVAssetExportSession?
     private var jobProgress: Double = 0
     let grabGo = GrabAndGo()                    // Copy Image, drag and drop, and the Chrome extension
-    var holdIndexSaves = false                  // while adopting a batch: one write at the end
+    var holdIndexSaves: Bool {                  // while adopting a batch: one write at the end
+        get { VaultStore.shared.holdSaves }
+        set { VaultStore.shared.holdSaves = newValue }
+    }
     var syncing = false                         // Sync is looking through a project's folders
     private var lastOutput: URL?                // the sub-folder written to most recently
     var currentProcess: Process?                // a running lookup or pull
-    var index: [[String: Any]] = []             // the vault's library
     /// Where new things are filed inside the vault. Boards are labels that
     /// cut across projects; a project is the folder a file actually lives in.
     var currentProject: String { get { Shared.project } set { Shared.project = newValue } }
-    var indexLoadedFor: String = ""
+    // The vault's list lives in one place for the whole app (Store.swift).
+    var index: [[String: Any]] {
+        get { VaultStore.shared.items }
+        set { VaultStore.shared.items = newValue }
+    }
+    var indexLoadedFor: String { VaultStore.shared.loadedFor }
     var downloadObservation: NSKeyValueObservation?
     private var jobCancel = false
 
@@ -1322,57 +1329,12 @@ extension VaultHost {
 
     var indexURL: URL? { saveFolder?.appendingPathComponent(".vault/index.json") }
 
-    func loadIndex() {
-        let here = saveFolder?.path ?? ""
-        guard let u = indexURL, FileManager.default.fileExists(atPath: u.path) else {
-            index = []; indexLoadedFor = here; return                       // a new vault: nothing in it yet
-        }
-        guard let d = try? Data(contentsOf: u), let items = try? JSONSerialization.jsonObject(with: d) as? [[String: Any]] else {
-            // Couldn't read it just now: keep what we have rather than show — and later save — an empty vault.
-            if indexLoadedFor != here { index = []; indexLoadedFor = here }
-            return
-        }
-        index = items
-        indexLoadedFor = here
-    }
+    func loadIndex() { VaultStore.shared.load() }
 
-    func saveIndex() {
-        if holdIndexSaves { return }
-        guard let u = indexURL else { return }
-        try? FileManager.default.createDirectory(at: u.deletingLastPathComponent(), withIntermediateDirectories: true)
-        if let d = try? JSONSerialization.data(withJSONObject: index, options: []) {
-            try? d.write(to: u, options: .atomic)
-        }
-    }
+    func saveIndex() { VaultStore.shared.save() }
 
-    /// Every still, GIF and clip is remembered with where it came from.
-    /// The colours a picture is made of: shrink it, group near-identical colours,
-    /// keep the five that cover the most of it (skipping ones too close to another).
-    func palette(of url: URL) -> [String]? {
-        guard let src = CGImageSourceCreateWithURL(url as CFURL, nil),
-              let img = CGImageSourceCreateThumbnailAtIndex(src, 0, [kCGImageSourceCreateThumbnailFromImageAlways: true,
-                                                                     kCGImageSourceThumbnailMaxPixelSize: 48] as CFDictionary) else { return nil }
-        let w = img.width, h = img.height
-        var px = [UInt8](repeating: 0, count: w * h * 4)
-        guard let ctx = CGContext(data: &px, width: w, height: h, bitsPerComponent: 8, bytesPerRow: w * 4,
-                                  space: CGColorSpaceCreateDeviceRGB(), bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue) else { return nil }
-        ctx.draw(img, in: CGRect(x: 0, y: 0, width: w, height: h))
-        var buckets: [Int: (n: Int, r: Int, g: Int, b: Int)] = [:]
-        for i in stride(from: 0, to: px.count, by: 4) {
-            let r = Int(px[i]), g = Int(px[i + 1]), b = Int(px[i + 2])
-            let key = (r >> 4) << 8 | (g >> 4) << 4 | (b >> 4)
-            let e = buckets[key] ?? (0, 0, 0, 0)
-            buckets[key] = (e.n + 1, e.r + r, e.g + g, e.b + b)
-        }
-        var out: [(Int, Int, Int)] = []
-        for (_, e) in buckets.sorted(by: { $0.value.n > $1.value.n }) {
-            let c = (e.r / e.n, e.g / e.n, e.b / e.n)
-            if out.contains(where: { abs($0.0 - c.0) + abs($0.1 - c.1) + abs($0.2 - c.2) < 60 }) { continue }
-            out.append(c)
-            if out.count == 5 { break }
-        }
-        return out.map { String(format: "#%02x%02x%02x", $0.0, $0.1, $0.2) }
-    }
+    /// The colours a picture is made of (Store.swift works them out for every tool).
+    func palette(of url: URL) -> [String]? { VaultStore.shared.palette(of: url) }
 
     /// Copy files into the current project's References — stills, GIFs and clips
     /// each to their own folder — and tell the page. Returns how many came in.
@@ -1470,7 +1432,7 @@ extension VaultHost {
                 item["created"] = stamp
                 item["source"] = source
                 item["origin"] = origin
-                if let p = self.palette(of: base.appendingPathComponent(thumbRel)), !p.isEmpty { item["palette"] = p }
+                if let p = VaultStore.shared.colours(of: base.appendingPathComponent(thumbRel), kind: kind), !p.isEmpty { item["palette"] = p }
                 added.append(item)
                 tick()
             }
@@ -1481,7 +1443,7 @@ extension VaultHost {
                 tick()
             }
             for (id, rel) in needPalette {
-                if let p = self.palette(of: base.appendingPathComponent(thumbs[id] ?? rel)), !p.isEmpty { palettes[id] = p }
+                if let p = VaultStore.shared.colours(of: base.appendingPathComponent(thumbs[id] ?? rel), kind: ""), !p.isEmpty { palettes[id] = p }
                 tick()
             }
             // 4. back on the main thread: into the list, once
@@ -1504,66 +1466,18 @@ extension VaultHost {
         }
     }
 
+    /// Every still, GIF and clip is remembered with where it came from — its
+    /// preview and colours are made by the store, whichever tool it came from.
+    @discardableResult
     func register(kind: String, file: URL, meta: [String: Any]?, project: String? = nil) -> [String: Any] {
-        // Start from the list as it is on disk: another tool may have saved since.
-        if !holdIndexSaves || indexLoadedFor != (saveFolder?.path ?? "") { loadIndex() }
-        guard let base = saveFolder else { return [:] }
-        let id = UUID().uuidString
-        let rel = file.path.replacingOccurrences(of: base.path + "/", with: "")
-        var thumbRel = rel
-        if kind == "clip", let thumb = poster(for: file, id: id) {
-            thumbRel = thumb.path.replacingOccurrences(of: base.path + "/", with: "")
-        } else if kind == "still" || kind == "gif", let thumb = smallThumb(for: file, id: id) {
-            thumbRel = thumb.path.replacingOccurrences(of: base.path + "/", with: "")   // the grid never loads the full file
-        }
-        var item: [String: Any] = [
-            "id": id, "kind": kind, "file": rel, "thumb": thumbRel, "project": projectName(project ?? currentProject),
-            "bytes": fileSize(file),
-            "created": ISO8601DateFormatter().string(from: Date()),
-        ]
-        for key in ["source", "at", "end", "crop", "tags", "note", "w", "h", "palette", "boards", "title", "text"] {
-            if let v = meta?[key] { item[key] = v }
-        }
-        // Every picture gets its colours, however it arrived.
-        if (item["palette"] as? [String])?.isEmpty ?? true, kind != "idea", let p = palette(of: base.appendingPathComponent(thumbRel)), !p.isEmpty {
-            item["palette"] = p
-        }
-        index.insert(item, at: 0)
-        saveIndex()
-        return item
+        VaultStore.shared.register(kind: kind, file: file, meta: meta, project: projectName(project ?? currentProject))
     }
 
-    /// A small JPEG for the grid — ImageIO reads just enough of the file to make it.
-    func smallThumb(for file: URL, id: String) -> URL? {
-        guard let base = saveFolder, let src = CGImageSourceCreateWithURL(file as CFURL, nil) else { return nil }
-        let opts: [CFString: Any] = [
-            kCGImageSourceCreateThumbnailFromImageAlways: true,
-            kCGImageSourceCreateThumbnailWithTransform: true,
-            kCGImageSourceThumbnailMaxPixelSize: 520,
-        ]
-        guard let cg = CGImageSourceCreateThumbnailAtIndex(src, 0, opts as CFDictionary) else { return nil }
-        let dir = base.appendingPathComponent(".vault/thumbs", isDirectory: true)
-        try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
-        let url = dir.appendingPathComponent(id + ".jpg")
-        guard let dest = CGImageDestinationCreateWithURL(url as CFURL, "public.jpeg" as CFString, 1, nil) else { return nil }
-        CGImageDestinationAddImage(dest, cg, [kCGImageDestinationLossyCompressionQuality: 0.8] as CFDictionary)
-        return CGImageDestinationFinalize(dest) ? url : nil
-    }
+    /// A small JPEG for the grid.
+    func smallThumb(for file: URL, id: String) -> URL? { VaultStore.shared.smallThumb(for: file, id: id) }
 
     /// A still from a clip, for the library grid.
-    func poster(for file: URL, id: String) -> URL? {
-        guard let base = saveFolder else { return nil }
-        let gen = AVAssetImageGenerator(asset: AVURLAsset(url: file))
-        gen.appliesPreferredTrackTransform = true
-        gen.maximumSize = CGSize(width: 640, height: 640)
-        guard let cg = try? gen.copyCGImage(at: CMTime(seconds: 0.1, preferredTimescale: 600), actualTime: nil),
-              let jpg = NSBitmapImageRep(cgImage: cg).representation(using: .jpeg, properties: [.compressionFactor: 0.8])
-        else { return nil }
-        let dir = base.appendingPathComponent(".vault/thumbs", isDirectory: true)
-        try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
-        let url = dir.appendingPathComponent(id + ".jpg")
-        return (try? jpg.write(to: url)) != nil ? url : nil
-    }
+    func poster(for file: URL, id: String) -> URL? { VaultStore.shared.poster(for: file, id: id) }
 
     /// Move or copy references into another project: the files go into that
     /// project's matching folder (Stills, GIFs, Motion, Ideas) and the vault
@@ -1620,32 +1534,10 @@ extension VaultHost {
         return ["ok": failed.isEmpty, "done": done, "renamed": renamed, "failed": failed, "project": to]
     }
 
-    func updateItem(_ b: [String: Any]) {
-        loadIndex()                                  // the latest list, so no one else's saves are lost
-        guard let id = b["id"] as? String, let i = index.firstIndex(where: { ($0["id"] as? String) == id }) else { return }
-        if let tags = b["tags"] as? [String] { index[i]["tags"] = tags }
-        if let note = b["note"] as? String { index[i]["note"] = note }
-        if let boards = b["boards"] as? [String] { index[i]["boards"] = boards }
-        if let title = b["title"] as? String { index[i]["title"] = title }
-        if let text = b["text"] as? String { index[i]["text"] = text }
-        saveIndex()
-    }
+    func updateItem(_ b: [String: Any]) { VaultStore.shared.update(b) }
 
     /// Removing moves the file to the Trash, never deletes it outright.
-    func removeItem(_ id: String) -> Bool {
-        loadIndex()
-        guard let base = saveFolder, let i = index.firstIndex(where: { ($0["id"] as? String) == id }) else { return false }
-        let item = index[i]
-        if let rel = item["file"] as? String {
-            try? FileManager.default.trashItem(at: base.appendingPathComponent(rel), resultingItemURL: nil)
-        }
-        if let thumb = item["thumb"] as? String, thumb.hasPrefix(".vault/thumbs/") {
-            try? FileManager.default.removeItem(at: base.appendingPathComponent(thumb))
-        }
-        index.remove(at: i)
-        saveIndex()
-        return true
-    }
+    func removeItem(_ id: String) -> Bool { VaultStore.shared.remove(id) }
 }
 
 
@@ -1848,6 +1740,7 @@ extension VaultHost {
                 let src: [String: Any] = ["type": "web", "url": page.isEmpty ? imageURL : page, "title": host]
                 _ = self.register(kind: "still", file: target, meta: ["source": src, "w": w, "h": h, "origin": origin], project: project)
                 Shared.notify()                                   // Home's wall picks it up
+                Shell.post("Saved into \(project)", "From \(host) — \(w) × \(h)")   // Grab & Go works while you're in the browser
                 let info: [String: Any] = ["ok": true, "name": target.lastPathComponent, "project": project, "w": w, "h": h,
                                            "bigger": have.map { w * h > $0.0 * $0.1 } ?? false, "via": via]
                 if let j = try? JSONSerialization.data(withJSONObject: info), let s = String(data: j, encoding: .utf8) {

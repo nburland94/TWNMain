@@ -135,7 +135,7 @@ main{padding:0 3rem;max-width:1180px}
 .scenehead .count{font-family:var(--mono);font-size:10px;color:var(--dim)}
 .shot{display:grid;grid-template-columns:26px 54px minmax(170px,1.7fr) minmax(110px,1fr)
   96px 104px minmax(130px,1.3fr) 156px 28px;gap:6px;align-items:start;background:var(--panel);
-  border:1px solid var(--hair);border-radius:var(--r);padding:0.5rem;margin-bottom:6px;
+  border:1px solid rgba(28,28,28,0.12);border-radius:var(--r);padding:0.5rem;margin-bottom:6px;box-shadow:0 1px 2px rgba(80,30,10,0.05);
   transition:border-color .2s var(--ease-out),box-shadow .2s var(--ease-out)}
 .shot.dragging{opacity:0.9;box-shadow:0 12px 30px rgba(20,20,20,0.16);border-color:var(--accent);position:relative;z-index:5}
 .shot .grip{cursor:grab;color:var(--dim);font-size:13px;line-height:1.9;text-align:center;user-select:none;touch-action:none}
@@ -156,10 +156,12 @@ main{padding:0 3rem;max-width:1180px}
   color:var(--dim);font-family:var(--mono);font-size:9px;letter-spacing:0.08em;cursor:pointer}
 @media (hover:hover){.refcell .add:hover{border-color:var(--accent);color:var(--accent-ink)}}
 .colhead{display:grid;grid-template-columns:26px 54px minmax(170px,1.7fr) minmax(110px,1fr)
-  96px 104px minmax(130px,1.3fr) 156px 28px;gap:6px;padding:0 0.5rem 0.4rem;align-items:end}
-.colname{width:100%;background:transparent;border:1px solid transparent;border-radius:4px;padding:0.2rem 0.3rem;
-  font-family:var(--mono);font-size:9px;letter-spacing:0.14em;text-transform:uppercase;color:var(--dim)}
-.colname:hover{border-color:var(--hair)}
+  96px 104px minmax(130px,1.3fr) 156px 28px;gap:6px;padding:0.35rem 0.5rem;align-items:center;
+  background:rgba(255,255,255,0.78);border:1px solid rgba(28,28,28,0.08);border-radius:var(--r);margin-bottom:6px}
+/* the column titles: readable at a glance, still click-to-rename */
+.colname{width:100%;background:transparent;border:1px solid transparent;border-radius:4px;padding:0.25rem 0.3rem;box-shadow:none!important;
+  font-family:var(--mono);font-size:10.5px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#4a4945}
+.colname:hover{border-color:rgba(28,28,28,0.18);background:rgba(255,255,255,0.9)}
 .colname:focus{outline:none;border-color:var(--accent);color:var(--ink);background:var(--panel)}
 .addrow{display:flex;gap:0.6rem;flex-wrap:wrap;margin-top:0.6rem}
 

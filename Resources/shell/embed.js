@@ -48,7 +48,8 @@
     /* no focus ring round the players — they still take the keyboard */
     html.in-needed-tools .stage, html.in-needed-tools .stage:focus, html.in-needed-tools .stage:focus-visible,
     html.in-needed-tools video:focus, html.in-needed-tools video:focus-visible, html.in-needed-tools .pvstage:focus,
-    html.in-needed-tools canvas:focus, html.in-needed-tools [tabindex]:focus-visible.stage { outline: none !important; box-shadow: none !important; }
+    html.in-needed-tools canvas:focus, html.in-needed-tools [tabindex]:focus-visible.stage,
+    html.in-needed-tools .stage.keys, html.in-needed-tools .pvstage.keys, html.in-needed-tools .pvstage:focus-within { outline: none !important; box-shadow: none !important; }
   `;
   const style = document.createElement('style');
   style.textContent = css;
@@ -80,6 +81,33 @@
   };
   const handlers = window.webkit && window.webkit.messageHandlers;
   const files = handlers && handlers.files;
+
+  // When one finishes, macOS says so — a notification, even if you're in another
+  // app. Only on success; a sound too when it took a while.
+  const plural = (n, one) => `${n} ${one}${n === 1 ? '' : 's'}`;
+  const DONE = {
+    preview: r => r && r.ok !== false && ['Footage is in', 'The link is ready to play and grab from.'],
+    pull: r => r && r.ok && ['Footage is in', 'That section is ready in the Vault.'],
+    importFiles: r => r && r.added && ['Added to your vault', `${plural(r.added, 'file')} added to this project.`],
+    makeGif: r => r && r.ok && ['GIF saved', r.name || 'Saved into your project.'],
+    makeClip: r => r && r.ok && ['MP4 saved', r.name || 'Saved into your project.'],
+    scan: r => r && r.ok !== false && ['Cards scanned', 'Every clip is read and grouped into scenes.'],
+    build: r => r && !r.cancelled && (r.failed && r.failed.length
+      ? ['Sort finished — check it', `${r.copied} of ${r.total} copied; ${plural(r.failed.length, 'file')} didn't match the card.`]
+      : ['Sort finished', `All ${r.copied} files copied and checked against the cards.`]),
+    exportPdf: r => r && r.ok !== false && ['PDF made', r.name || 'Saved into your project.'],
+    importPdf: r => r && r.ok !== false && ['Read it', 'The PDF is in.'],
+    sendMail: (r, m) => r && r.ok && ['Sent', `${m && m.to ? 'To ' + m.to + ' — ' : ''}a copy is in your inbox.`],
+    moodBoard: r => r && r.ok && ['Mood board saved', `${r.name} — ${plural(r.pages, 'page')}.`],
+  };
+  const shellBridge = handlers && handlers.shell;
+  const tell = (title, body, sound) => { try { shellBridge && shellBridge.postMessage({ action: 'notify', title, body, sound: !!sound }); } catch (e) { /* fine */ } };
+  // Stills save one file at a time: one notification for the batch, once it's quiet.
+  let stillsSaved = 0, stillsT = null;
+  const stillSaved = () => {
+    stillsSaved++; clearTimeout(stillsT);
+    stillsT = setTimeout(() => { tell('Stills saved', `${plural(stillsSaved, 'still')} saved into your project.`); stillsSaved = 0; }, 1500);
+  };
   if (files && files.postMessage) {
     const send = files.postMessage.bind(files);
     try {
@@ -87,6 +115,17 @@
         const action = msg && msg.action, label = SLOW[action];
         const p = send(msg);
         if (label && p && p.then) { L.start(label); p.then(() => L.done(), () => L.done()); }
+        if (p && p.then && (DONE[action] || action === 'saveFile')) {
+          const began = Date.now();
+          p.then(r => {
+            if (action === 'saveFile') {
+              if (r && r.ok) { if (msg.folder === 'Sheets') tell('Contact sheet saved', r.name || 'Saved into your project.'); else stillSaved(); }
+              return;
+            }
+            const said = DONE[action](r, msg);
+            if (said) tell(said[0], said[1], Date.now() - began > 8000);
+          }, () => {});
+        }
         // jobs that report how far along they are (GIFs, MP4s, Sort's copying)
         if (action === 'progress' && p && p.then) p.then(r => {
           const f = r && (typeof r.progress === 'number' ? r.progress : typeof r.fraction === 'number' ? r.fraction : typeof r.pct === 'number' ? r.pct / 100 : null);
