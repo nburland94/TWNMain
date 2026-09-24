@@ -973,8 +973,8 @@ main{padding:0 3rem;max-width:1180px}
     busy = false;
     if (!r || !r.ok) { setStatus((r && r.error) || "Couldn't make the PDF.", true); save(); return; }
     cur.pdf = r.path; save(); renderInvoice();
-    setStatus(r.kept ? `Invoice ${cur.number} saved in Needed Pay — the one in ${cur.project} › Invoices was left as it was.`
-                     : `Invoice ${cur.number} saved${r.filed ? ' into ' + cur.project + ' › Invoices' : ''}.`);
+    setStatus(r.kept ? `Invoice ${cur.number} saved in Needed Pay — the one in ${cur.project} › ${cur.project}_Docs › Invoices was left as it was.`
+                     : `Invoice ${cur.number} saved${r.filed ? ' into ' + cur.project + ' › ' + cur.project + '_Docs › Invoices' : ''}.`);
     $('revealBtn').hidden = false;
     toast(`Invoice ${cur.number} ready to send`);
   }

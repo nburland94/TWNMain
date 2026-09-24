@@ -681,8 +681,7 @@ extension VaultHost {
         guard let base = saveFolder else { return nil }
         let name = projectName(project ?? currentProject)
         var folder = base.appendingPathComponent(name, isDirectory: true)
-        if Folders.kinds.contains(kind) { folder = folder.appendingPathComponent(Folders.sub(kind, project: name, grab: area == "Grabs"), isDirectory: true) }
-        else { folder = folder.appendingPathComponent(kind, isDirectory: true) }
+        folder = folder.appendingPathComponent(Folders.place(kind, project: name, grab: area == "Grabs"), isDirectory: true)
         do { try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true) }
         catch { return nil }
         return folder
@@ -1379,6 +1378,11 @@ extension VaultHost {
         loadIndex()
         let project = projectName(raw)
         let known = Set(index.compactMap { $0["file"] as? String })
+        // Every picture the vault knows, to see which have gone from where they were.
+        let media: [(id: String, rel: String, project: String, bytes: Int64)] = index.compactMap { it -> (id: String, rel: String, project: String, bytes: Int64)? in
+            guard ["still", "gif", "clip"].contains(it["kind"] as? String ?? ""), let id = it["id"] as? String, let rel = it["file"] as? String else { return nil }
+            return (id, rel, (it["project"] as? String) ?? "Unsorted", (it["bytes"] as? NSNumber)?.int64Value ?? -1)
+        }
         // what this project's items are missing: a preview of their own, or colours
         let needThumb: [(String, String)] = index.compactMap { it -> (String, String)? in
             guard (it["project"] as? String) == project, let id = it["id"] as? String, let kind = it["kind"] as? String,
@@ -1411,6 +1415,28 @@ extension VaultHost {
                     }
                 }
             }
+            // 1b. Moved or deleted in Finder. A file the vault knows that isn't where it was:
+            // if a new file here has its name and size, it's the same one, moved — it keeps its
+            // tags, notes and boards. If it's gone from this project and turned up nowhere, it's
+            // taken off the list (kept in .vault/removed.json). Only when the project's folder is
+            // there — an unplugged drive never empties the vault.
+            var missing = media.filter { !fm.fileExists(atPath: base.appendingPathComponent($0.rel).path) }
+            missing.sort { ($0.project == project ? 0 : 1) < ($1.project == project ? 0 : 1) }
+            var relinked: [String: (rel: String, origin: String)] = [:]
+            var newFiles: [(URL, String, String)] = []
+            for (f, kind, origin) in found {
+                let name = f.lastPathComponent.lowercased()
+                let size = self.fileSize(f)
+                let hit = missing.firstIndex { m in
+                    relinked[m.id] == nil && (m.rel as NSString).lastPathComponent.lowercased() == name && (m.bytes <= 0 || m.bytes == size)
+                }
+                if let i = hit { relinked[missing[i].id] = (f.path.replacingOccurrences(of: base.path + "/", with: ""), origin) }
+                else { newFiles.append((f, kind, origin)) }
+            }
+            found = newFiles
+            let projectThere = fm.fileExists(atPath: proj.path)
+            let gone: Set<String> = projectThere ? Set(missing.filter { $0.project == project && relinked[$0.id] == nil }.map { $0.id }) : []
+            let moves = relinked
             let total: Double = Double(max(1, found.count + needThumb.count + needPalette.count))
             var step: Double = 0
             let tick: () -> Void = {
@@ -1459,12 +1485,42 @@ extension VaultHost {
                     if let t = thumbs[id] { self.index[i]["thumb"] = t }
                     if let p = palettes[id] { self.index[i]["palette"] = p }
                 }
+                // Moved in Finder: the same item, at its new place.
+                var relinkCount = 0
+                for i in self.index.indices {
+                    guard let id = self.index[i]["id"] as? String, let r = moves[id] else { continue }
+                    let old = self.index[i]["file"] as? String
+                    if (self.index[i]["thumb"] as? String) == old { self.index[i]["thumb"] = r.rel }
+                    self.index[i]["file"] = r.rel
+                    self.index[i]["project"] = project
+                    self.index[i]["origin"] = r.origin
+                    relinkCount += 1
+                }
+                // Deleted in Finder: off the list, kept on record.
+                let removedItems = self.index.filter { gone.contains($0["id"] as? String ?? "") }
+                if !removedItems.isEmpty {
+                    self.index.removeAll { gone.contains($0["id"] as? String ?? "") }
+                    self.keepRemoved(removedItems)
+                }
                 self.index.insert(contentsOf: fresh, at: 0)
                 self.saveIndex()
                 Shared.notify()
-                done(["ok": true, "project": project, "added": fresh.count, "palettes": palettes.count, "previews": thumbs.count])
+                done(["ok": true, "project": project, "added": fresh.count, "palettes": palettes.count, "previews": thumbs.count,
+                      "relinked": relinkCount, "removed": removedItems.count])
             }
         }
+    }
+
+    /// Items taken off the list by Sync, kept (the last 2,000) in .vault/removed.json —
+    /// their tags and notes aren't lost if the file comes back.
+    func keepRemoved(_ items: [[String: Any]]) {
+        guard let base = saveFolder else { return }
+        let u = base.appendingPathComponent(".vault/removed.json")
+        var all = ((try? Data(contentsOf: u)).flatMap { try? JSONSerialization.jsonObject(with: $0) as? [[String: Any]] }) ?? []
+        let at = ISO8601DateFormatter().string(from: Date())
+        all = items.map { it -> [String: Any] in var x = it; x["removed"] = at; return x } + all
+        if all.count > 2000 { all = Array(all.prefix(2000)) }
+        if let d = try? JSONSerialization.data(withJSONObject: all) { try? d.write(to: u, options: .atomic) }
     }
 
     /// Every still, GIF and clip is remembered with where it came from — its
@@ -1772,7 +1828,7 @@ extension VaultHost {
 extension VaultHost {
     /// A mood board: a PDF of stills and nothing else — no titles, no captions.
     /// Each page is rows of pictures in their own shapes, filling the page
-    /// edge to edge with a small gap. It saves into Lexus › Lexus_Vault › Mood.
+    /// edge to edge with a small gap. It saves into Lexus › Lexus_Docs › Mood boards.
     func moodBoard(_ b: [String: Any], _ reply: @escaping (Any?, String?) -> Void) {
         guard let base = saveFolder else { return reply(["ok": false, "error": "Choose your vault first"], nil) }
         let rels = ((b["files"] as? [String]) ?? []).filter { !$0.contains("..") && !$0.hasPrefix("/") }
@@ -1784,9 +1840,9 @@ extension VaultHost {
         var name = ((b["name"] as? String) ?? "Mood board").replacingOccurrences(of: "/", with: "-").replacingOccurrences(of: ":", with: "-")
         while name.hasPrefix(".") { name.removeFirst() }
         if name.isEmpty { name = "Mood board" }
-        let folder = base.appendingPathComponent(project, isDirectory: true).appendingPathComponent("\(project)_Vault/Mood", isDirectory: true)
+        let folder = base.appendingPathComponent(project, isDirectory: true).appendingPathComponent(Folders.place("Mood", project: project), isDirectory: true)
         guard (try? FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)) != nil else {
-            return reply(["ok": false, "error": "Couldn't make the Mood folder"], nil)
+            return reply(["ok": false, "error": "Couldn't make the Mood boards folder"], nil)
         }
         let target = uniqueURL(in: folder, name: name + ".pdf")
 

@@ -556,8 +556,9 @@ extension PayHost {
     /// the first time something goes in it.
     func outputFolder(_ kind: String) -> URL? {
         guard let base = saveFolder else { return nil }
-        let folder = base.appendingPathComponent(projectName(currentProject), isDirectory: true)
-                         .appendingPathComponent(kind, isDirectory: true)
+        let name = projectName(currentProject)
+        let folder = base.appendingPathComponent(name, isDirectory: true)
+                         .appendingPathComponent(Folders.place(kind, project: name), isDirectory: true)
         do { try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true) }
         catch { return nil }
         return folder
@@ -708,7 +709,9 @@ extension PayHost {
         switch action {
         case "loadLedger":
             let url = payDir.appendingPathComponent("ledger.json")
-            if let d = try? Data(contentsOf: url), let obj = try? JSONSerialization.jsonObject(with: d) {
+            // On a new Mac, the books come back from the copy in the vault.
+            let copy = saveFolder?.appendingPathComponent(".vault/pay-ledger.json")
+            if let d = (try? Data(contentsOf: url)) ?? copy.flatMap({ try? Data(contentsOf: $0) }), let obj = try? JSONSerialization.jsonObject(with: d) {
                 reply(["ledger": obj], nil)
             } else {
                 reply(["ledger": NSNull()], nil)
@@ -721,6 +724,11 @@ extension PayHost {
             }
             try? fm.createDirectory(at: payDir, withIntermediateDirectories: true)
             let ok = (try? data.write(to: payDir.appendingPathComponent("ledger.json"), options: .atomic)) != nil
+            // A copy in the vault too, so a backup of the vault drive has your books.
+            if let v = saveFolder?.appendingPathComponent(".vault", isDirectory: true) {
+                try? fm.createDirectory(at: v, withIntermediateDirectories: true)
+                try? data.write(to: v.appendingPathComponent("pay-ledger.json"), options: .atomic)
+            }
             // A copy a day, the last 30 kept — these are your books.
             let backups = payDir.appendingPathComponent("backups", isDirectory: true)
             try? fm.createDirectory(at: backups, withIntermediateDirectories: true)
@@ -763,7 +771,7 @@ extension PayHost {
                 return reply(["ok": true, "path": appCopy.path, "appPath": appCopy.path, "filed": false], nil)
             }
             let proj = projectName(project)
-            let folder = vault.appendingPathComponent(proj, isDirectory: true).appendingPathComponent("Invoices", isDirectory: true)
+            let folder = vault.appendingPathComponent(proj, isDirectory: true).appendingPathComponent(Folders.place("Invoices", project: proj), isDirectory: true)
             try? fm.createDirectory(at: folder, withIntermediateDirectories: true)
             let there = folder.appendingPathComponent(name + ".pdf")
             let file: (URL, Bool) -> Void = { target, replacing in
@@ -774,7 +782,7 @@ extension PayHost {
             }
             // The project folder is yours: a PDF already there is only replaced if you say so.
             if fm.fileExists(atPath: there.path) {
-                askReplace(there, in: "\(proj) › Invoices") { choice in
+                askReplace(there, in: "\(proj) › \(proj)_Docs › Invoices") { choice in
                     switch choice {
                     case "replace": file(there, true)
                     case "keep": file(self.uniqueURL(in: folder, name: name + ".pdf"), false)

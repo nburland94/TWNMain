@@ -2,192 +2,242 @@
 <html lang="en"><head><meta charset="utf-8"><title>Project</title>
 <link rel="stylesheet" href="base.css">
 <style>
-body{background:#fbf3ed;overflow-x:hidden;overflow-y:auto}
-.glow{position:fixed;inset:0;background:radial-gradient(ellipse 72% 78% at 50% 44%,#f7bf99 0%,#f9cfb1 26%,#fbdfca 50%,#fcebdf 72%,#fdf5ef 100%);pointer-events:none}
-main{position:relative;max-width:1380px;margin:0 auto;padding:24px 28px 60px;display:flex;flex-direction:column;gap:18px}
-.g{position:relative;border-radius:22px;outline:0.5px solid rgba(120,55,20,0.10);outline-offset:-0.5px;
-  background:linear-gradient(160deg,rgba(255,255,255,0.62),rgba(255,255,255,0.38));border:1px solid rgba(255,255,255,0.8);
-  box-shadow:inset 0 1.5px 0 rgba(255,255,255,0.95),0 14px 40px rgba(160,70,20,0.08);-webkit-backdrop-filter:blur(26px) saturate(1.5);backdrop-filter:blur(26px) saturate(1.5)}
-.card{padding:20px 22px;display:flex;flex-direction:column;gap:12px;min-width:0}
+/* The project page — laid out as the Project v2 mock-up. */
+body{background:#fcf2ec;color:#141414;overflow-x:hidden;overflow-y:auto}
+.glow{position:fixed;inset:0;background:radial-gradient(ellipse 70% 40% at 60% 30%,#f7bf99 0%,#f9cfb1 28%,#fbdfca 52%,#fcebdf 74%,#fdf5ef 100%);opacity:0.85;pointer-events:none}
+main{position:relative;max-width:1440px;margin:0 auto;padding:30px 40px 40px;display:flex;flex-direction:column;gap:22px}
+.g{border-radius:22px;background:linear-gradient(160deg,rgba(255,255,255,0.66),rgba(255,255,255,0.42));border:1px solid rgba(255,255,255,0.85);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,0.95),0 14px 40px rgba(160,70,20,0.08);-webkit-backdrop-filter:blur(26px) saturate(1.5);backdrop-filter:blur(26px) saturate(1.5)}
+h2{margin:0;font-family:Oswald,sans-serif;font-weight:400;font-size:15px;letter-spacing:0.14em;text-transform:uppercase}
+.mono{font-family:'Courier Prime',monospace}
+.sub{font-family:'Courier Prime',monospace;font-size:11.5px;color:#6b6964}
 .cap{font-family:'Courier Prime',monospace;font-size:10.5px;letter-spacing:0.18em;text-transform:uppercase;color:#7a5a48}
-h2{margin:0;font-weight:300;font-size:21px}
-.sub{font-size:12.5px;color:var(--dim)}
-.head{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
-.head .grow{flex:1}
-.btn{border:none;border-radius:100px;padding:9px 16px;font-size:13px;background:rgba(255,255,255,0.78);border:1px solid rgba(28,28,28,0.09);color:var(--ink);white-space:nowrap;transition:background .15s var(--ease-out),opacity .15s}
-.btn.dark{background:linear-gradient(180deg,#2b2b2b,#111);color:#fff;border-color:transparent;box-shadow:inset 0 1px 0 rgba(255,255,255,0.14),0 2px 8px rgba(20,20,20,0.16)}
-.btn.orange{background:var(--accent);color:#fff;border-color:transparent}
-.btn:disabled{opacity:0.4;cursor:default}
-.link{border:none;background:none;padding:2px 0;font-size:12.5px;color:var(--accent-ink);text-decoration:underline;text-underline-offset:3px}
-.x{border:none;background:none;color:#a08a7e;font-size:15px;line-height:1;padding:2px 5px;opacity:0;transition:opacity .15s}
-.row:hover .x,.item:hover .x,.chip .x,.x.show{opacity:1}
-input.plain,textarea.plain,select.plain{border:1px solid transparent;border-radius:8px;background:transparent;padding:3px 6px;margin:-3px -6px;outline:none;min-width:0;-webkit-user-select:text;user-select:text;transition:border-color .15s,background .15s}
-input.plain:hover,textarea.plain:hover{border-color:rgba(28,28,28,0.08)}
-input.plain:focus,textarea.plain:focus{border-color:var(--accent);background:rgba(255,255,255,0.8)}
-input.plain::placeholder,textarea.plain::placeholder{color:#b09a8e}
-.field{border:1px solid rgba(28,28,28,0.1);border-radius:10px;background:rgba(255,255,255,0.8);padding:9px 11px;font-size:13.5px;outline:none;-webkit-user-select:text;user-select:text;min-width:0}
+.grow{flex-grow:1}
+.txt{border:none;background:none;padding:4px 6px;font-size:13px;color:#4a4945}
+.txt.o{color:#d2440f}
+@media (hover:hover) and (pointer:fine){.txt:hover{color:#141414}}
+[contenteditable]{outline:none;-webkit-user-select:text;user-select:text;cursor:text;border-radius:4px;transition:background .15s}
+[contenteditable]:hover{background:rgba(255,255,255,0.45)}
+[contenteditable]:focus{background:rgba(255,255,255,0.8);box-shadow:0 0 0 1.5px var(--accent)}
+[contenteditable]:empty::before{content:attr(data-ph);color:#b09a8e}
+input,textarea,select{-webkit-user-select:text;user-select:text}
+.x{border:none;background:none;color:#a08a7e;font-size:14px;line-height:1;padding:2px 4px;opacity:0;transition:opacity .15s}
+.row:hover .x,.ms:hover .x,.tagw:hover .x{opacity:1}
+.btnd{display:flex;align-items:center;gap:8px;border:none;border-radius:100px;padding:12px 20px;font-size:13.5px;font-weight:500;background:linear-gradient(180deg,#2b2b2b,#111);color:#fff;box-shadow:inset 0 1px 0 rgba(255,255,255,0.14),0 2px 8px rgba(20,20,20,0.18)}
+.btnl{border-radius:100px;padding:12px 18px;font-size:13.5px;border:1px solid rgba(28,28,28,0.12);background:rgba(255,255,255,0.7);color:#141414}
+.btnd:disabled,.btnl:disabled{opacity:0.4;cursor:default}
+.field{border-radius:12px;border:1px solid rgba(28,28,28,0.12);background:rgba(255,255,255,0.85);padding:10px 12px;font-size:14px;outline:none;color:#141414}
 .field:focus{border-color:var(--accent)}
-.empty{font-size:13px;color:var(--dim);padding:6px 0;line-height:1.5}
+.tick{flex-shrink:0;width:20px;height:20px;margin-top:1px;border-radius:6px;padding:0;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,0.8);border:1.5px solid rgba(28,28,28,0.28);transition:background .18s var(--ease-out),border-color .18s var(--ease-out)}
+.tick.on{background:#141414;border-color:#141414}
+.tick.o.on{background:#F05A22;border-color:#F05A22}
 
-/* ---- header ---- */
-.top{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:26px;padding:24px 26px}
-.meta{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-.lab{appearance:none;-webkit-appearance:none;border-radius:100px;padding:5px 26px 5px 12px;font-size:12.5px;border:none;background:var(--ink) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='9' height='6'%3E%3Cpath d='M1 1l3.5 3.5L8 1' fill='none' stroke='white' stroke-width='1.3'/%3E%3C/svg%3E") no-repeat right 10px center;color:#fff}
-.lab.none{background-color:rgba(28,28,28,0.08);color:var(--mid);background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='9' height='6'%3E%3Cpath d='M1 1l3.5 3.5L8 1' fill='none' stroke='%234a4945' stroke-width='1.3'/%3E%3C/svg%3E")}
-.chip{display:inline-flex;align-items:center;gap:2px;border-radius:100px;padding:4px 6px 4px 11px;font-size:12.5px;background:rgba(255,255,255,0.7);border:1px solid rgba(28,28,28,0.08);color:#6d4e3d}
-.chip .x{opacity:0.55;font-size:13px}
-.tagin{width:84px;border:1px dashed rgba(28,28,28,0.2);border-radius:100px;padding:4px 11px;font-size:12.5px;background:transparent;outline:none;-webkit-user-select:text;user-select:text}
-.tagin:focus{border-style:solid;border-color:var(--accent);width:140px;background:rgba(255,255,255,0.8)}
-.title{font-family:Raleway,serif;font-weight:200;font-size:44px;line-height:1.1;width:100%;margin:6px -6px 2px}
-.people{display:flex;gap:26px;flex-wrap:wrap}
-.people label{display:flex;flex-direction:column;gap:3px;font-size:14px}
-.people input{width:180px}
-.side{display:flex;flex-direction:column;align-items:flex-end;justify-content:space-between;gap:16px;min-width:230px}
-.count{text-align:right}
-.count b{display:block;font-weight:200;font-size:54px;line-height:1;font-variant-numeric:tabular-nums}
-.count span{font-size:12.5px;color:var(--dim)}
-.actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+/* ---- head ---- */
+.head{display:flex;align-items:flex-end;gap:32px}
+.head .left{display:flex;flex-direction:column;gap:10px;min-width:0}
+.metaline{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.metaline .folder{border:none;background:none;padding:0;font-family:'Courier Prime',monospace;font-size:11px;letter-spacing:0.2em;text-transform:uppercase;color:#7a5a48}
+@media (hover:hover) and (pointer:fine){.metaline .folder:hover{color:#d2440f}}
+.lab{appearance:none;-webkit-appearance:none;border:none;border-radius:100px;padding:3px 24px 3px 11px;font-size:12px;background:#141414 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='5' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='white' stroke-width='1.4'/%3E%3C/svg%3E") no-repeat right 9px center;color:#fff;cursor:pointer}
+.lab.none{background-color:rgba(28,28,28,0.1);color:#4a4945;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='5' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%234a4945' stroke-width='1.4'/%3E%3C/svg%3E")}
+.divider{width:1px;height:14px;background:rgba(28,28,28,0.15)}
+.tagw{display:inline-flex;align-items:center;font-family:'Courier Prime',monospace;font-size:12px;color:#4a4945}
+.tagw .x{font-size:12px;padding:0 2px}
+.addtag{border:none;background:none;padding:0 2px;font-family:'Courier Prime',monospace;font-size:12px;color:#d2440f}
+.tagin{width:110px;border:none;border-bottom:1px solid #F05A22;background:transparent;font-family:'Courier Prime',monospace;font-size:12px;outline:none;padding:1px 2px}
+h1{margin:0;font-family:Raleway,serif;font-weight:200;font-size:62px;line-height:0.95;border-bottom:1px dashed rgba(28,28,28,0.18);padding-bottom:4px;align-self:flex-start;min-width:200px}
+h1[contenteditable]:hover,h1[contenteditable]:focus{background:transparent;box-shadow:none}
+h1[contenteditable]:focus{border-bottom-color:var(--accent)}
+.people{display:flex;gap:18px;font-size:13.5px;color:#4a4945;flex-wrap:wrap}
+.people b{font-weight:500;color:#141414;padding:0 2px}
+.count{display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0}
+.count b{font-family:Raleway,serif;font-weight:200;font-size:44px;line-height:1}
+.count span{display:flex;align-items:center;gap:6px;font-size:13px;color:#6b6964}
+.acts{display:flex;gap:10px;flex-shrink:0}
 
-/* ---- timeline ---- */
-.line{padding:16px 22px 18px;display:flex;flex-direction:column;gap:12px}
-.steps{display:flex;gap:0;overflow-x:auto;scrollbar-width:none;padding:4px 2px 2px;position:relative}
-.steps::-webkit-scrollbar{display:none}
-.step{flex:1 0 118px;display:flex;flex-direction:column;gap:6px;position:relative;padding-right:12px;min-width:118px}
-.step::before{content:'';height:2px;border-radius:2px;background:rgba(28,28,28,0.12)}
-.step.past::before{background:var(--ink)}
-.step.now::before{background:linear-gradient(90deg,var(--ink) 50%,rgba(28,28,28,0.12) 50%)}
-.step i{position:absolute;left:0;top:-4px;width:10px;height:10px;border-radius:50%;background:#fcf2ec;border:2px solid rgba(28,28,28,0.3)}
-.step.past i{background:var(--ink);border-color:var(--ink)}
-.step.next i{background:var(--accent);border-color:var(--accent);box-shadow:0 0 0 4px rgba(240,90,34,0.18)}
-.step b{font-weight:400;font-size:13.5px;display:flex;gap:4px;align-items:center}
-.step small{font-size:12px;color:var(--dim)}
-.step .x{position:absolute;right:8px;top:6px}
-.step:hover .x{opacity:1}
-.nowtag{font-family:'Courier Prime',monospace;font-size:10px;letter-spacing:0.14em;color:var(--accent-ink);text-transform:uppercase}
-.addline{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-.addline .field{padding:7px 10px;font-size:13px}
-.addline[hidden]{display:none}
-.brief{display:flex;align-items:center;gap:14px;padding:14px 20px;border-radius:18px;background:rgba(240,90,34,0.08);border:1px solid rgba(240,90,34,0.22);font-size:14px}
-.brief .grow{flex:1}
+/* ---- timeline: the phases of the job ---- */
+.phases{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(96px,1fr);gap:6px;overflow-x:auto;scrollbar-width:none}
+.phases::-webkit-scrollbar{display:none}
+.ms{display:flex;flex-direction:column;gap:7px;position:relative;min-width:0}
+.ms .bar{height:3px;border-radius:3px;background:rgba(28,28,28,0.1)}
+.ms.past .bar{background:#141414}
+.ms .l{display:flex;justify-content:space-between;gap:6px;font-family:Oswald,sans-serif;font-size:12px;letter-spacing:0.12em;text-transform:uppercase;color:#8a7a72;white-space:nowrap}
+.ms .l span:first-child{overflow:hidden;text-overflow:ellipsis}
+.ms .l .d{font-family:'Courier Prime',monospace;letter-spacing:0;text-transform:none;color:#6b6964;flex-shrink:0}
+.ms.past .l{color:#141414}
+.ms.now .l,.ms.now .l .d{color:#d2440f}
+.ms .x{position:absolute;right:-2px;top:6px;background:rgba(252,242,236,0.9);border-radius:50%}
+.ms .cal{display:inline-block;width:6px;height:6px;border-radius:50%;background:#F05A22;margin-right:5px;vertical-align:1px}
+#phasesWrap{position:relative}
+.lineadd{position:absolute;right:0;top:-20px;display:flex;align-items:center;gap:10px;justify-content:flex-end}
+.lineadd.solo{position:static;justify-content:flex-start;margin-top:8px}
+.lineadd .field{padding:6px 10px;font-size:12.5px}
 
 /* ---- mood ---- */
-.mood .strip{display:flex;gap:4px;height:120px;overflow:hidden;border-radius:12px}
-.mood .strip button{border:none;padding:0;height:100%;flex:0 0 auto;border-radius:6px;overflow:hidden;background:#e9d3c4}
-.mood .strip img{display:block;height:100%;width:auto}
-.swatch{display:flex;gap:6px;align-items:center}
-.swatch span{width:26px;height:26px;border-radius:7px;border:1px solid rgba(0,0,0,0.06)}
+.mood{display:flex;flex-direction:column;gap:12px;min-width:0}
+.bento{display:grid;gap:8px}
+.ref{border:none;padding:0;border-radius:16px;overflow:hidden;background:#e9d3c4;transition:transform .25s var(--ease-out)}
+.ref img{display:block;width:100%;height:100%;object-fit:cover}
+@media (hover:hover) and (pointer:fine){.ref:hover{transform:translateY(-2px)}}
+.palette{display:flex;align-items:center;gap:12px}
+.palette .strip{display:flex;flex-grow:1;height:26px;border-radius:8px;overflow:hidden;box-shadow:0 0 0 0.5px rgba(0,0,0,0.1)}
 
-/* ---- two columns ---- */
-.two{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:18px}
-.idea{font-family:Raleway,serif;font-weight:300;font-style:italic;font-size:17px;line-height:1.45;width:100%;resize:none;color:#3a3836;min-height:30px}
-.list{display:flex;flex-direction:column}
-.row{display:grid;align-items:center;gap:10px;padding:8px 6px;border-radius:10px;border-top:1px solid rgba(28,28,28,0.05);transition:background .15s var(--ease-out),opacity .2s}
-.row:first-child{border-top:none}
+/* ---- cards ---- */
+.card{padding:20px 22px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.card .top{display:flex;align-items:center;gap:12px}
+.quote{margin:0;font-size:14.5px;line-height:1.5;font-weight:300}
+.deli{display:flex;align-items:center;gap:10px;padding:8px 0;font-size:14px;border-top:1px solid rgba(28,28,28,0.06);cursor:pointer}
+.deli:first-child{border-top:none}
+.deli .sh{border:1.3px solid #141414;border-radius:2px;flex-shrink:0}
+.deli .due{font-size:12.5px;color:#6b6964}
+.deli.edit{display:grid;grid-template-columns:minmax(0,1fr) 70px 56px 130px auto;gap:6px;cursor:default}
+.deli.edit .field{padding:6px 8px;font-size:13px;border-radius:8px}
+.musts{display:flex;flex-direction:column;gap:5px;padding-top:4px}
+.musts div{display:flex;gap:8px;font-size:12.5px;line-height:1.45;color:#4a4945}
+.musts div::before{content:'';width:5px;height:5px;border-radius:50%;background:#F05A22;margin-top:6px;flex-shrink:0}
+.adder{display:flex;align-items:center;gap:10px;border-radius:12px;padding:10px 13px;border:1.5px dashed rgba(28,28,28,0.16);background:rgba(255,255,255,0.35);margin-top:4px}
+.adder span{font-size:16px;color:#8a7a72}
+.adder input{flex-grow:1;border:none;background:transparent;font-family:Raleway,serif;font-size:13.5px;outline:none;min-width:0}
+.todo{display:flex;gap:11px;align-items:flex-start;padding:8px 6px;border-radius:10px;transition:background .18s var(--ease-out),opacity .2s}
 @media (hover:hover) and (pointer:fine){.row:hover{background:rgba(255,255,255,0.55)}}
-.del{grid-template-columns:minmax(0,1fr) 62px 52px 128px 22px}
-.del input{font-size:14px}
-.del .s{font-family:'Courier Prime',monospace;font-size:12px;color:var(--mid);text-align:center}
-.date{font-family:'Courier Prime',monospace;font-size:12px;color:var(--mid);border:1px solid transparent;border-radius:8px;background:transparent;padding:3px 4px;outline:none;width:100%}
-.date:hover{border-color:rgba(28,28,28,0.08)}
-.date:focus{border-color:var(--accent);background:#fff}
-.musts{display:flex;flex-direction:column;gap:6px;padding-top:4px}
-.must{display:flex;gap:9px;align-items:flex-start;font-size:13px;line-height:1.45;color:#3a3836}
-.must::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--accent);margin-top:6px;flex-shrink:0}
-.must span{flex:1}
-.todo{grid-template-columns:22px minmax(0,1fr) 128px 22px}
 .todo.done{opacity:0.5}
-.todo.done input.t{text-decoration:line-through}
-.tick{width:20px;height:20px;border-radius:6px;padding:0;display:flex;align-items:center;justify-content:center;border:1.5px solid rgba(28,28,28,0.28);background:rgba(255,255,255,0.8);transition:background .15s,border-color .15s}
-.tick.on{background:var(--ink);border-color:var(--ink)}
-.todo .from{display:block;font-size:11.5px;color:var(--dim);margin-top:1px}
-.todo .from.bf{color:var(--accent-ink)}
-.bar{position:relative;height:5px;border-radius:3px;background:rgba(28,28,28,0.08);overflow:hidden}
-.bar span{position:absolute;left:0;top:0;bottom:0;background:var(--accent);border-radius:3px;transition:width .3s var(--ease-out)}
-.adder{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:8px;align-items:center;padding-top:6px}
-.adder .field{padding:8px 10px;font-size:13px}
+.todo .t{font-size:14px;line-height:1.35}
+.todo.done .t{text-decoration:line-through}
+.todo .m{font-size:11.5px;color:#8a7a72}
+.todo .m .bf{color:#d2440f}
+.todo .due{border:none;background:none;padding:0;font-family:'Courier Prime',monospace;font-size:11.5px;color:#6b6964;white-space:nowrap}
+.todo input[type=date]{font-family:'Courier Prime',monospace;font-size:11px;border:1px solid var(--accent);border-radius:6px;padding:1px 3px;width:118px}
+.bar3{height:3px;border-radius:3px;background:rgba(28,28,28,0.08);position:relative;overflow:hidden}
+.bar3 i{position:absolute;left:0;top:0;bottom:0;background:#F05A22;border-radius:3px;transition:width .3s var(--ease-out)}
 
 /* ---- documents ---- */
-.docs{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:10px}
-.doc{display:flex;gap:12px;align-items:flex-start;padding:13px 14px;border-radius:14px;background:rgba(255,255,255,0.5);border:1.5px solid rgba(28,28,28,0.07);min-width:0;transition:background .15s,border-color .15s}
-.doc.on{background:rgba(255,255,255,0.9);border-color:var(--accent)}
-.doc .pick{flex-shrink:0;width:18px;height:18px;margin-top:1px;border-radius:5px;padding:0;display:flex;align-items:center;justify-content:center;border:1.5px solid rgba(28,28,28,0.25);background:rgba(255,255,255,0.8)}
-.doc.on .pick{background:var(--accent);border-color:var(--accent)}
-.doc .body{display:flex;flex-direction:column;gap:4px;min-width:0;flex:1}
-.doc .name{border:none;background:none;padding:0;text-align:left;font-size:14.5px;font-weight:400;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-@media (hover:hover) and (pointer:fine){.doc .name:hover{color:var(--accent-ink)}}
-.doc .m{font-size:12px;color:var(--dim);display:flex;gap:6px;align-items:center;flex-wrap:wrap}
-.doc .m select{appearance:none;-webkit-appearance:none;border:none;background:rgba(28,28,28,0.06);border-radius:100px;padding:2px 9px;font-size:11.5px;color:var(--mid);cursor:pointer}
-.doc .sent{font-size:11.5px;color:#6d4e3d}
-.doc .sent.no{color:#a08a7e}
-.doc .tools{display:flex;gap:10px}
-.drophint{display:flex;align-items:center;justify-content:center;text-align:center;padding:16px;border-radius:14px;border:1.5px dashed rgba(120,55,20,0.22);font-size:13px;color:#8a6a58;line-height:1.5;min-height:84px}
-.filter{display:flex;gap:4px;flex-wrap:wrap}
-.filter button{border:none;border-radius:100px;padding:5px 11px;font-size:12px;background:transparent;color:#6d4e3d}
-.filter button.on{background:var(--ink);color:#fff}
+.docs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.doc{position:relative;display:flex;gap:12px;align-items:flex-start;padding:14px;border-radius:14px;font:inherit;color:#141414;min-width:0;text-align:left;cursor:pointer;
+  background:rgba(255,255,255,0.5);border:1.5px solid rgba(28,28,28,0.08);transition:background .18s var(--ease-out),border-color .18s var(--ease-out)}
+.doc.on{background:rgba(255,255,255,0.9);border-color:#F05A22}
+.doc .box{flex-shrink:0;width:18px;height:18px;margin-top:1px;border-radius:5px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,0.8);border:1.5px solid rgba(28,28,28,0.25)}
+.doc.on .box{background:#F05A22;border-color:#F05A22}
+.doc .b{display:flex;flex-direction:column;gap:3px;min-width:0}
+.doc .n{font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding-right:18px}
+.doc .dm{font-family:'Courier Prime',monospace;font-size:11px;color:#6b6964}
+.doc .ds{font-size:11.5px;color:#8a7a72}
+.doc .more{position:absolute;right:8px;top:9px;border:none;background:none;padding:2px 5px;border-radius:6px;font-size:15px;line-height:1;color:#8a7a72;opacity:0;transition:opacity .15s}
+.doc:hover .more,.doc .more:focus{opacity:1}
+.menu{position:fixed;z-index:60;min-width:190px;padding:5px;border-radius:14px;background:rgba(255,255,255,0.97);border:1px solid rgba(28,28,28,0.08);box-shadow:0 16px 44px rgba(80,30,10,0.18);display:flex;flex-direction:column}
+.menu button{border:none;background:none;text-align:left;padding:8px 11px;border-radius:9px;font-size:13px}
+.menu button:hover{background:rgba(240,90,34,0.09)}
+.menu select{margin:4px 6px 6px;border:1px solid rgba(28,28,28,0.12);border-radius:8px;padding:5px 7px;font-size:12.5px;background:#fff}
+.menu .cap{padding:6px 11px 0}
+.dropcard{grid-column:1/-1;display:flex;align-items:center;justify-content:center;text-align:center;min-height:90px;border-radius:14px;border:1.5px dashed rgba(120,55,20,0.22);font-size:13.5px;color:#8a7a72;line-height:1.5;padding:16px}
 
 /* ---- crew ---- */
-.crew{grid-template-columns:150px minmax(0,1fr) minmax(0,1.1fr) 140px 104px 22px}
-.crew input{font-size:13.5px}
-.crewhead{font-family:'Courier Prime',monospace;font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:#7a5a48;padding:0 6px 4px;border:none}
-.status{border:none;border-radius:100px;padding:4px 10px;font-size:11.5px;white-space:nowrap}
-.status.c{background:rgba(58,125,68,0.14);color:#2f6b39}
-.status.p{background:rgba(240,90,34,0.12);color:var(--accent-ink)}
-.status.b{background:rgba(28,28,28,0.07);color:var(--mid)}
-.find{position:relative;flex:1;max-width:380px}
-.find .field{width:100%;padding:8px 12px;font-size:13px}
-.sugg{position:absolute;left:0;right:0;top:calc(100% + 4px);z-index:20;max-height:280px;overflow-y:auto;border-radius:14px;padding:5px;
-  background:rgba(255,255,255,0.97);border:1px solid rgba(28,28,28,0.08);box-shadow:0 16px 44px rgba(80,30,10,0.18)}
+.crew{padding:20px 14px 14px;gap:4px}
+.crew .top{padding:0 8px 10px}
+.cr{display:grid;grid-template-columns:150px minmax(0,1fr) 150px 120px 18px;gap:12px;align-items:center;padding:9px 8px;border-radius:10px;font-size:14px;border-top:1px solid rgba(28,28,28,0.05)}
+.cr.h{border-top:none;padding:0 8px 6px;font-family:'Courier Prime',monospace;font-size:10.5px;letter-spacing:0.14em;text-transform:uppercase;color:#8a7a72}
+.cr.first{border-top:none}
+.cr input{border:none;background:transparent;outline:none;padding:2px 4px;margin:-2px -4px;border-radius:6px;min-width:0;font:inherit;color:inherit}
+.cr input:hover{background:rgba(255,255,255,0.5)}
+.cr input:focus{background:#fff;box-shadow:0 0 0 1.5px var(--accent)}
+.cr input::placeholder{color:#b09a8e}
+.cr .role{color:#4a4945}
+.cr .hd{font-family:'Courier Prime',monospace;font-size:12.5px}
+.st{justify-self:start;border:none;background:none;padding:0;font-size:12.5px;color:#141414}
+.st.b{border-radius:100px;padding:3px 10px;font-size:12px;border:1px solid #F05A22;color:#d2440f}
+.st.p{border-radius:100px;padding:3px 10px;font-size:12px;border:1px dashed #F05A22;color:#d2440f}
+.crewnote{padding:8px 8px 0;font-size:12.5px;color:#6b6964}
+.find{position:relative;padding:8px 8px 0}
+.find[hidden]{display:none}
+.sugg{position:absolute;left:8px;right:8px;top:calc(100% + 4px);z-index:20;max-height:280px;overflow-y:auto;border-radius:14px;padding:5px;background:rgba(255,255,255,0.97);border:1px solid rgba(28,28,28,0.08);box-shadow:0 16px 44px rgba(80,30,10,0.18)}
 .sugg button{display:flex;flex-direction:column;align-items:flex-start;gap:1px;width:100%;border:none;background:none;border-radius:10px;padding:7px 10px;text-align:left;font-size:13px}
-.sugg button small{font-size:11.5px;color:var(--dim)}
+.sugg button small{font-size:11.5px;color:#6b6964}
 .sugg button.hi,.sugg button:hover{background:rgba(240,90,34,0.09)}
 
 /* ---- sheets ---- */
-.veil{position:fixed;inset:0;z-index:50;display:flex;align-items:flex-start;justify-content:center;padding:40px 24px;overflow-y:auto;background:rgba(251,243,237,0.35);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);opacity:0;pointer-events:none;transition:opacity .25s var(--ease-out)}
+.veil{position:fixed;inset:0;z-index:50;display:flex;align-items:flex-start;justify-content:center;padding:36px 24px;overflow-y:auto;background:rgba(251,243,237,0.35);-webkit-backdrop-filter:blur(22px);backdrop-filter:blur(22px);opacity:0;pointer-events:none;transition:opacity .25s var(--ease-out)}
 .veil.on{opacity:1;pointer-events:auto}
-.sheet{width:min(820px,100%);border-radius:28px;padding:28px 30px 24px;display:flex;flex-direction:column;gap:18px;
-  background:linear-gradient(160deg,rgba(255,255,255,0.9),rgba(255,255,255,0.72));border:1px solid rgba(255,255,255,0.95);
-  box-shadow:inset 0 1.5px 0 #fff,0 40px 120px rgba(160,70,20,0.22);-webkit-backdrop-filter:blur(34px) saturate(1.6);backdrop-filter:blur(34px) saturate(1.6);
-  transform:translateY(12px) scale(0.99);transition:transform .35s var(--ease-out)}
+.sheet{width:min(1100px,100%);box-sizing:border-box;border-radius:28px;padding:30px 32px 26px;display:flex;flex-direction:column;gap:20px;
+  background:linear-gradient(160deg,rgba(255,255,255,0.84),rgba(255,255,255,0.62));border:1px solid rgba(255,255,255,0.95);box-shadow:inset 0 1.5px 0 #fff,0 40px 120px rgba(160,70,20,0.22);
+  -webkit-backdrop-filter:blur(34px) saturate(1.6);backdrop-filter:blur(34px) saturate(1.6);transform:translateY(12px) scale(0.99);transition:transform .45s var(--ease-out)}
+.sheet.wide{width:min(1260px,100%)}
+.sheet.narrow{width:min(820px,100%)}
 .veil.on .sheet{transform:none}
-.sheet h3{margin:0;font-weight:200;font-size:34px;line-height:1.05}
-.sheet .top2{display:flex;align-items:flex-start;gap:12px}
-.sheet .top2 .grow{flex:1;display:flex;flex-direction:column;gap:6px}
-.close{width:34px;height:34px;border-radius:50%;border:1px solid rgba(28,28,28,0.08);background:rgba(255,255,255,0.7);font-size:17px;color:var(--mid);flex-shrink:0}
-.foot{display:flex;align-items:center;gap:10px;padding-top:14px;border-top:1px solid rgba(28,28,28,0.07)}
-.foot .grow{flex:1;font-size:12.5px;color:var(--dim);line-height:1.45}
-.filed{display:grid;grid-template-columns:minmax(0,1.2fr) 130px minmax(0,1.4fr);gap:10px 14px;align-items:center;font-size:13px}
-.filed .h{font-family:'Courier Prime',monospace;font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:#7a5a48}
+.sheet h3{margin:0;font-family:Raleway,serif;font-weight:200;font-size:40px;line-height:1}
+.shead{display:flex;align-items:flex-start;gap:16px}
+.shead .grow{display:flex;flex-direction:column;gap:6px}
+.shead .note{font-size:14px;color:#4a4945}
+.close{width:36px;height:36px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;color:#6b6964;background:rgba(255,255,255,0.7);border:1px solid rgba(28,28,28,0.08);font-size:16px}
+.foot{display:flex;align-items:center;gap:12px;padding-top:16px;border-top:1px solid rgba(28,28,28,0.07)}
+.foot .grow{font-size:12.5px;color:#6b6964;line-height:1.45}
+.note2{font-size:12.5px;color:#6b6964;line-height:1.5}
+/* send */
+.sendgrid{display:grid;grid-template-columns:330px minmax(0,1fr);gap:28px}
+.att{display:flex;gap:12px;align-items:center;padding:12px;border-radius:14px;background:rgba(255,255,255,0.8);border:1px solid rgba(28,28,28,0.07)}
+.pg{width:38px;height:48px;border-radius:4px;background:#fff;box-shadow:0 2px 8px rgba(80,30,10,0.14);display:flex;flex-direction:column;gap:3px;padding:7px 6px;box-sizing:border-box;flex-shrink:0}
+.pg i{height:2px;background:rgba(28,28,28,0.15)}
+.pg i:first-child{background:#141414;width:60%}
+.pg.o i:first-child{background:#F05A22}
+.pg i:last-child{width:70%}
+.att .an{font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.chips{display:flex;gap:6px;flex-wrap:wrap;flex-grow:1;align-items:center}
+.pchip{display:flex;align-items:center;gap:6px;border-radius:100px;padding:5px 8px 5px 12px;font-size:13px;background:#141414;color:#fff}
+.pchip.warn{background:#a0341a}
+.pchip button{border:none;background:none;color:rgba(255,255,255,0.7);font-size:13px;padding:0 2px}
+.fieldrow{display:flex;align-items:center;gap:10px;min-height:30px}
+.fieldrow .k{width:34px}
+.fieldrow.act .k{color:#d2440f}
+.search{display:flex;align-items:center;gap:10px;border-radius:100px;padding:10px 16px;background:rgba(255,255,255,0.85);border:1px solid rgba(28,28,28,0.1)}
+.search input{flex-grow:1;border:none;background:transparent;font-family:Raleway,serif;font-size:14px;outline:none}
+.tabs2{display:flex;gap:6px;flex-wrap:wrap}
+.tabs2 button{border-radius:100px;padding:6px 13px;font-size:12.5px;border:1px solid rgba(28,28,28,0.12);background:none;color:#4a4945}
+.tabs2 button.on{background:#141414;border-color:#141414;color:#fff}
+.plist{display:flex;flex-direction:column;gap:2px;max-height:360px;overflow-y:auto}
+.person{display:flex;gap:12px;align-items:center;padding:8px 10px;border-radius:12px;border:none;font:inherit;color:#141414;background:transparent;text-align:left;cursor:pointer;transition:background .15s var(--ease-out)}
+.person.on{background:rgba(255,255,255,0.85)}
+@media (hover:hover) and (pointer:fine){.person:hover{background:rgba(255,255,255,0.7)}}
+.person .box{flex-shrink:0;width:18px;height:18px;border-radius:5px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,0.8);border:1.5px solid rgba(28,28,28,0.25)}
+.person.on .box{background:#F05A22;border-color:#F05A22}
+.person .av{width:34px;height:34px;border-radius:50%;background:rgba(28,28,28,0.07);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:500;flex-shrink:0}
+.person .pb{display:flex;flex-direction:column;gap:1px;flex-grow:1;min-width:0}
+.person .pr{color:#6b6964;font-size:12.5px}
+.person .pe{font-family:'Courier Prime',monospace;font-size:11.5px;color:#6b6964}
+.person .ph{font-family:'Courier Prime',monospace;font-size:11.5px;color:#8a7a72}
+.person .addmail{border:none;background:none;padding:0;font-family:'Courier Prime',monospace;font-size:11.5px;color:#d2440f;text-align:left}
+.person .as{font-family:'Courier Prime',monospace;font-size:10.5px;letter-spacing:0.12em;text-transform:uppercase;color:#d2440f}
+/* brief */
+.briefgrid{display:grid;grid-template-columns:400px minmax(0,1fr);gap:34px}
+.paper{border-radius:10px;background:#fff;box-shadow:0 12px 34px rgba(80,30,10,0.12),0 0 0 0.5px rgba(0,0,0,0.08);padding:34px 30px;display:flex;flex-direction:column;gap:9px;max-height:760px;overflow:hidden;position:relative}
+.paper::after{content:'';position:absolute;left:0;right:0;bottom:0;height:60px;background:linear-gradient(rgba(255,255,255,0),#fff)}
+.paper .pt{font-family:Raleway,serif;font-weight:500;font-size:15px}
+.paper .ph{font-size:9.5px;font-weight:500;letter-spacing:0.08em;text-transform:uppercase;margin-top:6px}
+.paper .pl{font-size:10.5px;line-height:1.7;color:#3a3836}
+.paper mark{background:rgba(240,90,34,0.16);border-radius:2px;color:inherit}
+.found{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:26px;align-content:start}
+.fcol{display:flex;flex-direction:column;gap:16px}
+.fsec{display:flex;flex-direction:column;gap:2px}
+.fsec .cap{padding:0 8px 6px}
+.fr{display:flex;gap:12px;align-items:center;padding:8px;border-radius:10px;transition:opacity .2s,background .15s}
+.fr.off{opacity:0.45}
+@media (hover:hover) and (pointer:fine){.fr:hover{background:rgba(255,255,255,0.6)}}
+.fr .ft{flex-grow:1;font-size:14.5px;min-width:0}
+.fr .ft small{display:block;font-size:12px;color:#6b6964;margin-top:1px}
+.fr .fs{font-family:'Courier Prime',monospace;font-size:12px;color:#4a4945;white-space:nowrap}
+/* filed */
+.filed{display:grid;grid-template-columns:minmax(0,1.2fr) 140px minmax(0,1.4fr);gap:12px 16px;align-items:center;font-size:13.5px}
 .filed .d{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.filed .w{color:var(--dim);font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.filed select{border:1px solid rgba(28,28,28,0.1);border-radius:100px;padding:4px 9px;font-size:12px;background:#fff}
-.found{display:flex;flex-direction:column;gap:4px}
-.found .fr{display:flex;gap:11px;align-items:center;padding:6px 8px;border-radius:10px;font-size:13.5px;transition:opacity .2s}
-.found .fr.off{opacity:0.45}
-.found .fr .tick.on{background:var(--accent);border-color:var(--accent)}
-.found .fr .grow{flex:1;min-width:0}
-.found .fr small{color:var(--dim);font-size:12px;margin-left:6px}
-.found .fr .r{font-family:'Courier Prime',monospace;font-size:12px;color:var(--mid)}
-.sec{display:flex;flex-direction:column;gap:6px}
-.to{display:flex;align-items:center;gap:6px;flex-wrap:wrap;border:1px solid rgba(28,28,28,0.1);border-radius:12px;background:rgba(255,255,255,0.8);padding:6px 8px;min-height:40px;position:relative}
-.to:focus-within{border-color:var(--accent)}
-.to .k{font-family:'Courier Prime',monospace;font-size:10.5px;letter-spacing:0.12em;text-transform:uppercase;color:#7a5a48;width:34px}
-.to input{border:none;outline:none;background:transparent;font-size:13.5px;flex:1;min-width:140px;padding:4px 2px;-webkit-user-select:text;user-select:text}
-.to .chip{background:#fff}
-.to .chip.warn{border-color:rgba(200,60,30,0.5);color:#a0341a}
-.files{display:flex;flex-direction:column;gap:6px}
-.files .f{display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:12px;background:rgba(255,255,255,0.75);border:1px solid rgba(28,28,28,0.07);font-size:13.5px}
-.files .f .grow{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.files .f small{color:var(--dim);font-size:12px}
-.note{font-size:12.5px;color:var(--dim);line-height:1.5}
-.warnbox{padding:12px 14px;border-radius:14px;background:rgba(240,90,34,0.09);border:1px solid rgba(240,90,34,0.25);font-size:13px;line-height:1.5;display:flex;gap:12px;align-items:center}
+.filed .w{font-family:'Courier Prime',monospace;font-size:11.5px;color:#6b6964;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.filed select{border:1px solid rgba(28,28,28,0.1);border-radius:100px;padding:4px 9px;font-size:12.5px;background:#fff}
+.warnbox{padding:14px 16px;border-radius:14px;background:rgba(240,90,34,0.09);border:1px solid rgba(240,90,34,0.25);font-size:13.5px;line-height:1.5;display:flex;gap:14px;align-items:center}
 .warnbox .grow{flex:1}
+.btno{border:none;border-radius:100px;padding:10px 17px;font-size:13px;font-weight:500;background:#F05A22;color:#fff;box-shadow:0 2px 8px rgba(240,90,34,0.25);white-space:nowrap}
+/* people */
 .pp{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,0.8fr) minmax(0,1.2fr) minmax(0,0.8fr) 22px;gap:8px;align-items:center;padding:6px 4px;border-top:1px solid rgba(28,28,28,0.05)}
-.pp input{font-size:13px}
+.pp input{border:1px solid transparent;border-radius:8px;background:transparent;padding:4px 6px;font-size:13px;outline:none;min-width:0}
+.pp input:hover{border-color:rgba(28,28,28,0.08)}
+.pp input:focus{border-color:var(--accent);background:#fff}
 .dupe{display:flex;gap:10px;align-items:center;font-size:13px;padding:8px 12px;border-radius:12px;background:rgba(240,90,34,0.08)}
 .dupe .grow{flex:1}
-.plist{max-height:52vh;overflow-y:auto}
 
-/* ---- drop ---- */
 .dropveil{position:fixed;inset:14px;z-index:40;border-radius:28px;border:2px dashed rgba(240,90,34,0.6);background:rgba(251,243,237,0.72);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);
   display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;opacity:0;pointer-events:none;transition:opacity .2s var(--ease-out)}
 .dropveil.on{opacity:1}
@@ -198,15 +248,16 @@ input.plain::placeholder,textarea.plain::placeholder{color:#b09a8e}
 .novault{max-width:520px;margin:12vh auto;text-align:center;display:flex;flex-direction:column;gap:14px;align-items:center}
 .novault b{font-weight:200;font-size:38px}
 @keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
-main>section{animation:rise .45s var(--ease-out) both}
-@media (max-width:1180px){.two{grid-template-columns:minmax(0,1fr)}.crew{grid-template-columns:120px minmax(0,1fr) minmax(0,1fr) 110px 96px 22px}}
-@media (max-width:980px){.top{grid-template-columns:minmax(0,1fr)}.side{align-items:flex-start}.count{text-align:left}.actions{justify-content:flex-start}}
+main>*{animation:rise .45s var(--ease-out) both}
+@media (max-width:1180px){.docs{grid-template-columns:repeat(3,minmax(0,1fr))}.row1,.row2{grid-template-columns:minmax(0,1fr)!important}.cr{grid-template-columns:110px minmax(0,1fr) 120px 100px 18px}
+  .sendgrid,.briefgrid{grid-template-columns:minmax(0,1fr)}.found{grid-template-columns:minmax(0,1fr)}}
+@media (max-width:980px){.head{flex-wrap:wrap}.docs{grid-template-columns:repeat(2,minmax(0,1fr))}h1{font-size:48px}}
 </style></head>
 <body>
 <div class="glow"></div>
 <main id="main"></main>
 <div class="dropveil" id="dropveil"><b>Drop to file it</b><span id="dropTo">It's copied into the project and sorted by what it is.</span></div>
-<div class="veil" id="veil"><div class="sheet" id="sheet" role="dialog" aria-modal="true"></div></div>
+<div class="veil" id="veil"><section class="sheet" id="sheet" role="dialog" aria-modal="true"></section></div>
 <div class="toast" id="toast"></div>
 <script src="load.js"></script>
 <script>
@@ -218,17 +269,13 @@ main>section{animation:rise .45s var(--ease-out) both}
   const uid = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4);
   const toast = t => { $('toast').textContent = t; $('toast').classList.add('show'); clearTimeout(toast.t); toast.t = setTimeout(() => $('toast').classList.remove('show'), Math.max(2400, t.length * 55)); };
   const L = () => window.__neededLoad;
-  const TICK = '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg>';
-  const CAL = '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#7a5a48" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>';
-  const SHAPES = ['', '16:9', '9:16', '1:1', '4:5', '4:3', '2.39', '2:1', 'PDF'];
+  const CHECK = '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg>';
+  const CALICON = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#6b6964" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>';
+  const SHAPES = ['', '16:9', '2.39', '9:16', '1:1', '4:5', '4:3', '2:1', 'PDF'];
   const STATUS = [['b', 'To book'], ['p', 'Pencilled'], ['c', 'Confirmed']];
 
-  let D = null;                 // everything about the project, from the app
-  let events = [];              // calendar events that name the project
-  let picked = new Set();       // documents picked to send
-  let docFilter = 'All';
-  let sheet = null;             // which sheet is open
-  let shared = {};
+  let D = null, events = [], shared = {};
+  let picked = new Set(), sheet = null, crewAll = false, editingDel = null, adding = false;
 
   /* ------------------------------------------------------------ dates */
   const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -236,14 +283,14 @@ main>section{animation:rise .45s var(--ease-out) both}
   const today = () => { const d = new Date(); d.setHours(0, 0, 0, 0); return d; };
   const short = s => { const d = parse(s); return d ? `${d.getDate()} ${MONTHS[d.getMonth()]}` : ''; };
   const days = s => { const d = parse(s); return d ? Math.round((d - today()) / 864e5) : null; };
-  const when = s => {
+  const soon = s => {                                     // "Fri", "Tomorrow", or "29 Sep"
     const n = days(s); if (n == null) return '';
-    if (n === 0) return 'Today'; if (n === 1) return 'Tomorrow'; if (n === -1) return 'Yesterday';
+    if (n === 0) return 'Today'; if (n === 1) return 'Tomorrow';
     if (n > 1 && n < 7) return ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][parse(s).getDay()];
     return short(s);
   };
   const ago = iso => { const d = new Date(iso); if (isNaN(d)) return ''; const n = Math.round((today() - new Date(d.getFullYear(), d.getMonth(), d.getDate())) / 864e5);
-    return n <= 0 ? 'today' : n === 1 ? 'yesterday' : n < 7 ? `${n} days ago` : `${d.getDate()} ${MONTHS[d.getMonth()]}`; };
+    if (n <= 0) return 'today'; if (n === 1) return 'yesterday'; if (n < 7) return ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][d.getDay()]; return `${d.getDate()} ${MONTHS[d.getMonth()]}`; };
   const size = b => b > 1048576 ? (b / 1048576).toFixed(1) + ' MB' : b > 0 ? Math.max(1, Math.round(b / 1024)) + ' KB' : '';
 
   /* ------------------------------------------------------------ saving */
@@ -254,11 +301,9 @@ main>section{animation:rise .45s var(--ease-out) both}
     const go = () => { delete pending[key]; return call('projectSave', { key, value }).catch(() => toast("Couldn't save that")); };
     if (now) go(); else { pending[key] = go; saveTimers[key] = setTimeout(go, 350); }
   }
-  // Anything still waiting to save goes now — before the page reloads what's saved.
   const flush = () => Promise.all(Object.keys(pending).map(k => { clearTimeout(saveTimers[k]); return pending[k](); }));
   const list = k => (D[k] = Array.isArray(D[k]) ? D[k] : []);
 
-  /* ------------------------------------------------------------ loading */
   async function load() {
     await flush();
     let d; try { d = await call('projectData'); } catch (e) { return; }
@@ -270,136 +315,182 @@ main>section{animation:rise .45s var(--ease-out) both}
   }
   async function loadCalendar() {
     try { const r = await call('projectCalendar'); events = r && r.allowed ? (r.events || []) : []; } catch (e) { events = []; }
-    renderLine(); renderCount();
+    if (D && D.vault) { renderPhases(); renderCount(); }
   }
 
   /* ------------------------------------------------------------ the page */
+  const hasMood = () => ((D.mood || {}).items || []).length > 0;
   function render() {
+    closeMenu();
     if (!D.vault) {
-      $('main').innerHTML = `<section class="novault"><b>Choose your vault</b><span class="sub">The project page keeps everything in your vault's project folder. Choose the vault in the bar above.</span></section>`;
+      $('main').innerHTML = `<section class="novault"><b>Choose your vault</b><span class="note2">The project page keeps everything in your vault's project folder. Choose the vault in the bar above.</span></section>`;
       return;
     }
-    const m = D.mood || {};
-    const hasMood = (m.items || []).length > 0;
+    const mood = hasMood();
+    // With references: Mood and To do, then Documents, then Crew beside Deliverables.
+    // Without (a producer's project, say): Deliverables takes Mood's place and Crew runs full width.
     $('main').innerHTML = `
-      <section class="g top" id="top"></section>
-      <section class="g line" id="line"></section>
-      <div id="briefCta"></div>
-      ${hasMood ? '<section class="g card mood" id="mood"></section>' : ''}
-      <div class="two"><section class="g card" id="dels"></section><section class="g card" id="todos"></section></div>
-      <section class="g card" id="docs"></section>
-      <section class="g card" id="crew"></section>`;
-    renderTop(); renderLine(); renderBriefCta();
-    if (hasMood) renderMood();
+      <div class="head" id="head"></div>
+      <div id="phasesWrap"></div>
+      <div class="row1" style="display:grid;grid-template-columns:minmax(0,1fr) 400px;gap:22px;align-items:start">
+        ${mood ? '<section class="mood" id="mood" aria-label="Mood"></section>' : '<section class="g card" id="dels" aria-label="Deliverables"></section>'}
+        <section class="g card" id="todos" aria-label="To do" style="padding:20px 20px 16px;gap:10px"></section>
+      </div>
+      <section class="g card" id="docs" aria-label="Documents" style="padding:20px 22px 22px;gap:14px"></section>
+      <div class="row2" style="display:grid;gap:22px;align-items:start;grid-template-columns:${mood ? 'minmax(0,1.35fr) minmax(0,1fr)' : 'minmax(0,1fr)'}">
+        <section class="g card crew" id="crew" aria-label="Crew"></section>
+        ${mood ? '<section class="g card" id="dels" aria-label="Deliverables"></section>' : ''}
+      </div>`;
+    renderHead(); renderPhases();
+    if (mood) renderMood();
     renderDels(); renderTodos(); renderDocs(); renderCrew();
   }
 
-  function renderTop() {
-    const tags = D.tags || [];
+  function renderHead() {
     const lab = D.label || '';
-    $('top').innerHTML = `
-      <div style="display:flex;flex-direction:column;gap:8px;min-width:0">
-        <div class="meta">
-          <span class="cap">Project · folder ${esc(D.project)}</span>
-          <select class="lab${lab ? '' : ' none'}" id="labSel" aria-label="Label — the kind of work">
+    $('head').innerHTML = `
+      <div class="left">
+        <div class="metaline">
+          <button class="folder" id="renameFolder" title="Rename the project — its folders and everything in them follow">Project · folder ${esc(D.project)}</button>
+          <select class="lab${lab ? '' : ' none'}" id="labSel" title="Label — the kind of work">
             <option value="">${lab ? 'No label' : 'Label'}</option>
             ${(D.labels || []).map(l => `<option${l === lab ? ' selected' : ''}>${esc(l)}</option>`).join('')}
             <option value="__new">New label…</option>
           </select>
-          ${tags.map(t => `<span class="chip">#${esc(t)}<button class="x" data-untag="${esc(t)}" aria-label="Remove tag ${esc(t)}">×</button></span>`).join('')}
-          <input class="tagin" id="tagIn" placeholder="+ tag" aria-label="Add a tag — the sector or world" spellcheck="false">
+          <span class="divider"></span>
+          ${(D.tags || []).map(t => `<span class="tagw" title="Tag — the sector or world">#${esc(t)}<button class="x" data-untag="${esc(t)}" aria-label="Remove #${esc(t)}">×</button></span>`).join('')}
+          ${adding ? '<input class="tagin" id="tagIn" placeholder="sector, world…" spellcheck="false">' : '<button class="addtag" id="addTag">+ tag</button>'}
         </div>
-        <input class="plain title" id="title" value="${esc(D.title || '')}" placeholder="${esc(D.project)}" aria-label="Project title" spellcheck="false">
+        <h1 id="title" contenteditable="plaintext-only" spellcheck="false" data-ph="${esc(D.project)}" title="Click to rename — the folder stays ${esc(D.project)}">${esc(D.title || '')}</h1>
         <div class="people">
           ${[['client', 'Client'], ['producer', 'Producer'], ['director', 'Director']].map(([k, n]) =>
-            `<label><span class="cap">${n}</span><input class="plain" data-k="${k}" value="${esc(D[k] || '')}" placeholder="Add ${n.toLowerCase()}" spellcheck="false"></label>`).join('')}
+            `<span>${n} <b contenteditable="plaintext-only" spellcheck="false" data-k="${k}" data-ph="add">${esc(D[k] || '')}</b></span>`).join('')}
         </div>
       </div>
-      <div class="side">
-        <div class="count" id="count"></div>
-        <div class="actions">
-          <button class="btn" id="openFolder" title="Open the project folder in Finder">Folder</button>
-          <button class="btn" id="addFiles">Add files</button>
-          <button class="btn dark" id="sendTop">Send…</button>
-        </div>
-      </div>`;
+      <div class="grow"></div>
+      <div class="count" id="count"></div>
+      <div class="acts"><button class="btnd" id="addFiles">Add files</button><button class="btnl" id="sendTop">Send…</button></div>`;
     renderCount();
+    if (adding) { const i = $('tagIn'); i.focus(); }
   }
 
   // Everything with a date: the project's own, and calendar events that name it.
   function milestones() {
     const own = list('dates').filter(d => parse(d.date)).map(d => Object.assign({ src: 'project' }, d));
     const cal = events.map(e => ({ id: 'cal-' + e.date + e.title, text: e.title, date: e.date, src: 'calendar' }));
-    return own.concat(cal).sort((a, b) => a.date < b.date ? -1 : a.date > b.date ? 1 : 0);
+    const all = own.concat(cal).sort((a, b) => a.date < b.date ? -1 : a.date > b.date ? 1 : 0);
+    // The same thing on days in a row is one step: Shoot 2–3 Oct.
+    const out = [];
+    for (const m of all) {
+      const last = out[out.length - 1];
+      if (last && last.text.toLowerCase() === m.text.toLowerCase() && days(m.date) - days(last.end || last.date) === 1) { last.end = m.date; last.ids.push(m.id); continue; }
+      out.push(Object.assign({ ids: [m.id] }, m));
+    }
+    return out;
   }
+  const range = m => {
+    if (!m.end) return short(m.date);
+    const a = parse(m.date), b = parse(m.end);
+    return a.getMonth() === b.getMonth() ? `${a.getDate()}–${b.getDate()} ${MONTHS[b.getMonth()]}` : `${short(m.date)} – ${short(m.end)}`;
+  };
 
   function renderCount() {
     if (!$('count')) return;
-    const all = milestones().filter(x => days(x.date) >= 0);
+    const all = milestones().filter(x => days(x.end || x.date) >= 0);
     const shoot = all.find(x => /shoot|filming/i.test(x.text));
     const next = shoot || all[0];
-    if (!next) { $('count').innerHTML = `<span>Add the shoot date,<br>and the countdown starts here</span>`; return; }
+    if (!next) { $('count').innerHTML = `<span>Add the shoot date and the countdown starts</span>`; return; }
     const n = days(next.date);
     const what = shoot ? 'the shoot' : next.text;
-    $('count').innerHTML = n === 0
-      ? `<b>Today</b><span>${esc(what)} · ${next.src === 'calendar' ? 'from your calendar' : 'on the timeline'}</span>`
-      : `<b>${n} day${n === 1 ? '' : 's'}</b><span>to ${esc(what)} · ${next.src === 'calendar' ? 'from your calendar' : 'on the timeline'}</span>`;
+    const from = next.src === 'calendar' ? 'from your calendar' : 'on the timeline';
+    $('count').innerHTML = n <= 0 ? `<b>Today</b><span>${CALICON}${esc(what)} · ${from}</span>`
+      : `<b>${n} day${n === 1 ? '' : 's'}</b><span>${CALICON}to ${esc(what)} · ${from}</span>`;
   }
 
-  function renderLine() {
-    if (!$('line')) return;
+  // The phases of the job, left to right: what's done is black, where you are is orange.
+  function renderPhases() {
+    if (!$('phasesWrap')) return;
     const ms = milestones();
-    const firstFuture = ms.findIndex(x => days(x.date) >= 0);
-    $('line').innerHTML = `
-      <div class="head"><span class="cap">Timeline</span><span class="sub">${events.length ? 'Your dates, and calendar events with “' + esc(D.title || D.project) + '” in the name' : 'Your dates — calendar events with the project’s name in them show here too'}</span><span class="grow"></span>
-        <button class="link" id="addDateBtn">+ Date</button></div>
-      ${ms.length ? `<div class="steps">${ms.map((x, i) => {
-        const past = days(x.date) < 0, next = i === firstFuture;
-        return `<div class="step${past ? ' past' : ''}${next ? ' next' : ''}"><i></i>
-          <b>${x.src === 'calendar' ? CAL : ''}${esc(x.text)}</b><small>${esc(short(x.date))}${next ? ' · <span class="nowtag">next</span>' : ''}</small>
-          ${x.src === 'project' ? `<button class="x" data-undate="${esc(x.id)}" aria-label="Remove ${esc(x.text)}">×</button>` : ''}</div>`;
-      }).join('')}</div>` : `<div class="empty">No dates yet. Add the shoot and delivery, or read the brief and it finds them.</div>`}
-      <div class="addline" id="dateForm" hidden>
-        <input class="field" id="dText" placeholder="What — Shoot, PPM, Delivery…" spellcheck="false" style="width:220px">
-        <input class="field" id="dDate" type="date">
-        <button class="btn dark" id="dAdd">Add</button><button class="link" id="dCancel">Cancel</button>
-      </div>`;
+    const pay = D.pay || {};
+    const steps = [];
+    let nowAt = -1;
+    ms.forEach(m => {
+      const past = days(m.end || m.date) < 0;
+      if (!past && nowAt < 0) nowAt = steps.length;
+      steps.push({ m, past });
+    });
+    if (ms.length) {
+      // "Now" sits between the last thing done and the next: named for where the job is.
+      const done = ms.filter(m => days(m.end || m.date) < 0);
+      const shot = done.some(m => /shoot|filming|wrap/i.test(m.text));
+      const delivered = done.some(m => /deliver/i.test(m.text));
+      const name = delivered ? 'Wrap' : shot ? 'Post' : 'Pre-production';
+      const prev = done[done.length - 1], next = ms.find(m => days(m.end || m.date) >= 0);
+      let pct = 50;
+      if (prev && next) { const a = days(prev.end || prev.date), b = days(next.date); pct = b - a > 0 ? Math.round(-a / (b - a) * 100) : 50; }
+      if (!prev) pct = 12;
+      const nowStep = { now: true, name, pct: Math.max(8, Math.min(92, pct)) };
+      if (nowAt < 0) steps.push(nowStep); else steps.splice(nowAt, 0, nowStep);
+      const allPaid = pay.invoices > 0 && pay.paid === pay.invoices;
+      steps.push({ paid: true, past: allPaid, date: allPaid ? pay.paidAt : '' });
+    }
+    $('phasesWrap').innerHTML = `
+      ${steps.length ? `<div class="phases">${steps.map(s => {
+        if (s.now) return `<div class="ms now"><div class="bar" style="background:linear-gradient(90deg,#F05A22 ${s.pct}%,rgba(28,28,28,0.1) ${s.pct}%)"></div><span class="l"><span>${esc(s.name)}</span><span class="d">now</span></span></div>`;
+        if (s.paid) return `<div class="ms${s.past ? ' past' : ''}" title="${pay.invoices ? `${pay.paid} of ${pay.invoices} invoice${pay.invoices === 1 ? '' : 's'} paid, in Pay` : 'Invoices for this project, in Pay'}"><div class="bar"></div><span class="l"><span>Paid</span>${s.date ? `<span class="d">${esc(short(s.date))}</span>` : ''}</span></div>`;
+        const m = s.m;
+        return `<div class="ms${s.past ? ' past' : ''}" title="${m.src === 'calendar' ? 'From your calendar' : ''}"><div class="bar"></div>
+          <span class="l"><span>${m.src === 'calendar' ? '<i class="cal"></i>' : ''}${esc(m.text)}</span><span class="d">${esc(range(m))}</span></span>
+          ${m.src === 'project' ? `<button class="x" data-undate="${esc(m.ids.join(','))}" aria-label="Remove ${esc(m.text)}">×</button>` : ''}</div>`;
+      }).join('')}</div>` : `<div class="sub" style="font-size:12.5px">No dates yet — add the brief, the shoot and delivery, or read the brief and it finds them.</div>`}
+      <div class="lineadd${steps.length ? '' : ' solo'}" id="lineAdd"><button class="addtag" id="addDate">+ date</button></div>`;
   }
 
-  // A brief or treatment that hasn't been read yet: offer to.
-  function renderBriefCta() {
-    const unread = (D.docs || []).find(d => d.readable && !d.read && ['Brief', 'Treatment', 'Schedule'].includes(d.kind));
-    $('briefCta').innerHTML = unread ? `<div class="brief"><span class="grow"><b style="font-weight:500">${esc(unread.name)}</b> hasn't been read yet — it may have deliverables, dates and must-haves in it.</span>
-      <button class="btn orange" data-read="${esc(unread.rel)}">Read it</button><button class="link" data-markread="${esc(unread.rel)}">Not now</button></div>` : '';
-  }
-
+  // Bento: the first eight in the mock-up's pattern; fewer, a simpler one.
   function renderMood() {
     const m = D.mood;
+    const items = m.items.slice(0, 8);
     const bits = [];
-    if (m.references) bits.push(`${m.references} reference${m.references === 1 ? '' : 's'}`);
+    bits.push(`${m.references || 0} reference${m.references === 1 ? '' : 's'}`);
     if (m.grabs) bits.push(`${m.grabs} grab${m.grabs === 1 ? '' : 's'}`);
+    let grid, spans;
+    if (items.length >= 8) { grid = 'grid-template-columns:repeat(6,minmax(0,1fr));grid-template-rows:150px 150px 150px'; spans = [[3, 2], [2, 1], [1, 2], [1, 1], [1, 1], [2, 1], [2, 1], [2, 1]]; }
+    else if (items.length >= 4) { grid = 'grid-template-columns:repeat(4,minmax(0,1fr));grid-auto-rows:150px;grid-auto-flow:dense'; spans = items.map((_, i) => i === 0 ? [2, 2] : [1, 1]); }
+    else { grid = `grid-template-columns:repeat(${items.length},minmax(0,1fr));grid-template-rows:300px`; spans = items.map(() => [1, 1]); }
+    const w = m.weights || [], total = w.reduce((a, b) => a + b, 0);
     $('mood').innerHTML = `
-      <div class="head"><h2>Mood</h2><span class="sub">${bits.join(' · ')}</span><span class="grow"></span>
-        <button class="btn" id="makeMood">Make a mood board</button><button class="link" id="openVault">Open in Vault →</button></div>
-      <div class="strip">${m.items.map(it => `<button data-ref="${esc(it.id)}" title="Open in the Vault"><img alt="" loading="lazy" src="vault/${encodeURI(it.kind === 'gif' ? it.file : it.thumb)}"></button>`).join('')}</div>
-      ${(m.palette || []).length ? `<div class="swatch"><span class="cap" style="width:auto;height:auto;border:none;margin-right:6px">The project's colours</span>${m.palette.map(h => `<span style="background:${esc(h)}" title="${esc(h)}"></span>`).join('')}</div>` : ''}`;
+      <div style="display:flex;align-items:baseline;gap:12px"><h2>Mood</h2><span class="sub">${bits.join(' · ')}</span><span class="grow"></span>
+        <button class="txt o" id="makeMood">Make a mood PDF</button><button class="txt" id="openVault">Open in Vault →</button></div>
+      <div class="bento" style="${grid}">${items.map((it, i) => `<button class="ref" data-ref="${esc(it.id)}" title="Open in the Vault" style="grid-column:span ${spans[i][0]};grid-row:span ${spans[i][1]}"><img alt="" loading="lazy" src="vault/${encodeURI(it.kind === 'gif' ? it.file : it.thumb)}"></button>`).join('')}</div>
+      ${(m.palette || []).length ? `<div class="palette"><span class="cap">The project's colours</span><div class="strip">${m.palette.map((h, i) => `<div title="${esc(h)}" style="flex-grow:${total ? w[i] || 1 : 1};background:${esc(h)}"></div>`).join('')}</div></div>` : ''}`;
+  }
+
+  // A small outline in each deliverable's shape.
+  function shapeBox(shape) {
+    const S = { '16:9': [20, 11, 0], '2.39': [24, 10, 0], '2:1': [22, 11, 0], '9:16': [9, 16, 5], '1:1': [13, 13, 3], '4:5': [11, 14, 4], '4:3': [16, 12, 2], 'PDF': [11, 14, 4] };
+    const [w, h, m] = S[shape] || [16, 11, 2];
+    return `<span class="sh" style="width:${w}px;height:${h}px;margin:0 ${m}px${S[shape] ? '' : ';border-style:dashed;opacity:0.4'}"></span>`;
   }
 
   function renderDels() {
+    if (!$('dels')) return;
     const dl = list('deliverables'), musts = list('musts');
+    const read = (D.docs || []).filter(d => d.read).map(d => d.name).slice(0, 2);
+    const unread = (D.docs || []).find(d => d.readable && !d.read && ['Brief', 'Treatment', 'Schedule', 'Script'].includes(d.kind));
+    const from = read.length ? `from ${esc(read.join(' · '))}` : '';
     $('dels').innerHTML = `
-      <div class="head"><h2>Deliverables</h2><span class="sub">${dl.length ? dl.length + ' to make' : ''}</span></div>
-      <textarea class="plain idea" id="idea" rows="1" placeholder="The idea, in a line — “Not speed — composure.”" spellcheck="false">${esc(D.idea || '')}</textarea>
-      <div class="list">${dl.map(d => `<div class="row del" data-id="${esc(d.id)}">
-          <input class="plain" data-f="text" value="${esc(d.text)}" aria-label="Deliverable" spellcheck="false">
-          <select class="plain s" data-f="shape" aria-label="Shape">${SHAPES.concat(SHAPES.includes(d.shape || '') ? [] : [d.shape]).map(s => `<option${s === (d.shape || '') ? ' selected' : ''} value="${esc(s)}">${esc(s || '—')}</option>`).join('')}</select>
-          <input class="plain s" data-f="len" value="${esc(d.len || '')}" placeholder="len" aria-label="Length" spellcheck="false">
-          <input class="date" type="date" data-f="due" value="${esc(d.due || '')}" aria-label="Due">
-          <button class="x" data-rmdel="${esc(d.id)}" aria-label="Remove">×</button></div>`).join('') ||
-        '<div class="empty">What you’re making — the films, cutdowns, stills. Add them here, or read the brief.</div>'}</div>
-      <div class="adder"><input class="field" id="delIn" placeholder="Add a deliverable — Hero film 60s 16:9" spellcheck="false"><button class="btn" id="delAdd">Add</button><span></span></div>
-      ${musts.length ? `<div class="cap" style="margin-top:6px">Must-haves</div><div class="musts">${musts.map((t, i) => `<div class="must item"><span>${esc(t)}</span><button class="x" data-rmmust="${i}" aria-label="Remove">×</button></div>`).join('')}</div>` : ''}`;
-    fit($('idea'));
+      <div class="top"><h2>Deliverables</h2>${from ? `<span class="sub">${from}</span>` : ''}<span class="grow"></span>
+        ${unread ? `<button class="txt o" data-read="${esc(unread.rel)}">Read ${esc(unread.name)} →</button>` : ''}</div>
+      <p class="quote" id="idea" contenteditable="plaintext-only" spellcheck="false" data-ph="The idea, in a line.">${D.idea ? esc('"' + D.idea.replace(/^["“]|["”]$/g, '') + '"') : ''}</p>
+      <div>${dl.map(d => editingDel === d.id ? `<div class="deli edit row" data-id="${esc(d.id)}">
+            <input class="field" data-f="text" value="${esc(d.text)}" aria-label="Deliverable" spellcheck="false">
+            <select class="field" data-f="shape" aria-label="Shape">${SHAPES.concat(SHAPES.includes(d.shape || '') ? [] : [d.shape]).map(s => `<option value="${esc(s)}"${s === (d.shape || '') ? ' selected' : ''}>${esc(s || '—')}</option>`).join('')}</select>
+            <input class="field" data-f="len" value="${esc(d.len || '')}" placeholder="60s" aria-label="Length" spellcheck="false">
+            <input class="field" type="date" data-f="due" value="${esc(d.due || '')}" aria-label="Due">
+            <span style="display:flex;gap:4px"><button class="txt o" data-deldone="1">Done</button><button class="txt" data-rmdel="${esc(d.id)}">Remove</button></span></div>`
+          : `<div class="deli row" data-editdel="${esc(d.id)}" title="Click to change">${shapeBox(d.shape)}<span class="grow">${esc(d.text)}${d.len ? ' · ' + esc(d.len) : ''}</span><span class="due">${esc(short(d.due))}</span></div>`).join('')}</div>
+      <label class="adder"><span>+</span><input id="delIn" placeholder="${dl.length ? 'Add a deliverable' : 'Add a deliverable — Hero film 60s 16:9'}" spellcheck="false"></label>
+      ${musts.length ? `<div class="musts">${musts.map(t => `<div>${esc(t)}</div>`).join('')}</div>` : ''}`;
   }
 
   function renderTodos() {
@@ -407,205 +498,265 @@ main>section{animation:rise .45s var(--ease-out) both}
     const order = td.slice().sort((a, b) => (!!a.done - !!b.done) || ((a.due || '9999') < (b.due || '9999') ? -1 : (a.due || '9999') > (b.due || '9999') ? 1 : 0));
     const n = td.filter(t => t.done).length;
     $('todos').innerHTML = `
-      <div class="head"><h2>To do</h2><span class="sub">${td.length ? `${n} of ${td.length} done` : ''}</span></div>
-      ${td.length ? `<div class="bar"><span style="width:${Math.round(n / td.length * 100)}%"></span></div>` : ''}
-      <div class="list">${order.map(t => `<div class="row todo${t.done ? ' done' : ''}" data-id="${esc(t.id)}">
-          <button class="tick${t.done ? ' on' : ''}" data-tick="${esc(t.id)}" aria-label="${t.done ? 'Mark not done' : 'Mark done'}: ${esc(t.text)}">${t.done ? TICK : ''}</button>
-          <div style="min-width:0"><input class="plain t" data-f="text" value="${esc(t.text)}" aria-label="To-do" spellcheck="false" style="width:100%;font-size:14px">
-            ${t.meta || t.brief ? `<span class="from${t.brief ? ' bf' : ''}">${t.brief ? 'From the brief' : ''}${t.brief && t.meta ? ' · ' : ''}${esc(t.meta || '')}</span>` : ''}</div>
-          <input class="date" type="date" data-f="due" value="${esc(t.due || '')}" aria-label="Due">
-          <button class="x" data-rmtodo="${esc(t.id)}" aria-label="Remove">×</button></div>`).join('') ||
-        '<div class="empty">Nothing yet. Add what needs doing — or read the brief and it suggests the first few.</div>'}</div>
-      <div class="adder"><input class="field" id="todoIn" placeholder="Add a to-do" spellcheck="false"><input class="field" id="todoDue" type="date" aria-label="Due" style="width:140px"><button class="btn" id="todoAdd">Add</button></div>`;
+      <div style="display:flex;align-items:baseline"><h2>To do</h2><span class="grow"></span><span class="mono" style="font-size:12px;color:#4a4945">${td.length ? `${n} of ${td.length} done` : ''}</span></div>
+      <div class="bar3"><i style="width:${td.length ? Math.round(n / td.length * 100) : 0}%"></i></div>
+      <div>${order.map(t => `<div class="todo row${t.done ? ' done' : ''}" data-id="${esc(t.id)}">
+          <button class="tick${t.done ? ' on' : ''}" data-tick="${esc(t.id)}" aria-pressed="${!!t.done}" aria-label="${t.done ? 'Mark not done' : 'Mark done'}: ${esc(t.text)}">${t.done ? CHECK : ''}</button>
+          <div style="display:flex;flex-direction:column;gap:2px;flex-grow:1;min-width:0">
+            <span class="t" contenteditable="plaintext-only" spellcheck="false" data-todo="${esc(t.id)}">${esc(t.text)}</span>
+            ${t.brief || t.meta ? `<span class="m">${t.brief ? '<span class="bf">From the brief' + (t.meta ? ' · ' : '') + '</span>' : ''}${esc(t.meta || '')}</span>` : ''}</div>
+          <button class="due" data-due="${esc(t.id)}" title="Set a date">${t.done ? 'Done' : t.due ? esc(soon(t.due)) : '—'}</button>
+          <button class="x" data-rmtodo="${esc(t.id)}" aria-label="Remove">×</button></div>`).join('')}</div>
+      <label class="adder"><span>+</span><input id="todoIn" placeholder="Add a to-do" spellcheck="false"></label>`;
   }
 
   function renderDocs() {
     const docs = D.docs || [];
-    const kinds = ['All'].concat([...new Set(docs.map(d => d.kind))]);
-    if (!kinds.includes(docFilter)) docFilter = 'All';
-    const shown = docs.filter(d => docFilter === 'All' || d.kind === docFilter);
     const k = picked.size;
     const sentLine = d => {
       const s = (d.sent || [])[d.sent.length - 1];
-      return s ? `<span class="sent">Sent to ${esc((s.to || []).join(', '))} · ${esc(ago(s.at))}</span>` : `<span class="sent no">Not sent yet</span>`;
+      if (s) return `Sent to ${esc((s.to || []).join(', '))} · ${esc(ago(s.at))}`;
+      if (d.read) return 'Read — deliverables and dates';
+      return 'Not sent yet';
     };
     $('docs').innerHTML = `
-      <div class="head"><h2>Documents</h2><span class="sub">made here, and everything you've dropped in — filed in ${esc(D.project)} › ${esc(D.project)}_Docs</span><span class="grow"></span>
-        <span class="sub" id="pickedLabel">${k ? `${k} picked · <button class="link" id="unpick">clear</button>` : docs.length ? 'Pick documents to send' : ''}</span>
-        <button class="btn${k ? ' dark' : ''}" id="sendPicked" ${k ? '' : 'disabled'}>${k ? `Send ${k} →` : 'Send'}</button></div>
-      ${kinds.length > 2 ? `<div class="filter">${kinds.map(x => `<button class="${x === docFilter ? 'on' : ''}" data-filter="${esc(x)}">${esc(x)}</button>`).join('')}</div>` : ''}
-      <div class="docs">${shown.map(d => `<div class="doc${picked.has(d.rel) ? ' on' : ''}" data-rel="${esc(d.rel)}">
-          <button class="pick" data-pick="${esc(d.rel)}" aria-label="${picked.has(d.rel) ? 'Unpick' : 'Pick'} ${esc(d.name)}">${picked.has(d.rel) ? TICK : ''}</button>
-          <div class="body">
-            <button class="name" data-open="${esc(d.rel)}" title="Open ${esc(d.name)}">${esc(d.name)}</button>
-            <div class="m"><select data-kind="${esc(d.rel)}" aria-label="What it is">${(D.kinds || []).concat((D.kinds || []).includes(d.kind) ? [] : [d.kind]).map(x => `<option${x === d.kind ? ' selected' : ''}>${esc(x)}</option>`).join('')}</select>
-              <span>${esc(d.ext.toUpperCase())}${d.bytes ? ' · ' + size(d.bytes) : ''} · ${esc(d.made.toLowerCase())} · ${esc(ago(d.date))}</span></div>
-            ${sentLine(d)}
-            <div class="tools"><button class="link" data-reveal="${esc(d.rel)}">Show in Finder</button>${d.readable ? `<button class="link" data-read="${esc(d.rel)}">${d.read ? 'Read again' : 'Read it'}</button>` : ''}</div>
-          </div></div>`).join('')}
-        <div class="drophint">Drop anything onto this page — briefs, treatments, schedules, contracts, recce photos.<br>It's copied in and filed by what it is.</div></div>`;
+      <div class="top"><h2>Documents</h2><span class="sub">made here, and everything you've dropped in — filed in ${esc(D.project)} › ${esc(D.project)}_Docs</span><span class="grow"></span>
+        <span style="font-size:13px;color:#6b6964">${k ? `${k} picked` : docs.length ? 'Pick documents to send' : ''}</span>
+        <button id="sendPicked" style="border:none;border-radius:100px;padding:10px 18px;font-size:13px;font-weight:500;${k ? 'background:linear-gradient(180deg,#2b2b2b,#111);color:#fff' : 'background:rgba(28,28,28,0.08);color:#8a7a72;cursor:default'}">${k ? `Send ${k} →` : 'Send'}</button></div>
+      <div class="docs">${docs.map(d => `<div class="doc${picked.has(d.rel) ? ' on' : ''}" role="button" tabindex="0" aria-pressed="${picked.has(d.rel)}" data-pick="${esc(d.rel)}" title="${esc(d.name)} — double-click to open">
+          <span class="box">${picked.has(d.rel) ? CHECK : ''}</span>
+          <span class="b"><span class="n">${esc(d.name)}</span>
+            <span class="dm">${esc(d.ext.toUpperCase())} · ${esc(d.made.toLowerCase())} · ${esc(short((d.date || '').slice(0, 10)))}</span>
+            <span class="ds">${sentLine(d)}</span></span>
+          <button class="more" data-more="${esc(d.rel)}" aria-label="More for ${esc(d.name)}">⋯</button></div>`).join('')}
+        ${docs.length ? '' : '<div class="dropcard">Drop anything onto this page — briefs, treatments, schedules, contracts, recce photos.<br>It\'s copied in and filed by what it is.</div>'}</div>`;
   }
 
   function renderCrew() {
     const cr = list('crew');
+    const book = new Map((D.contacts || []).map(c => [c.id, c]));
     const conf = cr.filter(c => c.status === 'c').length;
+    const shown = crewAll ? cr : cr.slice(0, 6);
+    const more = cr.length - shown.length;
     $('crew').innerHTML = `
-      <div class="head"><h2>Crew</h2><span class="sub">${cr.length ? `${conf} of ${cr.length} confirmed` : ''}</span><span class="grow"></span>
-        <button class="link" id="peopleBtn">Contact book</button>
-        <button class="btn dark" id="credits" ${cr.length ? '' : 'disabled'}>Make credits →</button></div>
-      ${cr.length ? `<div class="row crew crewhead"><span>Role</span><span>Name</span><span>Email</span><span>Handle</span><span>Status</span><span></span></div>` : ''}
-      <div class="list">${cr.map(c => `<div class="row crew" data-id="${esc(c.id)}">
-          <input class="plain" data-f="role" value="${esc(c.role || '')}" placeholder="Role" spellcheck="false">
-          <input class="plain" data-f="name" value="${esc(c.name || '')}" placeholder="Name" spellcheck="false">
-          <input class="plain" data-f="email" value="${esc(c.email || '')}" placeholder="email" spellcheck="false" style="font-size:12.5px">
-          <input class="plain" data-f="handle" value="${esc(c.handle || '')}" placeholder="@handle" spellcheck="false" style="font-size:12.5px">
-          <span><button class="status ${esc(c.status || 'b')}" data-status="${esc(c.id)}">${esc((STATUS.find(s => s[0] === (c.status || 'b')) || STATUS[0])[1])}</button></span>
-          <button class="x" data-rmcrew="${esc(c.id)}" aria-label="Remove">×</button></div>`).join('') ||
-        '<div class="empty">Who’s on it. Add people from your contact book — crew from Credit, clients from Pay — or type a new name.</div>'}</div>
-      <div class="addline"><div class="find"><input class="field" id="crewFind" placeholder="Add someone — search your contacts, or type a name" spellcheck="false" autocomplete="off"><div class="sugg" id="crewSugg" hidden></div></div>
-        <span class="note">Make credits opens Credit with every name, role and handle already in.</span></div>`;
+      <div class="top"><h2>Crew</h2><span class="sub">${cr.length ? `${conf} of ${cr.length} confirmed · from your contacts` : 'from your contacts'}</span><span class="grow"></span>
+        <button class="txt" id="addPerson">+ Add someone</button><button class="txt" id="peopleBtn">Contacts</button>
+        <button class="btno" id="credits" ${cr.length ? '' : 'disabled style="opacity:0.45"'}>Make credits →</button></div>
+      ${cr.length ? '<div class="cr h"><span>Role</span><span>Name</span><span>Handle</span><span>Status</span><span></span></div>' : ''}
+      ${shown.map((c, i) => {
+        const p = book.get(c.contact) || {};
+        const email = c.email || p.email || '';
+        return `<div class="cr row${i ? '' : ' first'}" data-id="${esc(c.id)}" title="${esc(email ? email : 'No email yet — add one in Contacts')}">
+          <input class="role" data-f="role" value="${esc(c.role || '')}" placeholder="Role" spellcheck="false">
+          <input data-f="name" value="${esc(c.name || '')}" placeholder="—" spellcheck="false"${c.status === 'c' ? '' : ' style="color:#8a7a72"'}>
+          <input class="hd" data-f="handle" value="${esc(c.handle || '')}" placeholder="—" spellcheck="false">
+          <button class="st ${esc(c.status || 'b')}" data-status="${esc(c.id)}" title="Click to change">${esc((STATUS.find(s => s[0] === (c.status || 'b')) || STATUS[0])[1])}</button>
+          <button class="x" data-rmcrew="${esc(c.id)}" aria-label="Remove">×</button></div>`;
+      }).join('')}
+      <div class="find" id="findWrap" hidden><input class="field" id="crewFind" placeholder="Search your contacts — or type a new name" spellcheck="false" autocomplete="off" style="width:100%;max-width:420px"><div class="sugg" id="crewSugg" hidden></div></div>
+      <span class="crewnote">${cr.length ? `${more > 0 ? `and ${more} more · <button class="txt o" id="crewAll" style="padding:0">show all</button> · ` : ''}Make credits opens Credit with every name, role and handle already in.`
+        : 'Who’s on it. Add people from your contacts — crew from Credit, clients from Pay — or type a new name.'}</span>`;
   }
-
-  // The idea's box grows with its text.
-  function fit(t) { if (!t) return; t.style.height = 'auto'; t.style.height = t.scrollHeight + 'px'; }
 
   /* ------------------------------------------------------------ contacts search */
-  function matchPeople(q, extra) {
+  function matchPeople(q, pool) {
     const s = q.trim().toLowerCase();
-    const all = (D.contacts || []);
-    const crewEmails = new Set(list('crew').map(c => (c.email || '').toLowerCase()).filter(Boolean));
-    const scored = all.map(c => {
+    const all = pool || (D.contacts || []);
+    return all.map(c => {
       const hay = [c.name, c.email, c.role, c.company, c.handle].concat(c.emails || []).join(' ').toLowerCase();
-      let score = !s ? 1 : hay.includes(s) ? ((c.name || '').toLowerCase().startsWith(s) ? 3 : 2) : 0;
-      if (score && crewEmails.has((c.email || '').toLowerCase())) score += extra ? 2 : 0;
-      return [score, c];
-    }).filter(x => x[0] > 0).sort((a, b) => b[0] - a[0] || (a[1].name || '').localeCompare(b[1].name || ''));
-    return scored.slice(0, 8).map(x => x[1]);
+      return [!s ? 1 : hay.includes(s) ? ((c.name || '').toLowerCase().startsWith(s) ? 3 : 2) : 0, c];
+    }).filter(x => x[0] > 0).sort((a, b) => b[0] - a[0] || (a[1].name || '').localeCompare(b[1].name || '')).map(x => x[1]);
   }
-  const personLine = c => [c.role, c.company, c.email].filter(Boolean).join(' · ');
-
-  function attachSuggest(input, box, pick, opts) {
+  const isEmail = t => /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(t);
+  function attachSuggest(input, box, pick) {
     let hits = [], hi = 0;
     const show = () => {
-      const q = input.value;
-      if (!q.trim()) { hits = []; box.hidden = true; box.innerHTML = ''; return; }     // only while typing
-      hits = matchPeople(q, opts && opts.crewFirst);
-      const typed = q.trim();
-      const isEmail = /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(typed);
-      const rows = hits.map((c, i) => `<button data-i="${i}" class="${i === hi ? 'hi' : ''}"><span>${esc(c.name || c.email)}</span><small>${esc(personLine(c))}</small></button>`);
-      if (typed && !hits.some(c => (c.email || '').toLowerCase() === typed.toLowerCase() || (c.name || '').toLowerCase() === typed.toLowerCase()))
-        rows.push(`<button data-i="new" class="${hits.length === hi ? 'hi' : ''}"><span>${isEmail ? 'Use ' + esc(typed) : 'Add “' + esc(typed) + '”'}</span><small>${isEmail ? 'New — saved to your contact book' : 'A new person'}</small></button>`);
+      const typed = input.value.trim();
+      if (!typed) { hits = []; box.hidden = true; box.innerHTML = ''; return; }
+      hits = matchPeople(typed).slice(0, 8);
+      const rows = hits.map((c, i) => `<button data-i="${i}" class="${i === hi ? 'hi' : ''}"><span>${esc(c.name || c.email)}</span><small>${esc([c.role, c.company, c.email].filter(Boolean).join(' · '))}</small></button>`);
+      if (!hits.some(c => (c.email || '').toLowerCase() === typed.toLowerCase() || (c.name || '').toLowerCase() === typed.toLowerCase()))
+        rows.push(`<button data-i="new" class="${hits.length === hi ? 'hi' : ''}"><span>${isEmail(typed) ? 'Use ' + esc(typed) : 'Add “' + esc(typed) + '”'}</span><small>${isEmail(typed) ? 'New — saved to your contacts' : 'A new person'}</small></button>`);
       box.innerHTML = rows.join('');
-      box.hidden = !rows.length || document.activeElement !== input;
+      box.hidden = document.activeElement !== input;
     };
     const choose = i => {
       const typed = input.value.trim();
-      if (i === 'new' || i === hits.length) {
-        if (!typed) return;
-        const isEmail = /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(typed);
-        pick(isEmail ? { name: '', email: typed } : { name: typed, email: '' }, true);
-      } else if (hits[i]) pick(hits[i], false);
+      if (i === 'new' || i >= hits.length) { if (!typed) return; pick(isEmail(typed) ? { name: '', email: typed } : { name: typed, email: '' }, true); }
+      else pick(hits[i], false);
       input.value = ''; hi = 0; show();
     };
     input.addEventListener('input', () => { hi = 0; show(); });
-    input.addEventListener('focus', show);
     input.addEventListener('blur', () => setTimeout(() => { box.hidden = true; }, 160));
     input.addEventListener('keydown', e => {
       const n = box.querySelectorAll('button').length;
       if (e.key === 'ArrowDown') { e.preventDefault(); hi = Math.min(n - 1, hi + 1); show(); }
       else if (e.key === 'ArrowUp') { e.preventDefault(); hi = Math.max(0, hi - 1); show(); }
-      else if (e.key === 'Enter' || (e.key === ',' && opts && opts.comma)) { if (input.value.trim()) { e.preventDefault(); choose(hi < hits.length ? hi : 'new'); } }
-      else if (e.key === 'Backspace' && !input.value && opts && opts.back) opts.back();
+      else if ((e.key === 'Enter' || e.key === ',') && input.value.trim()) { e.preventDefault(); choose(hi); }
     });
     box.addEventListener('mousedown', e => { const b = e.target.closest('button'); if (!b) return; e.preventDefault(); choose(b.dataset.i === 'new' ? 'new' : +b.dataset.i); });
   }
 
-  /* ------------------------------------------------------------ clicks and edits on the page */
+  /* ------------------------------------------------------------ the ⋯ menu on a document */
+  function closeMenu() { const m = document.querySelector('.menu'); if (m) m.remove(); }
+  function openMenu(rel, at) {
+    closeMenu();
+    const d = (D.docs || []).find(x => x.rel === rel); if (!d) return;
+    const m = document.createElement('div');
+    m.className = 'menu';
+    m.innerHTML = `<button data-mopen="${esc(rel)}">Open</button><button data-mreveal="${esc(rel)}">Show in Finder</button>
+      ${d.readable ? `<button data-read="${esc(rel)}">${d.read ? 'Read it again' : 'Read it'} — dates and deliverables</button>` : ''}
+      <button data-mrename="${esc(rel)}">Rename…</button>
+      <span class="cap">It's a</span><select data-kind="${esc(rel)}">${(D.kinds || []).concat((D.kinds || []).includes(d.kind) ? [] : [d.kind]).map(x => `<option${x === d.kind ? ' selected' : ''}>${esc(x)}</option>`).join('')}</select>`;
+    document.body.appendChild(m);
+    const r = at.getBoundingClientRect();
+    m.style.left = Math.max(12, Math.min(innerWidth - m.offsetWidth - 12, r.left)) + 'px';
+    m.style.top = (r.bottom + m.offsetHeight + 8 > innerHeight ? r.top - m.offsetHeight - 4 : r.bottom + 4) + 'px';
+  }
+  document.addEventListener('mousedown', e => { if (!e.target.closest('.menu') && !e.target.closest('[data-more]')) closeMenu(); });
+  window.addEventListener('scroll', e => { if (!(e.target.closest && e.target.closest('.menu'))) closeMenu(); }, true);
+
+  /* ------------------------------------------------------------ clicks */
+  // The ⋯ menu's own buttons (it sits outside the page's sections), handled first.
   document.addEventListener('click', async e => {
-    const t = e.target.closest('button, [data-ref]');
-    if (!t || !D || $('veil').contains(t)) return;
+    const t = e.target.closest('.menu button'); if (!t) return;
+    e.stopPropagation();
     const d = t.dataset;
-    if (t.id === 'openFolder') return call('projectReveal');
-    if (t.id === 'addFiles') {
-      let r; try { r = await call('projectFiles'); } catch (x) { return; }
-      if (r && r.ok) filed(r);
-      return;
+    closeMenu();
+    if (d.mopen) return call('projectOpen', { rel: d.mopen });
+    if (d.mreveal) return call('projectReveal', { rel: d.mreveal });
+    if (d.read) return readBrief(d.read);
+    if (d.mrename) {
+      const doc = (D.docs || []).find(x => x.rel === d.mrename);
+      const name = (prompt('Rename it — it stays in its folder', doc ? doc.name : '') || '').trim();
+      if (!name) return;
+      const r = await call('projectRenameDoc', { rel: d.mrename, name }).catch(() => null);
+      if (!r || !r.ok) return toast((r && r.error) || "Couldn't rename it");
+      if (picked.delete(d.mrename)) picked.add(r.rel);
+      load();
     }
-    if (t.id === 'sendTop' || t.id === 'sendPicked') return openSend([...picked]);
-    if (t.id === 'unpick') { picked.clear(); return renderDocs(); }
-    if (t.id === 'addDateBtn') { $('dateForm').hidden = false; $('dText').focus(); return; }
-    if (t.id === 'dCancel') { $('dateForm').hidden = true; return; }
+  }, true);
+
+  document.addEventListener('click', async e => {
+    const t = e.target.closest('button, [data-pick], [data-editdel]');
+    if (!t || !D || $('veil').contains(t) || t.closest('.menu')) return;
+    const d = t.dataset;
+    if (t.id === 'addFiles') { let r; try { r = await call('projectFiles'); } catch (x) { return; } if (r && r.ok) filed(r); return; }
+    if (t.id === 'sendTop') return openSend([...picked]);
+    if (t.id === 'sendPicked') { if (picked.size) openSend([...picked]); return; }
+    if (t.id === 'renameFolder') return renameProject();
+    if (t.id === 'addTag') { adding = true; return renderHead(); }
+    if (d.untag) { const r = await call('setTags', { tags: (D.tags || []).filter(x => x !== d.untag) }).catch(() => null); D.tags = (r && r.tags) || D.tags.filter(x => x !== d.untag); return renderHead(); }
+    if (t.id === 'addDate') {
+      $('lineAdd').style.background = '#fcf2ec';
+      $('lineAdd').innerHTML = `<input class="field" id="dText" placeholder="What — Shoot, PPM, Delivery…" spellcheck="false" style="width:220px"><input class="field" id="dDate" type="date"><button class="txt o" id="dAdd">Add</button><button class="txt" id="dCancel">Cancel</button>`;
+      return $('dText').focus();
+    }
+    if (t.id === 'dCancel') return renderPhases();
     if (t.id === 'dAdd') {
       const text = $('dText').value.trim(), date = $('dDate').value;
       if (!text || !date) return toast('Add what it is and the date');
       list('dates').push({ id: uid(), text, date }); save('dates', D.dates, true);
-      renderLine(); renderCount(); return;
+      renderPhases(); renderCount(); return;
     }
-    if (d.undate) { D.dates = list('dates').filter(x => x.id !== d.undate); save('dates', D.dates, true); renderLine(); renderCount(); return; }
+    if (d.undate) { const ids = d.undate.split(','); D.dates = list('dates').filter(x => !ids.includes(x.id)); save('dates', D.dates, true); renderPhases(); renderCount(); return; }
     if (t.id === 'makeMood') return call('projectMood');
     if (t.id === 'openVault') return call('projectTool', { id: 'vault' });
     if (d.ref) return call('openRef', { id: d.ref });
-    if (t.id === 'delAdd') return addDeliverable();
-    if (d.rmdel) { D.deliverables = list('deliverables').filter(x => x.id !== d.rmdel); save('deliverables', D.deliverables, true); return renderDels(); }
-    if (d.rmmust != null) { list('musts').splice(+d.rmmust, 1); save('musts', D.musts, true); return renderDels(); }
-    if (t.id === 'todoAdd') return addTodo();
-    if (d.tick) { const x = list('todos').find(y => y.id === d.tick); if (x) { x.done = !x.done; save('todos', D.todos, true); renderTodos(); } return; }
-    if (d.rmtodo) { D.todos = list('todos').filter(x => x.id !== d.rmtodo); save('todos', D.todos, true); return renderTodos(); }
-    if (d.filter) { docFilter = d.filter; return renderDocs(); }
-    if (d.pick) { picked.has(d.pick) ? picked.delete(d.pick) : picked.add(d.pick); return renderDocs(); }
-    if (d.open) return call('projectOpen', { rel: d.open });
-    if (d.reveal) return call('projectReveal', { rel: d.reveal });
     if (d.read) return readBrief(d.read);
-    if (d.markread) { await call('projectApply', { add: {}, rel: d.markread }).then(r => { D = r; render(); }).catch(() => {}); return; }
+    if (d.editdel != null && !t.closest('.edit')) { editingDel = d.editdel; renderDels(); const f = $('dels').querySelector('.edit input'); if (f) f.focus(); return; }
+    if (d.deldone) { editingDel = null; return renderDels(); }
+    if (d.rmdel) { editingDel = null; D.deliverables = list('deliverables').filter(x => x.id !== d.rmdel); save('deliverables', D.deliverables, true); return renderDels(); }
+    if (d.tick) { const x = list('todos').find(y => y.id === d.tick); if (x) { x.done = !x.done; save('todos', D.todos, true); renderTodos(); } return; }
+    if (d.due) {
+      const x = list('todos').find(y => y.id === d.due); if (!x || x.done) return;
+      const inp = document.createElement('input'); inp.type = 'date'; inp.value = x.due || '';
+      t.replaceWith(inp); inp.focus();
+      let once = false;
+      const done = () => { if (once) return; once = true; x.due = inp.value; save('todos', D.todos, true); renderTodos(); };
+      inp.addEventListener('change', done); inp.addEventListener('blur', done);
+      return;
+    }
+    if (d.rmtodo) { D.todos = list('todos').filter(x => x.id !== d.rmtodo); save('todos', D.todos, true); return renderTodos(); }
+    if (d.more) { return openMenu(d.more, t); }
+    if (d.pick) { picked.has(d.pick) ? picked.delete(d.pick) : picked.add(d.pick); return renderDocs(); }
     if (d.status) {
       const c = list('crew').find(x => x.id === d.status); if (!c) return;
       const i = STATUS.findIndex(s => s[0] === (c.status || 'b'));
       c.status = STATUS[(i + 1) % STATUS.length][0]; save('crew', D.crew, true); return renderCrew();
     }
     if (d.rmcrew) { D.crew = list('crew').filter(x => x.id !== d.rmcrew); save('crew', D.crew, true); return renderCrew(); }
+    if (t.id === 'crewAll') { crewAll = true; return renderCrew(); }
+    if (t.id === 'addPerson') {
+      $('findWrap').hidden = false;
+      const f = $('crewFind');
+      if (!f.dataset.on) {
+        f.dataset.on = '1';
+        attachSuggest(f, $('crewSugg'), (c, isNew) => {
+          const row = { id: uid(), role: c.role || '', name: c.name || '', email: c.email || '', handle: c.handle || '', status: 'b', contact: c.id || '' };
+          if (list('crew').some(x => (row.contact && x.contact === row.contact) || (row.email && x.email === row.email))) return toast(`${row.name || row.email} is already on the crew`);
+          list('crew').push(row); save('crew', D.crew, true); crewAll = true; renderCrew();
+          $('findWrap').hidden = false; $('crewFind').focus();
+          if (isNew) toast('Added — give them a role; add an email in Contacts to send to them');
+        });
+      }
+      return f.focus();
+    }
     if (t.id === 'credits') {
-      const rows = list('crew').filter(c => c.name || c.role).map(c => ({ role: c.role || '', name: c.name || '', handle: c.handle || '', email: c.email || '' }));
+      const book = new Map((D.contacts || []).map(c => [c.id, c]));
+      const rows = list('crew').filter(c => c.name || c.role).map(c => ({ role: c.role || '', name: c.name || '', handle: c.handle || '', email: c.email || (book.get(c.contact) || {}).email || '' }));
       return call('projectMakeCredits', { crew: rows });
     }
-    if (t.id === 'peopleBtn') return openPeople();
+    if (t.id === 'peopleBtn') return renderPeople();
   });
+  document.addEventListener('dblclick', e => { const c = e.target.closest('[data-pick]'); if (c && D) { picked.delete(c.dataset.pick); renderDocs(); call('projectOpen', { rel: c.dataset.pick }); } });
 
+  async function renameProject() {
+    const name = (prompt(`Rename ${D.project} — its folders, pictures and documents all follow`, D.project) || '').trim();
+    if (!name || name === D.project) return;
+    const r = await call('renameProject', { name }).catch(() => null);
+    if (!r || !r.ok) return toast((r && r.error) || "Couldn't rename it");
+    toast(`Renamed to ${r.project}`);
+  }
+
+  /* ------------------------------------------------------------ edits */
   document.addEventListener('input', e => {
     const t = e.target;
-    if (!D || $('veil').contains(t)) return;
-    if (t.id === 'title') return save('title', t.value.trim());
-    if (t.dataset.k) return save(t.dataset.k, t.value.trim());
-    if (t.id === 'idea') { fit(t); return save('idea', t.value.trim()); }
-    const row = t.closest('.row[data-id]'); if (!row || !t.dataset.f) return;
-    const key = row.classList.contains('del') ? 'deliverables' : row.classList.contains('todo') ? 'todos' : row.classList.contains('crew') ? 'crew' : '';
+    if (!D || $('veil').contains(t) || t.closest('.menu')) return;
+    if (t.id === 'title') return save('title', t.textContent.trim());
+    if (t.dataset.k) return save(t.dataset.k, t.textContent.trim());
+    if (t.id === 'idea') return save('idea', t.textContent.trim().replace(/^["“]|["”]$/g, ''));
+    if (t.dataset.todo) { const x = list('todos').find(y => y.id === t.dataset.todo); if (x) { x.text = t.textContent.trim(); save('todos', D.todos); } return; }
+    const row = t.closest('[data-id]'); if (!row || !t.dataset.f) return;
+    const key = row.classList.contains('deli') ? 'deliverables' : row.classList.contains('cr') ? 'crew' : '';
     if (!key) return;
     const x = list(key).find(y => y.id === row.dataset.id); if (!x) return;
     x[t.dataset.f] = t.value;
     save(key, D[key], t.type === 'date' || t.tagName === 'SELECT');
-    if (key === 'todos' && t.type === 'date') renderTodos();
   });
   document.addEventListener('change', async e => {
     const t = e.target;
     if (!D || $('veil').contains(t)) return;
     if (t.id === 'labSel') {
       let v = t.value;
-      if (v === '__new') { v = (prompt('Name the label — the kind of work: Music video, Docs, Beauty…') || '').trim(); if (!v) return renderTop(); }
+      if (v === '__new') { v = (prompt('Name the label — the kind of work: Music video, Docs, Beauty…') || '').trim(); if (!v) return renderHead(); }
       await call('setLabel', { label: v }).catch(() => {});
       D.label = v; if (v && !(D.labels || []).includes(v)) D.labels.push(v);
-      renderTop(); toast(v ? `${D.project} is labelled ${v}` : `${D.project} has no label`);
+      renderHead(); toast(v ? `${D.project} is labelled ${v}` : `${D.project} has no label`);
     }
     if (t.dataset.kind) {
+      closeMenu();
       const r = await call('projectSetKind', { rel: t.dataset.kind, kind: t.value }).catch(() => null);
-      if (!r || !r.ok) { toast((r && r.error) || "Couldn't move it"); return renderDocs(); }
-      if (picked.has(t.dataset.kind)) { picked.delete(t.dataset.kind); picked.add(r.rel); }
-      toast(`Now ${r.name}, filed under ${t.value}s`);
+      if (!r || !r.ok) return toast((r && r.error) || "Couldn't move it");
+      if (picked.delete(t.dataset.kind)) picked.add(r.rel);
+      toast(`Now ${r.name}, filed with the ${t.value.toLowerCase()}s`);
       load();
     }
-    // A crew member's email: into the contact book, for sending and next time.
-    const row = t.closest && t.closest('.row.crew[data-id]');
-    if (row && (t.dataset.f === 'email' || t.dataset.f === 'handle' || t.dataset.f === 'name')) {
+    // A crew member with a name goes into the contact book, handle and all.
+    const row = t.closest && t.closest('.cr[data-id]');
+    if (row && ['name', 'handle', 'role'].includes(t.dataset.f)) {
       const c = list('crew').find(y => y.id === row.dataset.id);
-      if (c && c.name && (c.email || c.handle)) {
+      if (c && c.name) {
         const r = await call('contactSave', { contact: { id: c.contact || undefined, name: c.name, email: c.email || '', handle: c.handle || '', role: c.role || '' } }).catch(() => null);
         if (r && r.contact) { c.contact = r.contact.id; D.contacts = r.contacts; save('crew', D.crew, true); }
       }
@@ -613,42 +764,26 @@ main>section{animation:rise .45s var(--ease-out) both}
   });
   document.addEventListener('keydown', e => {
     const t = e.target;
+    if (e.key === 'Escape' && document.querySelector('.menu')) return closeMenu();
     if (e.key === 'Escape' && sheet) { e.preventDefault(); return closeSheet(); }
     if (!D || $('veil').contains(t)) return;
+    if (e.key === 'Enter' && t.isContentEditable) { e.preventDefault(); t.blur(); }
     if (e.key === 'Enter' && t.id === 'delIn') { e.preventDefault(); addDeliverable(); }
-    if (e.key === 'Enter' && (t.id === 'todoIn' || t.id === 'todoDue')) { e.preventDefault(); addTodo(); }
+    if (e.key === 'Enter' && t.id === 'todoIn') { e.preventDefault(); addTodo(); }
     if (e.key === 'Enter' && (t.id === 'dText' || t.id === 'dDate')) { e.preventDefault(); $('dAdd').click(); }
-    if (e.key === 'Enter' && t.id === 'title') t.blur();
-    if (e.key === 'Enter' && t.id === 'tagIn') { e.preventDefault(); addTag(t.value); }
+    if (e.key === 'Enter' && t.closest('.deli.edit')) { e.preventDefault(); editingDel = null; renderDels(); }
+    if (t.id === 'tagIn' && (e.key === 'Enter' || e.key === ',')) { e.preventDefault(); addTag(t.value); }
+    if (t.id === 'tagIn' && e.key === 'Escape') { adding = false; renderHead(); }
   });
-  document.addEventListener('focusin', e => {
-    if (e.target.id === 'crewFind' && !e.target.dataset.on) {
-      e.target.dataset.on = '1';
-      attachSuggest(e.target, $('crewSugg'), (c, isNew) => {
-        const row = { id: uid(), role: c.role || '', name: c.name || '', email: c.email || '', handle: c.handle || '', status: 'b', contact: c.id || '' };
-        if (list('crew').some(x => (x.contact && x.contact === row.contact) || (row.email && x.email === row.email))) return toast(`${row.name || row.email} is already on the crew`);
-        list('crew').push(row); save('crew', D.crew, true); renderCrew();
-        const f = $('crewFind'); if (f) f.focus();
-        if (isNew) toast('Added — give them a role, and an email to send to them');
-      });
-      e.target.dispatchEvent(new Event('focus'));
-    }
+  document.addEventListener('focusout', e => {
+    if (e.target.id === 'tagIn') setTimeout(() => { if (adding && document.activeElement !== $('tagIn')) { const v = e.target.value; adding = false; if (v.trim()) addTag(v, true); else renderHead(); } }, 120);
   });
-  document.addEventListener('click', async e => {
-    const u = e.target.closest('[data-untag]'); if (!u || !D) return;
-    await setTags((D.tags || []).filter(x => x !== u.dataset.untag));
-  });
-  async function addTag(v) {
+  async function addTag(v, stop) {
     const add = v.split(',').map(x => x.trim().replace(/^#+/, '').toLowerCase()).filter(Boolean);
-    if (!add.length) return;
-    await setTags((D.tags || []).concat(add));
-    const i = $('tagIn'); if (i) i.focus();
+    adding = !stop;
+    if (add.length) { const r = await call('setTags', { tags: (D.tags || []).concat(add) }).catch(() => null); D.tags = (r && r.tags) || D.tags.concat(add); }
+    renderHead();
   }
-  async function setTags(tags) {
-    const r = await call('setTags', { tags }).catch(() => null);
-    D.tags = (r && r.tags) || tags; renderTop();
-  }
-
   function addDeliverable() {
     const raw = ($('delIn').value || '').trim(); if (!raw) return;
     // "Hero film 60s 16:9" → the shape and length come out of the words.
@@ -660,13 +795,14 @@ main>section{animation:rise .45s var(--ease-out) both}
   }
   function addTodo() {
     const text = ($('todoIn').value || '').trim(); if (!text) return;
-    list('todos').push({ id: uid(), text, due: $('todoDue').value || '', done: false });
+    list('todos').push({ id: uid(), text, due: '', done: false });
     save('todos', D.todos, true); renderTodos(); $('todoIn').focus();
   }
 
   /* ------------------------------------------------------------ sheets */
-  function openSheet(name, html) {
+  function openSheet(name, html, cls) {
     sheet = name;
+    $('sheet').className = 'sheet' + (cls ? ' ' + cls : '');
     $('sheet').innerHTML = html;
     $('veil').classList.add('on');
   }
@@ -676,8 +812,8 @@ main>section{animation:rise .45s var(--ease-out) both}
     setTimeout(() => { if (!sheet) $('sheet').innerHTML = ''; }, 260);
   }
   $('veil').addEventListener('mousedown', e => { if (e.target === $('veil')) closeSheet(); });
-  // ← in the top bar closes a sheet first.
-  window.__neededBack = () => { if (sheet) { closeSheet(); return true; } return false; };
+  window.__neededBack = () => { if (document.querySelector('.menu')) { closeMenu(); return true; } if (sheet) { closeSheet(); return true; } return false; };
+  const closeBtn = '<button class="close" data-close aria-label="Close">×</button>';
 
   /* ---- filed ---- */
   function filed(r) {
@@ -687,28 +823,38 @@ main>section{animation:rise .45s var(--ease-out) both}
     const n = rows.reduce((a, x) => a + (x.count || 1), 0);
     const readable = rows.filter(x => x.readable);
     openSheet('filed', `
-      <div class="top2"><div class="grow"><h3>${n} thing${n === 1 ? '' : 's'} filed into ${esc(D.project)}</h3>
-        <span class="note">Copied into the project and sorted by what they are. Your originals stay where they were.</span></div>
-        <button class="close" data-close aria-label="Close">×</button></div>
-      <div class="filed"><span class="h">You dropped</span><span class="h">It's a</span><span class="h">Filed in</span>
+      <div class="shead"><div class="grow"><h3>${n} thing${n === 1 ? '' : 's'} filed into ${esc(D.project)}</h3>
+        <span class="note">Copied into the project and sorted by what they are. Your originals stay where they were.</span></div>${closeBtn}</div>
+      <div class="filed"><span class="cap">You dropped</span><span class="cap">It's a</span><span class="cap">Filed in</span>
         ${rows.map(x => `<span class="d" title="${esc(x.dropped)}">${esc(x.dropped)}</span>
           <span>${x.picture ? esc(x.kind) : `<select data-refile="${esc(x.rel)}">${(D.kinds || []).map(k => `<option${k === x.kind ? ' selected' : ''}>${esc(k)}</option>`).join('')}</select>`}</span>
           <span class="w" title="${esc(x.where)}">${esc(x.where)}</span>`).join('')}</div>
-      ${(r.skipped || []).length ? `<span class="note">Folders aren't filed here — drop a card or folder of footage on Home and it goes to Sort.</span>` : ''}
-      <span class="note">Versions are kept: a new treatment never replaces the old one — it becomes the next v. Change a type and it moves to the right folder.</span>
-      ${readable.length ? `<div class="warnbox"><span class="grow">${readable.length === 1 ? esc(readable[0].kind) + ' may have' : 'These may have'} dates and deliverables in ${readable.length === 1 ? 'it' : 'them'}. Read ${readable.length === 1 ? 'it' : 'the first'} and see what it would add — nothing changes until you say so.</span>
-        <button class="btn orange" data-readnow="${esc(readable[0].rel)}">Read it</button></div>` : ''}
-      <div class="foot"><span class="grow">Drop onto this page or Home — or use Add files.</span><button class="btn dark" data-close>Done</button></div>`);
+      <span class="note2">Versions are kept: the next treatment becomes the next v — with a word from its own name when it's a different one, like “Treatment — agency v2”. Change a type and it moves to the right folder.</span>
+      ${(r.skipped || []).length ? '<span class="note2">Folders aren\'t filed here — drop a card or folder of footage on Home and it goes to Sort.</span>' : ''}
+      ${readable.length ? `<div class="warnbox"><span class="grow">${readable.length === 1 ? 'It' : 'They'} may have dates and deliverables in ${readable.length === 1 ? 'it' : 'them'}. Read ${readable.length === 1 ? 'it' : 'the first'} and see what it would add — nothing changes until you say so.</span><button class="btno" data-readnow="${esc(readable[0].rel)}">Read it</button></div>` : ''}
+      <div class="foot"><span class="grow">${r.originals ? `The ${r.originals === 1 ? 'original is' : r.originals + ' originals are'} still where you dropped ${r.originals === 1 ? 'it' : 'them'} from — two copies of the same thing.` : 'Drop onto this page or Home — or use Add files.'}</span>
+        ${r.originals ? '<button class="btnl" id="trashOriginals">Move the originals to the Trash</button>' : ''}<button class="btnd" data-close>Done</button></div>`, 'narrow');
     load();
   }
   window.__projectFiled = filed;
   window.__projectDrag = on => { $('dropTo').textContent = `It's copied into ${D ? D.project : 'the project'} and sorted by what it is.`; $('dropveil').classList.toggle('on', !!on); };
 
   $('sheet').addEventListener('click', async e => {
-    const t = e.target.closest('button'); if (!t) return;
+    const t = e.target.closest('button');
+    if (!t) {
+      // Send: a person's row picks them into To, Cc or Bcc.
+      const row = sheet === 'send' && e.target.closest('[data-person]');
+      if (row) { keepTyping(); togglePerson(renderSend.shown[+row.dataset.person]); renderSend(); }
+      return;
+    }
     const d = t.dataset;
     if (d.close != null) return closeSheet();
     if (d.readnow) return readBrief(d.readnow);
+    if (t.id === 'trashOriginals') {
+      const r = await call('projectTrashOriginals').catch(() => null);
+      t.remove(); toast(r && r.trashed ? `${r.trashed} original${r.trashed === 1 ? '' : 's'} moved to the Trash — the project keeps its copy` : 'Nothing moved');
+      return;
+    }
     if (sheet === 'brief') return briefClick(t);
     if (sheet === 'send') return sendClick(t);
     if (sheet === 'people') return peopleClick(t);
@@ -721,9 +867,11 @@ main>section{animation:rise .45s var(--ease-out) both}
       else toast((r && r.error) || "Couldn't move it");
     }
     if (sheet === 'people') peopleChange(t);
+    if (sheet === 'send' && t.id === 'addDoc' && t.value) { keepTyping(); S.files.push(t.value); renderSend(); }
+    if (sheet === 'send' && t.id === 'draftPick' && t.value) { const x = (D.drafts || []).find(y => y.id === t.value); if (x) openSend([], x); }
   });
 
-  /* ---- reading a brief ---- */
+  /* ---- reading a brief: the page on the left, what it asks for on the right ---- */
   let found = null, foundRel = '', off = new Set();
   async function readBrief(rel) {
     const doc = (D.docs || []).find(x => x.rel === rel) || { name: rel.split('/').pop() };
@@ -731,7 +879,6 @@ main>section{animation:rise .45s var(--ease-out) both}
     let r; try { r = await call('projectRead', { rel }); } catch (e) { r = null; } finally { if (L()) L().done(); }
     if (!r || !r.ok) return toast((r && r.error) || "Couldn't read that one");
     found = r; foundRel = rel; off = new Set();
-    // Anything already in the project is left out to start with.
     const have = (k, t) => list(k).some(x => (x.text || '').toLowerCase() === (t || '').toLowerCase());
     (r.deliverables || []).forEach((x, i) => { if (have('deliverables', x.text)) off.add('d' + i); });
     (r.dates || []).forEach((x, i) => { if (list('dates').some(y => y.date === x.date && (y.text || '').toLowerCase() === (x.text || '').toLowerCase())) off.add('t' + i); });
@@ -739,30 +886,52 @@ main>section{animation:rise .45s var(--ease-out) both}
     (r.musts || []).forEach((x, i) => { if (list('musts').includes(x)) off.add('m' + i); });
     renderBrief(doc);
   }
+  // The document's own words, with what was found marked.
+  function paper(r) {
+    const lines = String(r.text || '').replace(/\r/g, '').split('\n').map(s => s.trim()).filter(Boolean).slice(0, 60);
+    const phrases = [r.idea].concat(r.musts || []).filter(x => x && x.length > 6).map(x => esc(x).replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+    const re = new RegExp(phrases.concat([
+      String.raw`\d{1,3}\s*[x×]\s*\d{1,3}\s*(?:&quot;|”|s\b|sec)[^,.;]*`,
+      String.raw`\(?(?:16:9|9:16|1:1|4:5|4:3|2\.39|2:1)\)?`,
+      String.raw`\b(?:shoot|ppm|first cut|delivery|final delivery|launch|recce|grade)\b[^.;]{0,24}?\d{1,2}(?:\s*[–-]\s*\d{1,2})?\s+(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*`,
+    ]).join('|'), 'gi');
+    const hl = s => esc(s).replace(re, m => `<mark>${m}</mark>`);
+    const heading = s => s.length <= 40 && (/:$/.test(s) || (s === s.toUpperCase() && /[A-Z]/.test(s)));
+    return lines.map((s, i) => i === 0 ? `<div class="pt">${esc(s)}</div>` : heading(s) ? `<div class="ph">${esc(s.replace(/:$/, ''))}</div>` : `<div class="pl">${hl(s)}</div>`).join('');
+  }
   function renderBrief(doc) {
     const r = found;
-    const fr = (id, text, right, sub) => `<div class="fr${off.has(id) ? ' off' : ''}"><button class="tick${off.has(id) ? '' : ' on'}" data-f="${id}" aria-label="${off.has(id) ? 'Add' : 'Leave out'}: ${esc(text)}">${off.has(id) ? '' : TICK}</button>
-      <span class="grow">${esc(text)}${sub ? `<small>${esc(sub)}</small>` : ''}</span>${right ? `<span class="r">${esc(right)}</span>` : ''}</div>`;
-    const count = () => {
-      let n = 0;
-      ['d', 't', 'o', 'm'].forEach(p => { const a = { d: r.deliverables, t: r.dates, o: r.todos, m: r.musts }[p] || []; a.forEach((_, i) => { if (!off.has(p + i)) n++; }); });
-      if (r.idea && !off.has('idea')) n++;
-      return n;
-    };
-    const n = count();
+    const fr = (id, text, a, b, sub) => `<div class="fr${off.has(id) ? ' off' : ''}"><button class="tick o${off.has(id) ? '' : ' on'}" data-f="${id}" aria-pressed="${!off.has(id)}" aria-label="${off.has(id) ? 'Add' : 'Leave out'}: ${esc(text)}">${off.has(id) ? '' : CHECK}</button>
+      <span class="ft">${esc(text)}${sub ? `<small>${esc(sub)}</small>` : ''}</span>${a != null ? `<span class="fs" style="width:42px">${esc(a)}</span>` : ''}${b != null ? `<span class="fs" style="min-width:34px;text-align:right">${esc(b)}</span>` : ''}</div>`;
+    let n = 0;
+    [['d', r.deliverables], ['t', r.dates], ['o', r.todos], ['m', r.musts]].forEach(([p, a]) => (a || []).forEach((_, i) => { if (!off.has(p + i)) n++; }));
+    if (r.idea && !off.has('idea')) n++;
     const nothing = !(r.deliverables || []).length && !(r.dates || []).length && !(r.musts || []).length && !r.idea;
     openSheet('brief', `
-      <div class="top2"><div class="grow"><span class="cap">${esc(doc.kind || 'Document')} · ${esc(doc.name || '')}</span><h3>Here's what it asks for</h3>
-        <span class="note">Untick anything you don't want. Nothing is added to ${esc(D.project)} until you say so.</span></div>
-        <button class="close" data-close aria-label="Close">×</button></div>
-      ${nothing ? `<div class="empty">Nothing that looks like deliverables, dates or must-haves in this one (${r.words || 0} words read). You can still add them by hand.</div>` : ''}
-      ${r.idea ? `<div class="sec"><span class="cap">The idea, in its words</span>${fr('idea', '“' + r.idea + '”')}</div>` : ''}
-      ${(r.deliverables || []).length ? `<div class="sec"><span class="cap">Deliverables · ${r.deliverables.length}</span><div class="found">${r.deliverables.map((x, i) => fr('d' + i, x.text, [x.shape, x.len].filter(Boolean).join(' · '))).join('')}</div></div>` : ''}
-      ${(r.dates || []).length ? `<div class="sec"><span class="cap">Dates · onto the timeline</span><div class="found">${r.dates.map((x, i) => fr('t' + i, x.text, short(x.date))).join('')}</div></div>` : ''}
-      ${(r.musts || []).length ? `<div class="sec"><span class="cap">Must-haves · pinned to the project</span><div class="found">${r.musts.map((x, i) => fr('m' + i, x)).join('')}</div></div>` : ''}
-      ${(r.todos || []).length ? `<div class="sec"><span class="cap">Suggested to-dos</span><div class="found">${r.todos.map((x, i) => fr('o' + i, x.text, x.due ? short(x.due) : '', x.why)).join('')}</div></div>` : ''}
-      <div class="foot"><span class="grow">${r.how === 'apple' ? 'Read with Apple Intelligence, on this Mac. The document never leaves it.' : 'Read on your Mac. The document never leaves it.'}</span>
-        <button class="btn" data-close>Not now</button><button class="btn dark" id="briefAdd" ${n ? '' : 'disabled'}>${n ? `Add ${n} to ${esc(D.project)}` : 'Nothing picked'}</button></div>`);
+      <div class="briefgrid">
+        <div style="display:flex;flex-direction:column;gap:14px;min-width:0">
+          <span class="cap" style="font-size:11px;letter-spacing:0.2em">The ${esc((doc.kind || 'document').toLowerCase())}</span>
+          <div class="paper">${paper(r)}</div>
+          <span class="sub">${esc(r.file || doc.name)}${r.pages ? ` · ${r.pages} page${r.pages === 1 ? '' : 's'}` : ''} · read on this Mac</span>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:18px;min-width:0">
+          <div class="shead"><div class="grow"><h3>Here's what it asks for</h3><span class="note">Untick anything you don't want. Nothing is added to ${esc(D.project)} until you say so.</span></div>${closeBtn}</div>
+          ${nothing ? `<div class="note2">Nothing that looks like deliverables, dates or must-haves in this one (${r.words || 0} words read). You can still add them by hand.</div>` : ''}
+          <div class="found">
+            <div class="fcol">
+              ${(r.deliverables || []).length ? `<div class="fsec"><span class="cap">Deliverables · ${r.deliverables.length}</span>${r.deliverables.map((x, i) => fr('d' + i, x.text, x.shape || '', x.len || '')).join('')}</div>` : ''}
+              ${(r.dates || []).length ? `<div class="fsec"><span class="cap">Dates · onto the timeline</span>${r.dates.map((x, i) => fr('t' + i, x.text, null, short(x.date))).join('')}</div>` : ''}
+              ${r.idea ? `<div class="fsec"><span class="cap">The idea, in its words</span>${fr('idea', '"' + r.idea.replace(/^["“]|["”]$/g, '') + '"')}</div>` : ''}
+            </div>
+            <div class="fcol">
+              ${(r.musts || []).length ? `<div class="fsec"><span class="cap">Must-haves · pinned to the project</span>${r.musts.map((x, i) => fr('m' + i, x)).join('')}</div>` : ''}
+              ${(r.todos || []).length ? `<div class="fsec"><span class="cap">Suggested to-dos</span>${r.todos.map((x, i) => fr('o' + i, x.text, null, x.due ? short(x.due) : '', x.why)).join('')}</div>` : ''}
+            </div>
+          </div>
+          <div class="foot"><span class="grow">${r.how === 'apple' ? 'Read with Apple Intelligence, on this Mac. The brief never leaves it.' : 'Read on your Mac. The brief never leaves it.'}</span>
+            <button class="btnl" data-close>Not now</button><button class="btnd" id="briefAdd" ${n ? '' : 'disabled'}>${n ? `Add ${n} to ${esc(D.project)}` : 'Nothing picked'}</button></div>
+        </div>
+      </div>`, 'wide');
     renderBrief.doc = doc;
   }
   async function briefClick(t) {
@@ -771,7 +940,7 @@ main>section{animation:rise .45s var(--ease-out) both}
     const r = found, keep = (p, a) => (a || []).filter((_, i) => !off.has(p + i));
     const add = {
       title: r.title || '', client: r.client || '',
-      idea: r.idea && !off.has('idea') ? r.idea : '',
+      idea: r.idea && !off.has('idea') ? r.idea.replace(/^["“]|["”]$/g, '') : '',
       deliverables: keep('d', r.deliverables).map(x => ({ id: uid(), text: x.text, shape: x.shape || '', len: x.len || '', due: '' })),
       dates: keep('t', r.dates).map(x => ({ id: uid(), text: x.text, date: x.date })),
       todos: keep('o', r.todos).map(x => ({ id: uid(), text: x.text, meta: x.why || '', due: x.due || '', done: false, brief: true })),
@@ -783,20 +952,37 @@ main>section{animation:rise .45s var(--ease-out) both}
     toast(`Added to ${D.project}`);
   }
 
-  /* ---- send ---- */
-  let S = null;              // the email being written
+  /* ---- send: documents on the left, people on the right ---- */
+  let S = null;
   function openSend(rels, draft) {
     const docs = D.docs || [];
     const name = D.title || D.project;
+    const names = rels.map(r => (docs.find(d => d.rel === r) || {}).name).filter(Boolean);
     S = draft ? JSON.parse(JSON.stringify(draft)) : {
       id: uid(), files: rels.filter(r => docs.some(d => d.rel === r)), to: [], cc: [], bcc: [],
-      subject: rels.length === 1 ? `${name} — ${(docs.find(d => d.rel === rels[0]) || {}).name || ''}` : `${name}${rels.length ? ' — ' + rels.length + ' documents' : ''}`,
-      body: `Hi all,\n\n${rels.length ? 'Attached: ' + rels.map(r => (docs.find(d => d.rel === r) || {}).name).filter(Boolean).join(', ') + '.' : ''}\n\n${(D.mail && D.mail.name) || ''}`.replace(/\n\n\n/g, '\n\n'),
-      copy: true, showCc: false,
+      subject: names.length ? `${name} — ${names.join(' and ').toLowerCase()}` : name,
+      body: `Hi all —${names.length ? ' ' + names.join(' and ') + ' attached.' : ''}\n\n${(D.mail && D.mail.name) || ''}`,
+      copy: true,
     };
+    S.to = S.to || []; S.cc = S.cc || []; S.bcc = S.bcc || [];
+    S.field = 'to'; S.tab = list('crew').length ? 'crew' : 'everyone'; S.q = '';
     S.files = (S.files || []).filter(r => docs.some(d => d.rel === r));
     renderSend();
   }
+  function people() {
+    const book = D.contacts || [];
+    const crewIds = new Set(list('crew').map(c => c.contact).filter(Boolean));
+    const crewMail = new Set(list('crew').map(c => (c.email || '').toLowerCase()).filter(Boolean));
+    let pool = book.slice();
+    if (S.tab === 'crew') {
+      pool = book.filter(c => crewIds.has(c.id) || crewMail.has((c.email || '').toLowerCase()));
+      // Crew not in the book yet still show, so an email can be added for them.
+      list('crew').filter(c => !c.contact && !c.email && c.name).forEach(c => pool.push({ id: '', name: c.name, role: c.role, handle: c.handle, email: '', crewId: c.id }));
+    }
+    if (S.tab === 'clients') pool = book.filter(c => /client/i.test(c.role || '') || (c.from || []).includes('pay'));
+    return S.q ? matchPeople(S.q, pool) : pool;
+  }
+  const where = p => ['to', 'cc', 'bcc'].find(k => S[k].some(x => (p.email && x.email && x.email.toLowerCase() === p.email.toLowerCase()) || (!p.email && x.name === p.name)));
   function renderSend() {
     const docs = D.docs || [];
     const files = S.files.map(r => docs.find(d => d.rel === r)).filter(Boolean);
@@ -804,53 +990,93 @@ main>section{animation:rise .45s var(--ease-out) both}
     const tooBig = total > 24 * 1048576;
     const mail = D.mail || {};
     const drafts = D.drafts || [];
-    const chips = k => (S[k] || []).map((p, i) => `<span class="chip${p.email ? '' : ' warn'}" title="${esc(p.email || 'No email yet — add one in the contact book')}">${esc(p.name || p.email)}${p.email ? '' : ' · no email'}<button class="x" data-unto="${k}:${i}" aria-label="Remove ${esc(p.name || p.email)}">×</button></span>`).join('');
-    const field = (k, label) => `<div class="to"><span class="k">${label}</span>${chips(k)}<input data-to="${k}" placeholder="${(S[k] || []).length ? '' : 'Name, role or email'}" spellcheck="false" autocomplete="off"><div class="sugg" data-sugg="${k}" hidden></div></div>`;
     const who = S.to.length + S.cc.length + S.bcc.length;
-    const ready = mail.ready && who && !tooBig && !S.to.concat(S.cc, S.bcc).some(p => !p.email);
+    const noMail = S.to.concat(S.cc, S.bcc).filter(p => !p.email);
+    const ready = mail.ready && who && !tooBig && !noMail.length;
+    const chipRow = (k, label) => `<div class="fieldrow${S.field === k ? ' act' : ''}"><button class="cap k" data-field="${k}" style="border:none;background:none;padding:0;text-align:left" title="Pick people into ${label}">${label}</button>
+      <div class="chips">${S[k].map((p, i) => `<span class="pchip${p.email ? '' : ' warn'}" title="${esc(p.email || 'No email yet')}">${esc(p.name || p.email)}<button data-unto="${k}:${i}" aria-label="Remove ${esc(p.name || p.email)}">×</button></span>`).join('') || `<span class="note2">${S.field === k ? 'Pick below' : ''}</span>`}</div></div>`;
+    const shown = people();
     openSheet('send', `
-      <div class="top2"><div class="grow"><h3>Send</h3>
+      <div class="shead"><div class="grow"><h3>Send</h3>
         <span class="note">${mail.from ? `From ${esc(mail.from)} — the same account Pay sends invoices from.` : 'Sending uses the email account you set up in Pay.'}</span></div>
-        <button class="close" data-close aria-label="Close">×</button></div>
-      ${mail.ready ? '' : `<div class="warnbox"><span class="grow">${mail.from ? 'Add your app password in Pay › Settings to send from here.' : 'Connect your email in Pay › Settings first — then documents send from the same account.'}</span><button class="btn" id="toPay">Open Pay</button></div>`}
-      ${drafts.length ? `<div class="filter"><span class="cap" style="align-self:center;margin-right:6px">Drafts</span>${drafts.map(x => `<button class="${x.id === S.id ? 'on' : ''}" data-draft="${esc(x.id)}">${esc(x.subject || 'No subject')}</button>`).join('')}</div>` : ''}
-      <div class="sec"><span class="cap">Sending · ${files.length ? files.length + ' document' + (files.length === 1 ? '' : 's') : 'nothing attached'}</span>
-        <div class="files">${files.map(f => `<div class="f"><span class="grow">${esc(f.name)}</span><small>${esc(f.ext.toUpperCase())}${f.bytes ? ' · ' + size(f.bytes) : ''}</small><button class="x show" data-unfile="${esc(f.rel)}" aria-label="Remove ${esc(f.name)}">×</button></div>`).join('')}
-          <div style="display:flex;gap:8px;align-items:center"><select class="field" id="addDoc" style="padding:6px 10px;font-size:12.5px"><option value="">+ Add from Documents</option>${docs.filter(d => !S.files.includes(d.rel) && !d.package).map(d => `<option value="${esc(d.rel)}">${esc(d.name)} · ${esc(d.kind)}</option>`).join('')}</select>
-          <span class="note">${files.length ? size(total) + ' in all' + (tooBig ? ' — too big for email. Send fewer, or share a link from your own storage.' : ' — fine for email.') : ''}</span></div></div></div>
-      <div class="sec">${field('to', 'To')}${S.showCc || S.cc.length || S.bcc.length ? field('cc', 'Cc') + field('bcc', 'Bcc') : '<button class="link" id="showCc" style="align-self:flex-start">Cc / Bcc</button>'}</div>
-      <div class="sec"><span class="cap">Subject</span><input class="field" id="subj" value="${esc(S.subject)}" spellcheck="false"></div>
-      <div class="sec"><span class="cap">Message</span><textarea class="field" id="msg" rows="6" style="resize:vertical;font:14px/1.55 Raleway,sans-serif">${esc(S.body)}</textarea></div>
-      <label class="note" style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="copy" ${S.copy ? 'checked' : ''}> Send me a copy</label>
+        ${drafts.length ? `<select class="field" id="draftPick" style="padding:8px 10px;font-size:12.5px;align-self:center"><option value="">Drafts · ${drafts.length}</option>${drafts.map(x => `<option value="${esc(x.id)}">${esc(x.subject || 'No subject')}</option>`).join('')}</select>` : ''}
+        ${closeBtn}</div>
+      ${mail.ready ? '' : `<div class="warnbox"><span class="grow">${mail.from ? 'Add your app password in Pay › Settings to send from here.' : 'Connect your email in Pay › Settings first — then documents send from the same account.'}</span><button class="btnl" id="toPay" style="padding:9px 15px">Open Pay</button></div>`}
+      <div class="sendgrid">
+        <div style="display:flex;flex-direction:column;gap:16px;min-width:0">
+          <span class="cap">Sending · ${files.length} document${files.length === 1 ? '' : 's'}</span>
+          ${files.map((f, i) => `<div class="att"><div class="pg${i === 0 ? ' o' : ''}"><i></i><i></i><i></i><i></i></div>
+            <div style="display:flex;flex-direction:column;gap:2px;flex-grow:1;min-width:0"><span class="an">${esc(f.name)}</span><span class="sub" style="font-size:11px">${esc(f.ext.toUpperCase())}${f.bytes ? ' · ' + size(f.bytes) : ''}</span></div>
+            <button class="x" style="opacity:1;font-size:15px" data-unfile="${esc(f.rel)}" aria-label="Remove ${esc(f.name)}">×</button></div>`).join('')}
+          <select class="txt o" id="addDoc" style="align-self:flex-start;padding:2px 0;appearance:none;-webkit-appearance:none;cursor:pointer"><option value="">+ Add from Documents</option>${docs.filter(d => !S.files.includes(d.rel) && !d.package).map(d => `<option value="${esc(d.rel)}">${esc(d.name)} · ${esc(d.kind)}</option>`).join('')}</select>
+          <span class="note2">${files.length ? `${size(total)} in all — ${tooBig ? 'too big for email. Send fewer, or share a link from your own storage.' : 'fine for email.'} ` : ''}Films are too big to email; send those as a link from your own storage.</span>
+          <label style="display:flex;flex-direction:column;gap:6px"><span class="cap">Subject</span><input class="field" id="subj" value="${esc(S.subject)}" spellcheck="false"></label>
+          <label style="display:flex;flex-direction:column;gap:6px"><span class="cap">Message</span><textarea class="field" id="msg" rows="6" style="resize:vertical;font-family:Raleway,serif;line-height:1.5">${esc(S.body)}</textarea></label>
+          <label class="note2" style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="copy" ${S.copy ? 'checked' : ''}> Send me a copy</label>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:12px;min-width:0">
+          ${chipRow('to', 'To')}${chipRow('cc', 'Cc')}${chipRow('bcc', 'Bcc')}
+          <label class="search"><span style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">Search contacts</span>
+            <input id="pq" placeholder="Search your contacts — name, role, company or email" value="${esc(S.q)}" spellcheck="false"></label>
+          <div class="tabs2">${[['crew', "This project's crew"], ['clients', 'Clients'], ['everyone', 'Everyone']].map(([k, n]) => `<button class="${S.tab === k ? 'on' : ''}" data-tab="${k}">${n}</button>`).join('')}</div>
+          <div class="plist">${shown.map((p, i) => { const w = where(p); return `<div class="person${w ? ' on' : ''}" role="button" tabindex="0" data-person="${i}">
+              <span class="box">${w ? CHECK : ''}</span>
+              <span class="av">${esc((p.name || p.email || '?').split(/\s+/).map(x => x[0]).join('').slice(0, 2).toUpperCase())}</span>
+              <span class="pb"><span style="font-size:14px">${esc(p.name || p.email)}${p.role ? ` <span class="pr">· ${esc(p.role)}</span>` : ''}</span>
+                ${p.email ? `<span class="pe">${esc(p.email)}</span>` : `<button class="addmail" data-addmail="${i}">No email yet — add one</button>`}
+                ${p.handle ? `<span class="ph">${esc(p.handle)}</span>` : ''}</span>
+              ${w && w !== 'to' ? `<span class="as">${w}</span>` : ''}</div>`; }).join('') || `<div class="note2" style="padding:10px">${S.q && isEmail(S.q.trim()) ? 'Press Return to add ' + esc(S.q.trim()) : 'No one here yet.'}</div>`}</div>
+          <span class="note2">One contact book: crew from Credit, clients from Pay, and everyone on your projects. No email yet? Add it here and every tool has it.</span>
+        </div>
+      </div>
       <div class="foot"><span class="grow">A copy of what you send is kept in ${esc(D.project)} › ${esc(D.project)}_Docs › Sent, and each document notes who it went to.</span>
-        ${drafts.some(x => x.id === S.id) ? '<button class="link" id="dropDraft">Delete draft</button>' : ''}
-        <button class="btn" id="saveDraft">Save draft</button>
-        <button class="btn dark" id="sendGo" ${ready ? '' : 'disabled'}>${who ? `Send to ${who} ${who === 1 ? 'person' : 'people'}` : 'Pick someone to send to'}</button></div>`);
-    $('sheet').querySelectorAll('input[data-to]').forEach(inp => {
-      const k = inp.dataset.to;
-      attachSuggest(inp, $('sheet').querySelector(`[data-sugg="${k}"]`), (c) => {
-        if (!S[k].some(p => (p.email && p.email === c.email) || (!c.email && p.name === c.name))) S[k].push({ id: c.id || '', name: c.name || '', email: c.email || '' });
-        keepTyping(); renderSend(); const again = $('sheet').querySelector(`input[data-to="${k}"]`); if (again) again.focus();
-      }, { crewFirst: true, comma: true, back: () => { S[k].pop(); keepTyping(); renderSend(); const again = $('sheet').querySelector(`input[data-to="${k}"]`); if (again) again.focus(); } });
+        ${drafts.some(x => x.id === S.id) ? '<button class="txt" id="dropDraft">Delete draft</button>' : ''}
+        <button class="btnl" id="saveDraft">Save draft</button>
+        <button class="btnl" data-close>Cancel</button>
+        <button class="btnd" id="sendGo" ${ready ? '' : 'disabled'}>${noMail.length ? `${esc(noMail[0].name)} needs an email` : who ? `Send to ${who} ${who === 1 ? 'person' : 'people'}` : 'Pick someone to send to'}</button></div>`);
+    renderSend.shown = shown;
+    const q = $('pq');
+    q.addEventListener('input', () => { S.q = q.value; keepTyping(); const pos = q.selectionStart; renderSend(); const n = $('pq'); n.focus(); n.setSelectionRange(pos, pos); });
+    q.addEventListener('keydown', e => {
+      if (e.key !== 'Enter') return;
+      const typed = q.value.trim(); e.preventDefault();
+      if (isEmail(typed)) { keepTyping(); S[S.field].push({ id: '', name: '', email: typed }); S.q = ''; renderSend(); $('pq').focus(); }
+      else if (renderSend.shown[0]) { keepTyping(); togglePerson(renderSend.shown[0]); S.q = ''; renderSend(); $('pq').focus(); }
     });
-    $('addDoc').addEventListener('change', e => { if (e.target.value) { keepTyping(); S.files.push(e.target.value); renderSend(); } });
   }
-  // Keep what's been typed in the subject and message when the sheet redraws.
   function keepTyping() {
     if ($('subj')) S.subject = $('subj').value;
     if ($('msg')) S.body = $('msg').value;
     if ($('copy')) S.copy = $('copy').checked;
   }
+  function togglePerson(p) {
+    if (!p) return;
+    const w = where(p);
+    if (w) S[w] = S[w].filter(x => !((p.email && x.email === p.email) || (!p.email && x.name === p.name)));
+    else S[S.field].push({ id: p.id || '', name: p.name || '', email: p.email || '' });
+  }
   async function sendClick(t) {
     const d = t.dataset;
     keepTyping();
     if (t.id === 'toPay') { closeSheet(); return call('projectTool', { id: 'pay' }); }
-    if (t.id === 'showCc') { S.showCc = true; return renderSend(); }
+    if (d.field) { S.field = d.field; return renderSend(); }
+    if (d.tab) { S.tab = d.tab; return renderSend(); }
     if (d.unto) { const [k, i] = d.unto.split(':'); S[k].splice(+i, 1); return renderSend(); }
     if (d.unfile) { S.files = S.files.filter(r => r !== d.unfile); return renderSend(); }
-    if (d.draft) { const x = (D.drafts || []).find(y => y.id === d.draft); if (x) openSend([], x); return; }
+    if (d.addmail != null) {
+      const p = renderSend.shown[+d.addmail]; if (!p) return;
+      const email = (prompt(`${p.name}'s email — saved to your contacts for every tool`) || '').trim();
+      if (!isEmail(email)) { if (email) toast("That doesn't look like an email"); return; }
+      const r = await call('contactSave', { contact: { id: p.id || undefined, name: p.name, email, role: p.role || '', handle: p.handle || '' } }).catch(() => null);
+      if (r) {
+        D.contacts = r.contacts;
+        if (p.crewId) { const c = list('crew').find(x => x.id === p.crewId); if (c) { c.contact = r.contact.id; c.email = email; save('crew', D.crew, true); } }
+        ['to', 'cc', 'bcc'].forEach(k => S[k].forEach(x => { if (!x.email && x.name === p.name) x.email = email; }));
+      }
+      return renderSend();
+    }
     if (t.id === 'saveDraft' || t.id === 'dropDraft') {
-      const r = await call('projectDraft', t.id === 'dropDraft' ? { remove: S.id } : { draft: S }).catch(() => null);
+      const r = await call('projectDraft', t.id === 'dropDraft' ? { remove: S.id } : { draft: { id: S.id, files: S.files, to: S.to, cc: S.cc, bcc: S.bcc, subject: S.subject, body: S.body, copy: S.copy } }).catch(() => null);
       if (r) D.drafts = r.drafts || [];
       if (t.id === 'dropDraft') { closeSheet(); return toast('Draft deleted'); }
       toast('Draft saved with the project'); return renderSend();
@@ -864,57 +1090,41 @@ main>section{animation:rise .45s var(--ease-out) both}
       toast('Sent');
     }
   }
-  $('sheet').addEventListener('input', e => { if (sheet === 'send' && (e.target.id === 'subj' || e.target.id === 'msg')) keepTyping(); });
 
   /* ---- the contact book ---- */
   let pq = '';
   function dupes(all) {
-    const out = [], seen = new Set();
-    const norm = s => (s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, ' ').trim();
+    const out = [], norm = s => (s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, ' ').trim();
     for (let i = 0; i < all.length; i++) for (let j = i + 1; j < all.length; j++) {
       const a = all[i], b = all[j];
-      const sameName = norm(a.name) && norm(a.name) === norm(b.name);
-      const sameMail = a.email && b.email && a.email.toLowerCase() === b.email.toLowerCase();
-      const key = a.id + b.id;
-      if ((sameName || sameMail) && !seen.has(key)) { seen.add(key); out.push([a, b]); }
+      if ((norm(a.name) && norm(a.name) === norm(b.name)) || (a.email && b.email && a.email.toLowerCase() === b.email.toLowerCase())) out.push([a, b]);
     }
     return out.slice(0, 6);
   }
-  function openPeople() { renderPeople(); }
   function renderPeople() {
     const all = D.contacts || [];
     const q = pq.toLowerCase();
     const shown = all.filter(c => !q || [c.name, c.email, c.role, c.company, c.handle].join(' ').toLowerCase().includes(q));
-    const dd = dupes(all);
     openSheet('people', `
-      <div class="top2"><div class="grow"><h3>Contact book</h3>
-        <span class="note">One book for every tool: crew from Credit, clients from Pay, and everyone on your projects. Fix a name or add an email here and every tool has it.</span></div>
-        <button class="close" data-close aria-label="Close">×</button></div>
-      ${dd.map(([a, b]) => `<div class="dupe"><span class="grow">Same person? <b style="font-weight:500">${esc(a.name || a.email)}</b> ${esc(a.email ? '· ' + a.email : '')} and <b style="font-weight:500">${esc(b.name || b.email)}</b> ${esc(b.email ? '· ' + b.email : '')}</span>
-        <button class="btn" data-merge="${esc(a.id)}:${esc(b.id)}">Merge</button></div>`).join('')}
-      <input class="field" id="pq" placeholder="Search ${all.length} people" value="${esc(pq)}" spellcheck="false">
-      <div class="plist">${shown.map(c => `<div class="pp" data-cid="${esc(c.id)}">
-          <input class="plain" data-c="name" value="${esc(c.name || '')}" placeholder="Name" spellcheck="false">
-          <input class="plain" data-c="role" value="${esc(c.role || '')}" placeholder="Role" spellcheck="false">
-          <input class="plain" data-c="email" value="${esc(c.email || '')}" placeholder="email" spellcheck="false">
-          <input class="plain" data-c="handle" value="${esc(c.handle || '')}" placeholder="@handle" spellcheck="false">
-          <button class="x show" data-rmc="${esc(c.id)}" aria-label="Remove ${esc(c.name || c.email)}">×</button></div>`).join('') || '<div class="empty">No one yet. Credit remembers crew as you read call sheets; Pay remembers clients as you invoice them.</div>'}</div>
-      <div class="foot"><span class="grow">Kept on this Mac, with the app.</span><button class="btn dark" data-close>Done</button></div>`);
-    const s = $('pq');
-    s.addEventListener('input', () => { pq = s.value; const pos = s.selectionStart; renderPeople(); const n = $('pq'); n.focus(); n.setSelectionRange(pos, pos); });
+      <div class="shead"><div class="grow"><h3>Contacts</h3>
+        <span class="note">One book for every tool: crew from Credit, clients from Pay, and everyone on your projects. Fix a name or add an email here and every tool has it.</span></div>${closeBtn}</div>
+      ${dupes(all).map(([a, b]) => `<div class="dupe"><span class="grow">Same person? <b style="font-weight:500">${esc(a.name || a.email)}</b> ${esc(a.email ? '· ' + a.email : '')} and <b style="font-weight:500">${esc(b.name || b.email)}</b> ${esc(b.email ? '· ' + b.email : '')}</span>
+        <button class="btnl" style="padding:8px 14px" data-merge="${esc(a.id)}:${esc(b.id)}">Merge</button></div>`).join('')}
+      <label class="search"><input id="pbq" placeholder="Search ${all.length} people" value="${esc(pq)}" spellcheck="false"></label>
+      <div style="max-height:52vh;overflow-y:auto">${shown.map(c => `<div class="pp" data-cid="${esc(c.id)}">
+          <input data-c="name" value="${esc(c.name || '')}" placeholder="Name" spellcheck="false">
+          <input data-c="role" value="${esc(c.role || '')}" placeholder="Role" spellcheck="false">
+          <input data-c="email" value="${esc(c.email || '')}" placeholder="email" spellcheck="false">
+          <input data-c="handle" value="${esc(c.handle || '')}" placeholder="@handle" spellcheck="false">
+          <button class="x" style="opacity:1" data-rmc="${esc(c.id)}" aria-label="Remove ${esc(c.name || c.email)}">×</button></div>`).join('') || '<div class="note2">No one yet. Credit remembers crew as you read call sheets; Pay remembers clients as you invoice them.</div>'}</div>
+      <div class="foot"><span class="grow">Kept with the app, and a copy in your vault.</span><button class="btnd" data-close>Done</button></div>`, 'narrow');
+    const s = $('pbq');
+    s.addEventListener('input', () => { pq = s.value; const pos = s.selectionStart; renderPeople(); const n = $('pbq'); n.focus(); n.setSelectionRange(pos, pos); });
   }
   async function peopleClick(t) {
     const d = t.dataset;
-    if (d.merge) {
-      const [keep, drop] = d.merge.split(':');
-      const r = await call('contactMerge', { keep, drop }).catch(() => null);
-      if (r) { D.contacts = r.contacts; renderPeople(); toast('Merged'); }
-    }
-    if (d.rmc) {
-      const c = (D.contacts || []).find(x => x.id === d.rmc);
-      const r = await call('contactRemove', { id: d.rmc }).catch(() => null);
-      if (r) { D.contacts = r.contacts; renderPeople(); toast(`${(c && (c.name || c.email)) || 'They'} left the contact book`); }
-    }
+    if (d.merge) { const [keep, drop] = d.merge.split(':'); const r = await call('contactMerge', { keep, drop }).catch(() => null); if (r) { D.contacts = r.contacts; renderPeople(); toast('Merged'); } }
+    if (d.rmc) { const r = await call('contactRemove', { id: d.rmc }).catch(() => null); if (r) { D.contacts = r.contacts; renderPeople(); } }
   }
   async function peopleChange(t) {
     const row = t.closest('.pp[data-cid]'); if (!row || !t.dataset.c) return;
@@ -928,8 +1138,8 @@ main>section{animation:rise .45s var(--ease-out) both}
     const prev = shared; shared = s;
     const changed = !D || s.project !== prev.project || s.vault !== prev.vault;
     const labelChanged = D && D.vault && (s.label !== D.label || (s.tags || []).join() !== (D.tags || []).join());
-    if (changed) { picked.clear(); docFilter = 'All'; if (sheet) closeSheet(); load(); }
-    else if (labelChanged) { D.label = s.label; D.tags = s.tags || []; D.labels = s.labels || D.labels; renderTop(); }
+    if (changed) { picked.clear(); crewAll = false; editingDel = null; adding = false; if (sheet) closeSheet(); load(); }
+    else if (labelChanged && !adding) { D.label = s.label; D.tags = s.tags || []; D.labels = s.labels || D.labels; renderHead(); }
     else if (s.tab === 'project' && prev.tab !== 'project' && !sheet) load();      // fresh each time you come back to it
   };
   window.__neededSynced = () => load();

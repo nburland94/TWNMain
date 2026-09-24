@@ -22,8 +22,19 @@ enum ProjectFile {
     static let editable: Set<String> = ["title", "client", "producer", "director", "idea",
                                         "deliverables", "musts", "dates", "todos", "crew"]
 
+    /// Lexus/Lexus_Project.json — in plain sight, so it travels with the folder
+    /// whatever copies it. (It used to be hidden, in Lexus/.needed/project.json:
+    /// that one is moved here the first time it's read.)
     static func url(_ project: String) -> URL? {
-        Shared.vault?.appendingPathComponent(project, isDirectory: true).appendingPathComponent(".needed/project.json")
+        guard let dir = Shared.vault?.appendingPathComponent(project, isDirectory: true) else { return nil }
+        let here = dir.appendingPathComponent("\(project)_Project.json")
+        let fm = FileManager.default
+        let old = dir.appendingPathComponent(".needed/project.json")
+        if !fm.fileExists(atPath: here.path), fm.fileExists(atPath: old.path), (try? fm.moveItem(at: old, to: here)) != nil {
+            let hidden = old.deletingLastPathComponent()
+            if ((try? fm.contentsOfDirectory(atPath: hidden.path)) ?? ["x"]).isEmpty { try? fm.removeItem(at: hidden) }
+        }
+        return here
     }
     static func read(_ project: String) -> [String: Any] {
         guard let u = url(project), let d = try? Data(contentsOf: u),
@@ -61,6 +72,7 @@ enum Docs {
         Kind(name: "Contract", folder: "Contracts", versioned: false),
         Kind(name: "Release", folder: "Releases", versioned: false),
         Kind(name: "Invoice", folder: "Invoices", versioned: false),
+        Kind(name: "Contact sheet", folder: "Contact sheets", versioned: false),
         Kind(name: "Other", folder: "Other", versioned: false),
     ]
     static func kind(_ name: String) -> Kind { kinds.first { $0.name == name } ?? kinds[kinds.count - 1] }
@@ -98,8 +110,33 @@ enum Docs {
         return "Other"
     }
 
-    /// "Treatment v4.pdf", "Call sheet — Day 1 v2.pdf"; unversioned kinds keep their own name.
-    static func name(for original: String, kind: Kind, in folder: URL) -> String {
+    /// What's left of a file's own name once the noise is gone, so two different
+    /// treatments stay apart: "Agency_Treatment_v7_FINAL.pdf" → "agency",
+    /// "LEXUS_Treatment_final2 (1).pdf" → "" (just the next Treatment v).
+    static func label(from original: String, kind: Kind, project: String) -> String {
+        var stem = (original as NSString).deletingPathExtension
+        for c in ["_", "-", ".", "(", ")", "[", "]", "—", "–", "+", ","] { stem = stem.replacingOccurrences(of: c, with: " ") }
+        let split = { (x: String) -> [String] in x.lowercased().split(whereSeparator: { !$0.isLetter && !$0.isNumber }).map(String.init) }
+        let projectWords = Set(split(project))
+        let kindWords = Set(split(kind.name) + split(kind.folder) + ["callsheet", "shotlist", "moodboard", "doc", "document", "pdf", "deck"])
+        let noise: Set<String> = ["final", "finals", "draft", "copy", "new", "latest", "updated", "update", "version", "rev", "revised", "the", "and",
+                                  "for", "of", "lo", "hi", "res", "lowres", "hires", "compressed", "small", "web", "print", "ok", "approved", "day", "v"]
+        var keep: [String] = []
+        for w in stem.split(separator: " ").map(String.init) {
+            let l = w.lowercased()
+            if projectWords.contains(l) || kindWords.contains(l) || noise.contains(l) { continue }
+            if l.range(of: "^(v|r|rev|final|draft|copy)?[0-9]+[a-z]?$", options: .regularExpression) != nil { continue }   // v3, final2, 2, 20240912
+            if l.range(of: "^(final|draft|copy)[0-9a-z]*$", options: .regularExpression) != nil { continue }
+            keep.append(w.count <= 4 && w == w.uppercased() ? w : l)
+            if keep.count == 3 { break }
+        }
+        let out = keep.joined(separator: " ")
+        return out.count > 24 ? String(out.prefix(24)).trimmingCharacters(in: .whitespaces) : out
+    }
+
+    /// "Treatment v4.pdf", "Treatment — agency v2.pdf", "Call sheet — Day 1 v2.pdf";
+    /// unversioned kinds keep their own name.
+    static func name(for original: String, kind: Kind, in folder: URL, project: String = "") -> String {
         let ext = (original as NSString).pathExtension
         let dot = ext.isEmpty ? "" : "." + ext
         guard kind.versioned else {
@@ -109,6 +146,8 @@ enum Docs {
         }
         var base = kind.name
         if kind.name == "Call sheet", let day = firstMatch("day\\s*([0-9]{1,2})", in: original.lowercased()) { base += " — Day \(day)" }
+        let own = label(from: original, kind: kind, project: project)
+        if !own.isEmpty { base += " — \(own)" }
         let names = (try? FileManager.default.contentsOfDirectory(atPath: folder.path)) ?? []
         var top = 0
         for f in names {
@@ -134,8 +173,10 @@ enum Docs {
         let top = parts[1]
         if top == "\(project)_Docs", parts.count >= 4 {
             let f = parts[2]
-            if let k = kinds.first(where: { $0.folder == f }) { return (k.name, "Filed here") }
-            return (guess(parts.last ?? ""), "Filed here")
+            let makers: [String: String] = ["Invoices": "Made in Pay", "Shot lists": "Made in Shots", "Mood boards": "Made in the Vault", "Contact sheets": "Made in the Vault"]
+            let made = makers[f] ?? "Filed here"
+            if let k = kinds.first(where: { $0.folder == f }) { return (k.name, made) }
+            return (guess(parts.last ?? ""), made)
         }
         if top == "Invoices" { return ("Invoice", "Made in Pay") }
         if top == "Shots" { return ("Shot list", "Made in Shots") }
@@ -149,7 +190,7 @@ enum Docs {
     static func list(_ project: String) -> [[String: Any]] {
         guard let base = Shared.vault else { return [] }
         let root = base.appendingPathComponent(project, isDirectory: true)
-        let skip: Set<String> = ["\(project)_Grab", "Stills", "GIFs", "Motion", "Grabs", "References", "Sent", "Stills_Ref", "GIFs_Ref", "Motion_Ref"]
+        let skip: Set<String> = ["\(project)_Grab", "Stills", "GIFs", "Motion", "Grabs", "References", "Sent", "Stills_Ref", "GIFs_Ref", "Motion_Ref", "Ideas"]
         let keys: [URLResourceKey] = [.isDirectoryKey, .isPackageKey, .contentModificationDateKey, .fileSizeKey]
         guard let walk = FileManager.default.enumerator(at: root, includingPropertiesForKeys: keys,
                                                         options: [.skipsHiddenFiles, .skipsPackageDescendants]) else { return [] }
@@ -192,6 +233,7 @@ enum Docs {
         var planned = Set<String>()
         var skipped: [String] = []
         var failedDocs = 0
+        var docOriginals: [String] = []
         for u in urls {
             var isDir: ObjCBool = false
             guard fm.fileExists(atPath: u.path, isDirectory: &isDir) else { continue }
@@ -218,8 +260,9 @@ enum Docs {
             let k = kind(guess(u.lastPathComponent))
             let dir = docs.appendingPathComponent(k.folder, isDirectory: true)
             try? fm.createDirectory(at: dir, withIntermediateDirectories: true)
-            let target = vault.uniqueURL(in: dir, name: name(for: u.lastPathComponent, kind: k, in: dir))
+            let target = vault.uniqueURL(in: dir, name: name(for: u.lastPathComponent, kind: k, in: dir, project: project))
             guard (try? fm.copyItem(at: u, to: target)) != nil else { failedDocs += 1; continue }
+            docOriginals.append(u.path)
             rows.append(["dropped": u.lastPathComponent, "kind": k.name,
                          "rel": target.path.replacingOccurrences(of: base.path + "/", with: ""),
                          "where": "\(project)_Docs › \(k.folder) › \(target.lastPathComponent)",
@@ -235,7 +278,7 @@ enum Docs {
             }
             o["docs"] = meta
         }
-        let jobs = pictures, skippedNames = skipped, docFails = failedDocs
+        let jobs = pictures, skippedNames = skipped, docFails = failedDocs, docsFrom = docOriginals
         DispatchQueue.global(qos: .userInitiated).async {
             var failed = Set<String>()
             for j in jobs where (try? fm.copyItem(at: j.from, to: j.to)) == nil { failed.insert(j.to.path) }
@@ -265,9 +308,48 @@ enum Docs {
                                     "where": "\(project)_Vault · with colour palettes", "picture": true, "count": picRows])
                     }
                 }
-                done(["ok": true, "rows": out, "skipped": skippedNames, "failed": failedPaths.count + docFails])
+                // The originals can go to the Trash if you like — only ones from outside the vault.
+                let copied = docsFrom + jobs.filter { !failedPaths.contains($0.to.path) }.map { $0.from.path }
+                Docs.lastOriginals = copied.filter { !$0.hasPrefix(base.path + "/") }
+                done(["ok": true, "rows": out, "skipped": skippedNames, "failed": failedPaths.count + docFails, "originals": Docs.lastOriginals.count])
             }
         }
+    }
+
+    /// The files copied in by the last drop, so "Move the originals to the Trash" can only ever touch those.
+    static var lastOriginals: [String] = []
+    static func trashOriginals() -> Int {
+        var n = 0
+        for p in lastOriginals where (try? FileManager.default.trashItem(at: URL(fileURLWithPath: p), resultingItemURL: nil)) != nil { n += 1 }
+        lastOriginals = []
+        return n
+    }
+
+    /// A new name for a document; it stays in its folder, and keeps its notes.
+    static func rename(rel: String, to raw: String, project: String) -> [String: Any] {
+        guard let base = Shared.vault, !rel.contains("..") else { return ["ok": false] }
+        var clean = raw.replacingOccurrences(of: "/", with: "-").replacingOccurrences(of: ":", with: "-").trimmingCharacters(in: .whitespacesAndNewlines)
+        while clean.hasPrefix(".") { clean.removeFirst() }
+        guard !clean.isEmpty else { return ["ok": false, "error": "Give it a name"] }
+        let from = base.appendingPathComponent(rel)
+        let ext = from.pathExtension
+        let to = from.deletingLastPathComponent().appendingPathComponent(ext.isEmpty ? clean : "\(clean).\(ext)")
+        guard to.path != from.path else { return ["ok": true, "rel": rel, "name": clean] }
+        let caseOnly = to.path.lowercased() == from.path.lowercased()
+        guard caseOnly || !FileManager.default.fileExists(atPath: to.path) else { return ["ok": false, "error": "There's already one called \(clean)"] }
+        let moved: Bool
+        if caseOnly {
+            let tmp = from.deletingLastPathComponent().appendingPathComponent(".renaming-\(UUID().uuidString)")
+            moved = (try? FileManager.default.moveItem(at: from, to: tmp)) != nil && (try? FileManager.default.moveItem(at: tmp, to: to)) != nil
+        } else { moved = (try? FileManager.default.moveItem(at: from, to: to)) != nil }
+        guard moved else { return ["ok": false, "error": "Couldn't rename it"] }
+        let newRel = to.path.replacingOccurrences(of: base.path + "/", with: "")
+        ProjectFile.change(project) { o in
+            var m = (o["docs"] as? [String: Any]) ?? [:]
+            if let v = m.removeValue(forKey: rel) { m[newRel] = v }
+            o["docs"] = m
+        }
+        return ["ok": true, "rel": newRel, "name": clean]
     }
 
     /// A different kind: it moves to that folder and takes that kind's name.
@@ -280,7 +362,7 @@ enum Docs {
         try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
         let meta = (ProjectFile.read(project)["docs"] as? [String: Any]) ?? [:]
         let original = ((meta[rel] as? [String: Any])?["from"] as? String) ?? from.lastPathComponent
-        var target = dir.appendingPathComponent(name(for: original, kind: k, in: dir))
+        var target = dir.appendingPathComponent(name(for: original, kind: k, in: dir, project: project))
         var n = 2
         while FileManager.default.fileExists(atPath: target.path) {
             let stem = target.deletingPathExtension().lastPathComponent, ext = target.pathExtension
@@ -297,6 +379,87 @@ enum Docs {
     }
 }
 
+// MARK: - Renaming a project, everywhere at once
+
+/// Renaming the folder in Finder leaves everything pointing at the old name.
+/// Renaming here moves the folder and the folders named after it (Lexus_Grab,
+/// Lexus_Vault, Lexus_Docs, Lexus_Project.json…), and updates the vault's list,
+/// the project's own file and Pay's invoices to match.
+enum ProjectRename {
+    static func rename(from old: String, to raw: String) -> [String: Any] {
+        guard let base = Shared.vault else { return ["ok": false, "error": "Choose your vault first"] }
+        let new = Shell.clean(raw)
+        guard new != old else { return ["ok": true, "project": new, "same": true] }
+        guard new != "Unsorted", old != "Unsorted" else { return ["ok": false, "error": "Unsorted keeps its name — make a new project instead"] }
+        let fm = FileManager.default
+        let from = base.appendingPathComponent(old, isDirectory: true), to = base.appendingPathComponent(new, isDirectory: true)
+        let caseOnly = old.lowercased() == new.lowercased()
+        if !caseOnly && fm.fileExists(atPath: to.path) { return ["ok": false, "error": "There's already a project called \(new)"] }
+        if fm.fileExists(atPath: from.path) {
+            do {
+                if caseOnly {
+                    let tmp = base.appendingPathComponent(".renaming-\(UUID().uuidString)", isDirectory: true)
+                    try fm.moveItem(at: from, to: tmp); try fm.moveItem(at: tmp, to: to)
+                } else { try fm.moveItem(at: from, to: to) }
+            } catch { return ["ok": false, "error": "Couldn't rename the folder — is a file in it open?"] }
+            // Inside: everything named after the project.
+            for name in (try? fm.contentsOfDirectory(atPath: to.path)) ?? [] where name.hasPrefix(old + "_") {
+                try? fm.moveItem(at: to.appendingPathComponent(name), to: to.appendingPathComponent(new + "_" + name.dropFirst(old.count + 1)))
+            }
+        }
+        let map = { (rel: String) -> String in
+            var parts = rel.components(separatedBy: "/")
+            guard !parts.isEmpty, parts[0] == old else { return rel }
+            parts[0] = new
+            if parts.count >= 2, parts[1].hasPrefix(old + "_") { parts[1] = new + "_" + parts[1].dropFirst(old.count + 1) }
+            return parts.joined(separator: "/")
+        }
+        // The vault's list.
+        let store = VaultStore.shared
+        store.load()
+        var moved = 0
+        for i in store.items.indices {
+            var hit = false
+            if (store.items[i]["project"] as? String) == old { store.items[i]["project"] = new; hit = true }
+            for k in ["file", "thumb"] {
+                if let r = store.items[i][k] as? String { let m = map(r); if m != r { store.items[i][k] = m; hit = true } }
+            }
+            if hit { moved += 1 }
+        }
+        store.save()
+        // The project's own file: its notes on each document are kept by path.
+        ProjectFile.change(new) { o in
+            var docs: [String: Any] = [:]
+            for (k, v) in (o["docs"] as? [String: Any]) ?? [:] { docs[map(k)] = v }
+            o["docs"] = docs
+        }
+        // Pay's invoices: the project on each, and where its PDF is.
+        let ledger = Mailer.payDir.appendingPathComponent("ledger.json")
+        if let d = try? Data(contentsOf: ledger), let obj = try? JSONSerialization.jsonObject(with: d) {
+            let prefix = base.path + "/"
+            func walk(_ v: Any, key: String) -> Any {
+                if let o = v as? [String: Any] {
+                    var out: [String: Any] = [:]
+                    for (k, x) in o { out[k] = walk(x, key: k) }
+                    return out
+                }
+                if let a = v as? [Any] { return a.map { walk($0, key: "") } }
+                if let str = v as? String {
+                    if key == "project" && str == old { return new }
+                    if str.hasPrefix(prefix) { return prefix + map(String(str.dropFirst(prefix.count))) }
+                }
+                return v
+            }
+            if let out = try? JSONSerialization.data(withJSONObject: walk(obj, key: ""), options: [.prettyPrinted, .sortedKeys]) {
+                try? out.write(to: ledger, options: .atomic)
+            }
+        }
+        Labels.forget()
+        if Shared.project == old { Shared.project = new } else { Shared.notify() }
+        return ["ok": true, "project": new, "items": moved]
+    }
+}
+
 // MARK: - One contact book
 
 /// Everyone, once: crew from Credit, clients from Pay, and anyone added on a
@@ -308,15 +471,24 @@ enum Contacts {
             ?? FileManager.default.homeDirectoryForCurrentUser
         return base.appendingPathComponent("NeededTools/contacts.json")
     }
+    /// A copy in the vault too (.vault/contacts.json), so a backup of the vault
+    /// drive has it — and a new Mac picks it up from there.
+    static var vaultCopy: URL? { Shared.vault?.appendingPathComponent(".vault/contacts.json") }
     static func load() -> [[String: Any]] {
-        guard let d = try? Data(contentsOf: url), let a = try? JSONSerialization.jsonObject(with: d) as? [[String: Any]] else { return [] }
-        return a
+        for u in [url, vaultCopy].compactMap({ $0 }) {
+            if let d = try? Data(contentsOf: u), let a = try? JSONSerialization.jsonObject(with: d) as? [[String: Any]] { return a }
+        }
+        return []
     }
     static func save(_ list: [[String: Any]]) {
         try? FileManager.default.createDirectory(at: url.deletingLastPathComponent(), withIntermediateDirectories: true)
         if let d = try? JSONSerialization.data(withJSONObject: list, options: [.prettyPrinted, .sortedKeys]) {
             try? d.write(to: url, options: .atomic)
             VaultStore.backup(d, name: "contacts", into: url.deletingLastPathComponent().appendingPathComponent("backups", isDirectory: true))
+            if let v = vaultCopy {
+                try? FileManager.default.createDirectory(at: v.deletingLastPathComponent(), withIntermediateDirectories: true)
+                try? d.write(to: v, options: .atomic)
+            }
         }
     }
     static func key(_ s: String) -> String {
@@ -374,8 +546,7 @@ enum Contacts {
     static func all() -> [[String: Any]] {
         var list = load()
         let before = list.count
-        let ledgerURL = Mailer.payDir.appendingPathComponent("ledger.json")
-        if let d = try? Data(contentsOf: ledgerURL), let l = try? JSONSerialization.jsonObject(with: d) as? [String: Any] {
+        if let l = Mailer.ledger() {
             for c in (l["clients"] as? [[String: Any]]) ?? [] {
                 let company = (c["name"] as? String) ?? ""
                 let person = (c["contact"] as? String) ?? ""
@@ -450,11 +621,17 @@ enum Mailer {
         return base.appendingPathComponent("NeededPay", isDirectory: true)
     }
 
+    /// Pay's books: on this Mac, or the copy in the vault.
+    static func ledger() -> [String: Any]? {
+        for u in [payDir.appendingPathComponent("ledger.json"), Shared.vault?.appendingPathComponent(".vault/pay-ledger.json")].compactMap({ $0 }) {
+            if let d = try? Data(contentsOf: u), let l = try? JSONSerialization.jsonObject(with: d) as? [String: Any] { return l }
+        }
+        return nil
+    }
+
     /// Pay's mail settings: who it's from and the server. Nil until they're set up in Pay.
     static func account() -> (from: String, name: String, host: String, port: Int)? {
-        guard let d = try? Data(contentsOf: payDir.appendingPathComponent("ledger.json")),
-              let l = try? JSONSerialization.jsonObject(with: d) as? [String: Any],
-              let m = l["mail"] as? [String: Any] else { return nil }
+        guard let l = ledger(), let m = l["mail"] as? [String: Any] else { return nil }
         let from = ((m["from"] as? String) ?? "").trimmingCharacters(in: .whitespaces)
         guard !from.isEmpty else { return nil }
         let providers: [String: (String, Int)] = ["gmail": ("smtp.gmail.com", 465), "outlook": ("smtp.office365.com", 587), "icloud": ("smtp.mail.me.com", 587)]
@@ -493,11 +670,19 @@ enum Mailer {
         }
         let boundary = "needed-\(UUID().uuidString)"
         let f = DateFormatter(); f.locale = Locale(identifier: "en_US_POSIX"); f.dateFormat = "EEE, dd MMM yyyy HH:mm:ss Z"
-        var m = "From: \(acct.name.isEmpty ? acct.from : "\"\(enc(acct.name))\" <\(acct.from)>")\r\n"
-        if !to.isEmpty { m += "To: \(to.map(addr).joined(separator: ", "))\r\n" }
-        if !cc.isEmpty { m += "Cc: \(cc.map(addr).joined(separator: ", "))\r\n" }
-        m += "Subject: \(enc(subject))\r\nDate: \(f.string(from: Date()))\r\n"
-        m += "Message-ID: <\(UUID().uuidString)@neededtools>\r\nMIME-Version: 1.0\r\n"
+        var head = "From: \(acct.name.isEmpty ? acct.from : "\"\(enc(acct.name))\" <\(acct.from)>")\r\n"
+        if !to.isEmpty { head += "To: \(to.map(addr).joined(separator: ", "))\r\n" }
+        if !cc.isEmpty { head += "Cc: \(cc.map(addr).joined(separator: ", "))\r\n" }
+        head += "Subject: \(enc(subject))\r\nDate: \(f.string(from: Date()))\r\n"
+        head += "Message-ID: <\(UUID().uuidString)@neededtools>\r\nMIME-Version: 1.0\r\n"
+        // The copy kept in the project: the message and who it went to (Bcc too), without the
+        // attachments — they're already in the project, so it never doubles their size.
+        var recordHead = head
+        if !bcc.isEmpty { recordHead = recordHead.replacingOccurrences(of: "Subject: ", with: "Bcc: \(bcc.map(addr).joined(separator: ", "))\r\nSubject: ") }
+        let note = files.isEmpty ? "" : "\n\n— Attached: " + files.map { $0.lastPathComponent }.joined(separator: ", ") + " (kept in the project)"
+        let record = recordHead + "Content-Type: text/plain; charset=utf-8\r\nContent-Transfer-Encoding: base64\r\n\r\n"
+            + Data((body + note).utf8).base64EncodedString(options: [.lineLength76Characters, .endLineWithCarriageReturn, .endLineWithLineFeed]) + "\r\n"
+        var m = head
         m += "Content-Type: multipart/mixed; boundary=\"\(boundary)\"\r\n\r\n"
         m += "--\(boundary)\r\nContent-Type: text/plain; charset=utf-8\r\nContent-Transfer-Encoding: base64\r\n\r\n"
         m += Data(body.utf8).base64EncodedString(options: [.lineLength76Characters, .endLineWithCarriageReturn, .endLineWithLineFeed]) + "\r\n"
@@ -550,7 +735,7 @@ enum Mailer {
                 var subj = subject.replacingOccurrences(of: "/", with: "-").replacingOccurrences(of: ":", with: "-")
                 if subj.count > 60 { subj = String(subj.prefix(60)) }
                 let target = dir.appendingPathComponent("\(s.string(from: Date())) — \(subj.isEmpty ? "No subject" : subj).eml")
-                if (try? FileManager.default.copyItem(at: eml, to: target)) != nil { savedPath = target.path }
+                if (try? record.data(using: .utf8)?.write(to: target, options: .atomic)) != nil { savedPath = target.path }
             }
             let result: [String: Any] = code == 0 ? ["ok": true, "saved": savedPath] : ["ok": false, "error": why]
             DispatchQueue.main.async { done(result) }
@@ -781,6 +966,9 @@ enum BriefReader {
             }
             var found = read(text, fileName: url.lastPathComponent)
             found["ok"] = true
+            found["text"] = String(text.prefix(6000))                         // shown beside what was found
+            found["file"] = url.lastPathComponent
+            found["pages"] = url.pathExtension.lowercased() == "pdf" ? (PDFDocument(url: url)?.pageCount ?? 0) : 0
             found["words"] = text.split(whereSeparator: { $0 == " " || $0 == "\n" }).count
             let rules = found
             #if canImport(FoundationModels)
@@ -795,7 +983,8 @@ enum BriefReader {
                     for k in ["title", "client", "idea"] where ((s[k] as? String) ?? "").isEmpty { s[k] = rules[k] }
                     s["todos"] = suggest(deliverables: (s["deliverables"] as? [[String: Any]]) ?? [], dates: (s["dates"] as? [[String: Any]]) ?? [],
                                          musts: (s["musts"] as? [String]) ?? [], mood: text.lowercased().contains("mood"))
-                    s["ok"] = true; s["how"] = "apple"; s["words"] = rules["words"]
+                    s["ok"] = true; s["how"] = "apple"
+                    for k in ["words", "text", "file", "pages"] { s[k] = rules[k] }
                     done(s)
                 }
                 return
@@ -905,6 +1094,24 @@ extension Shell {
                 Docs.file(panel.urls, project: project, vault: self.vaultHost) { res in reply(res, nil); self.filedDone(res, project) }
             }
 
+        case "renameProject":
+            let from = (body["from"] as? String) ?? project
+            let r = ProjectRename.rename(from: from, to: (body["name"] as? String) ?? "")
+            if (r["ok"] as? Bool) == true, (r["same"] as? Bool) != true {
+                // Pay holds its books in the page: it reloads them from the updated file.
+                if let pay = hosts["pay"]?.webView { pay.reload() }
+                Shell.post("Project renamed", "\(from) is now \((r["project"] as? String) ?? "") — its folders, pictures and documents came with it.")
+            }
+            var out = r; out["state"] = NSNull()
+            reply(out, nil)
+
+        case "projectRenameDoc":
+            reply(Docs.rename(rel: (body["rel"] as? String) ?? "", to: (body["name"] as? String) ?? "", project: project), nil)
+
+        case "projectTrashOriginals":
+            let n = Docs.trashOriginals()
+            reply(["ok": true, "trashed": n], nil)
+
         case "projectSetKind":
             reply(Docs.setKind(rel: (body["rel"] as? String) ?? "", to: (body["kind"] as? String) ?? "Other", project: project), nil)
 
@@ -1002,6 +1209,11 @@ extension Shell {
         if let a = Mailer.account() { out["mail"] = ["from": a.from, "name": a.name, "ready": PayKeychain.read(a.from) != nil] }
         else { out["mail"] = ["ready": false] }
         out["today"] = BriefReader.day.string(from: Date())
+        // Pay's invoices for this project: the timeline ends on Paid.
+        let invoices = ((Mailer.ledger()?["invoices"] as? [[String: Any]]) ?? []).filter { ($0["project"] as? String) == project }
+        let paid = invoices.filter { ($0["status"] as? String) == "paid" }
+        let paidAt = paid.compactMap { $0["paidAt"] as? String }.max() ?? ""
+        out["pay"] = ["invoices": invoices.count, "paid": paid.count, "paidAt": paidAt]
         return out
     }
 
@@ -1027,9 +1239,9 @@ extension Shell {
                 buckets[key] = (old.n + 1, old.r + r, old.g + g, old.b + b)
             }
         }
-        let palette: [String] = buckets.values.sorted { $0.n > $1.n }.prefix(8).map { v in
-            String(format: "#%02X%02X%02X", v.r / v.n, v.g / v.n, v.b / v.n)
-        }
+        let top = buckets.values.sorted { $0.n > $1.n }.prefix(6)
+        let palette: [String] = top.map { v in String(format: "#%02X%02X%02X", v.r / v.n, v.g / v.n, v.b / v.n) }
+        let weights: [Int] = top.map { $0.n }
         let sorted = mine.sorted { ($0["created"] as? String ?? "") > ($1["created"] as? String ?? "") }
         let shown: [[String: Any]] = sorted.prefix(12).compactMap { (it: [String: Any]) -> [String: Any]? in
             guard let id = it["id"] as? String, let thumb = it["thumb"] as? String else { return nil }
@@ -1037,7 +1249,7 @@ extension Shell {
             if let w = (it["w"] as? NSNumber)?.doubleValue, let h = (it["h"] as? NSNumber)?.doubleValue, w > 0, h > 0 { a = w / h }
             return ["id": id, "thumb": thumb, "file": (it["file"] as? String) ?? thumb, "kind": (it["kind"] as? String) ?? "still", "a": a]
         }
-        return ["references": refs, "grabs": grabs, "items": shown, "palette": palette]
+        return ["references": refs, "grabs": grabs, "items": shown, "palette": palette, "weights": weights]
     }
 
     /// Calendar events that name the project (read only): "Lexus — shoot day 1".

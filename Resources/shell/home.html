@@ -45,6 +45,8 @@ main{position:relative;height:100vh;display:grid;grid-template-columns:minmax(0,
 .shuffle{border:none;height:34px;padding:0 12px;border-radius:100px;display:flex;align-items:center;gap:6px;font-size:12px;color:#6d4e3d}
 .shuffle.on{background:linear-gradient(180deg,#2b2b2b,#111) !important;color:#fff}
 .shuffle.on svg{stroke:#fff}
+.shuffle .unshuffle{display:none;margin-left:2px;padding:0 2px 0 6px;border-left:1px solid rgba(255,255,255,0.3);color:rgba(255,255,255,0.75);font-size:13px}
+.shuffle.on .unshuffle{display:inline}
 /* palette in the viewer */
 .swatches{display:flex;gap:6px}
 .swatches button{flex:1;height:28px;border-radius:8px;border:1px solid rgba(0,0,0,0.06);cursor:pointer;box-shadow:inset 0 1px 0 rgba(255,255,255,0.25)}
@@ -240,7 +242,7 @@ main{position:relative;height:100vh;display:grid;grid-template-columns:minmax(0,
       <div class="g seg2" id="scopeSeg" role="group" aria-label="From"><button data-v="all">Entire vault</button><button data-v="project">This project</button><label><span style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">By label</span><select id="labelSeg" title="Every project with this label"></select></label></div>
         <label class="g search"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#6d4e3d" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
           <input id="q" placeholder="Search — tags, boards, labels, red…" spellcheck="false" aria-label="Search your vault"></label>
-        <button class="g shuffle" id="shuffle" title="A different mix every time you open Needed Tools"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6d4e3d" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 3h5v5M4 20L21 3M21 16v5h-5M15 15l6 6M4 4l5 5"/></svg>Shuffle</button>
+        <button class="g shuffle" id="shuffle" title="Shuffle the wall — every press is a new mix"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6d4e3d" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 3h5v5M4 20L21 3M21 16v5h-5M15 15l6 6M4 4l5 5"/></svg><span id="shuffleLabel">Shuffle</span><span class="unshuffle" id="unshuffle" role="button" aria-label="Back to your own order" title="Back to your own order">×</span></button>
       </div>
       <div class="quick" id="quick">
       <button class="g qa" data-q="link" data-tip="Paste a link|Opens the Vault ready for a YouTube, Vimeo or Instagram link — grab stills, GIFs and clips from it." aria-label="Paste a link"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1c1c1c" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg><span>Paste a link</span></button>
@@ -432,7 +434,7 @@ main{position:relative;height:100vh;display:grid;grid-template-columns:minmax(0,
 
   let lastSig = '';
   async function loadWall() {
-    let r; try { r = await call('homeData', { show, scope, label, colour, q: $('q').value.trim() }); } catch (e) { r = null; }
+    let r; try { r = await call('homeData', Object.assign({ show, scope, label, colour, q: $('q').value.trim() }, shuffleOn ? { seed } : {})); } catch (e) { r = null; }
     const next = ordered((r && r.items) || []);
     const sig = next.map(it => it.id).join(',') + '|' + show + scope + label + colour;
     hasVault = !r || r.vault !== false;
@@ -458,12 +460,31 @@ main{position:relative;height:100vh;display:grid;grid-template-columns:minmax(0,
   const media = it => it.kind === 'gif' ? it.file : it.thumb;           // GIFs play on the wall
   // Your own order: drag pictures around the wall; anything new arrives first.
   const savedOrder = () => { try { return JSON.parse(localStorage.getItem('home.order') || '[]'); } catch (e) { return []; } };
-  // Shuffle: a different mix every time you open the app (the same mix while it's open).
+  // Shuffle: every press deals a new mix. Each picture gets a place from a proper
+  // hash of (this mix, its id) — so two mixes share nothing, and a picture that
+  // arrives while the wall's open just finds its own place without reshuffling the rest.
   let shuffleOn = pref('shuffle', 'off') === 'on';
-  const seed = Math.floor(Math.random() * 1e9);
-  const rank = id => { let h = seed; for (let i = 0; i < id.length; i++) h = Math.imul(h ^ id.charCodeAt(i), 2654435761) >>> 0; return h; };
+  const newSeed = () => (crypto && crypto.getRandomValues ? crypto.getRandomValues(new Uint32Array(1))[0] : Math.floor(Math.random() * 4294967296)) >>> 0;
+  let seed = newSeed();
+  const rank = id => {
+    let h = (seed ^ 0x9e3779b9) >>> 0;
+    for (let i = 0; i < id.length; i++) { h = Math.imul(h ^ id.charCodeAt(i), 0x85ebca6b); h ^= h >>> 13; }
+    h = Math.imul(h ^ (h >>> 16), 0xc2b2ae35); h ^= h >>> 16;
+    return h >>> 0;
+  };
+  // A mix that never puts too many from one project or one colour side by side.
+  function mixed(list) {
+    const out = list.slice().sort((a, b) => rank(a.id) - rank(b.id));
+    const key = it => (it.project || '') + '|' + ((it.palette || [])[0] || '').slice(0, 3);
+    for (let i = 1; i < out.length; i++) {
+      if (key(out[i]) !== key(out[i - 1])) continue;
+      const j = out.findIndex((x, k) => k > i && key(x) !== key(out[i - 1]));
+      if (j > i) { const [x] = out.splice(j, 1); out.splice(i, 0, x); }
+    }
+    return out;
+  }
   function ordered(list) {
-    if (shuffleOn) return list.slice().sort((a, b) => rank(a.id) - rank(b.id));
+    if (shuffleOn) return mixed(list);
     const pos = new Map(savedOrder().map((id, i) => [id, i]));
     const fresh = list.filter(it => !pos.has(it.id)), kept = list.filter(it => pos.has(it.id)).sort((a, b) => pos.get(a.id) - pos.get(b.id));
     return fresh.concat(kept);
@@ -511,9 +532,18 @@ main{position:relative;height:100vh;display:grid;grid-template-columns:minmax(0,
     }
   }, { root: document.getElementById('wall'), rootMargin: '120px' });
   let dragId = null;
-  const paintShuffle = () => $('shuffle').classList.toggle('on', shuffleOn);
+  const paintShuffle = () => {
+    $('shuffle').classList.toggle('on', shuffleOn);
+    $('shuffleLabel').textContent = shuffleOn ? 'Shuffle again' : 'Shuffle';
+  };
   paintShuffle();
-  $('shuffle').addEventListener('click', () => { shuffleOn = !shuffleOn; setPref('shuffle', shuffleOn ? 'on' : 'off'); paintShuffle(); lastSig = ''; loadWall(); });
+  // Press: a new mix, every time. The × goes back to your own order.
+  $('shuffle').addEventListener('click', e => {
+    if (e.target.closest('#unshuffle')) { shuffleOn = false; }
+    else { shuffleOn = true; seed = newSeed(); }
+    setPref('shuffle', shuffleOn ? 'on' : 'off'); paintShuffle(); lastSig = ''; loadWall();
+    const w = $('wall'); if (w) w.scrollTop = 0;
+  });
   let qT = null;
   $('q').addEventListener('input', () => { clearTimeout(qT); qT = setTimeout(() => { lastSig = ''; loadWall(); }, 220); });
   $('q').addEventListener('keydown', e => { if (e.key === 'Escape' && $('q').value) { $('q').value = ''; lastSig = ''; loadWall(); e.stopPropagation(); } });

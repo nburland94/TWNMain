@@ -96,6 +96,23 @@ enum Folders {
          ("Grabs/\(kind)", "grab"), ("References/\(kind)", "reference"), (kind, "grab")]
     }
 
+    /// Round 5.1: everything a tool makes has one place in the project.
+    ///     Lexus/Lexus_Docs/   Invoices · Shot lists · Mood boards · Contact sheets  ← Pay, Shots, the Vault
+    ///     Lexus/Lexus_Vault/  Ideas
+    /// Files already in the older folders (Invoices, Shots, Sheets, Ideas and
+    /// Lexus_Vault/Mood at the top of the project) stay there and are still found.
+    static func place(_ kind: String, project p: String, grab: Bool = false) -> String {
+        if kinds.contains(kind) { return sub(kind, project: p, grab: grab) }
+        switch kind {
+        case "Sheets": return "\(p)_Docs/Contact sheets"
+        case "Shots": return "\(p)_Docs/Shot lists"
+        case "Invoices": return "\(p)_Docs/Invoices"
+        case "Mood": return "\(p)_Docs/Mood boards"
+        case "Ideas": return "\(p)_Vault/Ideas"
+        default: return kind
+        }
+    }
+
     /// A file's origin from where it sits ("Lexus/Lexus_Grab/Stills_Grab/a.jpg"), if its folder says.
     static func origin(ofFile rel: String) -> String? {
         let parts = rel.split(separator: "/").map(String.init)
@@ -123,9 +140,7 @@ enum Labels {
     private static let oldSectorLabels: Set<String> = ["sports", "comedy", "fashion"]
     private static var cache: [String: [String: Any]]? = nil     // project → its file
 
-    private static func file(_ project: String) -> URL? {
-        Shared.vault?.appendingPathComponent(project, isDirectory: true).appendingPathComponent(".needed/project.json")
-    }
+    private static func file(_ project: String) -> URL? { ProjectFile.url(project) }
     private static func read(_ project: String) -> [String: Any] {
         guard let u = file(project), let d = try? Data(contentsOf: u),
               let o = try? JSONSerialization.jsonObject(with: d) as? [String: Any] else { return [:] }
@@ -297,7 +312,7 @@ final class Shell: NSObject, NSApplicationDelegate, NSWindowDelegate, WKScriptMe
     var projectPage: WKWebView?
     private var signin: WKWebView?
     private let area = NSView()
-    private var hosts: [String: ToolHost] = [:]
+    var hosts: [String: ToolHost] = [:]
     private(set) var current = "home"
     static let barHeight: CGFloat = 64
     let calendarStore = EKEventStore()
@@ -601,11 +616,14 @@ final class Shell: NSObject, NSApplicationDelegate, NSWindowDelegate, WKScriptMe
             for hex in (it["palette"] as? [String]) ?? [] { for n in Shell.colourNames(hex) where Shell.families.contains(n) { names.insert(n) } }
             for n in names { colourCounts[n, default: 0] += 1 }
         }
-        let picked = matching.filter { (it: [String: Any]) -> Bool in
+        let filtered = matching.filter { (it: [String: Any]) -> Bool in
             if colour.isEmpty { return true }
             let palette: [String] = (it["palette"] as? [String]) ?? []
             return palette.contains { Shell.colourNames($0).contains(colour) }
-        }.sorted { ($0["created"] as? String ?? "") > ($1["created"] as? String ?? "") }.prefix(300)
+        }
+        // Newest first — or, shuffled, any 300 from the whole vault, a new pick with every mix.
+        let seed: UInt32? = (body["seed"] as? NSNumber)?.uint32Value
+        let picked = Shell.pick(filtered, seed: seed)
         let items: [[String: Any]] = picked.compactMap { (it: [String: Any]) -> [String: Any]? in
             guard let id = it["id"] as? String, let thumb = it["thumb"] as? String, let file = it["file"] as? String else { return nil }
             var a: Double = 16.0 / 9.0
@@ -630,6 +648,21 @@ final class Shell: NSObject, NSApplicationDelegate, NSWindowDelegate, WKScriptMe
             return out
         }
         return ["items": items, "vault": true, "project": Shared.project, "colours": colourCounts]
+    }
+
+    /// The 300 Home shows: the newest, or with a shuffle seed, a fair random pick.
+    static func pick(_ all: [[String: Any]], seed: UInt32?) -> ArraySlice<[String: Any]> {
+        guard let s = seed else {
+            return all.sorted { ($0["created"] as? String ?? "") > ($1["created"] as? String ?? "") }.prefix(300)
+        }
+        let rank = { (id: String) -> UInt32 in
+            var h: UInt32 = s ^ 0x9e3779b9
+            for u in id.utf8 { h = (h ^ UInt32(u)) &* 0x85ebca6b; h ^= h >> 13 }
+            h = (h ^ (h >> 16)) &* 0xc2b2ae35
+            return h ^ (h >> 16)
+        }
+        let ranked: [(UInt32, [String: Any])] = all.map { (rank(($0["id"] as? String) ?? ""), $0) }
+        return ranked.sorted { $0.0 < $1.0 }.map { $0.1 }.prefix(300)
     }
 
     /// Everything Home's search looks through for one item: title, source, project,
@@ -705,7 +738,12 @@ final class Shell: NSObject, NSApplicationDelegate, NSWindowDelegate, WKScriptMe
             for v in views { v.evaluateJavaScript("window.__neededSynced && window.__neededSynced()", completionHandler: nil) }
             if (result["ok"] as? Bool) == true {
                 let added = (result["added"] as? Int) ?? 0
-                Shell.post("\(project) synced", added > 0 ? "\(added) new — every tool is up to date." : "Everything's up to date.")
+                let relinked = (result["relinked"] as? Int) ?? 0, removed = (result["removed"] as? Int) ?? 0
+                var bits: [String] = []
+                if added > 0 { bits.append("\(added) new") }
+                if relinked > 0 { bits.append("\(relinked) moved in Finder, found again") }
+                if removed > 0 { bits.append("\(removed) deleted in Finder, taken off the list") }
+                Shell.post("\(project) synced", bits.isEmpty ? "Everything's up to date." : bits.joined(separator: " · ") + ".")
             }
             let waiting = self.syncWaiting; self.syncWaiting = []
             for r in waiting { r(result, nil) }

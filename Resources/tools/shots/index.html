@@ -1059,7 +1059,7 @@ One beat per line, or ordinary prose; sentences become shots."></textarea>
     if (!r || !r.ok) { setStatus((r && r.error) || "Couldn't save that.", true); return false; }
     listName = r.name || name; dirty = false;
     refresh();
-    if (!quiet) { toast('Saved'); setStatus(`Saved as ${listName}.json in ${project} › Shots.`); }
+    if (!quiet) { toast('Saved'); setStatus(`Saved as ${listName}.json in ${project} › ${project}_Docs › Shot lists.`); }
     return true;
   }
   $('saveBtn').addEventListener('click', () => saveList());
@@ -1149,7 +1149,7 @@ One beat per line, or ordinary prose; sentences become shots."></textarea>
     catch (e) { r = null; }
     busy = false; refresh();
     if (!r || !r.ok) { setStatus((r && r.error) || "Couldn't make the PDF.", true); return; }
-    setStatus(`${r.name} — ${r.pages} page${r.pages === 1 ? '' : 's'}, in ${project} › Shots.`);
+    setStatus(`${r.name} — ${r.pages} page${r.pages === 1 ? '' : 's'}, in ${project} › ${project}_Docs › Shot lists.`);
     $('revealBtn').hidden = false;
     toast('PDF exported');
   });

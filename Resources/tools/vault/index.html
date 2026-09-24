@@ -675,7 +675,7 @@ body.marqueeing{user-select:none;-webkit-user-select:none;cursor:crosshair}
   </div>
 
   <div id="moodView" hidden>
-    <p class="note" style="margin:0;max-width:680px">A mood board: a PDF of your stills — a title if you want one, the This Was Needed mark in the corner, no other words. Choose where the stills come from, pick the ones you want, and it saves into this project's Mood folder.</p>
+    <p class="note" style="margin:0;max-width:680px">A mood board: a PDF of your stills — a title if you want one, the This Was Needed mark in the corner, no other words. Choose where the stills come from, pick the ones you want, and it saves into this project's Mood boards folder, with its other documents.</p>
     <div class="moodopts">
       <div class="opt"><span class="label">From</span>
         <div class="seg" id="moodFrom"><button data-v="project" class="on">A project</button><button data-v="board">A board</button><button data-v="tag">A tag</button><button data-v="colour">A colour</button></div></div>
@@ -2924,7 +2924,7 @@ body.marqueeing{user-select:none;-webkit-user-select:none;cursor:crosshair}
     catch (e) { r = null; }
     $('moodMake').disabled = false;
     if (r && r.ok) {
-      $('moodStatus').textContent = `${r.name} — ${r.pages} page${r.pages === 1 ? '' : 's'}, saved in ${project} › ${project}_Vault › Mood.`;
+      $('moodStatus').textContent = `${r.name} — ${r.pages} page${r.pages === 1 ? '' : 's'}, saved in ${project} › ${project}_Docs › Mood boards.`;
       $('moodReveal').hidden = false; toast('Mood board saved');
     } else $('moodStatus').textContent = (r && r.error) || "Couldn't make the mood board.";
   });

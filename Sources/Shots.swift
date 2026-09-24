@@ -612,8 +612,9 @@ extension ShotsHost {
     /// the first time something goes in it.
     func outputFolder(_ kind: String) -> URL? {
         guard let base = saveFolder else { return nil }
-        let folder = base.appendingPathComponent(projectName(currentProject), isDirectory: true)
-                         .appendingPathComponent(kind, isDirectory: true)
+        let name = projectName(currentProject)
+        let folder = base.appendingPathComponent(name, isDirectory: true)
+                         .appendingPathComponent(Folders.place(kind, project: name), isDirectory: true)
         do { try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true) }
         catch { return nil }
         return folder
@@ -688,15 +689,25 @@ extension ShotsHost {
 
 extension ShotsHost {
     /// Shot lists live beside the references, inside the project.
-    func shotsFolder() -> URL? { outputFolder("Shots") }
+    func shotsFolder() -> URL? { outputFolder("Shots") }             // Lexus/Lexus_Docs/Shot lists
+    /// Where lists were saved before Round 5.1 (Lexus/Shots): still read, never moved.
+    func oldShotsFolder() -> URL? {
+        guard let base = saveFolder else { return nil }
+        let u = base.appendingPathComponent(projectName(currentProject), isDirectory: true).appendingPathComponent("Shots", isDirectory: true)
+        return FileManager.default.fileExists(atPath: u.path) ? u : nil
+    }
 
     func handleShots(_ action: String, _ body: [String: Any],
                      _ reply: @escaping (Any?, String?) -> Void) {
         switch action {
         case "listShots":
             guard let folder = shotsFolder() else { return reply(["lists": []], nil) }
-            let files = (try? FileManager.default.contentsOfDirectory(
-                at: folder, includingPropertiesForKeys: [.contentModificationDateKey])) ?? []
+            var files: [URL] = []
+            var names = Set<String>()
+            for dir in [folder, oldShotsFolder()].compactMap({ $0 }) {
+                for u in (try? FileManager.default.contentsOfDirectory(at: dir, includingPropertiesForKeys: [.contentModificationDateKey])) ?? []
+                where names.insert(u.lastPathComponent).inserted { files.append(u) }
+            }
             let lists = files.filter { $0.pathExtension == "json" }.map { url -> [String: Any] in
                 let date = (try? url.resourceValues(forKeys: [.contentModificationDateKey]))?.contentModificationDate
                 return ["name": url.deletingPathExtension().lastPathComponent,
@@ -708,7 +719,8 @@ extension ShotsHost {
             guard let folder = shotsFolder(), let name = safeName((body["name"] as? String) ?? "") else {
                 return reply(["ok": false], nil)
             }
-            let url = folder.appendingPathComponent(name + ".json")
+            var url = folder.appendingPathComponent(name + ".json")
+            if !FileManager.default.fileExists(atPath: url.path), let old = oldShotsFolder() { url = old.appendingPathComponent(name + ".json") }
             guard let data = try? Data(contentsOf: url),
                   let doc = try? JSONSerialization.jsonObject(with: data) else {
                 return reply(["ok": false, "error": "Couldn't open that list"], nil)
@@ -721,17 +733,22 @@ extension ShotsHost {
                   let doc = body["doc"], let data = try? JSONSerialization.data(withJSONObject: doc, options: [.prettyPrinted]) else {
                 return reply(["ok": false, "error": "Couldn't save that list"], nil)
             }
-            let url = folder.appendingPathComponent(name + ".json")
+            var url = folder.appendingPathComponent(name + ".json")
+            // A list opened from the old Shots folder saves back where it is.
+            if !FileManager.default.fileExists(atPath: url.path), let old = oldShotsFolder(),
+               ((body["own"] as? String) ?? "") == name, FileManager.default.fileExists(atPath: old.appendingPathComponent(name + ".json").path) {
+                url = old.appendingPathComponent(name + ".json")
+            }
             let write: (URL) -> Void = { target in
                 do { try data.write(to: target, options: .atomic); self.lastOutput = folder
                      reply(["ok": true, "name": target.deletingPathExtension().lastPathComponent], nil) }
-                catch { reply(["ok": false, "error": "Couldn't write to the Shots folder"], nil) }
+                catch { reply(["ok": false, "error": "Couldn't write to the Shot lists folder"], nil) }
             }
             // Saving the list you have open just saves. A name that belongs to
             // a different list asks first.
             let own = (body["own"] as? String) ?? ""
             if FileManager.default.fileExists(atPath: url.path) && own != name {
-                askReplace(url, in: "\(currentProject) › Shots") { choice in
+                askReplace(url, in: "\(currentProject) › \(currentProject)_Docs › Shot lists") { choice in
                     switch choice {
                     case "replace": write(url)
                     case "keep": write(self.uniqueURL(in: folder, name: name + ".json"))
