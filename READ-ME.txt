@@ -451,3 +451,39 @@ ROUND 9 — DESIGN, SIMPLER AND FILLED FOR YOU
     there, on every page (cover and Free pages too); it only changes the
     page you're on. The panel's header has "Text ›" beside "Page N" to jump
     to the page's words (or add a text box), and "Page ›" to come back.
+
+ROUND 10 — DESIGN: ZOOM, FADE, FREE, ARRANGING, HEADERS, GIFS
+  • Zoom: − 100% + Fit, bottom right of the page; pinch on the trackpad;
+    ⌘+ ⌘− ⌘0. Zoomed in, scroll around the page.
+  • Where the pictures go: Rows, Left, Right, Top, Bottom, Full, None. On
+    Left/Right/Top/Bottom, drag the orange divider to give the pictures up
+    to 80% of the page — they keep their shape and more fit. "Run off the
+    page edge" is on every layout, and in mood boards (with "on every page").
+  • Free is a switch at the top of the panel, beside Page and Text. On: drag
+    and size the pictures by hand. Off: they lay themselves out again (your
+    Free places are kept if you switch back).
+  • The fade: pick where it comes from (Top/Bottom/Left/Right) or press R to
+    turn it round (⇧R the other way). "Move & size it" — drag it anywhere,
+    pull its corners. "Whole page" puts it back.
+  • Arranging: one stack for pictures and words — words can sit behind a
+    picture. A small bar above whatever you pick: Front ↑ ↓ Back (and
+    Reframe). Right-click a picture or words for the same, plus duplicate
+    and delete.
+  • Equal spacing on Free pages: while you drag, the gaps to the pictures
+    beside it show in points; when a gap matches one already on the page it
+    turns orange and snaps.
+  • Name and page numbers: one switch puts your name and the project top
+    left and the page number top right on every page (mood and treatment).
+    Edit the words, the number style (Page 7 / 07 / 7), font, size, caps.
+    Click either on a page and press ⌫ to take it off just that page. Off
+    on the cover by default.
+  • Dragging stills now works in the app: the page does the dragging itself
+    (a small ghost follows the pointer) — onto the page, onto a page in the
+    strip, or between pages.
+  • GIFs: in the stills tray (marked GIF), they play on the page; + Photos
+    and drops put GIFs in the project's GIFs folder. In a PDF they're still.
+  • The guide (?) teaches all of this, in eight steps.
+  • Dark mode keeps the orange accent everywhere (tool names, buttons,
+    hints); the logo is plain white.
+  • Pay: the invoice header no longer repeats "Amount due" — it's once, in
+    the totals. "+ Job number" prints it plainly with the other facts.
