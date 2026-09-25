@@ -1529,7 +1529,14 @@ extension VaultHost {
                     self.register(kind: a.kind, file: a.file, meta: meta, project: a.project)
                 }
                 for lf in linkFiles { self.register(kind: "idea", file: lf.0, meta: lf.1, project: lf.2) }
-                if CloudVault.on { UserDefaults.standard.set(ISO8601DateFormatter().string(from: Date()), forKey: "cloudLast") }
+                if CloudVault.on {
+                    UserDefaults.standard.set(ISO8601DateFormatter().string(from: Date()), forKey: "cloudLast")
+                    // What the phone page shows: each project's newest, with tiny pictures.
+                    let all = self.index
+                    DispatchQueue.global(qos: .utility).async {
+                        CloudVault.publishPhone(items: all, base: base)
+                    }
+                }
                 Shared.notify()
                 done(["ok": true, "project": project, "added": fresh.count, "palettes": palettes.count, "previews": thumbs.count,
                       "relinked": relinkCount, "removed": removedItems.count,

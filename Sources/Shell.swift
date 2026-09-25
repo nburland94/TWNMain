@@ -1142,8 +1142,16 @@ final class Shell: NSObject, NSApplicationDelegate, NSWindowDelegate, WKScriptMe
             let dst = downloads.appendingPathComponent("Needed Vault page", isDirectory: true)
             try? fm.removeItem(at: dst)
             guard (try? fm.copyItem(at: src, to: dst)) != nil else { return replyHandler(["ok": false, "error": "Couldn't write to Downloads"], nil) }
+            // The two Shortcuts, signed, beside the page (one tap on the phone adds each) and in Needed Vault too.
+            let made = CloudVault.makeShortcuts(into: dst.appendingPathComponent("add", isDirectory: true))
+            if let r = CloudVault.root { _ = CloudVault.makeShortcuts(into: r.appendingPathComponent("Add to your iPhone", isDirectory: true)) }
+            if CloudVault.on, let base = Shared.vault {
+                VaultStore.shared.load()
+                let all = VaultStore.shared.items
+                DispatchQueue.global(qos: .utility).async { CloudVault.publishPhone(items: all, base: base) }
+            }
             NSWorkspace.shared.activateFileViewerSelecting([dst])
-            replyHandler(["ok": true, "folder": dst.path], nil)
+            replyHandler(["ok": true, "folder": dst.path, "shortcuts": made.count], nil)
 
         case "theme":
             // Light, or the calm blue night — every page at once.

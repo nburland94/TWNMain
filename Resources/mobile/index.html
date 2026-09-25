@@ -3,272 +3,349 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="robots" content="noindex,nofollow">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Needed Vault">
-<meta name="theme-color" content="#fbf3ed" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#0f1318" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#fcf2ec">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon-180.png">
 <title>Needed Vault</title>
 <style>
 @font-face{font-family:'Raleway';font-weight:200;font-display:swap;src:url('fonts/raleway-latin-200-normal.woff2') format('woff2')}
+@font-face{font-family:'Raleway';font-weight:300;font-display:swap;src:url('fonts/raleway-latin-300-normal.woff2') format('woff2')}
 @font-face{font-family:'Raleway';font-weight:400;font-display:swap;src:url('fonts/raleway-latin-400-normal.woff2') format('woff2')}
+@font-face{font-family:'Raleway';font-weight:500;font-display:swap;src:url('fonts/raleway-latin-500-normal.woff2') format('woff2')}
+@font-face{font-family:'Oswald';font-weight:400;font-display:swap;src:url('fonts/oswald-latin-400-normal.woff2') format('woff2')}
 @font-face{font-family:'Courier Prime';font-weight:400;font-display:swap;src:url('fonts/courier-prime-latin-400-normal.woff2') format('woff2')}
-@font-face{font-family:'Inter';font-weight:400;font-display:swap;src:url('fonts/inter-latin-400-normal.woff2') format('woff2')}
-@font-face{font-family:'Inter';font-weight:500;font-display:swap;src:url('fonts/inter-latin-500-normal.woff2') format('woff2')}
-:root{--bg:#fbf3ed;--ink:#1c1c1c;--soft:#6b6964;--line:rgba(120,55,20,0.10);--glass:rgba(255,255,255,0.62);--glass2:rgba(255,255,255,0.85);
-  --accent:#F05A22;--accentInk:#d2440f;--field:rgba(255,255,255,0.9);--ease:cubic-bezier(.23,1,.32,1)}
-@media (prefers-color-scheme: dark){:root{--bg:#0f1318;--ink:#eef1f4;--soft:#9aa3ad;--line:rgba(255,255,255,0.08);--glass:rgba(30,37,46,0.62);--glass2:rgba(34,42,52,0.9);--accentInk:#ff7a45;--field:rgba(20,26,33,0.9)}}
+@font-face{font-family:'Courier Prime';font-weight:700;font-display:swap;src:url('fonts/courier-prime-latin-700-normal.woff2') format('woff2')}
+:root{--o:#F05A22;--oi:#d2440f;--ink:#141414;--soft:#6b6964;--ease:cubic-bezier(.23,1,.32,1)}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,-apple-system,'Helvetica Neue',sans-serif;-webkit-font-smoothing:antialiased}
-body{min-height:100vh;padding:calc(env(safe-area-inset-top) + 18px) 16px calc(env(safe-area-inset-bottom) + 28px)}
-.glow{position:fixed;inset:-20% -30% auto;height:70vh;pointer-events:none;z-index:-1;background:radial-gradient(60% 55% at 70% 20%,rgba(240,90,34,0.20),rgba(240,90,34,0) 70%),radial-gradient(50% 50% at 15% 40%,rgba(255,176,120,0.25),rgba(255,176,120,0) 70%)}
-@media (prefers-color-scheme: dark){.glow{opacity:.45}}
-main{max-width:520px;margin:0 auto;display:flex;flex-direction:column;gap:14px}
-header{display:flex;align-items:center;gap:12px;padding:2px 2px 6px}
-header img{height:26px}
-@media (prefers-color-scheme: dark){header img{filter:brightness(0) invert(1)}}
-.cap{font-family:'Courier Prime',ui-monospace,monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--accentInk)}
-header .grow{flex:1}
-.tabs{display:flex;gap:4px;padding:3px;border-radius:100px;background:var(--glass);border:1px solid var(--line)}
-.tabs button{all:unset;cursor:pointer;padding:7px 13px;border-radius:100px;font-size:13px;color:var(--soft)}
-.tabs button.on{background:var(--ink);color:var(--bg)}
-h1{font-family:Raleway,sans-serif;font-weight:200;font-size:40px;line-height:1.05;margin:4px 2px 2px;letter-spacing:-.01em}
-.lead{margin:0 2px 4px;color:var(--soft);font-size:14.5px;line-height:1.45}
-.g{border-radius:22px;background:var(--glass);border:1px solid var(--line);-webkit-backdrop-filter:blur(18px) saturate(1.2);backdrop-filter:blur(18px) saturate(1.2);padding:16px}
-.gg{display:flex;align-items:center;gap:14px;cursor:pointer;transition:background .3s var(--ease),border-color .3s var(--ease)}
-.gg.on{background:var(--accent);border-color:var(--accent);color:#fff}
-.gg .dot{width:12px;height:12px;border-radius:50%;background:rgba(28,28,28,0.18);flex-shrink:0;transition:background .3s}
-.gg.on .dot{background:#fff;box-shadow:0 0 0 5px rgba(255,255,255,.25)}
-.gg b{display:block;font-weight:500;font-size:16px}
-.gg span{display:block;font-size:13px;color:var(--soft);margin-top:2px}
-.gg.on span{color:rgba(255,255,255,.85)}
-.gg .grow{flex:1}
-.sw{width:50px;height:30px;border-radius:30px;background:rgba(28,28,28,0.14);position:relative;flex-shrink:0;transition:background .3s}
-.sw::after{content:'';position:absolute;left:3px;top:3px;width:24px;height:24px;border-radius:50%;background:#fff;box-shadow:0 2px 6px rgba(0,0,0,.2);transition:transform .3s var(--ease)}
-.gg.on .sw{background:rgba(255,255,255,.35)}.gg.on .sw::after{transform:translateX(20px)}
-.big{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.big button{all:unset;cursor:pointer;border-radius:20px;padding:18px 16px;background:var(--glass2);border:1px solid var(--line);display:flex;flex-direction:column;gap:6px;min-height:92px;transition:transform .15s var(--ease)}
-.big button:active{transform:scale(.97)}
-.big b{font-weight:500;font-size:15px}.big span{font-size:12.5px;color:var(--soft);line-height:1.35}
-.big svg{stroke:var(--accentInk)}
-label.f{display:flex;flex-direction:column;gap:6px;margin-top:10px}
-input{font:inherit;font-size:16px;color:var(--ink);background:var(--field);border:1px solid var(--line);border-radius:14px;padding:12px 14px;width:100%;outline:none}
-input:focus{border-color:var(--accent)}
-.row{display:flex;gap:8px;align-items:center}
-.btn{all:unset;cursor:pointer;text-align:center;border-radius:100px;padding:12px 18px;font-size:15px;font-weight:500;background:var(--ink);color:var(--bg)}
-.btn.o{background:var(--accent);color:#fff}
-.btn.l{background:transparent;border:1px solid var(--line);color:var(--ink);font-weight:400}
-.btn[disabled]{opacity:.35;pointer-events:none}
-.wide{display:block;width:100%;box-sizing:border-box;margin-top:12px}
-.recent{list-style:none;margin:6px 0 0;padding:0;display:flex;flex-direction:column}
-.recent li{display:flex;gap:10px;align-items:baseline;padding:10px 0;border-top:1px solid var(--line);font-size:13.5px}
-.recent li:first-child{border-top:0}
-.recent .w{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.recent .t{font-family:'Courier Prime',monospace;font-size:11px;color:var(--soft)}
-.empty{color:var(--soft);font-size:13px;line-height:1.45}
-.toast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom) + 22px);transform:translate(-50%,10px);background:var(--ink);color:var(--bg);border-radius:100px;padding:11px 18px;font-size:14px;opacity:0;pointer-events:none;transition:opacity .25s,transform .25s var(--ease);max-width:90vw;text-align:center}
+html,body{margin:0;background:#fcf2ec;color:var(--ink);font-family:'Raleway',-apple-system,sans-serif;-webkit-font-smoothing:antialiased}
+body{min-height:100vh;overflow-x:hidden}
+button{font:inherit;cursor:pointer;color:inherit}
+button:active{transform:scale(0.97)}
+.glow{position:fixed;inset:0;z-index:-1;background:radial-gradient(ellipse 90% 60% at 50% 38%,#f7bf99 0%,#f9cfb1 28%,#fbdfca 52%,#fcebdf 74%,#fdf5ef 100%);opacity:.75;pointer-events:none}
+.cap{font-family:'Courier Prime',monospace;font-size:10.5px;letter-spacing:.18em;text-transform:uppercase;color:#7a5a48}
+.g{background:linear-gradient(160deg,rgba(255,255,255,.74),rgba(255,255,255,.5));border:1px solid rgba(255,255,255,.9);box-shadow:inset 0 1px 0 #fff,0 14px 40px rgba(160,70,20,.1);-webkit-backdrop-filter:blur(26px) saturate(1.5);backdrop-filter:blur(26px) saturate(1.5)}
+.chip{display:inline-flex;align-items:center;gap:5px;border-radius:100px;padding:5px 11px;font-size:12.5px;border:1px solid rgba(28,28,28,.12);background:rgba(255,255,255,.75);color:var(--ink)}
+.chip.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+.dark{border:none;border-radius:100px;padding:13px 20px;font-size:15px;font-weight:500;background:linear-gradient(180deg,#2b2b2b,#111);color:#fff;box-shadow:inset 0 1px 0 rgba(255,255,255,.14),0 2px 8px rgba(20,20,20,.16);text-decoration:none;text-align:center;display:inline-flex;align-items:center;justify-content:center;gap:8px}
+.light{border-radius:100px;padding:12px 18px;font-size:14.5px;border:1px solid rgba(28,28,28,.12);background:rgba(255,255,255,.8);color:var(--ink);text-decoration:none;text-align:center;display:inline-flex;align-items:center;justify-content:center;gap:6px}
+.tog{position:relative;width:44px;height:26px;border-radius:100px;border:none;background:rgba(28,28,28,.18);padding:0;flex-shrink:0;transition:background .25s}
+.tog::after{content:'';position:absolute;left:3px;top:3px;width:20px;height:20px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.2);transition:left .25s var(--ease)}
+.tog.on{background:var(--o)}.tog.on::after{left:21px}
+.off{display:none!important}
+
+header{position:sticky;top:0;z-index:5;padding:calc(env(safe-area-inset-top) + 14px) 18px 10px;display:flex;align-items:center;gap:10px;background:linear-gradient(to bottom,rgba(252,236,224,.92) 70%,rgba(252,236,224,0))}
+header img{width:34px;display:block}
+.pill{border:none;border-radius:100px;padding:8px 14px;background:var(--o);color:#fff;font-size:14px;display:flex;align-items:center;gap:6px;max-width:48vw}
+.pill span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.gg{display:flex;align-items:center;gap:8px;font-family:Oswald,sans-serif;font-size:11.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--soft)}
+.gg.on{color:var(--oi)}
+main{padding:0 18px calc(env(safe-area-inset-bottom) + 110px)}
+.titlerow{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-top:4px}
+.titlerow h1{margin:0;font-weight:200;font-size:34px;line-height:1.1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.chips{display:flex;gap:6px;margin:12px 0 14px;align-items:center}
+.chips .grow{flex-grow:1}
+.search{display:none;margin:-4px 0 12px}
+.search input{width:100%;font:inherit;font-size:16px;border-radius:100px;border:1px solid rgba(28,28,28,.12);background:rgba(255,255,255,.85);padding:10px 16px;outline:none}
+.grid{display:flex;flex-direction:column;gap:5px;margin:0 -4px}
+.row{display:flex;gap:5px}
+.tile{position:relative;border:none;padding:0;border-radius:8px;overflow:hidden;background:#d9cfc4}
+.tile img{display:block;width:100%;height:100%;object-fit:cover}
+.badge{position:absolute;left:6px;bottom:6px;font-family:'Courier Prime',monospace;font-size:9.5px;letter-spacing:.1em;color:#fff;background:rgba(0,0,0,.45);border-radius:4px;padding:1px 5px}
+.badge.new{left:auto;right:6px;background:var(--o)}
+.empty{font-size:14px;color:var(--soft);line-height:1.5;padding:30px 4px;text-align:center}
+.bottom{position:fixed;left:0;right:0;bottom:0;z-index:6;padding:40px 18px calc(env(safe-area-inset-bottom) + 20px);display:flex;gap:8px;background:linear-gradient(to top,rgba(252,242,236,.98) 45%,rgba(252,242,236,0))}
+.bottom .dark{flex-grow:1}
+
+/* Grab & Go on */
+.banner{border-radius:18px;padding:14px 16px;background:var(--o);color:#fff;display:flex;flex-direction:column;gap:4px;box-shadow:0 12px 30px rgba(240,90,34,.3);margin-top:6px}
+.banner b{font-family:Oswald,sans-serif;font-weight:400;font-size:12px;letter-spacing:.16em;text-transform:uppercase}
+.banner span{font-size:14px;line-height:1.45}
+.target{width:100%;border-radius:22px;height:190px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;border:1.5px dashed rgba(240,90,34,.55)!important;margin:16px 0}
+.target b{font-weight:200;font-size:26px}
+.target span{font-size:13px;color:var(--soft);max-width:240px;line-height:1.45;text-align:center}
+.feedhead{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px}
+.feed{display:flex;flex-direction:column}
+.feed .it{display:flex;align-items:center;gap:12px;padding:9px 0;border-bottom:1px solid rgba(28,28,28,.07)}
+.feed .th{width:48px;height:34px;border-radius:6px;flex-shrink:0;background:#d9cfc4 center/cover no-repeat}
+.feed .tx{display:flex;flex-direction:column;gap:2px;flex-grow:1;min-width:0}
+.feed .tx span:first-child{font-size:13.5px}
+.feed .tx span+span{font-family:'Courier Prime',monospace;font-size:10.5px;color:var(--soft)}
+.feed .st{font-size:12px;color:#2f7d4a;white-space:nowrap}
+.note{font-size:11.5px;color:var(--soft);line-height:1.45;margin-top:10px}
+
+/* one picture */
+.view{position:fixed;inset:0;z-index:20;background:#0b0b0b;color:#f4f3f1;display:flex;flex-direction:column;transform:translateY(100%);transition:transform .35s var(--ease)}
+.view.on{transform:none}
+.view .top{padding:calc(env(safe-area-inset-top) + 14px) 18px 0;display:flex;align-items:center;justify-content:space-between}
+.view .back{border:none;background:rgba(255,255,255,.12);color:#fff;border-radius:100px;padding:8px 14px;font-size:14px}
+.view .n{font-family:'Courier Prime',monospace;font-size:11px;letter-spacing:.14em;color:rgba(255,255,255,.55)}
+.view .pic{margin-top:28px;height:42vh;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.view .pic img{max-width:100%;max-height:100%;display:block;image-rendering:auto}
+.view .pic .grad{width:100%;height:100%}
+.view .acts>*{height:48px}
+.view .info{padding:22px 20px 0;display:flex;flex-direction:column;gap:14px}
+.view .info .t{font-weight:300;font-size:22px}
+.view .info .m{font-family:'Courier Prime',monospace;font-size:11.5px;letter-spacing:.08em;color:rgba(255,255,255,.55)}
+.view .sw{display:flex;gap:6px}.view .sw i{width:26px;height:26px;border-radius:7px;box-shadow:0 0 0 1px rgba(255,255,255,.15)}
+.view .tags{display:flex;gap:6px;flex-wrap:wrap}
+.view .tags .chip{background:rgba(255,255,255,.1);color:#fff;border-color:rgba(255,255,255,.2)}
+.view .acts{margin-top:auto;padding:0 18px calc(env(safe-area-inset-bottom) + 14px);display:flex;gap:8px}
+.view .acts .light{flex-grow:1;background:rgba(255,255,255,.1);color:#fff;border-color:rgba(255,255,255,.2)}
+.view .acts .light.small{flex-grow:0}
+.view .hint{text-align:center;font-size:11px;color:rgba(255,255,255,.4);padding-bottom:calc(env(safe-area-inset-bottom) + 10px)}
+
+/* sheets: projects, and the first time */
+.veil{position:fixed;inset:0;z-index:30;background:rgba(60,30,15,.22);opacity:0;pointer-events:none;transition:opacity .25s}
+.veil.on{opacity:1;pointer-events:auto}
+.sheet{position:fixed;left:14px;right:14px;bottom:calc(env(safe-area-inset-bottom) + 14px);z-index:31;border-radius:28px;padding:22px 20px 20px;transform:translateY(120%);transition:transform .35s var(--ease);max-height:80vh;overflow:auto;background:linear-gradient(160deg,rgba(255,255,255,.96),rgba(255,255,255,.9))}
+.sheet.on{transform:none}
+.sheet h2{margin:6px 0 16px;font-weight:200;font-size:30px;line-height:1.1}
+.plist{display:flex;flex-direction:column}
+.plist button{border:none;background:transparent;text-align:left;padding:13px 2px;border-bottom:1px solid rgba(28,28,28,.07);display:flex;align-items:baseline;gap:10px;font-size:16px}
+.plist button small{margin-left:auto;font-family:'Courier Prime',monospace;font-size:11px;color:var(--soft)}
+.plist button.on{color:var(--oi)}
+.steps{display:flex;flex-direction:column;gap:10px}
+.steps .dark,.steps .light{width:100%}
+.steps .n{font-family:'Courier Prime',monospace;font-size:12px;opacity:.6}
+.small{font-size:12.5px;color:var(--soft);line-height:1.45;margin:12px 2px 0;text-align:center}
+.toast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom) + 92px);z-index:40;transform:translate(-50%,8px);white-space:nowrap;border-radius:100px;padding:10px 16px;font-size:13.5px;opacity:0;pointer-events:none;transition:opacity .25s,transform .25s var(--ease);max-width:88vw;text-align:center}
 .toast.show{opacity:1;transform:translate(-50%,0)}
-/* setup */
-.steps{counter-reset:s;display:flex;flex-direction:column;gap:12px}
-.step{counter-increment:s}
-.step h3{margin:0 0 6px;font-weight:500;font-size:16px;display:flex;gap:10px;align-items:baseline}
-.step h3::before{content:counter(s);font-family:'Courier Prime',monospace;font-size:12px;color:var(--accentInk)}
-.step p,.step li{font-size:14px;line-height:1.5;color:var(--soft);margin:0}
-.step ol{margin:8px 0 0;padding-left:20px;display:flex;flex-direction:column;gap:6px}
-.step ol ol{margin-top:6px}
-.step b,.step code{color:var(--ink)}
-code{font-family:'Courier Prime',monospace;font-size:13px;background:var(--field);border:1px solid var(--line);border-radius:6px;padding:1px 5px;white-space:nowrap}
-details{border-top:1px solid var(--line);margin-top:10px;padding-top:10px}
-summary{cursor:pointer;font-size:14px;font-weight:500;list-style:none}
-summary::after{content:' ›';color:var(--accentInk)}
-details[open] summary::after{content:' ⌄'}
-.note{font-size:12.5px;color:var(--soft);line-height:1.45;margin:10px 2px 0}
-.off{display:none}
 </style></head>
 <body>
 <div class="glow"></div>
+<header>
+  <img src="mark.png" alt="This Was Needed">
+  <button class="pill" id="pill" aria-haspopup="dialog"><span id="pillName">Projects</span> <svg width="10" height="7" viewBox="0 0 10 7" aria-hidden="true"><path d="M1 1l4 4 4-4" fill="none" stroke="#fff" stroke-width="1.5"/></svg></button>
+  <span style="flex-grow:1"></span>
+  <span class="gg" id="ggWrap">Grab &amp; Go <button class="tog" id="gg" aria-label="Grab and Go" aria-pressed="false"></button></span>
+</header>
+
 <main>
-  <header>
-    <img src="mark.png" alt="This Was Needed">
-    <div class="grow"><div class="cap">Needed Vault</div></div>
-    <div class="tabs" role="tablist"><button data-v="catch" class="on" role="tab">Catch</button><button data-v="setup" role="tab">Set up</button></div>
-  </header>
-
-  <section id="catch">
-    <h1>Catch it.</h1>
-    <p class="lead">Screenshots, photos, clips and links — into the right project, before you forget where you saw them.</p>
-
-    <div class="g gg" id="gg" role="switch" aria-checked="false" tabindex="0">
-      <i class="dot"></i>
-      <div class="grow"><b id="ggTitle">Grab &amp; Go</b><span id="ggLine">Off — you'll pick a project each time.</span></div>
-      <i class="sw"></i>
+  <!-- Browse -->
+  <section id="browse">
+    <div class="titlerow"><h1 id="title">Needed Vault</h1><span class="cap" id="count"></span></div>
+    <div class="chips" id="chips">
+      <button class="chip on" data-k="all">All</button><button class="chip" data-k="still">Stills</button><button class="chip" data-k="clip">Clips</button><button class="chip" data-k="gif">GIFs</button>
+      <span class="grow"></span>
+      <button class="chip" id="refresh" aria-label="Bring it up to date"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#141414" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 4v7h-7"/></svg></button>
+      <button class="chip" id="searchBtn" aria-label="Search"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#141414" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg></button>
     </div>
-
-    <div class="big" style="margin-top:14px">
-      <button id="shot"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3"/><circle cx="12" cy="12" r="3"/></svg>
-        <b>Latest screenshot</b><span>The one you just took, into the vault.</span></button>
-      <button id="photos"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 15l5-5 4 4 3-3 6 6"/><circle cx="16" cy="9" r="1.5"/></svg>
-        <b>Choose photos</b><span>Stills, GIFs or clips from your library.</span></button>
-    </div>
-
-    <div class="g" style="margin-top:14px">
-      <div class="cap">A link</div>
-      <label class="f"><span style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">Link</span>
-        <div class="row"><input id="url" type="url" inputmode="url" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="YouTube, Vimeo, Instagram…"><button class="btn l" id="paste">Paste</button></div></label>
-      <label class="f"><span style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">Tags</span>
-        <input id="tags" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Tags, if you like — night, car"></label>
-      <button class="btn o wide" id="saveLink" disabled>Save to Needed Vault</button>
-      <p class="note">Your Mac grabs the stills from it next time you press Sync.</p>
-    </div>
-
-    <div class="g" style="margin-top:14px">
-      <div class="row"><div class="cap" style="flex:1">Sent from this phone</div><button class="btn l" id="files" style="padding:7px 13px;font-size:13px">Open in Files</button></div>
-      <ul class="recent" id="recent"></ul>
-    </div>
+    <div class="search" id="search"><input id="q" type="search" placeholder="Search — tags, names" autocomplete="off" autocapitalize="off"></div>
+    <div class="grid" id="grid"></div>
   </section>
 
-  <section id="setup" class="off">
-    <h1>Set up, once.</h1>
-    <p class="lead">Four steps, about ten minutes. After that it's one tap from anywhere — even the side button.</p>
-    <div class="steps">
-      <div class="g step"><h3>On your Mac</h3>
-        <p>In Needed Tools, Home › <b>Your phone</b> › turn on <b>Needed Vault</b>. It makes the folder <b>iCloud Drive › Shortcuts › Needed Vault</b>, with every project's Stills, GIFs and Motion in it, and keeps it matching each time you press <b>Sync</b>.</p></div>
-
-      <div class="g step"><h3>The “Save to Needed Vault” Shortcut</h3>
-        <p>Open the <b>Shortcuts</b> app › <b>+</b>. Name it exactly <code>Save to Needed Vault</code>.</p>
-        <details><summary>Show every action</summary>
-        <ol>
-          <li>Tap <b>ⓘ</b>: turn on <b>Show in Share Sheet</b>. Receive <b>Images, Media, URLs, Text</b> and <b>Files</b>. If there's no input: <b>Continue</b>.</li>
-          <li><b>If</b> <i>Shortcut Input</i> <b>does not have any value</b>
-            <ol><li><b>Get Latest Screenshots</b> — 1</li><li><b>Set Variable</b> <code>Input</code> to <i>Latest Screenshots</i></li></ol>
-            <b>Otherwise</b> <ol><li><b>Set Variable</b> <code>Input</code> to <i>Shortcut Input</i></li></ol> <b>End If</b></li>
-          <li><b>Get File from Folder</b> — folder <b>Shortcuts</b>, path <code>Needed Vault/Grab &amp; Go.txt</code>. <b>Set Variable</b> <code>Grab</code> to it.</li>
-          <li><b>If</b> <i>Grab</i> <b>is</b> <code>off</code>
-            <ol><li><b>Get File from Folder</b> — <b>Shortcuts</b>, <code>Needed Vault/Projects.txt</code></li>
-              <li><b>Split Text</b> by <b>New Lines</b></li>
-              <li><b>Choose from List</b> — prompt <code>Which project?</code></li>
-              <li><b>Set Variable</b> <code>Project</code> to <i>Chosen Item</i></li>
-              <li><b>Ask for Input</b> — Text, <code>Tags? e.g. #night #car</code> (leave it blank if none). <b>Set Variable</b> <code>Tags</code> to it.</li></ol>
-            <b>Otherwise</b> <ol><li><b>Set Variable</b> <code>Project</code> to <i>Grab</i></li></ol> <b>End If</b></li>
-          <li><b>Get URLs from</b> <i>Input</i></li>
-          <li><b>If</b> <i>URLs</i> <b>has any value</b>
-            <ol><li><b>Append to Text File</b> — <i>Input</i> <i>Tags</i>, folder <b>Shortcuts</b>, path <code>Needed Vault/</code><i>Project</i><code>/Links.txt</code>, Make New Line on.</li></ol>
-            <b>Otherwise</b>
-            <ol><li><b>Repeat with Each</b> item in <i>Input</i>
-              <ol><li><b>Set Name</b> of <i>Repeat Item</i> to <i>Repeat Item › Name</i> <i>Tags</i> — <b>Don't Include File Extension</b> on.</li>
-                <li><b>Save File</b> — Ask Where to Save off, <b>Shortcuts</b>, path <code>Needed Vault/</code><i>Project</i><code>/Inbox/</code>, Overwrite off.</li></ol>
-              <b>End Repeat</b></li></ol> <b>End If</b></li>
-          <li><b>Show Notification</b> <code>Saved to</code> <i>Project</i>, then <b>Stop and Output</b> <i>Project</i>.</li>
-        </ol></details></div>
-
-      <div class="g step"><h3>The “Grab &amp; Go” Shortcut</h3>
-        <p>Another new Shortcut, named exactly <code>Grab &amp; Go</code>. It switches Grab &amp; Go on (asking which project) and off.</p>
-        <details><summary>Show every action</summary>
-        <ol>
-          <li><b>Get File from Folder</b> — <b>Shortcuts</b>, <code>Needed Vault/Grab &amp; Go.txt</code></li>
-          <li><b>If</b> <i>File</i> <b>is</b> <code>off</code>
-            <ol><li><b>Get File from Folder</b> — <b>Shortcuts</b>, <code>Needed Vault/Projects.txt</code></li>
-              <li><b>Split Text</b> by <b>New Lines</b>, then <b>Choose from List</b> — <code>Grab &amp; Go into which project?</code></li>
-              <li><b>Text</b> — <i>Chosen Item</i></li></ol>
-            <b>Otherwise</b> <ol><li><b>Text</b> — <code>off</code></li></ol> <b>End If</b></li>
-          <li><b>Save File</b> <i>If Result</i> — Ask Where to Save off, <b>Shortcuts</b>, path <code>Needed Vault/Grab &amp; Go.txt</code>, <b>Overwrite If File Exists on</b>.</li>
-          <li><b>Show Notification</b> <code>Grab &amp; Go:</code> <i>If Result</i>, then <b>Stop and Output</b> <i>If Result</i>.</li>
-        </ol></details></div>
-
-      <div class="g step"><h3>One press, and this page</h3>
-        <ol>
-          <li><b>Side button:</b> Settings › Action Button › Shortcut › <b>Grab &amp; Go</b>.</li>
-          <li><b>Or the back of the phone:</b> Settings › Accessibility › Touch › Back Tap › Double Tap › <b>Grab &amp; Go</b>. Triple Tap › <b>Save to Needed Vault</b> saves your latest screenshot.</li>
-          <li><b>From anywhere:</b> Share › <b>Save to Needed Vault</b> — screenshots, Photos, Safari, Instagram, YouTube.</li>
-          <li><b>This page on your Home Screen:</b> in Safari, Share › <b>Add to Home Screen</b>. It opens like an app, and works offline.</li>
-        </ol></div>
-    </div>
-    <p class="note">Grab &amp; Go on your phone is only your phone's — the Mac keeps its own. Taking something out of Needed Vault on your phone puts it in the Mac's Trash on the next Sync, never gone for good. Links and screenshots wait on your phone until you're back online.</p>
+  <!-- Grab & Go on -->
+  <section id="on" class="off">
+    <div class="banner"><b>Grab &amp; Go is on</b><span id="onLine"></span></div>
+    <button class="g target" id="bigTap"><b>Tap to add</b><span>Pick from Photos — they go straight in, no questions</span></button>
+    <div class="feedhead"><span class="cap" id="todayN">Today</span><button class="chip" id="shot2">Latest screenshot</button></div>
+    <div class="feed" id="feed"></div>
+    <div class="note" id="onNote"></div>
   </section>
 </main>
-<div class="toast" id="toast"></div>
+
+<div class="bottom" id="bottom">
+  <button class="dark" id="photos"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="M3 15l5-5 4 4 3-3 6 6"/></svg>Photos</button>
+  <button class="light" id="shot"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#141414" stroke-width="1.6" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="3"/><circle cx="12" cy="12" r="3.2"/></svg>Screenshot</button>
+</div>
+
+<div class="view" id="view" role="dialog" aria-label="One picture">
+  <div class="top"><button class="back" id="vBack"></button><span class="n" id="vN"></span></div>
+  <div class="pic" id="vPic"></div>
+  <div class="info"><span class="t" id="vT"></span><span class="m" id="vM"></span><div class="sw" id="vSw"></div><div class="tags" id="vTags"></div></div>
+  <div class="acts"><button class="light" id="vFull">Full size</button><button class="light small" id="vSrc">Source ↗</button><button class="light small" id="vShare">Share</button></div>
+  <div class="hint">Swipe for the next · cropping and boards stay on the Mac</div>
+</div>
+
+<div class="veil" id="veil"></div>
+<div class="g sheet" id="projSheet" role="dialog" aria-label="Projects"><span class="cap">Your projects</span><h2>Open a project</h2><div class="plist" id="plist"></div></div>
+<div class="g sheet" id="setup" role="dialog" aria-label="Set up">
+  <span class="cap">Needed Vault</span>
+  <h2>Two taps and you're set.</h2>
+  <div class="steps">
+    <a class="dark" id="add1" href="add/Needed%20Vault.shortcut"><span class="n">1</span> Add “Needed Vault”</a>
+    <a class="light" id="add2" href="add/Grab%20%26%20Go.shortcut"><span class="n">2</span> Add “Grab &amp; Go” — for the side button</a>
+    <button class="light" id="openVault" style="border-color:rgba(240,90,34,.5);color:var(--oi)">Open my vault</button>
+  </div>
+  <p class="small">Each opens Shortcuts — tap <b>Add Shortcut</b>. The first time, allow Photos and Files.</p>
+</div>
+<div class="g toast" id="toast"></div>
+
 <script>
 (function () {
   'use strict';
-  var SAVE = 'Save to Needed Vault', GG = 'Grab & Go';
   var $ = function (id) { return document.getElementById(id); };
   var get = function (k, d) { try { var v = localStorage.getItem('nv.' + k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } };
   var put = function (k, v) { try { localStorage.setItem('nv.' + k, JSON.stringify(v)); } catch (e) {} };
   var esc = function (s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); };
-  function toast(t) { var e = $('toast'); e.textContent = t; e.classList.add('show'); clearTimeout(toast.t); toast.t = setTimeout(function () { e.classList.remove('show'); }, 2800); }
+  function toast(t) { var e = $('toast'); e.textContent = t; e.classList.add('show'); clearTimeout(toast.t); toast.t = setTimeout(function () { e.classList.remove('show'); }, 2600); }
   var home = location.href.split('#')[0].split('?')[0];
 
-  // Run a Shortcut; it comes back here with what it did.
-  function run(name, text, back) {
-    var u = 'shortcuts://x-callback-url/run-shortcut?name=' + encodeURIComponent(name);
-    if (text != null) u += '&input=text&text=' + encodeURIComponent(text);
-    u += '&x-success=' + encodeURIComponent(home + '?back=' + back) + '&x-cancel=' + encodeURIComponent(home + '?back=cancel') + '&x-error=' + encodeURIComponent(home + '?back=error');
+  // Everything goes through the "Needed Vault" Shortcut, which comes straight back here with the answer.
+  function run(ask, back) {
+    var u = 'shortcuts://x-callback-url/run-shortcut?name=' + encodeURIComponent('Needed Vault') + '&input=text&text=' + encodeURIComponent(ask)
+      + '&x-success=' + encodeURIComponent(home + '?back=' + back) + '&x-cancel=' + encodeURIComponent(home + '?back=cancel') + '&x-error=' + encodeURIComponent(home + '?back=error');
     if (window.__nvGo) return window.__nvGo(u);      // tests
     location.href = u;
   }
 
-  // Grab & Go, as the phone last said.
-  function drawGG() {
-    var p = get('gg', ''), on = !!p;
-    $('gg').classList.toggle('on', on); $('gg').setAttribute('aria-checked', on);
-    $('ggTitle').textContent = on ? 'Grab & Go · ' + p : 'Grab & Go';
-    $('ggLine').textContent = on ? 'On — everything goes straight into ' + p + '.' : 'Off — you’ll pick a project each time.';
-  }
-  function toggleGG() { run(GG, null, 'gg'); }
-  $('gg').addEventListener('click', toggleGG);
-  $('gg').addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleGG(); } });
+  var S = { project: get('project', ''), projects: get('projects', []), grabGo: get('grabGo', ''), kind: 'all', q: '' };
+  var data = function (p) { return get('p:' + p, null); };
+  var sent = function () { return get('sent', []); };
 
-  function ago(t) { var m = Math.round((Date.now() - t) / 60000); return m < 1 ? 'now' : m < 60 ? m + ' min' : m < 1440 ? Math.round(m / 60) + ' h' : Math.round(m / 1440) + ' d'; }
-  function drawRecent() {
-    var r = get('recent', []);
-    $('recent').innerHTML = r.length ? r.slice(0, 12).map(function (x) {
-      return '<li><span class="w">' + esc(x.w) + '</span><span class="t">' + esc(x.to ? x.to + ' · ' : '') + ago(x.at) + '</span></li>';
-    }).join('') : '<li class="empty">Nothing yet. What you save shows here — and in Needed Tools after the next Sync.</li>';
+  function kindName(k) { return k === 'clip' ? 'Clip' : k === 'gif' ? 'GIF' : 'Still'; }
+  function srcOf(it) { return it.t ? 'data:image/jpeg;base64,' + it.t : ''; }
+  function listNow() {
+    var d = data(S.project), items = (d && d.items) || [], q = S.q.trim().toLowerCase();
+    var fresh = sent().filter(function (x) { return x.p === S.project; }).reduce(function (a, x) { return a.concat((x.th || []).map(function (t) { return { k: 'still', t: t, n: 'Just added', fresh: true }; })); }, []);
+    return fresh.concat(items).filter(function (it) {
+      if (S.kind !== 'all' && it.k !== S.kind) return false;
+      return !q || [it.n, (it.g || []).join(' ')].join(' ').toLowerCase().indexOf(q) >= 0;
+    });
   }
 
-  $('shot').addEventListener('click', function () { put('pending', { w: 'Latest screenshot', k: 'shot' }); run(SAVE, null, 'saved'); });
-  $('photos').addEventListener('click', function () { put('pending', { w: 'Photos', k: 'photos' }); location.href = 'photos-redirect://'; setTimeout(function () { toast('Pick them in Photos, then Share › Save to Needed Vault'); }, 400); });
-  function tagText() { return $('tags').value.split(/[\s,]+/).filter(Boolean).map(function (t) { return '#' + t.replace(/^#/, ''); }).join(' '); }
-  function linkOK() { return /^https?:\/\/\S+\.\S+/i.test($('url').value.trim()); }
-  $('url').addEventListener('input', function () { $('saveLink').disabled = !linkOK(); });
-  $('paste').addEventListener('click', function () {
-    if (!navigator.clipboard || !navigator.clipboard.readText) return toast('Press and hold in the box, then Paste');
-    navigator.clipboard.readText().then(function (t) { var m = (t || '').match(/https?:\/\/\S+/i); $('url').value = m ? m[0] : t; $('saveLink').disabled = !linkOK(); if (!m) toast('That isn’t a link'); }).catch(function () { toast('Press and hold in the box, then Paste'); });
-  });
-  $('saveLink').addEventListener('click', function () {
-    if (!linkOK()) return;
-    var u = $('url').value.trim(), t = tagText();
-    put('pending', { w: u.replace(/^https?:\/\/(www\.)?/, ''), k: 'link' });
-    run(SAVE, t ? u + ' ' + t : u, 'saved');
-  });
-  $('files').addEventListener('click', function () { location.href = 'shareddocuments://'; setTimeout(function () { toast('In Files: iCloud Drive › Shortcuts › Needed Vault'); }, 500); });
+  // The rows: pictures keep their shape, rows fill the width.
+  function drawGrid() {
+    var list = listNow(), w = Math.min(innerWidth, 560) - 28, rows = [], row = [], sum = 0, target = 118;
+    list.forEach(function (it, i) { var a = it.a || 1.5; row.push([it, a, i]); sum += a; if (sum * target + (row.length - 1) * 5 >= w) { rows.push([row, sum]); row = []; sum = 0; } });
+    if (row.length) rows.push([row, Math.max(sum, w / target * 0.7)]);
+    $('grid').innerHTML = list.length ? rows.map(function (r) {
+      var h = Math.round((w - (r[0].length - 1) * 5) / r[1]);
+      return '<div class="row">' + r[0].map(function (c) {
+        var it = c[0], s = srcOf(it), g = (it.c || ['#d9cfc4', '#b8a898']);
+        return '<button class="tile" data-i="' + c[2] + '" style="flex:' + c[1] + ' 1 0;height:' + h + 'px;background:linear-gradient(160deg,' + esc(g[0]) + ',' + esc(g[1] || g[0]) + ')">' + (s ? '<img alt="" src="' + s + '">' : '')
+          + (it.k !== 'still' ? '<span class="badge">' + (it.k === 'clip' ? 'CLIP' : 'GIF') + '</span>' : '') + (it.fresh ? '<span class="badge new">NEW</span>' : '') + '</button>';
+      }).join('') + '</div>';
+    }).join('') : '<div class="empty">' + (data(S.project) ? 'Nothing here yet — Photos below adds some.' : 'Tap <b>↻</b> to bring in ' + esc(S.project || 'your vault') + '.') + '</div>';
+  }
 
-  // Back from a Shortcut.
-  var q = new URLSearchParams(location.search), back = q.get('back'), result = (q.get('result') || '').trim();
-  if (back) {
-    history.replaceState(null, '', home);
-    if (back === 'gg') { put('gg', result && result.toLowerCase() !== 'off' ? result : ''); toast(result && result.toLowerCase() !== 'off' ? 'Grab & Go on — ' + result : 'Grab & Go off'); }
-    else if (back === 'saved') {
-      var p = get('pending', null); put('pending', null);
-      if (p) { var r = get('recent', []); r.unshift({ w: p.w, k: p.k, at: Date.now(), to: result }); put('recent', r.slice(0, 30)); }
-      if (p && p.k === 'link') { $('url').value = ''; $('tags').value = ''; }
-      toast(result ? 'Saved to ' + result : 'Saved');
+  function drawFeed() {
+    var today = new Date().toDateString(), list = sent().filter(function (x) { return new Date(x.at).toDateString() === today; });
+    var n = list.reduce(function (a, x) { return a + (x.n || 0); }, 0);
+    $('todayN').textContent = 'Today, ' + n + ' added';
+    $('feed').innerHTML = list.length ? list.map(function (x) {
+      var t = new Date(x.at), hm = ('0' + t.getHours()).slice(-2) + ':' + ('0' + t.getMinutes()).slice(-2);
+      return '<div class="it"><span class="th" style="' + (x.th && x.th[0] ? 'background-image:url(data:image/jpeg;base64,' + x.th[0] + ')' : '') + '"></span><span class="tx"><span>' + esc(x.what) + ' ' + hm + '</span><span>' + (x.n || 1) + ' file' + (x.n === 1 ? '' : 's') + '</span></span><span class="st">In ' + esc(x.p) + '</span></div>';
+    }).join('') : '<div class="empty" style="padding:18px 0">Nothing yet today.</div>';
+    $('onNote').textContent = '“In ' + (S.grabGo || 'the project') + '” means it’s in the project’s inbox. Your Mac files it into the vault next time it syncs.';
+  }
+
+  function draw() {
+    var on = !!S.grabGo;
+    $('pillName').textContent = (on ? S.grabGo : S.project) || 'Projects';
+    $('gg').classList.toggle('on', on); $('gg').setAttribute('aria-pressed', on); $('ggWrap').classList.toggle('on', on);
+    $('browse').classList.toggle('off', on); $('on').classList.toggle('off', !on);
+    $('bottom').classList.toggle('off', on);
+    var d = data(S.project);
+    $('title').textContent = S.project || 'Needed Vault';
+    $('count').textContent = d ? d.c + ' in the vault' : '';
+    [].forEach.call(document.querySelectorAll('#chips [data-k]'), function (b) { b.classList.toggle('on', b.dataset.k === S.kind); });
+    if (on) { $('onLine').textContent = 'Everything goes straight into ' + S.grabGo + '. No questions until you switch it off.'; drawFeed(); }
+    else drawGrid();
+  }
+
+  /* ---- sheets */
+  function sheet(id, open) {
+    ['projSheet', 'setup'].forEach(function (s) { $(s).classList.toggle('on', open && s === id); });
+    $('veil').classList.toggle('on', !!open);
+  }
+  $('veil').addEventListener('click', function () { if (get('ready', false)) sheet(null, false); });
+  function openProjects() {
+    if (!S.projects.length) return run('home', 'home');
+    $('plist').innerHTML = S.projects.map(function (p) {
+      return '<button class="' + (p.n === S.project ? 'on' : '') + '" data-p="' + esc(p.n) + '">' + esc(p.n) + '<small>' + (p.c || 0) + (p.l ? ' · ' + esc(p.l) : '') + '</small></button>';
+    }).join('');
+    sheet('projSheet', true);
+  }
+  $('pill').addEventListener('click', openProjects);
+  $('plist').addEventListener('click', function (e) {
+    var b = e.target.closest('[data-p]'); if (!b) return;
+    S.project = b.dataset.p; put('project', S.project); sheet(null, false); S.kind = 'all';
+    if (S.grabGo) { run('gg|' + S.project, 'gg'); return; }                 // Grab & Go follows the project you pick
+    if (!data(S.project)) return run('browse|' + S.project, 'browse');
+    draw();
+  });
+
+  /* ---- actions: each is one tap */
+  $('gg').addEventListener('click', function () {
+    if (S.grabGo) return run('gg|off', 'gg');
+    if (!S.project) return openProjects();
+    run('gg|' + S.project, 'gg');
+  });
+  function need() { if (!S.project && !S.grabGo) { openProjects(); return false; } return true; }
+  $('photos').addEventListener('click', function () { if (need()) run('photos|' + (S.grabGo || S.project), 'saved'); });
+  $('bigTap').addEventListener('click', function () { if (need()) run('photos|' + (S.grabGo || S.project), 'saved'); });
+  $('shot').addEventListener('click', function () { if (need()) run('shot|' + (S.grabGo || S.project), 'saved'); });
+  $('shot2').addEventListener('click', function () { if (need()) run('shot|' + (S.grabGo || S.project), 'saved'); });
+  $('refresh').addEventListener('click', function () { if (!S.project) return run('home', 'home'); run('browse|' + S.project, 'browse'); });
+  $('openVault').addEventListener('click', function () { put('ready', true); run('home', 'home'); });
+  $('chips').addEventListener('click', function (e) { var b = e.target.closest('[data-k]'); if (b) { S.kind = b.dataset.k; draw(); } });
+  $('searchBtn').addEventListener('click', function () { var s = $('search'); var on = s.style.display !== 'block'; s.style.display = on ? 'block' : 'none'; if (on) $('q').focus(); else { $('q').value = ''; S.q = ''; drawGrid(); } });
+  $('q').addEventListener('input', function () { S.q = $('q').value; drawGrid(); });
+
+  /* ---- one picture, full screen; swipe for the next */
+  var vi = -1;
+  function openView(i) {
+    var list = listNow(), it = list[i]; if (!it) return; vi = i;
+    $('vBack').textContent = '‹ ' + (S.project || 'Back'); $('vN').textContent = (i + 1) + ' / ' + list.length;
+    var gc = it.c || ['#3b4a52', '#1b1b1d'];
+    $('vPic').innerHTML = srcOf(it) ? '<img alt="" src="' + srcOf(it) + '">' : '<div class="grad" style="background:linear-gradient(160deg,' + esc(gc[0]) + ',' + esc(gc[1] || gc[0]) + ' 60%,' + esc(gc[2] || '#1b1b1d') + ')"></div>';
+    $('vT').textContent = it.n || kindName(it.k);
+    $('vM').textContent = [kindName(it.k), it.s && it.s !== 'file' ? it.s : '', it.d ? 'added ' + it.d : ''].filter(Boolean).join(' · ');
+    $('vSw').innerHTML = (it.c || []).map(function (c) { return '<i style="background:' + esc(c) + '"></i>'; }).join('');
+    $('vTags').innerHTML = (it.g || []).map(function (t) { return '<span class="chip">#' + esc(t) + '</span>'; }).join('');
+    $('vFull').classList.toggle('off', !it.f); $('vSrc').classList.toggle('off', !it.u);
+    $('view').classList.add('on');
+  }
+  $('grid').addEventListener('click', function (e) { var b = e.target.closest('.tile'); if (b) openView(+b.dataset.i); });
+  $('vBack').addEventListener('click', function () { $('view').classList.remove('on'); });
+  $('vFull').addEventListener('click', function () { var it = listNow()[vi]; if (it && it.f) run('view|' + it.f, 'view'); });
+  $('vSrc').addEventListener('click', function () { var it = listNow()[vi]; if (it && it.u) location.href = it.u; });
+  $('vShare').addEventListener('click', function () {
+    var it = listNow()[vi]; if (!it || !navigator.share) return;
+    navigator.share(it.u ? { title: it.n, url: it.u } : { title: it.n || 'From Needed Vault', text: it.n || '' }).catch(function () {});
+  });
+  var x0 = null;
+  $('view').addEventListener('touchstart', function (e) { x0 = e.touches[0].clientX; }, { passive: true });
+  $('view').addEventListener('touchend', function (e) { if (x0 == null) return; var d = e.changedTouches[0].clientX - x0; x0 = null; if (Math.abs(d) > 50) openView(vi + (d < 0 ? 1 : -1)); });
+
+  /* ---- back from the Shortcut */
+  var q = new URLSearchParams(location.search), back = q.get('back'), result = q.get('result') || '';
+  if (back) history.replaceState(null, '', home);
+  function parse(t) { try { return JSON.parse(t); } catch (e) { return null; } }
+  if (back === 'home') {
+    var h = parse(result);
+    if (h) {
+      S.projects = h.projects || []; put('projects', S.projects);
+      S.grabGo = h.grabGo && h.grabGo !== 'off' ? h.grabGo : ''; put('grabGo', S.grabGo);
+      if (!S.project || !S.projects.some(function (p) { return p.n === S.project; })) { S.project = h.current && h.current !== 'Unsorted' ? h.current : ((S.projects[0] || {}).n || ''); put('project', S.project); }
+      put('ready', true);
+      if (S.project && !data(S.project)) run('browse|' + S.project, 'browse');
+    } else toast('Turn on “Keep it in iCloud” in Needed Tools, then Sync');
+  } else if (back === 'browse') {
+    var b = parse(result);
+    if (b && b.p) { put('p:' + b.p, b); put('sent', sent().filter(function (x) { return x.p !== b.p; })); toast(b.c + ' in ' + b.p); }
+    else toast('Nothing from ' + S.project + ' yet — Sync on your Mac');
+  } else if (back === 'saved') {
+    var parts = result.split('|');      // saved|Project|count|thumb,thumb
+    if (parts[0] === 'saved') {
+      var n = parseInt(parts[2], 10) || 0, th = (parts[3] || '').split(',').filter(Boolean).slice(0, 12);
+      if (n) { var list = sent(); list.unshift({ p: parts[1], n: n, th: th, at: Date.now(), what: n === 1 ? 'Photo' : n + ' photos' }); put('sent', list.slice(0, 40)); }
+      toast(n ? (n === 1 ? 'Saved to ' : n + ' saved to ') + parts[1] : 'Nothing picked');
     }
-    else if (back === 'error') toast('The Shortcut stopped — is it set up? See Set up.');
+  } else if (back === 'gg') {
+    var g = result.split('|')[1] || '';
+    S.grabGo = g && g !== 'off' ? g : ''; put('grabGo', S.grabGo);
+    if (S.grabGo) { S.project = S.grabGo; put('project', S.project); }
+    toast(S.grabGo ? 'Grab & Go on — ' + S.grabGo : 'Grab & Go off');
+  } else if (back === 'error') {
+    put('ready', false);
   }
 
-  // Catch, or Set up — first time, Set up.
-  function view(v) {
-    [].forEach.call(document.querySelectorAll('.tabs button'), function (b) { b.classList.toggle('on', b.dataset.v === v); });
-    $('catch').classList.toggle('off', v !== 'catch'); $('setup').classList.toggle('off', v !== 'setup');
-    put('view', v); scrollTo(0, 0);
-  }
-  [].forEach.call(document.querySelectorAll('.tabs button'), function (b) { b.addEventListener('click', function () { view(b.dataset.v); }); });
-  view(back ? 'catch' : get('view', 'setup'));
-  drawGG(); drawRecent();
+  addEventListener('resize', function () { if (!S.grabGo) drawGrid(); });
+  draw();
+  if (!get('ready', false)) sheet('setup', true);
   if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('sw.js').catch(function () {});
 })();
 </script>

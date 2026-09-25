@@ -420,8 +420,8 @@ main{position:relative;height:100vh;display:grid;grid-template-columns:minmax(0,
       ${on && !s.shortcuts ? '<p>The iPhone Shortcuts reach iCloud Drive › Shortcuts most easily — choose that folder if you can.</p>' : ''}
       <ol>
         <li>Turn this on, then press <b>Sync</b>. <span>The first time copies every project up — that can take a while.</span></li>
-        <li><b>Put the phone page online</b>, open it on your iPhone and <b>Add to Home Screen</b>. <span>It walks you through the two Shortcuts.</span></li>
-        <li>Share anything to <b>Save to Needed Vault</b>. <span>Next Sync, it's in the right project, tags and all.</span></li>
+        <li><b>Put the phone page online</b>, open it on your iPhone and <b>Add to Home Screen</b>. <span>Two taps there add the Shortcuts — nothing to build.</span></li>
+        <li>Photos and screenshots from the page, or Share › <b>Needed Vault</b> from any app. <span>Next Sync, they're in the right project.</span></li>
       </ol>
       <div class="row3"><button class="cancel" id="phoneShow"${on ? '' : ' hidden'}>Show in Finder</button><button class="cancel" id="phonePage">Put the phone page online</button><button class="save" id="phoneDone">Done</button></div>`;
   }
@@ -442,7 +442,7 @@ main{position:relative;height:100vh;display:grid;grid-template-columns:minmax(0,
     if (t.id === 'phonePage') {
       const r = await call('cloudPhonePage').catch(() => null);
       if (!r || !r.ok) return toast((r && r.error) || "Couldn't make the page");
-      toast('In Downloads — drag “Needed Vault page” onto Netlify Drop');
+      toast(r.shortcuts >= 2 ? 'In Downloads — drag “Needed Vault page” onto Netlify Drop' : 'Page made, but the Shortcuts couldn\u2019t be signed — this Mac needs macOS 12 or later and iCloud');
       setTimeout(() => call('openURL', { url: 'https://app.netlify.com/drop' }), 900);
     }
   });

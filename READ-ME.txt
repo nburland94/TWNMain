@@ -567,3 +567,23 @@ ROUND 13 — DESIGN FEELS FIXED; PROJECTS FROM HOME
     glass and sit left of Sync — never over Grab & Go, so you see it
     switch. Grab & Go's message has a small dot: orange on, grey off.
 
+ROUND 14 — NEEDED VAULT ON THE PHONE, LIKE THE MOCK-UP
+  • The phone page is the mock-up: the project pill and Grab & Go switch at
+    the top, the project's vault in rows (All / Stills / Clips / GIFs,
+    search), tap one for the dark full view (colours, tags, Full size,
+    Source, Share, swipe for the next), Photos and Screenshot at the
+    bottom. Grab & Go on: the orange banner, "Tap to add", today's list.
+    No paste-a-link.
+  • Set-up is two taps: the Mac makes both Shortcuts and signs them
+    ("Put the phone page online", on Home › Your phone). On the phone, each
+    Add button opens Shortcuts on "Add Shortcut". They're also in iCloud
+    Drive › Shortcuts › Needed Vault › Add to your iPhone. Signing needs
+    macOS 12+ and iCloud on the Mac.
+  • Photos: the Shortcut picks them, saves them into the project's Inbox,
+    and comes straight back to the page with their thumbnails (marked NEW).
+  • Browsing: each Sync writes Phone.json per project (the newest 36, with
+    110-pixel thumbnails) into Needed Vault; ↻ brings it to the phone.
+    "Full size" opens the real file from iCloud.
+  • Keep the page in Safari (a Home Screen icon opens Safari too): iPhone
+    always comes back from Shortcuts to Safari.
+

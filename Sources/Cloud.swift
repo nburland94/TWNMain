@@ -18,6 +18,8 @@
 // Removed in the cloud. Names like "IMG_2041 #night #car.png" bring their tags.
 
 import Foundation
+import ImageIO
+import CoreGraphics
 
 enum CloudVault {
     static let kinds: [(folder: String, kind: String, exts: Set<String>)] = [
@@ -127,7 +129,7 @@ enum CloudVault {
         for u in (try? fm.contentsOfDirectory(at: r, includingPropertiesForKeys: [.isDirectoryKey], options: [.skipsHiddenFiles])) ?? [] {
             if (try? u.resourceValues(forKeys: [.isDirectoryKey]))?.isDirectory == true { projects.insert(u.lastPathComponent) }
         }
-        for p in projects.sorted() where p != "Unsorted" && !p.hasPrefix(".") {
+        for p in projects.sorted() where p != "Unsorted" && p != "Add to your iPhone" && !p.hasPrefix(".") {
             mirrorOne(p, base: base, cloud: r, book: &book, out: &out, current: current)
         }
         saveBook(book, base)
@@ -324,5 +326,234 @@ enum CloudVault {
         }
         if let t = UserDefaults.standard.string(forKey: "cloudLast") { s["last"] = t }
         return s
+    }
+}
+
+// MARK: - What the phone shows: a small index of each project, with tiny pictures
+
+extension CloudVault {
+    /// Needed Vault/Phone.json — the projects; Needed Vault/<Project>/Phone.json — its newest 48,
+    /// each with a thumbnail small enough to travel back to the phone page through the Shortcut.
+    /// Written only when something changed, so iCloud isn't kept busy.
+    static func publishPhone(items: [[String: Any]], base: URL) {
+        guard on, let r = root else { return }
+        let fm = FileManager.default
+        var byProject: [String: [[String: Any]]] = [:]
+        for it in items where ["still", "gif", "clip"].contains(it["kind"] as? String ?? "") {
+            byProject[(it["project"] as? String) ?? "Unsorted", default: []].append(it)
+        }
+        let names = Shared.projects().filter { $0 != "Unsorted" }
+        // Where each one is in the cloud, for "Full size" on the phone.
+        var cloudOf: [String: String] = [:]
+        for (c, e) in loadBook(base) { if let m = e["mac"] as? String { cloudOf[m] = c } }
+        var list: [[String: Any]] = []
+        for p in names {
+            let mine = (byProject[p] ?? []).sorted { (($0["created"] as? String) ?? "") > (($1["created"] as? String) ?? "") }
+            list.append(["n": p, "c": mine.count, "l": Labels.of(p)])
+            var out: [[String: Any]] = []
+            for it in mine.prefix(36) {
+                var o: [String: Any] = ["id": it["id"] as? String ?? "", "k": it["kind"] as? String ?? "still"]
+                let src = it["source"] as? [String: Any] ?? [:]
+                o["n"] = (it["title"] as? String) ?? (src["title"] as? String) ?? ""
+                if let u = src["url"] as? String { o["u"] = u }
+                if let t = src["type"] as? String { o["s"] = t }
+                if let g = it["tags"] as? [String], !g.isEmpty { o["g"] = g }
+                if let c = it["palette"] as? [String] { o["c"] = Array(c.prefix(4)) }
+                if let d = it["created"] as? String { o["d"] = String(d.prefix(10)) }
+                if let f = it["file"] as? String, let c = cloudOf[f] { o["f"] = c }
+                if let rel = (it["thumb"] as? String) ?? (it["file"] as? String), let t = tinyJPEG(base.appendingPathComponent(rel)) {
+                    o["t"] = t.data.base64EncodedString(); o["a"] = (t.aspect * 100).rounded() / 100
+                }
+                out.append(o)
+            }
+            let dir = r.appendingPathComponent(p, isDirectory: true)
+            try? fm.createDirectory(at: dir, withIntermediateDirectories: true)
+            write(["p": p, "c": mine.count, "items": out], to: dir.appendingPathComponent("Phone.json"))
+        }
+        write(["projects": list, "current": Shared.project, "grabGo": phoneGrabGo ?? ""], to: r.appendingPathComponent("Phone.json"))
+    }
+    private static func write(_ o: [String: Any], to u: URL) {
+        guard let d = try? JSONSerialization.data(withJSONObject: o, options: [.sortedKeys]) else { return }
+        if (try? Data(contentsOf: u)) == d { return }
+        try? d.write(to: u, options: .atomic)
+    }
+    /// A 120-pixel JPEG of a picture (or a clip's poster), and its shape.
+    static func tinyJPEG(_ u: URL) -> (data: Data, aspect: Double)? {
+        guard let src = CGImageSourceCreateWithURL(u as CFURL, nil) else { return nil }
+        let opts: [CFString: Any] = [kCGImageSourceCreateThumbnailFromImageAlways: true, kCGImageSourceThumbnailMaxPixelSize: 110,
+                                     kCGImageSourceCreateThumbnailWithTransform: true]
+        guard let img = CGImageSourceCreateThumbnailAtIndex(src, 0, opts as CFDictionary) else { return nil }
+        let data = NSMutableData()
+        guard let dst = CGImageDestinationCreateWithData(data, "public.jpeg" as CFString, 1, nil) else { return nil }
+        CGImageDestinationAddImage(dst, img, [kCGImageDestinationLossyCompressionQuality: 0.5] as CFDictionary)
+        guard CGImageDestinationFinalize(dst) else { return nil }
+        return (data as Data, Double(img.width) / Double(max(1, img.height)))
+    }
+}
+
+// MARK: - The two Shortcuts, made and signed here — one tap on the phone adds each
+
+extension CloudVault {
+    /// "Needed Vault" does everything the phone page asks, and is the Share Sheet's "save this":
+    ///   home            → the projects (Needed Vault/Phone.json)
+    ///   browse|Lexus    → Lexus's newest, with tiny pictures
+    ///   photos|Lexus    → pick from Photos, into Lexus's Inbox, back with their thumbnails
+    ///   shot|Lexus      → the latest screenshot, the same way
+    ///   gg|Lexus, gg|off → Grab & Go on (into Lexus) or off
+    ///   view|Lexus/Stills/a.jpg → that file, full size
+    ///   anything shared → into the Grab & Go project, or the one you pick
+    /// "Grab & Go" is for the Action Button or Back Tap: on (pick the project) and off.
+    static func makeShortcuts(into dir: URL) -> [URL] {
+        let fm = FileManager.default
+        try? fm.createDirectory(at: dir, withIntermediateDirectories: true)
+        var made: [URL] = []
+        for (name, actions, share) in [("Needed Vault", ShortcutBuilder.neededVault(), true), ("Grab & Go", ShortcutBuilder.grabAndGo(), false)] {
+            let plist = ShortcutBuilder.workflow(actions, share: share)
+            guard let data = try? PropertyListSerialization.data(fromPropertyList: plist, format: .binary, options: 0) else { continue }
+            let raw = fm.temporaryDirectory.appendingPathComponent("\(UUID().uuidString).shortcut")
+            let out = dir.appendingPathComponent("\(name).shortcut")
+            guard (try? data.write(to: raw)) != nil else { continue }
+            try? fm.removeItem(at: out)
+            // iPhones only add Shortcuts that are signed; the Mac signs them (macOS 12 or later, signed in to iCloud).
+            let task = Process()
+            task.executableURL = URL(fileURLWithPath: "/usr/bin/shortcuts")
+            task.arguments = ["sign", "--mode", "anyone", "--input", raw.path, "--output", out.path]
+            task.standardOutput = FileHandle.nullDevice; task.standardError = FileHandle.nullDevice
+            if (try? task.run()) != nil { task.waitUntilExit() }
+            try? fm.removeItem(at: raw)
+            if task.terminationStatus == 0, fm.fileExists(atPath: out.path) { made.append(out) }
+        }
+        return made
+    }
+}
+
+/// Shortcuts' own file format, action by action.
+enum ShortcutBuilder {
+    typealias A = [String: Any]
+    static func workflow(_ actions: [A], share: Bool) -> A {
+        var w: A = [
+            "WFWorkflowActions": actions,
+            "WFWorkflowClientVersion": "2302.0.4",
+            "WFWorkflowMinimumClientVersion": 900,
+            "WFWorkflowMinimumClientVersionString": "900",
+            "WFWorkflowIcon": ["WFWorkflowIconStartColor": 4282601983, "WFWorkflowIconGlyphNumber": 59511],
+            "WFWorkflowImportQuestions": [],
+            "WFWorkflowInputContentItemClasses": ["WFImageContentItem", "WFPhotoMediaContentItem", "WFAVAssetContentItem",
+                                                  "WFGenericFileContentItem", "WFStringContentItem", "WFURLContentItem"],
+            "WFWorkflowOutputContentItemClasses": [],
+            "WFQuickActionSurfaces": [],
+            "WFWorkflowHasShortcutInputVariables": share,
+        ]
+        w["WFWorkflowTypes"] = share ? ["ActionExtension"] : []
+        return w
+    }
+    // Pieces
+    static func act(_ id: String, _ p: A = [:], uuid: String? = nil) -> A {
+        var params = p
+        if let u = uuid { params["UUID"] = u }
+        return ["WFWorkflowActionIdentifier": "is.workflow.actions.\(id)", "WFWorkflowActionParameters": params]
+    }
+    static func v(_ name: String) -> A { ["Type": "Variable", "VariableName": name] }
+    static let input: A = ["Type": "ExtensionInput"]
+    static func out(_ uuid: String, _ name: String) -> A { ["Type": "ActionOutput", "OutputUUID": uuid, "OutputName": name] }
+    static func attach(_ a: A) -> A { ["Value": a, "WFSerializationType": "WFTextTokenAttachment"] }
+    /// Text with variables in it: "Needed Vault/{Project}/Inbox/"
+    static func text(_ parts: [Any]) -> A {
+        var s = "", ranges: [String: Any] = [:]
+        for part in parts {
+            if let t = part as? String { s += t }
+            else if let a = part as? A { ranges["{\(s.utf16.count), 1}"] = a; s += "\u{FFFC}" }
+        }
+        return ["Value": ["string": s, "attachmentsByRange": ranges], "WFSerializationType": "WFTextTokenString"]
+    }
+    static func setVar(_ name: String, _ a: A) -> A { act("setvariable", ["WFVariableName": name, "WFInput": attach(a)]) }
+    /// If <variable> is "<text>" … End If — the actions run inside it.
+    static func ifIs(_ a: A, _ value: String, _ then: [A], otherwise: [A]? = nil) -> [A] {
+        let g = UUID().uuidString
+        var r: [A] = [act("conditional", ["GroupingIdentifier": g, "WFControlFlowMode": 0, "WFCondition": 4,
+                                          "WFConditionalActionString": value, "WFInput": ["Type": "Variable", "Variable": attach(a)]])]
+        r += then
+        if let o = otherwise { r.append(act("conditional", ["GroupingIdentifier": g, "WFControlFlowMode": 1])); r += o }
+        r.append(act("conditional", ["GroupingIdentifier": g, "WFControlFlowMode": 2]))
+        return r
+    }
+    static func ifHasValue(_ a: A, _ then: [A], otherwise: [A]) -> [A] {
+        let g = UUID().uuidString
+        return [act("conditional", ["GroupingIdentifier": g, "WFControlFlowMode": 0, "WFCondition": 100,
+                                    "WFInput": ["Type": "Variable", "Variable": attach(a)]])]
+            + then + [act("conditional", ["GroupingIdentifier": g, "WFControlFlowMode": 1])] + otherwise
+            + [act("conditional", ["GroupingIdentifier": g, "WFControlFlowMode": 2])]
+    }
+    static func getFile(_ path: [Any], uuid: String) -> A {
+        act("documentpicker.open", ["WFGetFilePath": text(path), "WFShowFilePicker": false, "WFFileErrorIfNotFound": false], uuid: uuid)
+    }
+    static func saveFile(_ a: A, _ path: [Any], overwrite: Bool) -> A {
+        act("documentpicker.save", ["WFInput": attach(a), "WFAskWhereToSave": false, "WFFileDestinationPath": text(path), "WFSaveFileOverwrite": overwrite])
+    }
+    static func output(_ parts: [Any]) -> A { act("output", ["WFOutput": text(parts)]) }
+    /// Save the files, then hand back "saved|Project|count|thumb,thumb,…".
+    static func saveAndReport() -> [A] {
+        let cnt = UUID().uuidString, imgs = UUID().uuidString, rs = UUID().uuidString, cv = UUID().uuidString, b64 = UUID().uuidString, cmb = UUID().uuidString
+        return [
+            saveFile(v("Files"), ["Needed Vault/", v("Project"), "/Inbox/"], overwrite: false),
+            act("count", ["Input": attach(v("Files")), "WFCountType": "Items"], uuid: cnt),
+            act("detect.images", ["WFInput": attach(v("Files"))], uuid: imgs),
+            act("image.resize", ["WFImage": attach(out(imgs, "Images")), "WFImageResizeKey": "Width", "WFImageResizeWidth": "160"], uuid: rs),
+            act("image.convert", ["WFInput": attach(out(rs, "Resized Image")), "WFImageFormat": "JPEG", "WFImageCompressionQuality": 0.5, "WFImagePreserveMetadata": false], uuid: cv),
+            act("base64encode", ["WFInput": attach(out(cv, "Converted Image")), "WFEncodeMode": "Encode", "WFBase64LineBreakMode": "None"], uuid: b64),
+            act("text.combine", ["text": attach(out(b64, "Base64 Encoded")), "WFTextSeparator": "Custom", "WFTextCustomSeparator": ","], uuid: cmb),
+            output(["saved|", v("Project"), "|", out(cnt, "Count"), "|", out(cmb, "Combined Text")]),
+        ]
+    }
+    static func pickProject() -> [A] {
+        let gf = UUID().uuidString, sp = UUID().uuidString, ch = UUID().uuidString
+        return [getFile(["Needed Vault/Projects.txt"], uuid: gf),
+                act("text.split", ["text": attach(out(gf, "File")), "WFTextSeparator": "New Lines"], uuid: sp),
+                act("choosefromlist", ["WFInput": attach(out(sp, "Split Text")), "WFChooseFromListActionPrompt": "Which project?"], uuid: ch),
+                setVar("Project", out(ch, "Chosen Item"))]
+    }
+
+    static func neededVault() -> [A] {
+        let sp = UUID().uuidString, m = UUID().uuidString, pr = UUID().uuidString
+        var a: [A] = [
+            act("text.split", ["text": attach(input), "WFTextSeparator": "Custom", "WFTextCustomSeparator": "|"], uuid: sp),
+            act("getitemfromlist", ["WFInput": attach(out(sp, "Split Text")), "WFItemSpecifier": "First Item"], uuid: m),
+            setVar("Mode", out(m, "Item from List")),
+            act("getitemfromlist", ["WFInput": attach(out(sp, "Split Text")), "WFItemSpecifier": "Item At Index", "WFItemIndex": 2], uuid: pr),
+            setVar("Project", out(pr, "Item from List")),
+        ]
+        let h = UUID().uuidString, b = UUID().uuidString, ph = UUID().uuidString, sh = UUID().uuidString, gt = UUID().uuidString
+        a += ifIs(v("Mode"), "home", [getFile(["Needed Vault/Phone.json"], uuid: h), output([out(h, "File")])])
+        a += ifIs(v("Mode"), "browse", [getFile(["Needed Vault/", v("Project"), "/Phone.json"], uuid: b), output([out(b, "File")])])
+        a += ifIs(v("Mode"), "gg", [act("gettext", ["WFTextActionText": text([v("Project")])], uuid: gt),
+                                    saveFile(out(gt, "Text"), ["Needed Vault/Grab & Go.txt"], overwrite: true),
+                                    output(["gg|", v("Project")])])
+        let vf = UUID().uuidString
+        a += ifIs(v("Mode"), "view", [getFile(["Needed Vault/", v("Project")], uuid: vf),
+                                      act("previewdocument", ["WFInput": attach(out(vf, "File"))]), output(["view"])])
+        a += ifIs(v("Mode"), "photos", [act("selectphoto", ["WFSelectMultiplePhotos": true], uuid: ph), setVar("Files", out(ph, "Photos"))] + saveAndReport())
+        a += ifIs(v("Mode"), "shot", [act("getlastscreenshot", ["WFGetLatestPhotoCount": 1], uuid: sh), setVar("Files", out(sh, "Latest Screenshots"))] + saveAndReport())
+        // From the Share Sheet (or nothing — Back Tap: the latest screenshot), into Grab & Go's project or the one you pick.
+        let ls = UUID().uuidString, gg = UUID().uuidString, ggt = UUID().uuidString
+        a += ifHasValue(input, [setVar("Files", input)],
+                        otherwise: [act("getlastscreenshot", ["WFGetLatestPhotoCount": 1], uuid: ls), setVar("Files", out(ls, "Latest Screenshots"))])
+        a += [getFile(["Needed Vault/Grab & Go.txt"], uuid: gg), act("detect.text", ["WFInput": attach(out(gg, "File"))], uuid: ggt), setVar("GG", out(ggt, "Text"))]
+        a += ifIs(v("GG"), "off", pickProject(), otherwise: [setVar("Project", v("GG"))])
+        a += [saveFile(v("Files"), ["Needed Vault/", v("Project"), "/Inbox/"], overwrite: false),
+              act("notification", ["WFNotificationActionBody": text(["Saved to ", v("Project")]), "WFNotificationActionSound": false])]
+        return a
+    }
+
+    static func grabAndGo() -> [A] {
+        let gg = UUID().uuidString, ggt = UUID().uuidString, on = UUID().uuidString, off = UUID().uuidString
+        var a: [A] = [getFile(["Needed Vault/Grab & Go.txt"], uuid: gg), act("detect.text", ["WFInput": attach(out(gg, "File"))], uuid: ggt), setVar("GG", out(ggt, "Text"))]
+        a += ifIs(v("GG"), "off",
+                  pickProject() + [act("gettext", ["WFTextActionText": text([v("Project")])], uuid: on),
+                                   saveFile(out(on, "Text"), ["Needed Vault/Grab & Go.txt"], overwrite: true),
+                                   act("notification", ["WFNotificationActionBody": text(["Grab & Go on — everything goes into ", v("Project")]), "WFNotificationActionSound": false])],
+                  otherwise: [act("gettext", ["WFTextActionText": text(["off"])], uuid: off),
+                              saveFile(out(off, "Text"), ["Needed Vault/Grab & Go.txt"], overwrite: true),
+                              act("notification", ["WFNotificationActionBody": text(["Grab & Go off"]), "WFNotificationActionSound": false])])
+        return a
     }
 }
