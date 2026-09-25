@@ -587,3 +587,15 @@ ROUND 14 — NEEDED VAULT ON THE PHONE, LIKE THE MOCK-UP
   • Keep the page in Safari (a Home Screen icon opens Safari too): iPhone
     always comes back from Shortcuts to Safari.
 
+ROUND 15 — TITLE, FULL AND SPACING
+  • Where the pictures go: Title · Full · Left · Right · Top · Bottom · None.
+    Title (was Full) is one picture over the page with words on it, and
+    comes first. Full (was Rows) is pictures in rows filling the page.
+  • A Title page holds one picture: the This page slider is locked there,
+    "All pages" skips it, and adding a still replaces its picture.
+  • Spacing, per page: a slider under "Where the pictures go" (and in mood
+    boards) with stops Closed (nothing between anything), Hairline, Tight,
+    Medium (as before) and Wide — it settles on a stop when you're near
+    one, or anywhere in between. It sets the gaps between pictures and the
+    margin around them together. Tap a stop's name to jump to it.
+
