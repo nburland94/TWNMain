@@ -505,3 +505,39 @@ ROUND 11 — DESIGN: SHARE IT WITH THE GIFS MOVING
     the web page. Other fonts from your Mac show as Helvetica on someone
     else's computer — the PDF and video keep them exactly.
   • The guide (?) has a ninth step: Share it — GIFs and all.
+
+ROUND 12 — NEEDED VAULT ON YOUR PHONE
+  • Home › Your phone (the new quick action): turn on "Keep it in iCloud".
+    Needed Vault is a folder at iCloud Drive › Shortcuts › Needed Vault —
+    the one folder iPhone Shortcuts can always reach. Every project's
+    Stills, GIFs and Motion are mirrored there, both ways, each time you
+    press Sync (every project, not just the one you're in).
+      – From the phone: anything in a project's Inbox (or new in its
+        Stills/GIFs/Motion) is copied into <Project>_Vault/<Kind>_Ref,
+        onto the vault list with its colours. "#tags" in the file name
+        become tags. Links in <Project>/Links.txt become Ideas in the
+        vault ("From your phone — youtube.com"), ready to grab from.
+      – From the Mac: new stills, GIFs and clips go up. Clips over the
+        size you pick (200 MB to start) stay on the Mac.
+      – Taken out on the phone → the Mac's Trash on the next Sync.
+        Taken out on the Mac → the cloud's <Project>/Removed. Nothing is
+        erased. If most of a project goes missing in iCloud at once (iCloud
+        off or catching up), Sync touches nothing.
+      – Projects.txt (the list for the Shortcuts) is written by the Mac.
+        Grab & Go.txt says "off" or the project the phone files into.
+    The first Sync after turning it on copies everything up — it can take
+    a while on a big vault.
+  • The phone page: Home › Your phone › "Put the phone page online" puts
+    "Needed Vault page" in Downloads and opens Netlify Drop — drag the
+    folder on, open the link on your iPhone, Share › Add to Home Screen.
+    (Or host it at thiswasneeded.info/vault.) It opens like an app, works
+    offline, and walks you through the two Shortcuts:
+      – "Save to Needed Vault": in the Share Sheet (screenshots, Photos,
+        Safari, Instagram, YouTube). Asks which project and tags — or goes
+        straight in when Grab & Go is on. With nothing shared, it takes
+        your latest screenshot.
+      – "Grab & Go": on the Action Button or Back Tap; switches Grab & Go
+        on (asking which project) and off.
+    The page's buttons run those Shortcuts and come back with what they
+    did. Grab & Go on the phone is the phone's own; the Mac keeps its own.
+

@@ -1403,6 +1403,21 @@ extension VaultHost {
         DispatchQueue.global(qos: .userInitiated).async {
             let fm = FileManager.default
             let proj = base.appendingPathComponent(project, isDirectory: true)
+            // 0. Needed Vault on the phone: the Cloud vault and this vault made to match, every project.
+            //    What arrives for this project is found just below, like anything else.
+            let cloud = CloudVault.mirror(vault: base, syncing: project)
+            var linkFiles: [(URL, [String: Any], String)] = []
+            for l in cloud.links {
+                let dir = base.appendingPathComponent(l.project, isDirectory: true).appendingPathComponent(Folders.place("Ideas", project: l.project), isDirectory: true)
+                try? fm.createDirectory(at: dir, withIntermediateDirectories: true)
+                let host = URL(string: l.url)?.host?.replacingOccurrences(of: "www.", with: "") ?? "link"
+                let f = CloudVault.unique(dir, "From your phone — \(host).txt")
+                guard (try? l.url.write(to: f, atomically: true, encoding: .utf8)) != nil else { continue }
+                var meta: [String: Any] = ["title": "From your phone — \(host)", "text": l.url,
+                                           "source": ["type": "link", "url": l.url, "via": "phone", "title": host]]
+                if !l.tags.isEmpty { meta["tags"] = l.tags }
+                linkFiles.append((f, meta, l.project))
+            }
             // 1. every file in the project's folders that the vault hasn't got
             var found: [(URL, String, String)] = []            // file, kind, grab or reference
             for (folder, kind, exts) in kinds {
@@ -1453,8 +1468,10 @@ extension VaultHost {
                 var thumbRel = rel
                 if kind == "clip", let t = self.poster(for: f, id: id) { thumbRel = t.path.replacingOccurrences(of: base.path + "/", with: "") }
                 else if kind != "clip", let t = self.smallThumb(for: f, id: id) { thumbRel = t.path.replacingOccurrences(of: base.path + "/", with: "") }
-                let source: [String: Any] = ["type": "file", "title": f.deletingPathExtension().lastPathComponent]
+                let phone = cloud.fromPhone.contains(rel)
+                let source: [String: Any] = ["type": phone ? "phone" : "file", "title": f.deletingPathExtension().lastPathComponent]
                 var item: [String: Any] = ["id": id, "kind": kind, "file": rel, "thumb": thumbRel, "project": project]
+                if let t = cloud.tags[rel] { item["tags"] = t }
                 item["bytes"] = self.fileSize(f)
                 item["created"] = stamp
                 item["source"] = source
@@ -1504,9 +1521,20 @@ extension VaultHost {
                 }
                 self.index.insert(contentsOf: fresh, at: 0)
                 self.saveIndex()
+                // From the phone into other projects, and links shared on the phone: onto the list too.
+                for a in cloud.arrived {
+                    let rel = a.file.path.replacingOccurrences(of: base.path + "/", with: "")
+                    var meta: [String: Any] = ["origin": "reference", "source": ["type": "phone", "title": a.file.deletingPathExtension().lastPathComponent]]
+                    if let t = cloud.tags[rel] { meta["tags"] = t }
+                    self.register(kind: a.kind, file: a.file, meta: meta, project: a.project)
+                }
+                for lf in linkFiles { self.register(kind: "idea", file: lf.0, meta: lf.1, project: lf.2) }
+                if CloudVault.on { UserDefaults.standard.set(ISO8601DateFormatter().string(from: Date()), forKey: "cloudLast") }
                 Shared.notify()
                 done(["ok": true, "project": project, "added": fresh.count, "palettes": palettes.count, "previews": thumbs.count,
-                      "relinked": relinkCount, "removed": removedItems.count])
+                      "relinked": relinkCount, "removed": removedItems.count,
+                      "cloud": CloudVault.on, "fromPhone": cloud.pulled, "links": linkFiles.count, "toCloud": cloud.pushed,
+                      "phoneTrashed": cloud.trashed, "cloudRetired": cloud.retired, "downloading": cloud.downloading, "bigClips": cloud.skippedBig])
             }
         }
     }

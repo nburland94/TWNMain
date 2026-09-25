@@ -781,6 +781,11 @@ final class Shell: NSObject, NSApplicationDelegate, NSWindowDelegate, WKScriptMe
                 if added > 0 { bits.append("\(added) new") }
                 if relinked > 0 { bits.append("\(relinked) moved in Finder, found again") }
                 if removed > 0 { bits.append("\(removed) deleted in Finder, taken off the list") }
+                let phone = ((result["fromPhone"] as? Int) ?? 0) + ((result["links"] as? Int) ?? 0)
+                if phone > 0 { bits.append("\(phone) from your phone") }
+                if let up = result["toCloud"] as? Int, up > 0 { bits.append("\(up) up to Needed Vault") }
+                if let t = result["phoneTrashed"] as? Int, t > 0 { bits.append("\(t) taken out on your phone, in the Trash") }
+                if let d = result["downloading"] as? Int, d > 0 { bits.append("\(d) still coming down from iCloud — Sync again soon") }
                 Shell.post("\(project) synced", bits.isEmpty ? "Everything's up to date." : bits.joined(separator: " · ") + ".")
             }
             let waiting = self.syncWaiting; self.syncWaiting = []
@@ -1094,6 +1099,51 @@ final class Shell: NSObject, NSApplicationDelegate, NSWindowDelegate, WKScriptMe
 
         case "sync":
             sync(replyHandler)
+
+        // ---- Needed Vault on your phone: the Cloud vault
+        case "cloudStatus":
+            replyHandler(CloudVault.status(), nil)
+
+        case "cloudSet":
+            if let m = body["maxClipMB"] as? NSNumber { CloudVault.maxClipMB = m.intValue }
+            if let on = body["on"] as? Bool {
+                guard !on || CloudVault.root != nil else { return replyHandler(["ok": false, "error": "Turn on iCloud Drive in System Settings first"], nil) }
+                CloudVault.on = on
+            }
+            replyHandler(CloudVault.status(), nil)
+
+        case "cloudChoose":
+            let panel = NSOpenPanel()
+            panel.canChooseFiles = false
+            panel.canChooseDirectories = true
+            panel.canCreateDirectories = true
+            panel.prompt = "Use This Folder"
+            panel.message = "Where Needed Vault lives — iCloud Drive › Shortcuts is the one your iPhone's Shortcuts can always reach"
+            if let r = CloudVault.root { panel.directoryURL = r.deletingLastPathComponent() }
+            panel.beginSheetModal(for: window) { r in
+                if r == .OK, let u = panel.url { CloudVault.choose(u.lastPathComponent == "Needed Vault" ? u : u.appendingPathComponent("Needed Vault", isDirectory: true)) }
+                replyHandler(CloudVault.status(), nil)
+            }
+
+        case "cloudReveal":
+            if let r = CloudVault.root {
+                try? FileManager.default.createDirectory(at: r, withIntermediateDirectories: true)
+                NSWorkspace.shared.open(r)
+            }
+            replyHandler(["ok": true], nil)
+
+        case "cloudPhonePage":
+            // The page for your phone, in Downloads — ready to drag onto Netlify Drop.
+            let fm = FileManager.default
+            guard let src = Bundle.main.resourceURL?.appendingPathComponent("mobile", isDirectory: true), fm.fileExists(atPath: src.path) else {
+                return replyHandler(["ok": false, "error": "The phone page is missing from the app"], nil)
+            }
+            let downloads = fm.urls(for: .downloadsDirectory, in: .userDomainMask).first ?? fm.homeDirectoryForCurrentUser
+            let dst = downloads.appendingPathComponent("Needed Vault page", isDirectory: true)
+            try? fm.removeItem(at: dst)
+            guard (try? fm.copyItem(at: src, to: dst)) != nil else { return replyHandler(["ok": false, "error": "Couldn't write to Downloads"], nil) }
+            NSWorkspace.shared.activateFileViewerSelecting([dst])
+            replyHandler(["ok": true, "folder": dst.path], nil)
 
         case "theme":
             // Light, or the calm blue night — every page at once.
