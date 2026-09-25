@@ -270,6 +270,21 @@ main{position:relative;height:100vh;display:grid;grid-template-columns:minmax(0,
 .phone .mono{font-family:'Courier Prime',monospace;font-size:12px}
 .phone p{margin:0;font-size:12px;color:#7a5a48;line-height:1.45}
 .phone .row3 button{white-space:nowrap}
+.acct .g{width:560px}
+.acct .sec{display:flex;flex-direction:column;gap:8px;padding-top:12px;border-top:1px solid rgba(28,28,28,0.06)}
+.acct .sec:first-of-type{border-top:0;padding-top:0}
+.acct .grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.acct .grid2 label{display:flex;flex-direction:column;gap:3px;font-size:10px;font-family:'Courier Prime',monospace;letter-spacing:.14em;text-transform:uppercase;color:#8a6a58}
+.acct .grid2 label.wide{grid-column:1 / -1}
+.acct input,.acct textarea{font:inherit;font-size:13.5px;letter-spacing:0;text-transform:none;color:var(--ink);border:1px solid rgba(28,28,28,0.1);border-radius:10px;background:rgba(255,255,255,0.75);padding:8px 10px;outline:none;font-family:Raleway,sans-serif}
+.acct input:focus,.acct textarea:focus{border-color:var(--accent);background:#fff}
+.acct textarea{resize:none;height:54px}
+.acct .line{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:13px}
+.acct .line span:first-child{color:#7a5a48}
+.acct .line button{border:none;background:none;color:#d2440f;font-size:12.5px;cursor:pointer;padding:0}
+.acct .danger{color:#b0391a!important}
+.acct .who{display:flex;align-items:center;gap:12px}
+.acct .who .av{width:44px;height:44px;border-radius:50%;background:#141414;color:#fff;display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:300}
 
 /* ---- time's up ---- */
 .alarm{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:20;
@@ -383,6 +398,9 @@ main{position:relative;height:100vh;display:grid;grid-template-columns:minmax(0,
     <div class="row3"><button class="cancel" id="wCancel">Cancel</button><button class="save" id="wSave">Save</button></div>
   </div>
 </div>
+<div class="where phone acct" id="acct" role="dialog" aria-label="Your account">
+  <div class="g" id="acctBox"></div>
+</div>
 <div class="where phone" id="phone" role="dialog" aria-label="Needed Vault on your phone">
   <div class="g" id="phoneBox"></div>
 </div>
@@ -434,6 +452,66 @@ main{position:relative;height:100vh;display:grid;grid-template-columns:minmax(0,
   new ResizeObserver(fitLine).observe(document.querySelector('.line'));
   $('quick').addEventListener('click', e => { const b = e.target.closest('[data-q]'); if (!b) return; if (b.dataset.q === 'phone') return openPhone(); call('quick', { what: b.dataset.q }); });
 
+  /* ---------------- Your account (the logo, top left) ---------------- */
+  let acct = {};
+  window.__openAccount = async () => { acct = await call('account').catch(() => ({})) || {}; drawAccount(); $('acct').classList.add('on'); };
+  window.__openPhone = () => { $('acct').classList.remove('on'); openPhone(); };
+  const PF = [['name', 'Your name'], ['company', 'Company'], ['role', 'What you do — director, DOP…'], ['email', 'Email'], ['phone', 'Phone'], ['website', 'Website'], ['handle', '@handle'], ['address', 'Address']];
+  function drawAccount() {
+    const p = acct.profile || {}, l = acct.licence || {};
+    const initials = (p.name || 'You').split(/\s+/).map(w => w[0]).join('').slice(0, 2).toUpperCase();
+    const since = l.activated ? new Date(l.activated).toLocaleDateString([], { day: 'numeric', month: 'short', year: 'numeric' }) : '';
+    $('acctBox').innerHTML = `
+      <span class="cap">Your account</span>
+      <div class="who"><span class="av">${esc(initials)}</span><div><h3 style="margin:0">${esc(p.name || 'Your details')}</h3><span style="font-size:12.5px;color:#7a5a48">${esc([p.role, p.company].filter(Boolean).join(' · ') || 'Used on invoices, credits and your treatments')}</span></div></div>
+      <div class="sec"><span class="cap">Your details</span>
+        <div class="grid2">${PF.map(([k, ph]) => k === 'address' ? `<label class="wide">Address<textarea data-pf="address" placeholder="Street, city, postcode">${esc(p.address || '')}</textarea></label>` : `<label>${esc(ph.split(' —')[0])}<input data-pf="${k}" value="${esc(p[k] || '')}" placeholder="${esc(ph)}" spellcheck="false"></label>`).join('')}</div>
+        <span style="font-size:11.5px;color:#7a5a48">Pay puts these on your invoices; Design uses your name in the page headers. It saves as you type.</span></div>
+      <div class="sec"><span class="cap">Licence</span>
+        <div class="line"><span>Status</span><span>${l.unlicensed_build ? 'This build needs no key' : l.licensed ? `Active${l.key ? ' · ' + esc(l.key) : ''}${since ? ' · since ' + esc(since) : ''}` : 'Not activated'}</span></div>
+        ${l.customer ? `<div class="line"><span>Registered to</span><span>${esc(l.customer)}</span></div>` : ''}
+        <div class="line"><span>Moving to another Mac?</span><span><button id="acctDeactivate" class="danger">Deactivate this Mac</button></span></div>
+        <div class="line"><span>Leaving it for now</span><span><button id="acctSignOut">Sign out</button></span></div></div>
+      <div class="sec"><span class="cap">This Mac</span>
+        <div class="line"><span>Vault</span><span style="max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;direction:rtl;text-align:left" title="${esc(acct.vault || '')}"><bdi>${esc(acct.vault || 'Not chosen')}</bdi></span></div>
+        <div class="line"><span></span><span><button id="acctVault">Change vault</button> · <button id="acctBackups">Show backups</button></span></div>
+        <div class="line"><span>Needed Vault on your phone</span><span><button id="acctPhone">${acct.phone ? 'On — show the QR code' : 'Set it up'}</button></span></div>
+        <div class="line"><span>Look</span><span><button id="acctTheme">${acct.theme === 'dark' ? 'Dark — switch to light' : 'Light — switch to dark'}</button></span></div>
+        <div class="line"><span>Notifications</span><span><button id="acctQuiet">${acct.notify === false ? 'Off — turn on' : 'On — turn off'}</button></span></div></div>
+      <div class="sec"><span class="cap">Help</span>
+        <div class="line"><span>How it all works</span><span><button id="acctWelcome">The welcome guide</button></span></div>
+        <div class="line"><span>Something not right?</span><span><button id="acctMail">Get in touch</button></span></div>
+        <div class="line"><span>Version</span><span>Needed Tools ${esc(acct.version || '')}</span></div></div>
+      <div class="row3"><button class="save" id="acctDone">Done</button></div>`;
+  }
+  let pfT = null;
+  $('acct').addEventListener('input', e => {
+    const f = e.target.closest('[data-pf]'); if (!f) return;
+    acct.profile = acct.profile || {}; acct.profile[f.dataset.pf] = f.value;
+    clearTimeout(pfT); pfT = setTimeout(() => call('profileSave', { profile: acct.profile }).catch(() => {}), 400);
+  });
+  $('acct').addEventListener('click', async e => {
+    if (e.target === $('acct')) return $('acct').classList.remove('on');
+    const t = e.target.closest('button'); if (!t) return;
+    const r = async (a, x) => { const v = await call(a, x).catch(() => null); if (v && v.profile) { acct = v; drawAccount(); } return v; };
+    if (t.id === 'acctDone') return $('acct').classList.remove('on');
+    if (t.id === 'acctPhone') return window.__openPhone();
+    if (t.id === 'acctVault') { await call('chooseVault').catch(() => {}); return window.__openAccount(); }
+    if (t.id === 'acctBackups') return call('revealBackups');
+    if (t.id === 'acctTheme') { await call('theme').catch(() => {}); return window.__openAccount(); }
+    if (t.id === 'acctQuiet') return r('quiet', { quiet: acct.notify !== false });
+    if (t.id === 'acctWelcome') { $('acct').classList.remove('on'); return call('welcome', { tool: 'welcome' }); }
+    if (t.id === 'acctMail') return call('openURL', { url: 'https://thiswasneeded.info' });
+    if (t.id === 'acctSignOut') { $('acct').classList.remove('on'); return call('signOut'); }
+    if (t.id === 'acctDeactivate') {
+      if (!confirm('Deactivate Needed Tools on this Mac? Your key is freed for another Mac, and this one goes back to the sign-in screen. Your vault and projects stay exactly as they are.')) return;
+      const v = await call('deactivateMac').catch(() => null);
+      if (!v || !v.ok) return toast((v && v.error) || "Couldn't deactivate — are you online?");
+      $('acct').classList.remove('on'); if (v.note) toast(v.note);
+    }
+  });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && $('acct').classList.contains('on')) $('acct').classList.remove('on'); });
+
   /* ---------------- Needed Vault on your phone ---------------- */
   let phoneState = {}, phoneAlt = false;
   async function openPhone() {
@@ -461,6 +539,7 @@ main{position:relative;height:100vh;display:grid;grid-template-columns:minmax(0,
           ${s.problem ? `<div><span>Problem</span><span>${esc(s.problem)}</span></div>` : ''}
           <div><span>Not connecting?</span><span>${s.ipQR ? `<button id="phoneAlt">${phoneAlt ? 'Use the Mac’s name' : 'Use the Mac’s number instead'}</button>` : '—'}</span></div>
           <div><span>Only your phones</span><span><button id="phoneKey">New key</button></span></div>
+          <div><span>Check it here first</span><span><button id="phoneTest">Open it on this Mac</button> · <button id="phoneLogBtn">What phones asked for</button></span></div>
         </div>
         <p>macOS may ask to allow incoming connections the first time — say Allow. A new key means phones scan again.</p>` : ''}
       <div class="row3"><button class="save" id="phoneDone">Done</button></div>`;
@@ -477,6 +556,8 @@ main{position:relative;height:100vh;display:grid;grid-template-columns:minmax(0,
       return;
     }
     if (t.id === 'phoneAlt') { phoneAlt = !phoneAlt; return drawPhone(); }
+    if (t.id === 'phoneTest') return call('phoneTest');
+    if (t.id === 'phoneLogBtn') return call('phoneLog');
     if (t.id === 'phoneKey') {
       if (!confirm('Make a new key? Phones you paired before will need to scan the QR code again.')) return;
       const r = await call('phoneNewKey').catch(() => null); if (r) { phoneState = r; drawPhone(); toast('New key — scan again on your phone'); }

@@ -413,11 +413,7 @@ final class Shell: NSObject, NSApplicationDelegate, NSWindowDelegate, WKScriptMe
         vaultHost.webView.isHidden = true
 
         // The way in. For now it's a placeholder: Sign in simply opens the app.
-        let s = page("signin.html")
-        s.frame = content.bounds
-        s.autoresizingMask = [.width, .height]
-        content.addSubview(s)
-        signin = s
+        showSignIn()
 
         NotificationCenter.default.addObserver(forName: .neededShared, object: nil, queue: .main) { [weak self] _ in
             self?.broadcast()
@@ -590,7 +586,8 @@ final class Shell: NSObject, NSApplicationDelegate, NSWindowDelegate, WKScriptMe
 
     private func askWhere(count: Int, sample: String) {
         guard let data = try? JSONSerialization.data(withJSONObject: ["count": count, "sample": sample,
-                                                                      "projects": Shared.projects(), "project": Shared.project]),
+                                                                      "projects": Shared.projects(),
+            "phoneOn": PhoneServer.shared.on, "project": Shared.project]),
               let json = String(data: data, encoding: .utf8) else { return }
         if current != "home" { show("home") }
         home.evaluateJavaScript("window.__homeAskWhere && window.__homeAskWhere(\(json))", completionHandler: nil)
@@ -881,6 +878,7 @@ final class Shell: NSObject, NSApplicationDelegate, NSWindowDelegate, WKScriptMe
     /// A macOS notification: footage in, files saved, cards sorted, sent… The
     /// first one asks permission; after that they just arrive.
     static func post(_ title: String, _ body: String, sound: Bool = false) {
+        if UserDefaults.standard.bool(forKey: "quiet") { return }      // Account › notifications off
         let centre = UNUserNotificationCenter.current()
         let send = {
             let content = UNMutableNotificationContent()
@@ -1128,12 +1126,60 @@ final class Shell: NSObject, NSApplicationDelegate, NSWindowDelegate, WKScriptMe
             sync(replyHandler)
 
         // ---- Needed Vault on your phone: the Cloud vault
+        case "openAccount", "openPhone":
+            // From the top bar: Home, with the panel open.
+            show("home")
+            let fn = (body["action"] as? String) == "openAccount" ? "__openAccount" : "__openPhone"
+            whenReady(home, fn, "window.\(fn)()")
+            replyHandler(["ok": true], nil)
+
+        case "account":
+            replyHandler(account(), nil)
+
+        case "profileSave":
+            var p = Shell.profile
+            for (k, v) in (body["profile"] as? [String: Any]) ?? [:] { p[k] = (v as? String ?? "").trimmingCharacters(in: .whitespacesAndNewlines) }
+            Shell.profile = p
+            replyHandler(account(), nil)
+
+        case "quiet":
+            UserDefaults.standard.set((body["quiet"] as? Bool) ?? false, forKey: "quiet")
+            replyHandler(account(), nil)
+
+        case "revealBackups":
+            if let v = Shared.vault {
+                let b = v.appendingPathComponent(".vault/backups", isDirectory: true)
+                NSWorkspace.shared.open(FileManager.default.fileExists(atPath: b.path) ? b : v)
+            }
+            replyHandler(["ok": true], nil)
+
+        case "signOut":
+            showSignIn()
+            replyHandler(["ok": true], nil)
+
+        case "deactivateMac":
+            // Frees the licence key for another Mac, then back to the sign-in screen.
+            accountLicence.deactivate { r in
+                if (r["ok"] as? Bool) == true { self.showSignIn() }
+                replyHandler(r, nil)
+            }
+
         case "phoneStatus":
             replyHandler(PhoneServer.shared.status(), nil)
 
         case "phoneSet":
             PhoneServer.shared.setOn((body["on"] as? Bool) ?? false)
+            Shared.notify()                               // the top bar's phone button shows it
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) { replyHandler(PhoneServer.shared.status(), nil) }
+
+        case "phoneTest":
+            // Try it on this Mac first: the same page, in your browser.
+            if let u = URL(string: PhoneServer.shared.localURL) { NSWorkspace.shared.open(u) }
+            replyHandler(["ok": true], nil)
+
+        case "phoneLog":
+            NSWorkspace.shared.activateFileViewerSelecting([PhoneServer.logURL])
+            replyHandler(["ok": true], nil)
 
         case "phoneNewKey":
             // A new key: phones paired before have to scan again.
@@ -1369,6 +1415,31 @@ final class Shell: NSObject, NSApplicationDelegate, NSWindowDelegate, WKScriptMe
     }
 
     private func reply(_ r: @escaping (Any?, String?) -> Void) { r(state(), nil) }
+
+    /// The sign-in screen, over everything — at launch, and after signing out or deactivating.
+    func showSignIn() {
+        guard signin == nil, let content = window.contentView else { return }
+        let s = page("signin.html")
+        s.frame = content.bounds
+        s.autoresizingMask = [.width, .height]
+        content.addSubview(s)
+        signin = s
+    }
+
+    // MARK: Your account (the logo, top left)
+
+    static var profile: [String: String] {
+        get { (UserDefaults.standard.dictionary(forKey: "profile") as? [String: String]) ?? [:] }
+        set { UserDefaults.standard.set(newValue, forKey: "profile") }
+    }
+    private lazy var accountLicence = Licence(resources: Bundle.main.resourceURL ?? URL(fileURLWithPath: "."))
+    func account() -> [String: Any] {
+        let v = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? ""
+        let b = Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? ""
+        return ["profile": Shell.profile, "licence": accountLicence.status(), "vault": Shared.vault?.path ?? "",
+                "version": b.isEmpty || b == v ? v : "\(v) (\(b))", "theme": Shared.theme, "phone": PhoneServer.shared.on,
+                "notify": !UserDefaults.standard.bool(forKey: "quiet")]
+    }
 
     static func clean(_ raw: String) -> String {
         var s = raw.replacingOccurrences(of: "/", with: "-").replacingOccurrences(of: ":", with: "-")

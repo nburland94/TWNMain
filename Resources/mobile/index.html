@@ -137,11 +137,12 @@ main{padding:0 18px calc(env(safe-area-inset-bottom) + 110px)}
 <div class="prog" id="prog"><i id="progBar"></i></div>
 
 <!-- Not paired, or can't reach the Mac -->
-<section class="gate off" id="gate">
+<section class="gate" id="gate">
   <img src="mark.png" alt="This Was Needed">
   <h1 id="gateTitle">Needed Vault</h1>
-  <p id="gateText"></p>
-  <ol class="g" id="gateSteps"></ol>
+  <p id="gateText">Opening your vault…</p>
+  <ol class="g off" id="gateSteps"></ol>
+  <p id="gateWhy" class="off" style="font-size:12px;font-family:'Courier Prime',monospace"></p>
   <button class="dark off" id="retry">Try again</button>
 </section>
 
@@ -223,7 +224,11 @@ main{padding:0 18px calc(env(safe-area-inset-bottom) + 110px)}
   function api(path, opt) {
     opt = opt || {};
     opt.headers = Object.assign({ 'X-Key': KEY }, opt.headers || {});
+    // Never a blank wait: ten seconds and it says it can't reach the Mac.
+    var ctl = window.AbortController ? new AbortController() : null, t = ctl ? setTimeout(function () { ctl.abort(); }, 10000) : 0;
+    if (ctl) opt.signal = ctl.signal;
     return fetch(path, opt).then(function (r) {
+      clearTimeout(t);
       if (r.status === 401) { var e = new Error('key'); e.key = true; throw e; }
       if (!r.ok) throw new Error('http ' + r.status);
       return r.json();
@@ -233,8 +238,9 @@ main{padding:0 18px calc(env(safe-area-inset-bottom) + 110px)}
   var S = { projects: [], project: get('project', ''), items: [], grabGo: get('grabGo', ''), kind: 'all', q: '', fresh: {}, mac: 'your Mac' };
   var sent = function () { return get('sent', []); };
 
-  function gate(kind) {
-    $('app').classList.add('off'); $('gate').classList.remove('off');
+  function gate(kind, why) {
+    $('app').classList.add('off'); $('gate').classList.remove('off'); $('gateSteps').classList.remove('off');
+    $('gateWhy').classList.toggle('off', !why); $('gateWhy').textContent = why || '';
     if (kind === 'pair') {
       $('gateTitle').textContent = 'Needed Vault';
       $('gateText').textContent = 'Your vault, on your phone — straight from your Mac, over your Wi-Fi.';
@@ -247,7 +253,7 @@ main{padding:0 18px calc(env(safe-area-inset-bottom) + 110px)}
       $('retry').classList.remove('off');
     }
   }
-  $('retry').addEventListener('click', function () { start(); });
+  $('retry').addEventListener('click', function () { $('gateTitle').textContent = 'Needed Vault'; $('gateText').textContent = 'Opening your vault…'; $('gateSteps').classList.add('off'); $('gateWhy').classList.add('off'); $('retry').classList.add('off'); start(); });
 
   function start() {
     if (!KEY) return gate('pair');
@@ -257,7 +263,7 @@ main{padding:0 18px calc(env(safe-area-inset-bottom) + 110px)}
       if (S.grabGo && !S.projects.some(function (p) { return p.n === S.grabGo; })) { S.grabGo = ''; put('grabGo', ''); }
       $('gate').classList.add('off'); $('app').classList.remove('off');
       draw(); return loadItems();
-    }).catch(function (e) { gate(e.key ? 'pair' : 'away'); });
+    }).catch(function (e) { gate(e.key ? 'pair' : 'away', e.key ? '' : (e.name === 'AbortError' ? 'No answer from the Mac in 10 seconds.' : String(e.message || e))); });
   }
   function loadItems() {
     if (!S.project) { S.items = []; return draw(); }

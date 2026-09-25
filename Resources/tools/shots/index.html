@@ -748,6 +748,14 @@ One beat per line, or ordinary prose; sentences become shots."></textarea>
   }
   const closeDrawer = () => { $('drawer').hidden = true; drawerShot = null; render(); };
   $('drawerClose').addEventListener('click', closeDrawer);
+  // Click anywhere else — the shot list, the template — and the references close. (A click on another
+  // shot's references switches to that shot instead.)
+  document.addEventListener('mousedown', e => {
+    if ($('drawer').hidden || e.target.closest('#drawer')) return;
+    if (e.target.closest('[data-add]') || e.target.closest('[data-ref]')) return;
+    closeDrawer();
+  }, true);
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('drawer').hidden) { e.preventDefault(); closeDrawer(); } });
   $('drawerSearch').addEventListener('input', renderDrawer);
 
   function renderDrawer() {

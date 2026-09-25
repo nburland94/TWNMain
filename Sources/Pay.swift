@@ -376,6 +376,8 @@ extension PayHost: WKScriptMessageHandlerWithReply {
             licence.activate((body["key"] as? String) ?? "") { replyHandler($0, nil) }
         case "deactivate":
             licence.deactivate { replyHandler($0, nil) }
+        case "profile":
+            replyHandler(Shell.profile, nil)
         default:
             replyHandler(nil, "unknown action")
         }

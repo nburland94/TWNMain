@@ -106,6 +106,7 @@ final class PhoneServer {
         return found
     }
     var url: String { "http://\(hostName):\(PhoneServer.port)/#k=\(key)" }
+    var localURL: String { "http://localhost:\(PhoneServer.port)/#k=\(key)" }
     var ipURL: String? { ipAddress.map { "http://\($0):\(PhoneServer.port)/#k=\(key)" } }
 
     static func qr(_ text: String) -> String? {
@@ -137,8 +138,21 @@ final class PhoneServer {
 
     // MARK: Answering
 
+    /// What phones asked for, kept small: ~/Library/Logs/Needed Tools/Phone.log — handy when something doesn't load.
+    private func log(_ line: String) {
+        let dir = FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent("Library/Logs/Needed Tools", isDirectory: true)
+        try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+        let u = dir.appendingPathComponent("Phone.log")
+        let stamp = ISO8601DateFormatter().string(from: Date())
+        if let size = (try? FileManager.default.attributesOfItem(atPath: u.path)[.size] as? NSNumber)?.intValue, size > 400_000 { try? FileManager.default.removeItem(at: u) }
+        if let h = try? FileHandle(forWritingTo: u) { h.seekToEndOfFile(); h.write(Data("\(stamp) \(line)\n".utf8)); try? h.close() }
+        else { try? Data("\(stamp) \(line)\n".utf8).write(to: u) }
+    }
+    static var logURL: URL { FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent("Library/Logs/Needed Tools/Phone.log") }
+
     fileprivate func answer(_ r: HTTPConn.Request, body: URL?, conn: HTTPConn) {
         let path = r.path
+        log("\(r.method) \(path) \(r.header("user-agent")?.contains("iPhone") == true ? "iPhone" : "")")
         if !path.hasPrefix("/api/") { return serveStatic(path, conn: conn) }
         guard r.header("x-key") == key || r.query["k"] == key else {
             return conn.send(status: 401, type: "application/json", body: json(["error": "This phone isn't paired — scan the QR code in Needed Tools › Home › Your phone"]))
@@ -291,10 +305,19 @@ final class HTTPConn {
         c.stateUpdateHandler = { [weak self] s in
             switch s { case .failed, .cancelled: self?.finish(); default: break }
         }
+        self.queue = queue
         c.start(queue: queue)
         read()
     }
     func close() { c.cancel() }
+    /// The reply is all handed over: say so (the phone sees the end of it), then let go a moment later.
+    /// Cancelling straight away can drop what's still on its way — Safari shows a blank page.
+    private func done() {
+        c.send(content: nil, contentContext: .finalMessage, isComplete: true, completion: .contentProcessed { [weak self] _ in
+            self?.queue?.asyncAfter(deadline: .now() + 3) { self?.close() }
+        })
+    }
+    private var queue: DispatchQueue?
     private func finish() {
         guard !closed else { return }
         closed = true
@@ -380,7 +403,7 @@ final class HTTPConn {
     func send(status: Int, type: String, body: Data) {
         var out = head(status, type, body.count, extra: ["Cache-Control": "no-store"])
         out.append(body)
-        c.send(content: out, completion: .contentProcessed { [weak self] _ in self?.close() })
+        c.send(content: out, completion: .contentProcessed { [weak self] _ in self?.done() })
     }
     /// A file, whole or the part asked for (Safari plays clips in parts), sent a megabyte at a time.
     func sendFile(_ u: URL, type: String, range: String?, cache: Bool) {
@@ -408,10 +431,10 @@ final class HTTPConn {
         try? fh.seek(toOffset: UInt64(start))
         var left = total
         func next() {
-            guard left > 0 else { try? fh.close(); return close() }
+            guard left > 0 else { try? fh.close(); return done() }
             let n = min(left, 1 << 20)
             let d = fh.readData(ofLength: n)
-            if d.isEmpty { try? fh.close(); return close() }
+            if d.isEmpty { try? fh.close(); return done() }
             left -= d.count
             c.send(content: d, completion: .contentProcessed { [weak self] e in
                 if e != nil { try? fh.close(); self?.close() } else { next() }

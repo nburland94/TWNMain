@@ -509,9 +509,8 @@ html[data-theme=dark] .toggle .sw::after{background:#eaf0f7}
       <h3>Invoice</h3>
       <div class="fgrid">
         <div class="f"><span class="label">Number</span><input class="in mono" id="iNumber" spellcheck="false"></div>
-        <div class="f" id="jobField" hidden><span class="label">Job number <button class="jobx" id="jobRemove" title="Remove the job number" aria-label="Remove the job number">×</button></span>
-          <input class="in mono" id="iJob" spellcheck="false" placeholder="e.g. LX-0924"></div>
-        <div class="f" id="jobAddWrap"><span class="label">&nbsp;</span><button class="pill quiet" id="jobAdd">+ Job number</button></div>
+        <div class="f" id="jobField"><span class="label">Job number</span>
+          <input class="in mono" id="iJob" spellcheck="false" placeholder="Optional — left off if blank"></div>
         <div class="f"><span class="label">Project</span><select class="sel" id="iProject"></select></div>
         <div class="f"><span class="label">Invoice date</span><input class="in mono" type="date" id="iDate"></div>
         <div class="f"><span class="label">Payment terms</span>
@@ -828,7 +827,7 @@ html[data-theme=dark] .toggle .sw::after{background:#eaf0f7}
     $('cEmail').value = cur.client.email || ''; $('cAddress').value = cur.client.address || '';
     $('iNumber').value = cur.number || '';
     $('iJob').value = cur.job || '';
-    $('jobField').hidden = !cur.showJob && !cur.job; $('jobAddWrap').hidden = !$('jobField').hidden;
+
     $('iNumber').placeholder = String(L.nextNumber);
     showProjects();
     $('iProject').value = cur.project || project;
@@ -901,8 +900,7 @@ html[data-theme=dark] .toggle .sw::after{background:#eaf0f7}
     if (v && L.invoices.some(i => i !== cur && i.number === v)) { toast(`Number ${v} is already used`); $('iNumber').value = cur.number; return; }
     edit(() => { cur.number = v; });
   });
-  $('jobAdd').addEventListener('click', () => edit(() => { cur.showJob = true; renderInvoice(); setTimeout(() => $('iJob').focus(), 30); }));
-  $('jobRemove').addEventListener('click', () => edit(() => { cur.showJob = false; cur.job = ''; renderInvoice(); }));
+
   $('iJob').addEventListener('input', () => edit(() => { cur.job = $('iJob').value.trim(); }));
   $('iProject').addEventListener('change', () => edit(() => { cur.project = $('iProject').value; }));
   $('iDate').addEventListener('change', () => edit(() => { cur.date = $('iDate').value || today(); cur.due = addDays(cur.date, cur.terms); $('iDue').value = cur.due; }));
@@ -1471,6 +1469,8 @@ html[data-theme=dark] .toggle .sw::after{background:#eaf0f7}
     else { try { stored = JSON.parse(localStorage.getItem('np.ledger') || 'null'); } catch (e) { stored = null; } }
     L = Object.assign(fresh(), stored || {});
     L.me = Object.assign(fresh().me, L.me || {});
+    // Your account's details (the logo, top left) fill in whatever Pay doesn't have yet.
+    if (bridge) { try { const pr = await call('profile'); if (pr) for (const k of ['name', 'address', 'phone', 'email']) if (!(L.me[k] || '').trim() && pr[k]) L.me[k] = pr[k]; } catch (e) { /* fine */ } }
     // clean out empty drafts left from last time
     L.invoices = L.invoices.filter(i => !(i.status === 'draft' && !i.client.name && !total(i)));
     if (bridge) {

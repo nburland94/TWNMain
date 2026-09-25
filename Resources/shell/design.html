@@ -1624,6 +1624,58 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
       if (key === 'H' && t.kind === 'pic') { const nh = clamp(v, 20, G.H * 2) / G.H; r.w = r.w * nh / r.h; r.h = nh; }
     });
   }
+  /* ---------------------------------------------------------------- copy and paste */
+  // Pictures, GIFs and text boxes — or a whole page's arrangement. Kept between designs too.
+  let clip = (() => { try { return JSON.parse(localStorage.getItem('design.clip') || 'null'); } catch (e) { return null; } })();
+  const keepClip = () => { try { localStorage.setItem('design.clip', JSON.stringify(clip)); } catch (e) {} };
+  function copyItems() {
+    const p = page(); if (!p) return false;
+    const b = bsel && boxById(bsel);
+    const pics = b ? [] : [...sel].sort((a, c) => a - c).map(k => p.pics[k]).filter(Boolean).map(x => { const c = clone(x); if (layoutOf(doc, p) === 'free') c.box = c.box || defaultBox(geometry(doc), x, 0); return c; });
+    if (!b && !pics.length) return false;
+    clip = { kind: 'items', pics, boxes: b ? [clone(b)] : [] }; keepClip();
+    const n = pics.length + (b ? 1 : 0);
+    toast(`Copied ${b ? 'the words' : n === 1 ? (pics[0].kind === 'gif' ? 'the GIF' : 'the picture') : n + ' pictures'} — ⌘V puts ${n === 1 ? 'it' : 'them'} on any page`);
+    return true;
+  }
+  function copyArrangement(i) {
+    const p = doc.pages[i == null ? cur : i]; if (!p) return;
+    clip = { kind: 'arrangement', a: { layout: p.layout, split: p.split, space: p.space, bleed: p.bleed, fade: clone(p.fade || { on: false }), bg: p.bg,
+      boxes: clone(p.boxes || []), picBoxes: p.pics.map(x => x.box ? clone(x.box) : null), runnerHide: clone(p.runnerHide || null) } };
+    keepClip();
+    toast('Arrangement copied — ⌘V on another page, or right-click it › Paste arrangement');
+  }
+  function paste(i) {
+    if (!clip || !doc) return toast('Nothing copied yet — ⌘C copies what you picked, or the page\u2019s arrangement');
+    const pi = i == null ? cur : i, p = doc.pages[pi]; if (!p) return;
+    if (clip.kind === 'arrangement') {
+      const a = clip.a;
+      change(() => {
+        if (doc.mode !== 'mood') { p.layout = a.layout; p.split = a.split; }
+        p.space = a.space; p.bleed = a.bleed; p.fade = clone(a.fade); p.bg = a.bg; p.runnerHide = clone(a.runnerHide);
+        // Its own words keep their text and take the copied places; a page with none gets the copied words.
+        const mine = p.boxes || [];
+        if (!mine.length) p.boxes = a.boxes.map(b => Object.assign(clone(b), { id: uid() }));
+        else mine.forEach((b, k) => { const c = a.boxes[k]; if (c) Object.assign(b, clone(c), { id: b.id, text: b.text }); });
+        p.pics.forEach((x, k) => { if (a.picBoxes[k]) x.box = clone(a.picBoxes[k]); });
+        cur = pi; sel.clear(); bsel = null;
+      });
+      return toast(`Arrangement pasted on page ${pi + 1}`);
+    }
+    const G = geometry(doc), nudge = 18 * G.u;
+    change(() => {
+      const free = layoutOf(doc, p) === 'free';
+      const pics = clip.pics.map(x => { const c = clone(x); if (free && c.box) c.box = Object.assign({}, c.box, { x: clamp(c.box.x + nudge / G.W, 0, 1 - c.box.w), y: clamp(c.box.y + nudge / G.H, 0, 1 - c.box.h) }); return c; });
+      if (pics.length) {
+        if (isTitle(p)) p.pics = [pics[0]];
+        else { const at = p.pics.length; p.pics.push(...pics); sel = new Set(pics.map((_, k) => at + k)); }
+      }
+      const boxes = clip.boxes.map(b => Object.assign(clone(b), { id: uid(), x: clamp(b.x + nudge / G.W, 0, 1 - b.w), y: clamp(b.y + nudge / G.H, 0, 0.97) }));
+      if (boxes.length && doc.mode !== 'mood') { p.boxes = (p.boxes || []).concat(boxes); bsel = boxes[boxes.length - 1].id; sel.clear(); }
+      cur = pi;
+    });
+    toast(`Pasted on page ${pi + 1}`);
+  }
   function dupPic() {
     const k = [...sel][0], p = page(); if (k == null || !p.pics[k]) return;
     change(() => {
@@ -1862,6 +1914,11 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
     if (what === 'obj:reframe') { const k = [...sel][0]; reframe = k; drawStage(); return drawPanel(); }
     if (what === 'obj:type') return bsel && startEditing(bsel);
     if (what === 'obj:dup') return bsel ? dupBox(bsel) : dupPic();
+    if (what === 'obj:copy') return copyItems();
+    if (what === 'obj:paste') return paste();
+    if (what.startsWith('arr:copy')) return copyArrangement(+what.split(':')[2]);
+    if (what.startsWith('arr:paste')) return paste(+what.split(':')[2]);
+    if (what.startsWith('arr:dup')) { cur = +what.split(':')[2]; return dupPage(); }
     if (what === 'obj:del') return bsel ? deleteBox(bsel) : removePics([...sel]);
     if (what === 'none') { trayPick.clear(); return paintTrayPick(); }
     if (what === 'vault') return call('openRef', { id: ids[0] });
@@ -1889,20 +1946,31 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
   $('stage').addEventListener('contextmenu', e => {
     if (!doc) return;
     const pic = e.target.closest('#pagewrap .pic'), tb = e.target.closest('#pagewrap .tb');
-    if (!pic && !tb) return;
+    if (!pic && !tb) { if (e.target.closest('#pagewrap')) { e.preventDefault(); pageMenu(e, cur); } return; }
     e.preventDefault();
     stopEditing();
     if (tb) { bsel = tb.dataset.b; sel.clear(); } else { bsel = null; sel = new Set([+pic.dataset.k]); }
     drawStage(); drawPanel();
     const m = $('ctxmenu'); ctxIds = []; ctxHi = 0;
     const items = [['z:front', 'Bring to front', ''], ['z:forward', 'Bring forward', ''], ['z:backward', 'Send backward', ''], ['z:back', 'Send to back', ''], null]
-      .concat(pic ? [['obj:reframe', 'Reframe', 'double-click']] : [['obj:type', 'Type in it', 'Return']]).concat([['obj:dup', 'Duplicate', '⌘D'], ['obj:del', tb ? 'Delete' : 'Take off the page', '⌫']]);
+      .concat(pic ? [['obj:reframe', 'Reframe', 'double-click']] : [['obj:type', 'Type in it', 'Return']]).concat([['obj:copy', 'Copy', '⌘C'], ['obj:paste', 'Paste', '⌘V'], ['obj:dup', 'Duplicate', '⌘D'], ['obj:del', tb ? 'Delete' : 'Take off the page', '⌫']]);
     m.innerHTML = items.map(it => it ? `<button role="menuitem" data-ctx="${it[0]}"><span>${esc(it[1])}</span><small>${it[2]}</small></button>` : '<hr>').join('');
     m.hidden = false;
     const r = m.getBoundingClientRect();
     m.style.left = Math.min(e.clientX, innerWidth - r.width - 8) + 'px'; m.style.top = Math.min(e.clientY, innerHeight - r.height - 8) + 'px';
     paintCtx();
   });
+  // The page itself: its arrangement, to copy or paste.
+  function pageMenu(e, i) {
+    const m = $('ctxmenu'); ctxIds = []; ctxHi = 0;
+    const items = [[`arr:copy:${i}`, 'Copy arrangement', clip && clip.kind !== 'arrangement' ? '' : '⌘C'], [`arr:paste:${i}`, clip && clip.kind === 'items' ? 'Paste' : 'Paste arrangement', '⌘V'], null, [`arr:dup:${i}`, 'Duplicate page', '⌘D']];
+    m.innerHTML = items.map(it => it ? `<button role="menuitem" data-ctx="${it[0]}"${it[0].startsWith('arr:paste') && !clip ? ' disabled' : ''}><span>${esc(it[1])}</span><small>${it[2]}</small></button>` : '<hr>').join('');
+    m.hidden = false;
+    const r = m.getBoundingClientRect();
+    m.style.left = Math.min(e.clientX, innerWidth - r.width - 8) + 'px'; m.style.top = Math.min(e.clientY, innerHeight - r.height - 8) + 'px';
+    paintCtx();
+  }
+  $('strip').addEventListener('contextmenu', e => { const th = e.target.closest('.thumb'); if (!th || !doc) return; e.preventDefault(); pageMenu(e, +th.dataset.page); });
   $('ctxmenu').addEventListener('click', e => { const b = e.target.closest('[data-ctx]'); if (b) runCtx(b.dataset.ctx); });
   document.addEventListener('mousedown', e => { if (!$('ctxmenu').hidden && !e.target.closest('#ctxmenu')) closeCtx(); }, true);
   document.addEventListener('keydown', e => {
@@ -2331,6 +2399,8 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
     if (cmd && e.key === '0') { e.preventDefault(); return setZoom(null); }
     if (cmd && e.key.toLowerCase() === 'd') { e.preventDefault(); if (editing) return; return bsel ? dupBox(bsel) : sel.size === 1 ? dupPic() : dupPage(); }
     if (typingIn) { if (e.key === 'Escape' && t.isContentEditable) { e.preventDefault(); stopEditing(); drawStage(); drawPanel(); } return; }
+    if (cmd && e.key.toLowerCase() === 'c') { e.preventDefault(); if (!copyItems()) copyArrangement(); return; }
+    if (cmd && e.key.toLowerCase() === 'v') { e.preventDefault(); return paste(); }
     if (swap) {
       if (e.key === 'ArrowUp' || e.key === 'ArrowDown') { e.preventDefault(); return swapStep(e.key === 'ArrowDown' ? 1 : -1); }
       if (e.key === 'Enter') { e.preventDefault(); swapEnd(true); return toast('Kept'); }

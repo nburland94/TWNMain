@@ -655,3 +655,29 @@ ROUND 19 — NEEDED VAULT ON YOUR PHONE, OVER WI-FI
   • The iCloud mirror and the Shortcuts from rounds 12–14 are retired; the
     iPhone-app folder from round 16 stays in the kit for later.
 
+ROUND 20 — THE PHONE PAGE LOADS, COPY & PASTE, YOUR ACCOUNT
+  • Needed Vault on the phone: the blank page is fixed — the Mac was
+    hanging up before the page had finished arriving. The page now says
+    "Opening your vault…" straight away, and if the Mac doesn't answer in
+    ten seconds it says so, and why.
+  • Home › Your phone › "Open it on this Mac" tries the same page in your
+    browser first; "What phones asked for" shows the log
+    (~/Library/Logs/Needed Tools/Phone.log).
+  • The top bar has a Phone button beside Sync (outlined in orange; a green
+    dot when it's on). Hover it for what it does; click for the QR code.
+  • The logo (top left) opens Your account: your details (name, company,
+    what you do, email, phone, website, handle, address — Pay fills your
+    invoice details from them), the licence (Deactivate this Mac to move to
+    another; Sign out), this Mac (vault, backups, Needed Vault on your
+    phone, light/dark, notifications on/off) and help (the welcome guide,
+    get in touch, version).
+  • Design: ⌘C / ⌘V copy and paste pictures, GIFs and text boxes — onto any
+    page, even in another design. With nothing picked, ⌘C copies the page's
+    arrangement; right-click the page or a page in the strip for Copy /
+    Paste arrangement (layout, divider, spacing, run-off, fade, background,
+    where the words and Free pictures sit — the page keeps its pictures).
+  • Shots: click anywhere outside the references (the shot list, the
+    template) and they close; Esc does too.
+  • Pay: Job number is a plain field with the others; left off the invoice
+    when it's blank.
+
