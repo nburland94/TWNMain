@@ -334,6 +334,8 @@ final class Shell: NSObject, NSApplicationDelegate, NSWindowDelegate, WKScriptMe
     var designPage: WKWebView?
     var designAspects: [String: Double] = [:]
     let designRenderer = DesignRenderer()
+    var phoneBatch: [String: Int] = [:]
+    var phoneBatchTimer: Timer?
     private var signin: WKWebView?
     private let area = NSView()
     var hosts: [String: ToolHost] = [:]
@@ -427,6 +429,29 @@ final class Shell: NSObject, NSApplicationDelegate, NSWindowDelegate, WKScriptMe
         DispatchQueue.main.asyncAfter(deadline: .now() + 3) { [weak self] in
             self?.paletteVault = Shared.vault?.path ?? ""
             VaultStore.shared.fillMissingPalettes()
+        }
+        // Needed Vault on the phone, over Wi-Fi: what it adds shows up in every tool, and says so.
+        PhoneServer.shared.startIfOn()
+        NotificationCenter.default.addObserver(forName: .neededPhoneAdded, object: nil, queue: .main) { [weak self] n in
+            guard let self = self else { return }
+            if n.userInfo?["state"] != nil {
+                self.home.evaluateJavaScript("window.__neededPhone && window.__neededPhone()", completionHandler: nil)
+                return
+            }
+            var views: [WKWebView] = [self.home]
+            if let p = self.projectPage { views.append(p) }
+            if let d = self.designPage { views.append(d) }
+            views += self.hosts.values.compactMap { $0.webView }
+            for v in views { v.evaluateJavaScript("window.__neededSynced && window.__neededSynced()", completionHandler: nil) }
+            // One notification for a batch, not one per photo.
+            let p = (n.userInfo?["project"] as? String) ?? Shared.project
+            self.phoneBatch[p, default: 0] += 1
+            self.phoneBatchTimer?.invalidate()
+            self.phoneBatchTimer = Timer.scheduledTimer(withTimeInterval: 2.5, repeats: false) { [weak self] _ in
+                guard let self = self else { return }
+                for (proj, count) in self.phoneBatch { Shell.post("\(count) from your phone", "In \(proj) › \(proj)_Vault — References.") }
+                self.phoneBatch = [:]
+            }
         }
         // Back from System Settings after "Add Google Calendar": say whether it worked.
         NotificationCenter.default.addObserver(forName: NSApplication.didBecomeActiveNotification, object: nil, queue: .main) { [weak self] _ in
@@ -1103,6 +1128,18 @@ final class Shell: NSObject, NSApplicationDelegate, NSWindowDelegate, WKScriptMe
             sync(replyHandler)
 
         // ---- Needed Vault on your phone: the Cloud vault
+        case "phoneStatus":
+            replyHandler(PhoneServer.shared.status(), nil)
+
+        case "phoneSet":
+            PhoneServer.shared.setOn((body["on"] as? Bool) ?? false)
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) { replyHandler(PhoneServer.shared.status(), nil) }
+
+        case "phoneNewKey":
+            // A new key: phones paired before have to scan again.
+            PhoneServer.shared.newKey()
+            replyHandler(PhoneServer.shared.status(), nil)
+
         case "cloudStatus":
             replyHandler(CloudVault.status(), nil)
 

@@ -634,3 +634,24 @@ ROUND 18 — CONTACTS WITH EVERYTHING
   • "+ New contact" adds someone with all of it at once.
   • Search finds people by phone and address too.
 
+ROUND 19 — NEEDED VAULT ON YOUR PHONE, OVER WI-FI
+  • No app to install, no accounts, nothing in between: while it's
+    switched on, Needed Tools serves the phone page itself, over your Wi-Fi.
+  • Home › Your phone › switch it on. Point your iPhone's camera at the QR
+    code, open it, then Share › Add to Home Screen. Done.
+  • On the phone — the mock-up: the project pill and Grab & Go at the top,
+    the project's vault in rows (All / Stills / Clips / GIFs, search), tap
+    one for the dark view (full quality; GIFs and clips play), Photos and
+    Camera at the bottom. Photos picks from your library and comes straight
+    back; pick the project and tags, and it's in the vault on the Mac —
+    no Sync step. Grab & Go on: straight in, no questions.
+  • The QR code carries a private key, so nobody else on the Wi-Fi can get
+    in. "New key" on the Mac makes every phone scan again.
+  • It works while the phone and the Mac are on the same network (home,
+    studio, or your phone's hotspot) and Needed Tools is open. If a network
+    won't pass on the Mac's name, "Use the Mac's number instead" gives a
+    second QR code.
+  • The first time, macOS may ask to allow incoming connections — Allow.
+  • The iCloud mirror and the Shortcuts from rounds 12–14 are retired; the
+    iPhone-app folder from round 16 stays in the kit for later.
+

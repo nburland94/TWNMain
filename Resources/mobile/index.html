@@ -5,6 +5,9 @@
 <meta name="robots" content="noindex,nofollow">
 <meta name="apple-mobile-web-app-title" content="Needed Vault">
 <meta name="theme-color" content="#fcf2ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon-180.png">
 <title>Needed Vault</title>
@@ -111,9 +114,38 @@ main{padding:0 18px calc(env(safe-area-inset-bottom) + 110px)}
 .small{font-size:12.5px;color:var(--soft);line-height:1.45;margin:12px 2px 0;text-align:center}
 .toast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom) + 92px);z-index:40;transform:translate(-50%,8px);white-space:nowrap;border-radius:100px;padding:10px 16px;font-size:13.5px;opacity:0;pointer-events:none;transition:opacity .25s,transform .25s var(--ease);max-width:88vw;text-align:center}
 .toast.show{opacity:1;transform:translate(-50%,0)}
+
+/* pairing and "can't reach your Mac" */
+.gate{min-height:100vh;display:flex;flex-direction:column;justify-content:center;gap:16px;padding:0 26px calc(env(safe-area-inset-bottom) + 40px)}
+.gate img{width:56px}
+.gate h1{margin:0;font-weight:200;font-size:40px;line-height:1.08}
+.gate p{margin:0;font-size:15px;color:var(--soft);line-height:1.55}
+.gate ol{margin:0;padding:16px 18px 16px 36px;border-radius:22px;font-size:14px;line-height:1.5;display:flex;flex-direction:column;gap:8px}
+.gate .dark{align-self:stretch}
+.prog{position:fixed;left:18px;right:18px;top:calc(env(safe-area-inset-top) + 8px);z-index:45;height:3px;border-radius:3px;background:rgba(240,90,34,.15);overflow:hidden;opacity:0;transition:opacity .2s}
+.prog.on{opacity:1}.prog i{display:block;height:100%;width:0;background:var(--o);transition:width .2s}
+.view video{max-width:100%;max-height:100%;display:block;background:#000}
+.addpics{display:flex;gap:6px;overflow-x:auto;margin:0 -2px 14px;padding:2px}
+.addpics span{flex-shrink:0;width:72px;height:54px;border-radius:8px;background:#2b2b2b center/cover no-repeat;display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px}
+.pchips{display:flex;gap:6px;overflow-x:auto;margin:6px 0 12px;padding:2px}
+.pchips .chip{flex-shrink:0}
+.tagin{width:100%;font:inherit;font-size:16px;border-radius:100px;border:1px solid rgba(28,28,28,.12);background:rgba(255,255,255,.9);padding:12px 16px;outline:none;margin-bottom:14px}
+.tagin:focus{border-color:var(--o)}
 </style></head>
 <body>
 <div class="glow"></div>
+<div class="prog" id="prog"><i id="progBar"></i></div>
+
+<!-- Not paired, or can't reach the Mac -->
+<section class="gate off" id="gate">
+  <img src="mark.png" alt="This Was Needed">
+  <h1 id="gateTitle">Needed Vault</h1>
+  <p id="gateText"></p>
+  <ol class="g" id="gateSteps"></ol>
+  <button class="dark off" id="retry">Try again</button>
+</section>
+
+<div id="app" class="off">
 <header>
   <img src="mark.png" alt="This Was Needed">
   <button class="pill" id="pill" aria-haspopup="dialog"><span id="pillName">Projects</span> <svg width="10" height="7" viewBox="0 0 10 7" aria-hidden="true"><path d="M1 1l4 4 4-4" fill="none" stroke="#fff" stroke-width="1.5"/></svg></button>
@@ -122,24 +154,21 @@ main{padding:0 18px calc(env(safe-area-inset-bottom) + 110px)}
 </header>
 
 <main>
-  <!-- Browse -->
   <section id="browse">
     <div class="titlerow"><h1 id="title">Needed Vault</h1><span class="cap" id="count"></span></div>
     <div class="chips" id="chips">
       <button class="chip on" data-k="all">All</button><button class="chip" data-k="still">Stills</button><button class="chip" data-k="clip">Clips</button><button class="chip" data-k="gif">GIFs</button>
       <span class="grow"></span>
-      <button class="chip" id="refresh" aria-label="Bring it up to date"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#141414" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 4v7h-7"/></svg></button>
       <button class="chip" id="searchBtn" aria-label="Search"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#141414" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg></button>
     </div>
     <div class="search" id="search"><input id="q" type="search" placeholder="Search — tags, names" autocomplete="off" autocapitalize="off"></div>
     <div class="grid" id="grid"></div>
   </section>
 
-  <!-- Grab & Go on -->
   <section id="on" class="off">
     <div class="banner"><b>Grab &amp; Go is on</b><span id="onLine"></span></div>
     <button class="g target" id="bigTap"><b>Tap to add</b><span>Pick from Photos — they go straight in, no questions</span></button>
-    <div class="feedhead"><span class="cap" id="todayN">Today</span><button class="chip" id="shot2">Latest screenshot</button></div>
+    <div class="feedhead"><span class="cap" id="todayN">Today</span><button class="chip" id="camera2">Camera</button></div>
     <div class="feed" id="feed"></div>
     <div class="note" id="onNote"></div>
   </section>
@@ -147,28 +176,29 @@ main{padding:0 18px calc(env(safe-area-inset-bottom) + 110px)}
 
 <div class="bottom" id="bottom">
   <button class="dark" id="photos"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="M3 15l5-5 4 4 3-3 6 6"/></svg>Photos</button>
-  <button class="light" id="shot"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#141414" stroke-width="1.6" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="3"/><circle cx="12" cy="12" r="3.2"/></svg>Screenshot</button>
+  <button class="light" id="camera"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#141414" stroke-width="1.6" aria-hidden="true"><rect x="3" y="6" width="18" height="13" rx="3"/><circle cx="12" cy="12.5" r="3.2"/><path d="M8.5 6l1.5-2h4l1.5 2"/></svg>Camera</button>
+</div>
+<input type="file" id="pick" accept="image/*,video/*" multiple hidden>
+<input type="file" id="shoot" accept="image/*,video/*" capture="environment" hidden>
 </div>
 
 <div class="view" id="view" role="dialog" aria-label="One picture">
   <div class="top"><button class="back" id="vBack"></button><span class="n" id="vN"></span></div>
   <div class="pic" id="vPic"></div>
   <div class="info"><span class="t" id="vT"></span><span class="m" id="vM"></span><div class="sw" id="vSw"></div><div class="tags" id="vTags"></div></div>
-  <div class="acts"><button class="light" id="vFull">Full size</button><button class="light small" id="vSrc">Source ↗</button><button class="light small" id="vShare">Share</button></div>
+  <div class="acts"><button class="light" id="vSrc">Open the source ↗</button><button class="light small" id="vShare">Share</button></div>
   <div class="hint">Swipe for the next · cropping and boards stay on the Mac</div>
 </div>
 
 <div class="veil" id="veil"></div>
 <div class="g sheet" id="projSheet" role="dialog" aria-label="Projects"><span class="cap">Your projects</span><h2>Open a project</h2><div class="plist" id="plist"></div></div>
-<div class="g sheet" id="setup" role="dialog" aria-label="Set up">
-  <span class="cap">Needed Vault</span>
-  <h2>Two taps and you're set.</h2>
-  <div class="steps">
-    <a class="dark" id="add1" href="add/Needed%20Vault.shortcut"><span class="n">1</span> Add “Needed Vault”</a>
-    <a class="light" id="add2" href="add/Grab%20%26%20Go.shortcut"><span class="n">2</span> Add “Grab &amp; Go” — for the side button</a>
-    <button class="light" id="openVault" style="border-color:rgba(240,90,34,.5);color:var(--oi)">Open my vault</button>
-  </div>
-  <p class="small">Each opens Shortcuts — tap <b>Add Shortcut</b>. The first time, allow Photos and Files.</p>
+<div class="g sheet" id="addSheet" role="dialog" aria-label="Add to the vault">
+  <span class="cap">Add to the vault</span><h2 id="addTitle">To file</h2>
+  <div class="addpics" id="addPics"></div>
+  <span class="cap">Into</span>
+  <div class="pchips" id="addProjects"></div>
+  <input class="tagin" id="addTags" placeholder="Tags, if you like — night, car" autocomplete="off" autocapitalize="off">
+  <div class="steps"><button class="dark" id="addGo">Add</button><button class="light" id="addCancel">Cancel</button></div>
 </div>
 <div class="g toast" id="toast"></div>
 
@@ -179,174 +209,238 @@ main{padding:0 18px calc(env(safe-area-inset-bottom) + 110px)}
   var get = function (k, d) { try { var v = localStorage.getItem('nv.' + k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } };
   var put = function (k, v) { try { localStorage.setItem('nv.' + k, JSON.stringify(v)); } catch (e) {} };
   var esc = function (s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); };
-  function toast(t) { var e = $('toast'); e.textContent = t; e.classList.add('show'); clearTimeout(toast.t); toast.t = setTimeout(function () { e.classList.remove('show'); }, 2600); }
-  var home = location.href.split('#')[0].split('?')[0];
+  function toast(t, ms) { var e = $('toast'); e.textContent = t; e.classList.add('show'); clearTimeout(toast.t); toast.t = setTimeout(function () { e.classList.remove('show'); }, ms || 2600); }
 
-  // Everything goes through the "Needed Vault" Shortcut, which comes straight back here with the answer.
-  function run(ask, back) {
-    var u = 'shortcuts://x-callback-url/run-shortcut?name=' + encodeURIComponent('Needed Vault') + '&input=text&text=' + encodeURIComponent(ask)
-      + '&x-success=' + encodeURIComponent(home + '?back=' + back) + '&x-cancel=' + encodeURIComponent(home + '?back=cancel') + '&x-error=' + encodeURIComponent(home + '?back=error');
-    if (window.__nvGo) return window.__nvGo(u);      // tests
-    location.href = u;
-  }
-
-  var S = { project: get('project', ''), projects: get('projects', []), grabGo: get('grabGo', ''), kind: 'all', q: '' };
-  var data = function (p) { return get('p:' + p, null); };
-  var sent = function () { return get('sent', []); };
-
-  function kindName(k) { return k === 'clip' ? 'Clip' : k === 'gif' ? 'GIF' : 'Still'; }
-  function srcOf(it) { return it.t ? 'data:image/jpeg;base64,' + it.t : ''; }
-  function listNow() {
-    var d = data(S.project), items = (d && d.items) || [], q = S.q.trim().toLowerCase();
-    var fresh = sent().filter(function (x) { return x.p === S.project; }).reduce(function (a, x) { return a.concat((x.th || []).map(function (t) { return { k: 'still', t: t, n: 'Just added', fresh: true }; })); }, []);
-    return fresh.concat(items).filter(function (it) {
-      if (S.kind !== 'all' && it.k !== S.kind) return false;
-      return !q || [it.n, (it.g || []).join(' ')].join(' ').toLowerCase().indexOf(q) >= 0;
+  // The key from the QR code: kept on this phone, then out of the address bar.
+  var m = location.hash.match(/k=([A-Za-z0-9]+)/);
+  if (m) { put('key', m[1]); history.replaceState(null, '', location.pathname); }
+  var KEY = get('key', '');
+  addEventListener('hashchange', function () {
+    var h = location.hash.match(/k=([A-Za-z0-9]+)/); if (!h) return;
+    put('key', h[1]); KEY = h[1]; history.replaceState(null, '', location.pathname); start();
+  });
+  var q = function (id) { return 'id=' + encodeURIComponent(id) + '&k=' + encodeURIComponent(KEY); };
+  function api(path, opt) {
+    opt = opt || {};
+    opt.headers = Object.assign({ 'X-Key': KEY }, opt.headers || {});
+    return fetch(path, opt).then(function (r) {
+      if (r.status === 401) { var e = new Error('key'); e.key = true; throw e; }
+      if (!r.ok) throw new Error('http ' + r.status);
+      return r.json();
     });
   }
 
-  // The rows: pictures keep their shape, rows fill the width.
+  var S = { projects: [], project: get('project', ''), items: [], grabGo: get('grabGo', ''), kind: 'all', q: '', fresh: {}, mac: 'your Mac' };
+  var sent = function () { return get('sent', []); };
+
+  function gate(kind) {
+    $('app').classList.add('off'); $('gate').classList.remove('off');
+    if (kind === 'pair') {
+      $('gateTitle').textContent = 'Needed Vault';
+      $('gateText').textContent = 'Your vault, on your phone — straight from your Mac, over your Wi-Fi.';
+      $('gateSteps').innerHTML = '<li>On your Mac: Needed Tools › Home › <b>Your phone</b> › switch it on.</li><li>Point this phone’s camera at the QR code there.</li><li>Then Share › <b>Add to Home Screen</b>.</li>';
+      $('retry').classList.add('off');
+    } else {
+      $('gateTitle').textContent = 'Can’t reach ' + (get('mac', 'your Mac'));
+      $('gateText').textContent = 'Needed Vault talks straight to your Mac, so they need to be together.';
+      $('gateSteps').innerHTML = '<li>This phone on the same Wi-Fi as your Mac (or your Mac on this phone’s hotspot).</li><li>Your Mac awake, with Needed Tools open and <b>Your phone</b> switched on.</li><li>Still stuck? On the Mac, Your phone › “Use the Mac’s number instead”, and scan that.</li>';
+      $('retry').classList.remove('off');
+    }
+  }
+  $('retry').addEventListener('click', function () { start(); });
+
+  function start() {
+    if (!KEY) return gate('pair');
+    return api('/api/state').then(function (s) {
+      S.projects = s.projects || []; S.mac = s.mac || 'your Mac'; put('mac', S.mac);
+      if (!S.project || !S.projects.some(function (p) { return p.n === S.project; })) { S.project = s.current && s.current !== 'Unsorted' ? s.current : ((S.projects[0] || {}).n || ''); put('project', S.project); }
+      if (S.grabGo && !S.projects.some(function (p) { return p.n === S.grabGo; })) { S.grabGo = ''; put('grabGo', ''); }
+      $('gate').classList.add('off'); $('app').classList.remove('off');
+      draw(); return loadItems();
+    }).catch(function (e) { gate(e.key ? 'pair' : 'away'); });
+  }
+  function loadItems() {
+    if (!S.project) { S.items = []; return draw(); }
+    var p = S.project;
+    return api('/api/items?p=' + encodeURIComponent(p)).then(function (r) { if (p === S.project) { S.items = r.items || []; draw(); } });
+  }
+
+  function kindName(k) { return k === 'clip' ? 'Clip' : k === 'gif' ? 'GIF' : 'Still'; }
+  function listNow() {
+    var s = S.q.trim().toLowerCase();
+    return S.items.filter(function (it) {
+      if (S.kind !== 'all' && it.k !== S.kind) return false;
+      return !s || [it.n, (it.g || []).join(' ')].join(' ').toLowerCase().indexOf(s) >= 0;
+    });
+  }
   function drawGrid() {
     var list = listNow(), w = Math.min(innerWidth, 560) - 28, rows = [], row = [], sum = 0, target = 118;
-    list.forEach(function (it, i) { var a = it.a || 1.5; row.push([it, a, i]); sum += a; if (sum * target + (row.length - 1) * 5 >= w) { rows.push([row, sum]); row = []; sum = 0; } });
-    if (row.length) rows.push([row, Math.max(sum, w / target * 0.7)]);
+    list.forEach(function (it, i) { var a = Math.min(3, Math.max(0.4, it.a || 1.5)); row.push([it, a, i]); sum += a; if (sum * target + (row.length - 1) * 5 >= w) { rows.push([row, sum]); row = []; sum = 0; } });
+    if (row.length) rows.push([row, Math.max(sum, w / target * 0.75)]);
     $('grid').innerHTML = list.length ? rows.map(function (r) {
       var h = Math.round((w - (r[0].length - 1) * 5) / r[1]);
       return '<div class="row">' + r[0].map(function (c) {
-        var it = c[0], s = srcOf(it), g = (it.c || ['#d9cfc4', '#b8a898']);
-        return '<button class="tile" data-i="' + c[2] + '" style="flex:' + c[1] + ' 1 0;height:' + h + 'px;background:linear-gradient(160deg,' + esc(g[0]) + ',' + esc(g[1] || g[0]) + ')">' + (s ? '<img alt="" src="' + s + '">' : '')
-          + (it.k !== 'still' ? '<span class="badge">' + (it.k === 'clip' ? 'CLIP' : 'GIF') + '</span>' : '') + (it.fresh ? '<span class="badge new">NEW</span>' : '') + '</button>';
+        var it = c[0], g = it.c || ['#d9cfc4', '#b8a898'];
+        return '<button class="tile" data-i="' + c[2] + '" style="flex:' + c[1] + ' 1 0;height:' + h + 'px;background:linear-gradient(160deg,' + esc(g[0]) + ',' + esc(g[1] || g[0]) + ')"><img alt="" loading="lazy" src="/api/thumb?' + q(it.id) + '">'
+          + (it.k !== 'still' ? '<span class="badge">' + (it.k === 'clip' ? 'CLIP' : 'GIF') + '</span>' : '') + (S.fresh[it.id] ? '<span class="badge new">NEW</span>' : '') + '</button>';
       }).join('') + '</div>';
-    }).join('') : '<div class="empty">' + (data(S.project) ? 'Nothing here yet — Photos below adds some.' : 'Tap <b>↻</b> to bring in ' + esc(S.project || 'your vault') + '.') + '</div>';
+    }).join('') : '<div class="empty">' + (S.items.length ? 'Nothing matches.' : 'Nothing in ' + esc(S.project || 'this project') + ' yet — Photos below adds some.') + '</div>';
   }
-
   function drawFeed() {
     var today = new Date().toDateString(), list = sent().filter(function (x) { return new Date(x.at).toDateString() === today; });
     var n = list.reduce(function (a, x) { return a + (x.n || 0); }, 0);
     $('todayN').textContent = 'Today, ' + n + ' added';
     $('feed').innerHTML = list.length ? list.map(function (x) {
       var t = new Date(x.at), hm = ('0' + t.getHours()).slice(-2) + ':' + ('0' + t.getMinutes()).slice(-2);
-      return '<div class="it"><span class="th" style="' + (x.th && x.th[0] ? 'background-image:url(data:image/jpeg;base64,' + x.th[0] + ')' : '') + '"></span><span class="tx"><span>' + esc(x.what) + ' ' + hm + '</span><span>' + (x.n || 1) + ' file' + (x.n === 1 ? '' : 's') + '</span></span><span class="st">In ' + esc(x.p) + '</span></div>';
+      return '<div class="it"><span class="th" style="' + (x.th ? 'background-image:url(' + x.th + ')' : '') + '"></span><span class="tx"><span>' + esc(x.what) + ' ' + hm + '</span><span>' + esc((x.tags || []).map(function (t) { return '#' + t; }).join(' ')) + '</span></span><span class="st">In ' + esc(x.p) + '</span></div>';
     }).join('') : '<div class="empty" style="padding:18px 0">Nothing yet today.</div>';
-    $('onNote').textContent = '“In ' + (S.grabGo || 'the project') + '” means it’s in the project’s inbox. Your Mac files it into the vault next time it syncs.';
+    $('onNote').textContent = 'Everything goes straight into ' + (S.grabGo || 'the project') + '’s vault on ' + S.mac + '.';
   }
-
   function draw() {
-    var on = !!S.grabGo;
+    var on = !!S.grabGo, cur = S.projects.filter(function (p) { return p.n === S.project; })[0];
     $('pillName').textContent = (on ? S.grabGo : S.project) || 'Projects';
     $('gg').classList.toggle('on', on); $('gg').setAttribute('aria-pressed', on); $('ggWrap').classList.toggle('on', on);
-    $('browse').classList.toggle('off', on); $('on').classList.toggle('off', !on);
-    $('bottom').classList.toggle('off', on);
-    var d = data(S.project);
+    $('browse').classList.toggle('off', on); $('on').classList.toggle('off', !on); $('bottom').classList.toggle('off', on);
     $('title').textContent = S.project || 'Needed Vault';
-    $('count').textContent = d ? d.c + ' in the vault' : '';
+    $('count').textContent = (cur ? cur.c : S.items.length) + ' in the vault';
     [].forEach.call(document.querySelectorAll('#chips [data-k]'), function (b) { b.classList.toggle('on', b.dataset.k === S.kind); });
-    if (on) { $('onLine').textContent = 'Everything goes straight into ' + S.grabGo + '. No questions until you switch it off.'; drawFeed(); }
-    else drawGrid();
+    if (on) { $('onLine').textContent = 'Everything goes straight into ' + S.grabGo + '. No questions until you switch it off.'; drawFeed(); } else drawGrid();
   }
 
-  /* ---- sheets */
+  /* ---- projects */
   function sheet(id, open) {
-    ['projSheet', 'setup'].forEach(function (s) { $(s).classList.toggle('on', open && s === id); });
+    ['projSheet', 'addSheet'].forEach(function (s) { $(s).classList.toggle('on', open && s === id); });
     $('veil').classList.toggle('on', !!open);
   }
-  $('veil').addEventListener('click', function () { if (get('ready', false)) sheet(null, false); });
-  function openProjects() {
-    if (!S.projects.length) return run('home', 'home');
+  $('veil').addEventListener('click', function () { sheet(null, false); pending = []; });
+  $('pill').addEventListener('click', function () {
     $('plist').innerHTML = S.projects.map(function (p) {
-      return '<button class="' + (p.n === S.project ? 'on' : '') + '" data-p="' + esc(p.n) + '">' + esc(p.n) + '<small>' + (p.c || 0) + (p.l ? ' · ' + esc(p.l) : '') + '</small></button>';
-    }).join('');
+      return '<button class="' + (p.n === (S.grabGo || S.project) ? 'on' : '') + '" data-p="' + esc(p.n) + '">' + esc(p.n) + '<small>' + (p.c || 0) + (p.l ? ' · ' + esc(p.l) : '') + '</small></button>';
+    }).join('') || '<div class="empty">No projects on your Mac yet.</div>';
     sheet('projSheet', true);
-  }
-  $('pill').addEventListener('click', openProjects);
+  });
   $('plist').addEventListener('click', function (e) {
     var b = e.target.closest('[data-p]'); if (!b) return;
-    S.project = b.dataset.p; put('project', S.project); sheet(null, false); S.kind = 'all';
-    if (S.grabGo) { run('gg|' + S.project, 'gg'); return; }                 // Grab & Go follows the project you pick
-    if (!data(S.project)) return run('browse|' + S.project, 'browse');
-    draw();
+    S.project = b.dataset.p; put('project', S.project); sheet(null, false); S.kind = 'all'; S.q = ''; $('q').value = '';
+    if (S.grabGo) { S.grabGo = S.project; put('grabGo', S.grabGo); }          // Grab & Go follows the project you pick
+    S.items = []; draw(); loadItems();
+  });
+  $('gg').addEventListener('click', function () {
+    S.grabGo = S.grabGo ? '' : S.project; put('grabGo', S.grabGo);
+    toast(S.grabGo ? 'Grab & Go on — ' + S.grabGo : 'Grab & Go off'); draw();
   });
 
-  /* ---- actions: each is one tap */
-  $('gg').addEventListener('click', function () {
-    if (S.grabGo) return run('gg|off', 'gg');
-    if (!S.project) return openProjects();
-    run('gg|' + S.project, 'gg');
+  /* ---- adding: Photos or the camera, straight in (Grab & Go) or pick the project and tags */
+  var pending = [];
+  $('photos').addEventListener('click', function () { $('pick').click(); });
+  $('bigTap').addEventListener('click', function () { $('pick').click(); });
+  $('camera').addEventListener('click', function () { $('shoot').click(); });
+  $('camera2').addEventListener('click', function () { $('shoot').click(); });
+  function picked(e) {
+    var files = [].slice.call(e.target.files || []); e.target.value = '';
+    if (!files.length) return;
+    if (S.grabGo) return upload(files, S.grabGo, []);
+    pending = files;
+    $('addTitle').textContent = files.length === 1 ? 'One to file' : files.length + ' to file';
+    $('addPics').innerHTML = files.slice(0, 30).map(function (f) { return /^image\//.test(f.type) ? '<span style="background-image:url(' + URL.createObjectURL(f) + ')"></span>' : '<span>clip</span>'; }).join('');
+    addTo = S.project; drawAddProjects(); $('addTags').value = '';
+    sheet('addSheet', true);
+  }
+  $('pick').addEventListener('change', picked);
+  $('shoot').addEventListener('change', picked);
+  var addTo = '';
+  function drawAddProjects() {
+    $('addProjects').innerHTML = S.projects.map(function (p) { return '<button class="chip' + (p.n === addTo ? ' on' : '') + '" data-to="' + esc(p.n) + '">' + esc(p.n) + '</button>'; }).join('');
+    $('addGo').textContent = 'Add to ' + (addTo || '…');
+  }
+  $('addProjects').addEventListener('click', function (e) { var b = e.target.closest('[data-to]'); if (b) { addTo = b.dataset.to; drawAddProjects(); } });
+  $('addCancel').addEventListener('click', function () { pending = []; sheet(null, false); });
+  $('addGo').addEventListener('click', function () {
+    if (!addTo || !pending.length) return;
+    var tags = $('addTags').value.split(/[\s,#]+/).filter(Boolean);
+    var files = pending; pending = []; sheet(null, false);
+    upload(files, addTo, tags);
   });
-  function need() { if (!S.project && !S.grabGo) { openProjects(); return false; } return true; }
-  $('photos').addEventListener('click', function () { if (need()) run('photos|' + (S.grabGo || S.project), 'saved'); });
-  $('bigTap').addEventListener('click', function () { if (need()) run('photos|' + (S.grabGo || S.project), 'saved'); });
-  $('shot').addEventListener('click', function () { if (need()) run('shot|' + (S.grabGo || S.project), 'saved'); });
-  $('shot2').addEventListener('click', function () { if (need()) run('shot|' + (S.grabGo || S.project), 'saved'); });
-  $('refresh').addEventListener('click', function () { if (!S.project) return run('home', 'home'); run('browse|' + S.project, 'browse'); });
-  $('openVault').addEventListener('click', function () { put('ready', true); run('home', 'home'); });
-  $('chips').addEventListener('click', function (e) { var b = e.target.closest('[data-k]'); if (b) { S.kind = b.dataset.k; draw(); } });
-  $('searchBtn').addEventListener('click', function () { var s = $('search'); var on = s.style.display !== 'block'; s.style.display = on ? 'block' : 'none'; if (on) $('q').focus(); else { $('q').value = ''; S.q = ''; drawGrid(); } });
-  $('q').addEventListener('input', function () { S.q = $('q').value; drawGrid(); });
+
+  function thumbOf(f) {
+    if (!/^image\//.test(f.type) || !window.createImageBitmap) return Promise.resolve('');
+    return createImageBitmap(f).then(function (b) {
+      var c = document.createElement('canvas'), s = 96 / Math.max(b.width, b.height); c.width = Math.round(b.width * s); c.height = Math.round(b.height * s);
+      c.getContext('2d').drawImage(b, 0, 0, c.width, c.height); return c.toDataURL('image/jpeg', 0.6);
+    }).catch(function () { return ''; });
+  }
+  function send1(f, project, tags, i, n) {
+    return new Promise(function (ok, no) {
+      var x = new XMLHttpRequest(), name = f.name || ('Photo.' + ((f.type.split('/')[1] || 'jpg').replace('jpeg', 'jpg').replace('quicktime', 'mov')));
+      x.open('POST', '/api/upload?p=' + encodeURIComponent(project) + '&name=' + encodeURIComponent(name) + '&tags=' + encodeURIComponent(tags.join(',')));
+      x.setRequestHeader('X-Key', KEY);
+      x.upload.onprogress = function (e) { if (e.lengthComputable) $('progBar').style.width = Math.round(((i + e.loaded / e.total) / n) * 100) + '%'; };
+      x.onload = function () { var r = null; try { r = JSON.parse(x.responseText); } catch (e) {} if (x.status === 200 && r && r.ok) ok(r); else no(new Error((r && r.error) || 'Couldn’t add it')); };
+      x.onerror = function () { no(new Error('Lost your Mac — same Wi-Fi?')); };
+      x.send(f);
+    });
+  }
+  function upload(files, project, tags) {
+    $('prog').classList.add('on'); $('progBar').style.width = '0%';
+    var done = [], i = 0, n = files.length, first = files[0];
+    toast('Adding ' + (n === 1 ? 'it' : n) + ' to ' + project + '…', 60000);
+    function next() {
+      if (i >= n) return finish();
+      var f = files[i];
+      return send1(f, project, tags, i, n).then(function (r) { done.push(r.id); S.fresh[r.id] = true; i++; return next(); });
+    }
+    function finish() {
+      $('prog').classList.remove('on');
+      thumbOf(first).then(function (th) {
+        var list = sent(); list.unshift({ p: project, n: done.length, th: th, tags: tags, at: Date.now(), what: done.length === 1 ? (/^video\//.test(first.type) ? 'Clip' : 'Photo') : done.length + ' added' });
+        put('sent', list.slice(0, 50));
+        toast(done.length === 1 ? 'In ' + project : done.length + ' in ' + project);
+        if (project !== S.project && !S.grabGo) { S.project = project; put('project', project); }
+        loadItems(); draw();
+      });
+    }
+    next().catch(function (e) { $('prog').classList.remove('on'); toast((done.length ? done.length + ' went in. ' : '') + e.message, 4000); loadItems(); });
+  }
 
   /* ---- one picture, full screen; swipe for the next */
   var vi = -1;
   function openView(i) {
     var list = listNow(), it = list[i]; if (!it) return; vi = i;
     $('vBack').textContent = '‹ ' + (S.project || 'Back'); $('vN').textContent = (i + 1) + ' / ' + list.length;
-    var gc = it.c || ['#3b4a52', '#1b1b1d'];
-    $('vPic').innerHTML = srcOf(it) ? '<img alt="" src="' + srcOf(it) + '">' : '<div class="grad" style="background:linear-gradient(160deg,' + esc(gc[0]) + ',' + esc(gc[1] || gc[0]) + ' 60%,' + esc(gc[2] || '#1b1b1d') + ')"></div>';
+    var src = '/api/file?' + q(it.id);
+    $('vPic').innerHTML = it.k === 'clip' ? '<video src="' + src + '" controls playsinline preload="metadata" poster="/api/thumb?' + q(it.id) + '"></video>' : '<img alt="" src="' + src + '">';
     $('vT').textContent = it.n || kindName(it.k);
-    $('vM').textContent = [kindName(it.k), it.s && it.s !== 'file' ? it.s : '', it.d ? 'added ' + it.d : ''].filter(Boolean).join(' · ');
+    $('vM').textContent = [kindName(it.k), it.s && it.s !== 'file' && it.s !== 'phone' ? it.s : '', it.d ? 'added ' + it.d : ''].filter(Boolean).join(' · ');
     $('vSw').innerHTML = (it.c || []).map(function (c) { return '<i style="background:' + esc(c) + '"></i>'; }).join('');
     $('vTags').innerHTML = (it.g || []).map(function (t) { return '<span class="chip">#' + esc(t) + '</span>'; }).join('');
-    $('vFull').classList.toggle('off', !it.f); $('vSrc').classList.toggle('off', !it.u);
+    $('vSrc').classList.toggle('off', !it.u);
     $('view').classList.add('on');
   }
+  function closeView() { var v = $('vPic').querySelector('video'); if (v) v.pause(); $('view').classList.remove('on'); }
   $('grid').addEventListener('click', function (e) { var b = e.target.closest('.tile'); if (b) openView(+b.dataset.i); });
-  $('vBack').addEventListener('click', function () { $('view').classList.remove('on'); });
-  $('vFull').addEventListener('click', function () { var it = listNow()[vi]; if (it && it.f) run('view|' + it.f, 'view'); });
-  $('vSrc').addEventListener('click', function () { var it = listNow()[vi]; if (it && it.u) location.href = it.u; });
+  $('vBack').addEventListener('click', closeView);
+  $('vSrc').addEventListener('click', function () { var it = listNow()[vi]; if (it && it.u) window.open(it.u, '_blank'); });
   $('vShare').addEventListener('click', function () {
     var it = listNow()[vi]; if (!it || !navigator.share) return;
-    navigator.share(it.u ? { title: it.n, url: it.u } : { title: it.n || 'From Needed Vault', text: it.n || '' }).catch(function () {});
+    if (it.u) return navigator.share({ title: it.n, url: it.u }).catch(function () {});
+    fetch('/api/file?' + q(it.id)).then(function (r) { return r.blob(); }).then(function (b) {
+      var f = new File([b], (it.n || 'Needed Vault') + '.' + ((b.type.split('/')[1] || 'jpg').replace('jpeg', 'jpg').replace('quicktime', 'mov')), { type: b.type });
+      if (navigator.canShare && navigator.canShare({ files: [f] })) return navigator.share({ files: [f] });
+      return navigator.share({ title: it.n || 'From Needed Vault' });
+    }).catch(function () {});
   });
   var x0 = null;
   $('view').addEventListener('touchstart', function (e) { x0 = e.touches[0].clientX; }, { passive: true });
   $('view').addEventListener('touchend', function (e) { if (x0 == null) return; var d = e.changedTouches[0].clientX - x0; x0 = null; if (Math.abs(d) > 50) openView(vi + (d < 0 ? 1 : -1)); });
 
-  /* ---- back from the Shortcut */
-  var q = new URLSearchParams(location.search), back = q.get('back'), result = q.get('result') || '';
-  if (back) history.replaceState(null, '', home);
-  function parse(t) { try { return JSON.parse(t); } catch (e) { return null; } }
-  if (back === 'home') {
-    var h = parse(result);
-    if (h) {
-      S.projects = h.projects || []; put('projects', S.projects);
-      S.grabGo = h.grabGo && h.grabGo !== 'off' ? h.grabGo : ''; put('grabGo', S.grabGo);
-      if (!S.project || !S.projects.some(function (p) { return p.n === S.project; })) { S.project = h.current && h.current !== 'Unsorted' ? h.current : ((S.projects[0] || {}).n || ''); put('project', S.project); }
-      put('ready', true);
-      if (S.project && !data(S.project)) run('browse|' + S.project, 'browse');
-    } else toast('Turn on “Keep it in iCloud” in Needed Tools, then Sync');
-  } else if (back === 'browse') {
-    var b = parse(result);
-    if (b && b.p) { put('p:' + b.p, b); put('sent', sent().filter(function (x) { return x.p !== b.p; })); toast(b.c + ' in ' + b.p); }
-    else toast('Nothing from ' + S.project + ' yet — Sync on your Mac');
-  } else if (back === 'saved') {
-    var parts = result.split('|');      // saved|Project|count|thumb,thumb
-    if (parts[0] === 'saved') {
-      var n = parseInt(parts[2], 10) || 0, th = (parts[3] || '').split(',').filter(Boolean).slice(0, 12);
-      if (n) { var list = sent(); list.unshift({ p: parts[1], n: n, th: th, at: Date.now(), what: n === 1 ? 'Photo' : n + ' photos' }); put('sent', list.slice(0, 40)); }
-      toast(n ? (n === 1 ? 'Saved to ' : n + ' saved to ') + parts[1] : 'Nothing picked');
-    }
-  } else if (back === 'gg') {
-    var g = result.split('|')[1] || '';
-    S.grabGo = g && g !== 'off' ? g : ''; put('grabGo', S.grabGo);
-    if (S.grabGo) { S.project = S.grabGo; put('project', S.project); }
-    toast(S.grabGo ? 'Grab & Go on — ' + S.grabGo : 'Grab & Go off');
-  } else if (back === 'error') {
-    put('ready', false);
-  }
+  /* ---- filters */
+  $('chips').addEventListener('click', function (e) { var b = e.target.closest('[data-k]'); if (b) { S.kind = b.dataset.k; draw(); } });
+  $('searchBtn').addEventListener('click', function () { var s = $('search'); var on = s.style.display !== 'block'; s.style.display = on ? 'block' : 'none'; if (on) $('q').focus(); else { $('q').value = ''; S.q = ''; drawGrid(); } });
+  $('q').addEventListener('input', function () { S.q = $('q').value; drawGrid(); });
 
   addEventListener('resize', function () { if (!S.grabGo) drawGrid(); });
-  draw();
-  if (!get('ready', false)) sheet('setup', true);
-  if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('sw.js').catch(function () {});
+  document.addEventListener('visibilitychange', function () { if (!document.hidden && KEY) start(); });   // back to it: fresh from the Mac
+  start();
 })();
 </script>
 </body></html>
