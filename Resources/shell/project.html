@@ -234,6 +234,20 @@ h1[contenteditable]:focus{border-bottom-color:var(--accent)}
 .warnbox .grow{flex:1}
 .btno{border:none;border-radius:100px;padding:10px 17px;font-size:13px;font-weight:500;background:#F05A22;color:#fff;box-shadow:0 2px 8px rgba(240,90,34,0.25);white-space:nowrap}
 /* people */
+.pclist{max-height:56vh;overflow-y:auto;display:flex;flex-direction:column;gap:8px;padding:2px}
+.pc{border-radius:14px;background:rgba(255,255,255,0.55);border:1px solid rgba(28,28,28,0.06);padding:10px 12px;display:flex;flex-direction:column;gap:6px}
+.pc.new{border-color:rgba(240,90,34,0.45);background:rgba(255,255,255,0.8)}
+.pc input{border:1px solid transparent;border-radius:8px;background:transparent;padding:5px 7px;font-size:13px;outline:none;min-width:0;width:100%;box-sizing:border-box;color:var(--ink)}
+.pc input:hover{border-color:rgba(28,28,28,0.08)}.pc input:focus{border-color:var(--accent);background:#fff}
+.pc.new input{border-color:rgba(28,28,28,0.1);background:#fff}
+.pctop{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr) 22px;gap:8px;align-items:center}
+.pc.new .pctop{grid-template-columns:minmax(0,1.1fr) minmax(0,1fr)}
+.pcname{font-size:15px!important;font-weight:500}
+.pcgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px 8px}
+.pcgrid label{display:flex;flex-direction:column;gap:1px}
+.pcgrid label span{font-family:'Courier Prime',monospace;font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:#8a6a58;padding-left:7px}
+.pcgrid label.wide{grid-column:1 / -1}
+.pcact{display:flex;gap:8px;justify-content:flex-end;padding-top:4px}
 .pp{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,0.8fr) minmax(0,1.2fr) minmax(0,0.8fr) 22px;gap:8px;align-items:center;padding:6px 4px;border-top:1px solid rgba(28,28,28,0.05)}
 .pp input{border:1px solid transparent;border-radius:8px;background:transparent;padding:4px 6px;font-size:13px;outline:none;min-width:0}
 .pp input:hover{border-color:rgba(28,28,28,0.08)}
@@ -718,7 +732,7 @@ main>*{animation:rise .45s var(--ease-out) both}
           if (list('crew').some(x => (row.contact && x.contact === row.contact) || (row.email && x.email === row.email))) return toast(`${row.name || row.email} is already on the crew`);
           list('crew').push(row); save('crew', D.crew, true); crewAll = true; renderCrew();
           $('findWrap').hidden = false; $('crewFind').focus();
-          if (isNew) toast('Added — give them a role; add an email in Contacts to send to them');
+          if (isNew) toast('Added — give them a role; their phone, email, handle and address go in Contacts');
         });
       }
       return f.focus();
@@ -1113,7 +1127,7 @@ main>*{animation:rise .45s var(--ease-out) both}
   }
 
   /* ---- the contact book ---- */
-  let pq = '';
+  let pq = '', newPerson = false;
   function dupes(all) {
     const out = [], norm = s => (s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, ' ').trim();
     for (let i = 0; i < all.length; i++) for (let j = i + 1; j < all.length; j++) {
@@ -1125,30 +1139,49 @@ main>*{animation:rise .45s var(--ease-out) both}
   function renderPeople() {
     const all = D.contacts || [];
     const q = pq.toLowerCase();
-    const shown = all.filter(c => !q || [c.name, c.email, c.role, c.company, c.handle].join(' ').toLowerCase().includes(q));
+    const shown = all.filter(c => !q || [c.name, c.email, c.role, c.company, c.handle, c.phone, c.address].join(' ').toLowerCase().includes(q));
+    // Everything about a person: name and role, then phone, email, handle and address.
+    const card = (c, isNew) => `<div class="pc${isNew ? ' new' : ''}" ${isNew ? 'id="newContact"' : `data-cid="${esc(c.id)}"`}>
+        <div class="pctop"><input data-c="name" class="pcname" value="${esc(c.name || '')}" placeholder="Name" spellcheck="false"${isNew ? ' autofocus' : ''}>
+          <input data-c="role" value="${esc(c.role || '')}" placeholder="Role — DOP, client, producer…" spellcheck="false">
+          ${isNew ? '' : `<button class="x" style="opacity:1" data-rmc="${esc(c.id)}" aria-label="Remove ${esc(c.name || c.email)}">×</button>`}</div>
+        <div class="pcgrid">
+          <label><span>Phone</span><input data-c="phone" type="tel" value="${esc(c.phone || '')}" placeholder="+44 7700 900000"></label>
+          <label><span>Email</span><input data-c="email" type="email" value="${esc(c.email || '')}" placeholder="name@studio.com" spellcheck="false"></label>
+          <label><span>Handle</span><input data-c="handle" value="${esc(c.handle || '')}" placeholder="@handle" spellcheck="false"></label>
+          <label class="wide"><span>Address</span><input data-c="address" value="${esc(c.address || '')}" placeholder="Street, city, postcode"></label>
+        </div>
+        ${isNew ? '<div class="pcact"><button class="btnl" data-cancelnew>Cancel</button><button class="btnd" data-savenew>Save contact</button></div>' : ''}</div>`;
     openSheet('people', `
       <div class="shead"><div class="grow"><h3>Contacts</h3>
         <span class="note">One book for every tool: crew from Credit, clients from Pay, and everyone on your projects. Fix a name or add an email here and every tool has it.</span></div>${closeBtn}</div>
       ${dupes(all).map(([a, b]) => `<div class="dupe"><span class="grow">Same person? <b style="font-weight:500">${esc(a.name || a.email)}</b> ${esc(a.email ? '· ' + a.email : '')} and <b style="font-weight:500">${esc(b.name || b.email)}</b> ${esc(b.email ? '· ' + b.email : '')}</span>
         <button class="btnl" style="padding:8px 14px" data-merge="${esc(a.id)}:${esc(b.id)}">Merge</button></div>`).join('')}
-      <label class="search"><input id="pbq" placeholder="Search ${all.length} people" value="${esc(pq)}" spellcheck="false"></label>
-      <div style="max-height:52vh;overflow-y:auto">${shown.map(c => `<div class="pp" data-cid="${esc(c.id)}">
-          <input data-c="name" value="${esc(c.name || '')}" placeholder="Name" spellcheck="false">
-          <input data-c="role" value="${esc(c.role || '')}" placeholder="Role" spellcheck="false">
-          <input data-c="email" value="${esc(c.email || '')}" placeholder="email" spellcheck="false">
-          <input data-c="handle" value="${esc(c.handle || '')}" placeholder="@handle" spellcheck="false">
-          <button class="x" style="opacity:1" data-rmc="${esc(c.id)}" aria-label="Remove ${esc(c.name || c.email)}">×</button></div>`).join('') || '<div class="note2">No one yet. Credit remembers crew as you read call sheets; Pay remembers clients as you invoice them.</div>'}</div>
+      <div style="display:flex;gap:8px;align-items:center"><label class="search" style="flex:1"><input id="pbq" placeholder="Search ${all.length} people" value="${esc(pq)}" spellcheck="false"></label>
+        <button class="btnd" data-newcontact style="padding:9px 16px">+ New contact</button></div>
+      <div class="pclist">${newPerson ? card({}, true) : ''}${shown.map(c => card(c, false)).join('') || (newPerson ? '' : '<div class="note2">No one yet. Credit remembers crew as you read call sheets; Pay remembers clients as you invoice them. + New contact adds someone yourself.</div>')}</div>
       <div class="foot"><span class="grow">Kept with the app, and a copy in your vault.</span><button class="btnd" data-close>Done</button></div>`, 'narrow');
     const s = $('pbq');
     s.addEventListener('input', () => { pq = s.value; const pos = s.selectionStart; renderPeople(); const n = $('pbq'); n.focus(); n.setSelectionRange(pos, pos); });
   }
   async function peopleClick(t) {
     const d = t.dataset;
+    if (d.newcontact != null) { newPerson = true; renderPeople(); const n = document.querySelector('#newContact .pcname'); if (n) n.focus(); return; }
+    if (d.cancelnew != null) { newPerson = false; return renderPeople(); }
+    if (d.savenew != null) {
+      const f = document.getElementById('newContact'), c = {};
+      f.querySelectorAll('[data-c]').forEach(i => { c[i.dataset.c] = i.value.trim(); });
+      if (!c.name && !c.email && !c.phone) return toast('Add a name, a phone number or an email');
+      const r = await call('contactSave', { contact: c }).catch(() => null);
+      if (!r) return toast("Couldn't save them");
+      D.contacts = r.contacts; newPerson = false; renderPeople(); toast(`${c.name || c.email || c.phone} saved to your contacts`);
+      return;
+    }
     if (d.merge) { const [keep, drop] = d.merge.split(':'); const r = await call('contactMerge', { keep, drop }).catch(() => null); if (r) { D.contacts = r.contacts; renderPeople(); toast('Merged'); } }
     if (d.rmc) { const r = await call('contactRemove', { id: d.rmc }).catch(() => null); if (r) { D.contacts = r.contacts; renderPeople(); } }
   }
   async function peopleChange(t) {
-    const row = t.closest('.pp[data-cid]'); if (!row || !t.dataset.c) return;
+    const row = t.closest('.pc[data-cid]'); if (!row || !t.dataset.c) return;
     const r = await call('contactSave', { contact: { id: row.dataset.cid, [t.dataset.c]: t.value } }).catch(() => null);
     if (r) D.contacts = r.contacts;
   }

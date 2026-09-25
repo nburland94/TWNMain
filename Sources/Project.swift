@@ -519,7 +519,7 @@ enum Contacts {
         incoming["emails"] = Array(em.dropFirst())
         if let i = find(incoming, in: list) {
             var p = list[i]
-            for f in ["name", "role", "handle", "company", "phone"] {
+            for f in ["name", "role", "handle", "company", "phone", "address"] {
                 let v = ((incoming[f] as? String) ?? "").trimmingCharacters(in: .whitespaces)
                 if !v.isEmpty && (overwrite || ((p[f] as? String) ?? "").isEmpty) { p[f] = v }
             }
@@ -535,7 +535,7 @@ enum Contacts {
             return p
         }
         var p: [String: Any] = ["id": (c["id"] as? String) ?? UUID().uuidString]
-        for f in ["name", "role", "handle", "company", "phone", "email"] { p[f] = ((incoming[f] as? String) ?? "").trimmingCharacters(in: .whitespaces) }
+        for f in ["name", "role", "handle", "company", "phone", "email", "address"] { p[f] = ((incoming[f] as? String) ?? "").trimmingCharacters(in: .whitespaces) }
         p["emails"] = incoming["emails"]
         p["from"] = (incoming["from"] as? [String]) ?? ["project"]
         list.append(p)
@@ -582,7 +582,7 @@ enum Contacts {
         guard let id = c["id"] as? String, let i = list.firstIndex(where: { ($0["id"] as? String) == id }) else {
             let p = upsert(c, into: &list); save(list); return p
         }
-        for f in ["name", "role", "handle", "company", "phone", "email"] { if let v = c[f] as? String { list[i][f] = v.trimmingCharacters(in: .whitespaces) } }
+        for f in ["name", "role", "handle", "company", "phone", "email", "address"] { if let v = c[f] as? String { list[i][f] = v.trimmingCharacters(in: .whitespaces) } }
         save(list)
         return list[i]
     }
@@ -594,7 +594,7 @@ enum Contacts {
               let d = list.firstIndex(where: { ($0["id"] as? String) == drop }), k != d else { return }
         let gone = list[d]
         var p = list[k]
-        for f in ["name", "role", "handle", "company", "phone"] where ((p[f] as? String) ?? "").isEmpty { p[f] = gone[f] ?? "" }
+        for f in ["name", "role", "handle", "company", "phone", "address"] where ((p[f] as? String) ?? "").isEmpty { p[f] = gone[f] ?? "" }
         var seen = Set<String>()
         let all = (emails(p) + emails(gone)).filter { seen.insert($0.lowercased()).inserted }
         p["email"] = all.first ?? ""

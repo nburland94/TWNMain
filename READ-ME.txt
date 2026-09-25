@@ -627,3 +627,10 @@ ROUND 17 — HOME FITS, WIDGETS GROW, LABELS ARE BACK
   • Design: highlight stills in the stills bar and the This page slider
     brings in those (it says "3 picked").
 
+ROUND 18 — CONTACTS WITH EVERYTHING
+  • Project page › Contacts: every person is a card — name and role, then
+    phone, email, handle and address. Type in any of them; it saves as you
+    go, and every tool has it.
+  • "+ New contact" adds someone with all of it at once.
+  • Search finds people by phone and address too.
+
