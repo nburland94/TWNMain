@@ -8,6 +8,8 @@
 import AppKit
 import WebKit
 import PDFKit
+import AVFoundation
+import ImageIO
 
 enum Designs {
     static func folder(_ project: String, mode: String) -> URL? {
@@ -89,7 +91,8 @@ enum Designs {
             for f in (try? FileManager.default.contentsOfDirectory(atPath: d.path)) ?? [] {
                 var stem = f.replacingOccurrences(of: ".design.json", with: "")
                 stem = (stem as NSString).deletingPathExtension
-                guard stem.lowercased().hasPrefix(name.lowercased() + " v"), let n = Int(stem.dropFirst(name.count + 2)) else { continue }
+                // "Treatment v3", and its "Treatment v3 web" and "Treatment v3 moving" folders.
+                guard stem.lowercased().hasPrefix(name.lowercased() + " v"), let n = Int(String(stem.dropFirst(name.count + 2).prefix(while: { $0.isNumber }))) else { continue }
                 top = max(top, n)
             }
         }
@@ -190,6 +193,9 @@ final class DesignRenderer: NSObject, WKNavigationDelegate {
         view = v
         return v
     }
+    var isReady: Bool { ready }
+    func whenReady(_ f: @escaping () -> Void) { waiting.append(f) }
+    func viewFor(window: NSWindow, config: WKWebViewConfiguration) -> WKWebView { make(in: window, config: config) }
     func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
         ready = true
         let w = waiting; waiting = []
@@ -260,6 +266,235 @@ final class DesignRenderer: NSObject, WKNavigationDelegate {
     }
 }
 
+
+// MARK: - Moving export: the same page, recorded — GIFs and all
+
+extension DesignRenderer {
+    struct Film {
+        let doc: [String: Any]
+        let pages: [Int]
+        let width: Int, height: Int
+        let mark: Bool
+        let seconds: Double
+        let fade: Bool
+        let video: URL?       // one MP4, page after page
+        let clips: URL?       // a folder: an MP4 and a GIF of each page that moves, a JPEG of the rest
+    }
+
+    /// Does this page have a GIF on it? Only those are recorded frame by frame.
+    static func moves(_ doc: [String: Any], _ i: Int) -> Bool {
+        guard let pages = doc["pages"] as? [[String: Any]], i >= 0, i < pages.count else { return false }
+        return ((pages[i]["pics"] as? [[String: Any]]) ?? []).contains {
+            ($0["kind"] as? String) == "gif" || (($0["file"] as? String) ?? "").lowercased().hasSuffix(".gif")
+        }
+    }
+
+    func film(_ f: Film, window: NSWindow, config: WKWebViewConfiguration, progress: @escaping (Double) -> Void, done: @escaping ([String: Any]) -> Void) {
+        busy = true
+        let v = viewFor(window: window, config: config)
+        v.frame = NSRect(x: 0, y: 0, width: f.width, height: f.height)
+        var writer: FilmWriter?
+        if let u = f.video {
+            writer = FilmWriter(url: u, w: f.width, h: f.height)
+            if writer == nil { busy = false; return done(["ok": false, "error": "Couldn't start the video"]) }
+        }
+        if let dir = f.clips { try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true) }
+        let start = { self.filmPage(0, f, view: v, writer: writer, t: 0, last: nil, made: 0, progress: progress, done: done) }
+        if isReady { start() } else { whenReady(start) }
+    }
+
+    private func filmPage(_ k: Int, _ f: Film, view: WKWebView, writer: FilmWriter?, t: Double, last: CGImage?, made: Int,
+                          progress: @escaping (Double) -> Void, done: @escaping ([String: Any]) -> Void) {
+        guard k < f.pages.count else {
+            var out: [String: Any] = ["ok": true, "pages": f.pages.count, "clips": made]
+            if let dir = f.clips { out["folder"] = Designs.rel(dir) }
+            guard let w = writer, let u = f.video else { busy = false; return done(out) }
+            return w.finish(at: t) { ok in
+                self.busy = false
+                if ok { out["video"] = Designs.rel(u) } else { out["ok"] = false; out["error"] = "Couldn't finish the video" }
+                done(out)
+            }
+        }
+        let i = f.pages[k]
+        let fail = { self.busy = false; writer?.cancel(); done(["ok": false, "error": "Couldn't record page \(i + 1)"]) }
+        let args: [String: Any] = ["doc": f.doc, "i": i, "mark": f.mark]
+        view.callAsyncJavaScript("return await window.__designRender(doc, i, mark)", arguments: args, in: nil, in: .page) { result in
+            if case .failure = result { return fail() }
+            let moving = DesignRenderer.moves(f.doc, i)
+            // A dissolve from the last page into this one, when the film fades.
+            let blend = f.fade && last != nil && writer != nil ? 0.5 : 0
+            let base = t + blend
+            let name = String(format: "%02d", k + 1)
+            let clip = moving ? f.clips.flatMap { FilmWriter(url: $0.appendingPathComponent("\(name).mp4"), w: f.width, h: f.height) } : nil
+            let gif = moving ? f.clips.flatMap { GifWriter(url: $0.appendingPathComponent("\(name).gif"), w: min(960, f.width), h: Int((Double(min(960, f.width)) * Double(f.height) / Double(f.width)).rounded())) } : nil
+            var first: CGImage?, latest: CGImage?
+            self.record(view, f: f, seconds: moving ? f.seconds : 0, each: { img, ft in
+                if first == nil {
+                    first = img
+                    if blend > 0, let a = last, let w = writer {
+                        let steps = 15
+                        for s in 0..<steps { w.add(img, at: t + blend * Double(s) / Double(steps), over: a, alpha: CGFloat(s + 1) / CGFloat(steps)) }
+                    }
+                }
+                latest = img
+                writer?.add(img, at: base + ft)
+                clip?.add(img, at: ft)
+                gif?.add(img, at: ft)
+            }, done: {
+                guard let img = latest else { return fail() }
+                var n = made
+                let next = {
+                    progress(Double(k + 1) / Double(f.pages.count))
+                    self.filmPage(k + 1, f, view: view, writer: writer, t: base + f.seconds, last: img, made: n, progress: progress, done: done)
+                }
+                gif?.finish(at: f.seconds)
+                if let dir = f.clips, !moving, let jpg = DesignRenderer.jpeg(img, w: f.width, h: f.height),
+                   (try? jpg.write(to: dir.appendingPathComponent("\(name).jpg"), options: .atomic)) != nil { n += 1 }
+                if let c = clip { c.finish(at: f.seconds) { ok in if ok { n += 1 }; next() } } else { next() }
+            })
+        }
+    }
+
+    /// Snapshots of the page as it plays, timed by the clock — a GIF moves at its own speed.
+    /// A page that doesn't move is one snapshot.
+    private func record(_ view: WKWebView, f: Film, seconds: Double, each: @escaping (CGImage, Double) -> Void, done: @escaping () -> Void) {
+        let cfg = WKSnapshotConfiguration()
+        cfg.rect = CGRect(x: 0, y: 0, width: f.width, height: f.height)
+        cfg.snapshotWidth = NSNumber(value: f.width)
+        let t0 = CACurrentMediaTime(), frame = 1.0 / 30
+        var lastT = -1.0
+        func shot() {
+            let asked = CACurrentMediaTime() - t0
+            view.takeSnapshot(with: cfg) { image, _ in
+                var r = CGRect(x: 0, y: 0, width: f.width, height: f.height)
+                if let cg = image?.cgImage(forProposedRect: &r, context: nil, hints: nil), asked > lastT + 0.001 {
+                    let first = lastT < 0
+                    lastT = asked
+                    each(cg, first ? 0 : asked)       // the first frame starts the page
+                }
+                let now = CACurrentMediaTime() - t0
+                if now >= seconds { return done() }
+                DispatchQueue.main.asyncAfter(deadline: .now() + max(0.005, frame - (now - asked))) { shot() }
+            }
+        }
+        shot()
+    }
+
+    /// A still of a snapshot, at the page's size.
+    static func jpeg(_ img: CGImage, w: Int, h: Int) -> Data? {
+        guard let out = FilmWriter.scaled(img, w: w, h: h) else { return nil }
+        return NSBitmapImageRep(cgImage: out).representation(using: .jpeg, properties: [.compressionFactor: 0.9])
+    }
+}
+
+/// An MP4 from page snapshots, H.264.
+final class FilmWriter {
+    private let writer: AVAssetWriter
+    private let input: AVAssetWriterInput
+    private let adaptor: AVAssetWriterInputPixelBufferAdaptor
+    private let w: Int, h: Int
+    private var lastT = -1.0
+    private var lastImage: CGImage?
+
+    init?(url: URL, w: Int, h: Int) {
+        let w = w / 2 * 2, h = h / 2 * 2          // H.264 wants even sizes
+        try? FileManager.default.createDirectory(at: url.deletingLastPathComponent(), withIntermediateDirectories: true)
+        try? FileManager.default.removeItem(at: url)
+        guard let wr = try? AVAssetWriter(outputURL: url, fileType: .mp4) else { return nil }
+        let settings: [String: Any] = [
+            AVVideoCodecKey: AVVideoCodecType.h264, AVVideoWidthKey: w, AVVideoHeightKey: h,
+            AVVideoCompressionPropertiesKey: [AVVideoAverageBitRateKey: max(4_000_000, w * h * 5), AVVideoProfileLevelKey: AVVideoProfileLevelH264HighAutoLevel]]
+        let inp = AVAssetWriterInput(mediaType: .video, outputSettings: settings)
+        inp.expectsMediaDataInRealTime = false
+        let ad = AVAssetWriterInputPixelBufferAdaptor(assetWriterInput: inp, sourcePixelBufferAttributes: [
+            kCVPixelBufferPixelFormatTypeKey as String: kCVPixelFormatType_32ARGB,
+            kCVPixelBufferWidthKey as String: w, kCVPixelBufferHeightKey as String: h])
+        guard wr.canAdd(inp) else { return nil }
+        wr.add(inp)
+        guard wr.startWriting() else { return nil }
+        wr.startSession(atSourceTime: .zero)
+        writer = wr; input = inp; adaptor = ad; self.w = w; self.h = h
+    }
+
+    /// One frame at time t (seconds) — optionally drawn over another, for a dissolve.
+    @discardableResult
+    func add(_ img: CGImage, at t: Double, over under: CGImage? = nil, alpha: CGFloat = 1) -> Bool {
+        guard t > lastT + 0.0005, writer.status == .writing, let pool = adaptor.pixelBufferPool else { return false }
+        var buf: CVPixelBuffer?
+        guard CVPixelBufferPoolCreatePixelBuffer(nil, pool, &buf) == kCVReturnSuccess, let pb = buf else { return false }
+        CVPixelBufferLockBaseAddress(pb, [])
+        if let ctx = CGContext(data: CVPixelBufferGetBaseAddress(pb), width: w, height: h, bitsPerComponent: 8,
+                               bytesPerRow: CVPixelBufferGetBytesPerRow(pb), space: CGColorSpaceCreateDeviceRGB(),
+                               bitmapInfo: CGImageAlphaInfo.noneSkipFirst.rawValue | CGBitmapInfo.byteOrder32Big.rawValue) {
+            let r = CGRect(x: 0, y: 0, width: w, height: h)
+            ctx.interpolationQuality = .high
+            ctx.setFillColor(CGColor(red: 0, green: 0, blue: 0, alpha: 1)); ctx.fill(r)
+            if let u = under { ctx.draw(u, in: r) }
+            ctx.setAlpha(alpha)
+            ctx.draw(img, in: r)
+        }
+        CVPixelBufferUnlockBaseAddress(pb, [])
+        // The encoder runs on its own; give it a moment if it's behind.
+        var waited = 0
+        while !input.isReadyForMoreMediaData && waited < 400 { usleep(5000); waited += 1 }
+        guard input.isReadyForMoreMediaData, adaptor.append(pb, withPresentationTime: CMTime(seconds: t, preferredTimescale: 600)) else { return false }
+        lastT = t
+        lastImage = under != nil && alpha < 1 ? nil : img
+        return true
+    }
+
+    /// The last frame holds until `end`.
+    func finish(at end: Double, done: @escaping (Bool) -> Void) {
+        guard writer.status == .writing else { return done(false) }
+        if let img = lastImage, end - 1.0 / 30 > lastT { add(img, at: end - 1.0 / 30) }
+        input.markAsFinished()
+        writer.endSession(atSourceTime: CMTime(seconds: max(end, lastT + 1.0 / 30), preferredTimescale: 600))
+        let wr = writer
+        wr.finishWriting { DispatchQueue.main.async { done(wr.status == .completed) } }
+    }
+    func cancel() { if writer.status == .writing { writer.cancelWriting() } }
+
+    static func scaled(_ img: CGImage, w: Int, h: Int) -> CGImage? {
+        guard let ctx = CGContext(data: nil, width: w, height: h, bitsPerComponent: 8, bytesPerRow: 0, space: CGColorSpaceCreateDeviceRGB(),
+                                  bitmapInfo: CGImageAlphaInfo.noneSkipLast.rawValue) else { return nil }
+        ctx.interpolationQuality = .high
+        ctx.draw(img, in: CGRect(x: 0, y: 0, width: w, height: h))
+        return ctx.makeImage()
+    }
+}
+
+/// An animated GIF of a page — for email, chat and anywhere a video won't play. Smaller, 12 frames a second.
+final class GifWriter {
+    private let dest: CGImageDestination
+    private let w: Int, h: Int
+    private var pending: (CGImage, Double)?
+    private var count = 0
+
+    init?(url: URL, w: Int, h: Int) {
+        try? FileManager.default.createDirectory(at: url.deletingLastPathComponent(), withIntermediateDirectories: true)
+        guard let d = CGImageDestinationCreateWithURL(url as CFURL, "com.compuserve.gif" as CFString, 600, nil) else { return nil }
+        CGImageDestinationSetProperties(d, [kCGImagePropertyGIFDictionary as String: [kCGImagePropertyGIFLoopCount as String: 0]] as CFDictionary)
+        dest = d; self.w = w; self.h = h
+    }
+    func add(_ img: CGImage, at t: Double) {
+        if let p = pending, t - p.1 < 1.0 / 12 { return }
+        flush(until: t)
+        if count < 590, let small = FilmWriter.scaled(img, w: w, h: h) { pending = (small, t) }
+    }
+    private func flush(until t: Double) {
+        guard let p = pending else { return }
+        let d = max(0.02, t - p.1)
+        CGImageDestinationAddImage(dest, p.0, [kCGImagePropertyGIFDictionary as String: [
+            kCGImagePropertyGIFDelayTime as String: d, kCGImagePropertyGIFUnclampedDelayTime as String: d]] as CFDictionary)
+        count += 1
+        pending = nil
+    }
+    func finish(at end: Double) {
+        flush(until: end)
+        CGImageDestinationFinalize(dest)
+    }
+}
+
 // MARK: - The page talks to the app here
 
 extension Shell {
@@ -311,6 +546,14 @@ extension Shell {
         case "designExport":
             designExport(body, project: project, reply)
 
+        case "designWeb":
+            designWeb(body, project: project, reply)
+
+        case "designOpenFile":
+            // The web page, in your browser.
+            if let u = Designs.url((body["rel"] as? String) ?? ""), FileManager.default.fileExists(atPath: u.path) { NSWorkspace.shared.open(u) }
+            reply(["ok": true], nil)
+
         case "designReveal":
             if let u = Designs.url((body["rel"] as? String) ?? "") { NSWorkspace.shared.activateFileViewerSelecting([u]) }
             reply(["ok": true], nil)
@@ -361,6 +604,7 @@ extension Shell {
         let w = max(200, min(4000, (b["width"] as? NSNumber)?.intValue ?? 1920))
         let h = max(200, min(4000, (b["height"] as? NSNumber)?.intValue ?? 1080))
         guard !pages.isEmpty else { return reply(["ok": false, "error": "No pages to export"], nil) }
+        if kind == "video" || kind == "moving" { return designFilm(b, doc: doc, kind: kind, pages: pages, name: name, n: n, dir: dir, w: w, h: h, project: project, reply) }
         let job = DesignRenderer.Job(doc: doc, pages: pages, width: w, height: h,
                                      pdf: kind == "images" ? nil : dir.appendingPathComponent("\(name) v\(n).pdf"),
                                      images: kind == "pdf" ? nil : dir.appendingPathComponent("\(name) v\(n)", isDirectory: true),
@@ -380,6 +624,81 @@ extension Shell {
             }
             reply(out, nil)
         })
+    }
+
+    /// Video: one MP4 of the pages, a few seconds each, cut or faded. Moving pages: a folder with
+    /// an MP4 and a GIF of each page that has a GIF on it, and a JPEG of the rest.
+    func designFilm(_ b: [String: Any], doc: [String: Any], kind: String, pages: [Int], name: String, n: Int, dir: URL, w: Int, h: Int,
+                    project: String, _ reply: @escaping (Any?, String?) -> Void) {
+        let secs = max(1, min(30, (b["seconds"] as? NSNumber)?.doubleValue ?? 4))
+        let f = DesignRenderer.Film(doc: doc, pages: pages, width: w, height: h, mark: (b["mark"] as? Bool) ?? true,
+                                    seconds: secs, fade: (b["fade"] as? Bool) ?? true,
+                                    video: kind == "video" ? dir.appendingPathComponent("\(name) v\(n).mp4") : nil,
+                                    clips: kind == "moving" ? dir.appendingPathComponent("\(name) v\(n) moving", isDirectory: true) : nil)
+        let view = designPage
+        view?.evaluateJavaScript("window.__neededLoad && window.__neededLoad.start(\(Shell.js("Recording \(name) v\(n)")))", completionHandler: nil)
+        designRenderer.film(f, window: window, config: designRenderConfig(), progress: { p in
+            view?.evaluateJavaScript("window.__neededLoad && window.__neededLoad.set(\(p))", completionHandler: nil)
+        }, done: { r in
+            view?.evaluateJavaScript("window.__neededLoad && window.__neededLoad.done()", completionHandler: nil)
+            var out = r
+            out["version"] = n
+            out["name"] = "\(name) v\(n)"
+            if (r["ok"] as? Bool) == true {
+                Shell.post("\(name) v\(n) exported", kind == "video" ? "A \(pages.count)-page video, in \(project) › \(project)_Design." : "\(pages.count) pages, in \(project) › \(project)_Design.")
+            }
+            reply(out, nil)
+        })
+    }
+
+    /// The web page: index.html and an assets folder — the stills and GIFs it shows, the fonts
+    /// and the mark — all in "Treatment v4 web", ready to drag onto Netlify Drop.
+    func designWeb(_ b: [String: Any], project: String, _ reply: @escaping (Any?, String?) -> Void) {
+        guard let vault = Shared.vault, let doc = b["doc"] as? [String: Any], let html = b["html"] as? String else { return reply(["ok": false, "error": "Choose your vault first"], nil) }
+        let mode = (doc["mode"] as? String) == "mood" ? "mood" : "treatment"
+        guard let dir = Designs.folder(project, mode: mode) else { return reply(["ok": false], nil) }
+        let fm = FileManager.default
+        let name = Designs.clean((doc["name"] as? String) ?? "").isEmpty ? (mode == "mood" ? "Mood board" : "Treatment") : Designs.clean((doc["name"] as? String) ?? "")
+        let n = Designs.nextVersion(of: name, in: dir)
+        let out = dir.appendingPathComponent("\(name) v\(n) web", isDirectory: true)
+        do {
+            try fm.createDirectory(at: out.appendingPathComponent("assets/fonts", isDirectory: true), withIntermediateDirectories: true)
+            try html.write(to: out.appendingPathComponent("index.html"), atomically: true, encoding: .utf8)
+        } catch { return reply(["ok": false, "error": "Couldn't write the web page"], nil) }
+        let shell = (Bundle.main.resourceURL ?? URL(fileURLWithPath: ".")).appendingPathComponent("shell", isDirectory: true)
+        let safe = { (p: String) in !p.isEmpty && !p.contains("..") && !p.hasPrefix("/") }
+        var missing = 0
+        let copy = { (list: [[String: Any]], root: URL) in
+            for f in list {
+                guard let from = f["from"] as? String, let to = f["to"] as? String, safe(from), safe(to), to.hasPrefix("assets/") else { continue }
+                let src = root.appendingPathComponent(from), dst = out.appendingPathComponent(to)
+                try? fm.createDirectory(at: dst.deletingLastPathComponent(), withIntermediateDirectories: true)
+                try? fm.removeItem(at: dst)
+                if (try? fm.copyItem(at: src, to: dst)) == nil { missing += 1 }
+            }
+        }
+        copy((b["files"] as? [[String: Any]]) ?? [], vault)
+        copy((b["bundle"] as? [[String: Any]]) ?? [], shell)
+        let note = """
+        \(name) v\(n) — a web page of your \(mode == "mood" ? "mood board" : "treatment")
+
+        Look at it: open index.html. Arrow keys or a click move between pages, F is full screen. GIFs play.
+
+        Share it, free:
+          1. Go to https://app.netlify.com/drop
+          2. Drag this whole folder ("\(name) v\(n) web") onto the page.
+          3. Send the link it gives you. It's unlisted — only people with the link see it.
+             Sign up (free) to keep the link for good, and to drop a new version on the same link.
+
+        Or: Cloudflare Pages (pages.cloudflare.com → Upload assets) or GitHub Pages take this same folder.
+
+        Made with Needed Tools — This Was Needed.
+        """
+        try? note.write(to: out.appendingPathComponent("How to share it.txt"), atomically: true, encoding: .utf8)
+        Shell.post("\(name) v\(n) web page made", "In \(project) › \(project)_Design — drag the folder onto Netlify Drop to share it.")
+        reply(["ok": true, "name": "\(name) v\(n)", "version": n, "folder": Designs.rel(out),
+               "index": Designs.rel(out.appendingPathComponent("index.html")),
+               "pages": (b["pages"] as? NSNumber)?.intValue ?? 0, "missing": missing], nil)
     }
 
     /// The off-screen page reads the vault the same way the page you edit does.

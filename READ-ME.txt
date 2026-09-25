@@ -487,3 +487,21 @@ ROUND 10 — DESIGN: ZOOM, FADE, FREE, ARRANGING, HEADERS, GIFS
     hints); the logo is plain white.
   • Pay: the invoice header no longer repeats "Amount due" — it's once, in
     the totals. "+ Job number" prints it plainly with the other facts.
+
+ROUND 11 — DESIGN: SHARE IT WITH THE GIFS MOVING
+  • Export has three new ways out, beside PDF / Page images / Both:
+    – Web page: a folder "<Name> vN web" with index.html, the stills and
+      GIFs it shows, the fonts and the mark. Open it to look (arrows, click
+      or swipe to move, F full screen, GIFs play). To share: drag the whole
+      folder onto https://app.netlify.com/drop and send the link — free.
+      The sheet after export walks you through it; "How to share it.txt" is
+      in the folder too. Cloudflare Pages and GitHub Pages take the same
+      folder. Unlisted: only people with the link find it.
+    – Video: one "<Name> vN.mp4", 3/4/6/8 seconds a page, fade or cut.
+      Pages with a GIF are recorded as they play.
+    – Moving pages: a folder "<Name> vN moving" — each page with a GIF as
+      NN.mp4 and NN.gif (smaller, for messages), the rest as NN.jpg.
+  • Fonts: Helvetica and the fonts that come with Needed Tools travel with
+    the web page. Other fonts from your Mac show as Helvetica on someone
+    else's computer — the PDF and video keep them exactly.
+  • The guide (?) has a ninth step: Share it — GIFs and all.

@@ -251,6 +251,8 @@ body.resizing,body.resizing *{cursor:ns-resize!important;user-select:none}
 .kind.on{background:#fff;border-color:#F05A22}
 .kind b{font-weight:500;font-size:15px}
 .kind span{font-size:12px;color:#6b6964;line-height:1.4}
+.sharesteps{margin:0;padding:0 0 0 22px;display:flex;flex-direction:column;gap:12px;font-size:14px}
+.sharesteps li{padding-left:4px}.sharesteps b{font-weight:500}.sharesteps span{display:block;color:#6b6964;font-size:12.5px;margin-top:2px}
 .pills{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
 .pills button{border-radius:100px;padding:8px 15px;font-size:13px;border:1px solid rgba(28,28,28,0.14);background:transparent}
 .pills button.on{background:#141414;border-color:#141414;color:#fff}
@@ -2330,6 +2332,8 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
       art(blk(8, 10, 84, 72, '#fff', 'box-shadow:0 4px 14px rgba(0,0,0,.12)') + blk(10, 16, 46, 60, '#3b2a22') + blk(10, 16, 46, 60, 'linear-gradient(to right,rgba(0,0,0,.7),rgba(0,0,0,0))', 'outline:1.5px dashed #F05A22') + blk(12, 12, 20, 2, '#141414') + blk(80, 12, 8, 2, '#141414') + '<b class="gdot" style="left:10%;top:16%"></b><b class="gdot" style="left:56%;top:76%"></b>')],
     ['Play, keep, export', '<b>Space</b> plays it full screen. Everything saves as you go; <b>⌘S</b> keeps a version. <b>Export</b> makes a PDF, page images for your slides, or both — a new version every time, in the project’s Design folder.',
       art(blk(0, 0, 100, 100, '#0b0b0b') + blk(14, 14, 72, 58, '#3b2a22') + blk(20, 50, 30, 6, '#fff', 'opacity:.9') + blk(40, 80, 20, 8, '#F05A22', 'border-radius:20px'), '#0b0b0b')],
+    ['Share it — GIFs and all', 'A PDF keeps GIFs still, so Export has three that move. <b>Web page</b> makes a folder with your pages in it — open it to look, then drag the folder onto <b>Netlify Drop</b> and send the link it gives you. Free, and we show you each step. <b>Video</b> is one MP4, a few seconds a page, fade or cut. <b>Moving pages</b> gives each page with a GIF as an MP4 and a GIF for your slides or a message, and the rest as JPEGs.',
+      art(blk(0, 0, 100, 100, '#0b0b0b') + blk(10, 12, 80, 56, '#6d2a18') + blk(16, 18, 30, 44, '#e0a24a', 'opacity:.85') + blk(52, 18, 32, 20, '#b8461c') + blk(52, 42, 32, 20, '#3b2a22') + blk(38, 78, 24, 8, 'rgba(255,255,255,.2)', 'border-radius:20px'), '#0b0b0b')],
   ];
   function openGuide(i) {
     i = clamp(i || 0, 0, GUIDE.length - 1);
@@ -2343,24 +2347,124 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
         ${i < GUIDE.length - 1 ? `<button class="dark" data-guide="${i + 1}">Next</button>` : '<button class="dark" data-close>Start</button>'}</div>`);
   }
 
-  let ex = { kind: 'both', pages: 'all', range: '', mark: true };
+  let ex = { kind: 'both', pages: 'all', range: '', mark: true, secs: 4, fade: true };
+  const EXK = [
+    ['pdf', 'PDF', 'One file to send. Fonts and fades exactly as on screen.'],
+    ['images', 'Page images', 'A JPEG per page — ready to drop into your slides.'],
+    ['both', 'Both', 'The PDF and a folder of page images, side by side.'],
+    ['web', 'Web page', 'A link to send — GIFs play. Host it free, in a minute.'],
+    ['video', 'Video', 'One MP4, page after page. GIFs move.'],
+    ['moving', 'Moving pages', 'A clip and a GIF of each page that moves, a JPEG of the rest.']];
+  const MOVES = ['video', 'moving'];
+  function exLabel(n) {
+    const s = n === 1 ? '' : 's';
+    return { pdf: 'Export PDF', images: `Export ${n} image${s}`, both: `Export PDF + ${n} image${s}`, web: `Make the web page · ${n} page${s}`,
+      video: `Make the video · ${Math.round(n * ex.secs + (ex.fade ? Math.max(0, n - 1) * 0.5 : 0))} s`, moving: `Export ${n} page${s}` }[ex.kind];
+  }
+  const picMoves = p => p && (p.kind === 'gif' || /\.gif$/i.test(p.file || ''));
   function openExport() {
     if (!doc) return;
     const n = doc.pages.length, size = SIZE_NAMES[doc.size];
     const count = exportPages().length;
-    const K = [['pdf', 'PDF', 'One file to send. Fonts and fades exactly as on screen.'], ['images', 'Page images', 'A JPEG per page — ready to drop into your slides.'], ['both', 'Both', 'The PDF and a folder of page images, side by side.']];
+    const gifs = exportPages().filter(i => (doc.pages[i].pics || []).some(picMoves)).length;
     openSheet('export', `
       <div class="shead"><div class="grow"><h2>Export</h2><span class="empty">${esc(doc.name || 'This design')} · ${n} page${n === 1 ? '' : 's'}</span></div>${closeX}</div>
-      <div style="display:flex;flex-direction:column;gap:8px"><span class="cap">As</span><div class="kinds">${K.map(([k, a, b]) => `<button class="kind${ex.kind === k ? ' on' : ''}" data-exkind="${k}"><b>${a}</b><span>${b}</span></button>`).join('')}</div></div>
+      <div style="display:flex;flex-direction:column;gap:8px"><span class="cap">As</span><div class="kinds">${EXK.map(([k, a, b]) => `<button class="kind${ex.kind === k ? ' on' : ''}" data-exkind="${k}"><b>${a}</b><span>${b}</span></button>`).join('')}</div></div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px">
         <div style="display:flex;flex-direction:column;gap:8px"><span class="cap">Size</span><span style="font-size:14px">${esc(size)}</span><span class="empty">Change it in the bar — pages re-flow to fit.</span></div>
         <div style="display:flex;flex-direction:column;gap:8px"><span class="cap">Pages</span><div class="pills"><button data-expages="all" class="${ex.pages === 'all' ? 'on' : ''}">All ${n}</button><button data-expages="this" class="${ex.pages === 'this' ? 'on' : ''}">This page</button><input id="exRange" placeholder="e.g. 2–5" value="${esc(ex.range)}"></div></div>
       </div>
+      ${MOVES.includes(ex.kind) ? `<div style="display:grid;grid-template-columns:1fr 1fr;gap:18px">
+        <div style="display:flex;flex-direction:column;gap:8px"><span class="cap">Each page for</span><div class="pills">${[3, 4, 6, 8].map(v => `<button data-exsecs="${v}" class="${ex.secs === v ? 'on' : ''}">${v} s</button>`).join('')}</div></div>
+        ${ex.kind === 'video' ? `<div style="display:flex;flex-direction:column;gap:8px"><span class="cap">Between pages</span><div class="pills"><button data-exfade="1" class="${ex.fade ? 'on' : ''}">Fade</button><button data-exfade="0" class="${ex.fade ? '' : 'on'}">Cut</button></div></div>`
+          : `<div style="display:flex;flex-direction:column;gap:8px"><span class="cap">Moving</span><span class="empty">${gifs ? `${gifs} of these pages ${gifs === 1 ? 'has' : 'have'} a GIF — ${gifs === 1 ? 'it comes' : 'they come'} out as MP4 and GIF. The rest as JPEGs.` : 'None of these pages has a GIF, so they come out as JPEGs.'}</span></div>`}
+      </div>` : ''}
+      ${ex.kind === 'web' ? `<div class="markrow"><div style="display:flex;flex-direction:column;gap:3px;flex-grow:1"><span style="font-size:14px">A folder with a web page in it</span>
+        <span class="empty">Open it to see it, or drag the folder onto Netlify Drop and you get a link to send — free, no account needed to try. We'll show you how when it's made.</span></div></div>` : ''}
       <div class="markrow"><img src="mark.png" alt="" style="width:34px"><div style="display:flex;flex-direction:column;gap:3px;flex-grow:1"><span style="font-size:14px">This Was Needed mark on every page</span>
         <span class="empty">Small, bottom right. Taking it off will be part of the Pro plan — for now it's yours to switch.</span></div>
         <button class="tog${ex.mark ? ' on' : ''}" id="exMark" role="switch" aria-checked="${ex.mark}"></button></div>
       <div class="foot"><span class="grow">Saves into ${esc(project)} › ${esc(project)}_Design › ${doc.mode === 'mood' ? 'Mood' : 'Treatments'} — a new version every time.</span>
-        <button class="dark" id="exGo" ${count ? '' : 'disabled'}>${ex.kind === 'pdf' ? `Export PDF` : ex.kind === 'images' ? `Export ${count} image${count === 1 ? '' : 's'}` : `Export PDF + ${count} image${count === 1 ? '' : 's'}`}</button></div>`);
+        <button class="dark" id="exGo" ${count ? '' : 'disabled'}>${exLabel(count)}</button></div>`);
+  }
+
+  /* ---------------------------------------------------------------- the web page: every page, GIFs playing, one folder to host */
+  const WEB_CSS = `html,body{margin:0;height:100%;background:#0b0b0b;overflow:hidden;-webkit-font-smoothing:antialiased;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif}
+#deck{position:fixed;inset:0}
+.slide{position:absolute;left:0;top:0;transform-origin:0 0;opacity:0;visibility:hidden;transition:opacity .45s ease,visibility 0s linear .45s}
+.slide.on{opacity:1;visibility:visible;transition:opacity .45s ease}
+.pg{box-shadow:0 30px 90px rgba(0,0,0,.45)}
+nav{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);display:flex;align-items:center;gap:6px;padding:6px;border-radius:100px;background:rgba(20,20,20,.72);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);color:#fff;font-size:12px;z-index:9;transition:opacity .4s}
+nav button{all:unset;cursor:pointer;width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:17px}
+nav button:hover{background:rgba(255,255,255,.12)}
+nav span{min-width:62px;text-align:center;font-family:'Courier Prime',ui-monospace,monospace;letter-spacing:.04em;color:rgba(255,255,255,.75)}
+body.idle nav{opacity:0}
+.hit{position:fixed;top:0;bottom:0;width:30%;z-index:8;cursor:pointer}
+.hit.l{left:0}.hit.r{right:0}`;
+  const WEB_JS = `(function(){var s=[].slice.call(document.querySelectorAll('.slide')),n=s.length,i=0,c=document.getElementById('count');
+function fit(){var vw=innerWidth,vh=innerHeight,pad=vw<700?0:48,pv=vw<700?64:76;s.forEach(function(e){var p=e.firstElementChild,w=p.offsetWidth,h=p.offsetHeight,k=Math.min((vw-pad*2)/w,(vh-pv*2)/h);e.style.transform='translate('+((vw-w*k)/2)+'px,'+((vh-h*k)/2)+'px) scale('+k+')';});}
+function go(k){i=Math.max(0,Math.min(n-1,k));s.forEach(function(e,j){e.classList.toggle('on',j===i);});c.textContent=(i+1)+' / '+n;if(history.replaceState)history.replaceState(null,'','#'+(i+1));}
+addEventListener('resize',fit);
+addEventListener('keydown',function(e){var k=e.key;if(k==='ArrowRight'||k==='ArrowDown'||k===' '||k==='PageDown'){e.preventDefault();go(i+1);}else if(k==='ArrowLeft'||k==='ArrowUp'||k==='PageUp'){e.preventDefault();go(i-1);}else if(k==='Home')go(0);else if(k==='End')go(n-1);else if(k==='f'||k==='F'){if(document.fullscreenElement)document.exitFullscreen();else if(document.documentElement.requestFullscreen)document.documentElement.requestFullscreen();}});
+document.getElementById('prev').onclick=function(){go(i-1);};document.getElementById('next').onclick=function(){go(i+1);};
+document.querySelector('.hit.l').onclick=function(){go(i-1);};document.querySelector('.hit.r').onclick=function(){go(i+1);};
+var x0=null;addEventListener('touchstart',function(e){x0=e.touches[0].clientX;},{passive:true});addEventListener('touchend',function(e){if(x0==null)return;var d=e.changedTouches[0].clientX-x0;if(Math.abs(d)>40)go(i+(d<0?1:-1));x0=null;});
+var t;function wake(){document.body.classList.remove('idle');clearTimeout(t);t=setTimeout(function(){document.body.classList.add('idle');},2600);}addEventListener('mousemove',wake);wake();
+fit();go((parseInt(location.hash.slice(1),10)||1)-1);})();`;
+  // The page's own look, with the fonts pointed at the folder's copies.
+  function webCss() {
+    const own = document.querySelector('style');
+    return (own ? own.textContent : '').replace(/url\('fonts\//g, "url('assets/fonts/");
+  }
+  function buildWeb(pages) {
+    const files = [], seen = new Map();
+    const asset = file => {
+      if (seen.has(file)) return seen.get(file);
+      const base = String(file).split('/').pop().replace(/[^A-Za-z0-9._-]+/g, '-').replace(/^-+/, '') || 'still';
+      const to = `assets/${String(seen.size + 1).padStart(3, '0')}-${base}`;
+      seen.set(file, to); files.push({ from: file, to });
+      return to;
+    };
+    const slides = pages.map(i => {
+      let h = pageHTML(doc, doc.pages[i], { mark: ex.mark });
+      h = h.replace(/src="vault\/([^"]*)"/g, (_, f) => { let raw = f.replace(/&amp;/g, '&'); try { raw = decodeURI(raw); } catch (e) {} return `src="${esc(encodeURI(asset(raw)))}"`; });
+      h = h.replace(/src="mark\.png"/g, 'src="assets/mark.png"');
+      return `<section class="slide">${h}</section>`;
+    }).join('\n');
+    const bundle = [{ from: 'mark.png', to: 'assets/mark.png' }].concat(
+      [...webCss().matchAll(/url\('assets\/(fonts\/[^']+)'\)/g)].map(m => ({ from: m[1], to: 'assets/' + m[1] })));
+    const title = esc(doc.name || (doc.mode === 'mood' ? 'Mood board' : 'Treatment'));
+    const html = `<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow">
+<title>${title}</title>
+<style>${webCss()}
+${WEB_CSS}</style></head>
+<body>
+<main id="deck">
+${slides}
+</main>
+<div class="hit l"></div><div class="hit r"></div>
+<nav><button id="prev" aria-label="Back">‹</button><span id="count"></span><button id="next" aria-label="Next">›</button></nav>
+<script>${WEB_JS}<\/script>
+</body></html>
+`;
+    return { html, files, bundle };
+  }
+  function openShare(r) {
+    openSheet('share', `
+      <div class="shead"><div class="grow"><h2>Your web page is ready</h2><span class="empty">${esc(r.name)} — ${r.pages} page${r.pages === 1 ? '' : 's'}, in ${esc(project)}_Design</span></div>${closeX}</div>
+      <ol class="sharesteps">
+        <li><b>Look at it first.</b> <span>It opens in your browser — arrows or a click to move, F for full screen. GIFs play.</span></li>
+        <li><b>Open Netlify Drop.</b> <span>Free. Try it without an account; sign up (still free) to keep the link for good.</span></li>
+        <li><b>Drag the folder “${esc(r.name)} web” onto it.</b> <span>The whole folder, not just the page inside.</span></li>
+        <li><b>Send the link it gives you.</b> <span>It's unlisted — only people with the link can find it. Make a new version any time and drop it again.</span></li>
+      </ol>
+      <span class="empty">Rather not use Netlify? Cloudflare Pages and GitHub Pages take the same folder, free. A “How to share it” note is in the folder too.</span>
+      <div class="foot"><span class="grow"></span>
+        <button class="light" data-share="show">Show the folder</button>
+        <button class="light" data-share="look">Look at it</button>
+        <button class="dark" data-share="netlify">Open Netlify Drop</button></div>`);
+    openShare.r = r;
   }
   function exportPages() {
     const n = doc.pages.length;
@@ -2389,21 +2493,35 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
     }
     if (d.sopen) return openDesign(d.sopen);
     if (d.exkind) { ex.kind = d.exkind; return openExport(); }
+    if (d.exsecs) { ex.secs = +d.exsecs; return openExport(); }
+    if (d.exfade) { ex.fade = d.exfade === '1'; return openExport(); }
+    if (d.share) {
+      const r = openShare.r || {};
+      if (d.share === 'netlify') return call('openURL', { url: 'https://app.netlify.com/drop' });
+      if (d.share === 'look') return call('designOpenFile', { rel: r.index });
+      if (d.share === 'show') return call('designReveal', { rel: r.folder });
+    }
     if (d.expages) { ex.pages = d.expages; ex.range = ''; return openExport(); }
     if (t.id === 'exMark') { ex.mark = !ex.mark; return openExport(); }
     if (t.id === 'exGo') {
       await flushSave();
       const pages = exportPages(); if (!pages.length) return;
       const [W, H] = SIZES[doc.size];
-      t.disabled = true; t.textContent = 'Exporting…';
-      const r = await call('designExport', { doc, kind: ex.kind, pages, width: W, height: H, mark: ex.mark }).catch(() => null);
+      t.disabled = true; t.textContent = ex.kind === 'web' ? 'Making it…' : MOVES.includes(ex.kind) ? 'Recording…' : 'Exporting…';
+      if (ex.kind === 'web') {
+        const w = buildWeb(pages);
+        const r = await call('designWeb', { doc, html: w.html, files: w.files, bundle: w.bundle, pages: pages.length }).catch(() => null);
+        if (!r || !r.ok) { closeSheet(); return toast((r && r.error) || "Couldn't make the web page"); }
+        return openShare(r);
+      }
+      const r = await call('designExport', { doc, kind: ex.kind, pages, width: W, height: H, mark: ex.mark, seconds: ex.secs, fade: ex.fade }).catch(() => null);
       closeSheet();
       if (!r || !r.ok) return toast((r && r.error) || "Couldn't export it");
       toast(`${r.name} — saved in ${project}_Design`);
-      const where = r.pdf || r.folder; if (where) setTimeout(() => call('designReveal', { rel: where }), 400);
+      const where = r.pdf || r.video || r.folder; if (where) setTimeout(() => call('designReveal', { rel: where }), 400);
     }
   });
-  $('sheet').addEventListener('input', e => { if (e.target.id === 'exRange') { ex.range = e.target.value; ex.pages = e.target.value.trim() ? 'range' : 'all'; const b = $('exGo'); const n = exportPages().length; if (b) { b.disabled = !n; b.textContent = ex.kind === 'pdf' ? 'Export PDF' : ex.kind === 'images' ? `Export ${n} image${n === 1 ? '' : 's'}` : `Export PDF + ${n} image${n === 1 ? '' : 's'}`; } } });
+  $('sheet').addEventListener('input', e => { if (e.target.id === 'exRange') { ex.range = e.target.value; ex.pages = e.target.value.trim() ? 'range' : 'all'; const b = $('exGo'); const n = exportPages().length; if (b) { b.disabled = !n; b.textContent = exLabel(n); } } });
 
   /* ---------------------------------------------------------------- the app tells us */
   let shared = {};
