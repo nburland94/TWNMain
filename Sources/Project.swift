@@ -1115,6 +1115,20 @@ extension Shell {
         case "projectSetKind":
             reply(Docs.setKind(rel: (body["rel"] as? String) ?? "", to: (body["kind"] as? String) ?? "Other", project: project), nil)
 
+        case "projectRemoveFilm":
+            // Off the project page. Its copy in <Project>_Docs/Final film goes to the Trash (never gone for good);
+            // the film you chose it from is untouched.
+            let o = ProjectFile.read(project)
+            if let f = o["finalFilm"] as? [String: Any] {
+                let id = (f["id"] as? String) ?? ""
+                if id.isEmpty || !VaultStore.shared.remove(id), let rel = f["rel"] as? String, !rel.contains(".."), let base = Shared.vault {
+                    try? FileManager.default.trashItem(at: base.appendingPathComponent(rel), resultingItemURL: nil)
+                }
+            }
+            ProjectFile.change(project) { o in o.removeValue(forKey: "finalFilm") }
+            Shared.notify()
+            reply(["ok": true], nil)
+
         case "projectOpen", "projectReveal":
             if let base = Shared.vault, let rel = body["rel"] as? String, !rel.contains("..") {
                 let u = base.appendingPathComponent(rel)

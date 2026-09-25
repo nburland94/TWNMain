@@ -132,7 +132,10 @@ select.sel{appearance:none;-webkit-appearance:none;border:1px solid rgba(28,28,2
 .ghost b{position:absolute;right:4px;top:4px;background:#F05A22;color:#fff;font-size:11px;font-weight:500;border-radius:100px;padding:1px 7px}
 body.dragging,body.dragging *{cursor:grabbing!important;user-select:none}
 .marquee{position:absolute;border:1px solid #F05A22;background:rgba(240,90,34,0.1);pointer-events:none;z-index:9}
-.stagehint{position:absolute;left:50%;bottom:12px;transform:translateX(-50%);font-size:12px;color:#8a6a58;white-space:nowrap;pointer-events:none}
+.stagehint{position:absolute;left:50%;bottom:12px;transform:translateX(-50%);font-size:12px;color:#8a6a58;white-space:nowrap;pointer-events:none;opacity:0;transition:opacity .3s}
+.stagehint.on{opacity:1}
+.stage.zooming .boxsel,.stage.zooming .fadesel,.stage.zooming .arrbar,.stage.zooming .splitbar,.stage.zooming .guide,.stage.zooming .swapbar{visibility:hidden}
+.stage.zooming .pg{will-change:transform}
 .swapbar[hidden]{display:none}
 .swapbar{position:absolute;left:50%;top:12px;transform:translateX(-50%);display:flex;gap:6px;align-items:center;padding:6px;border-radius:14px;z-index:20}
 .swapbar img{height:54px;border-radius:5px;display:block;opacity:0.55}
@@ -141,6 +144,12 @@ body.dragging,body.dragging *{cursor:grabbing!important;user-select:none}
 .panel{border-left:1px solid rgba(28,28,28,0.05);overflow-y:auto;padding:14px 16px 20px;display:flex;flex-direction:column;gap:16px;min-width:0}
 .panel .phead{display:flex;align-items:baseline;justify-content:space-between;gap:8px}
 .phbtns{display:flex;align-items:center;gap:6px}
+.phead .pmode button{padding:6px 14px;font-size:13px}
+.tlist{display:flex;flex-direction:column;gap:2px}
+.tline{border:none;background:transparent;text-align:left;padding:8px 10px;border-radius:10px;font-size:13.5px;color:#2a2926;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tline:hover{background:rgba(255,255,255,0.7)}
+.hinttip{position:fixed;z-index:95;max-width:260px;padding:9px 12px;border-radius:12px;background:#141414;color:#fff;font-size:12px;line-height:1.45;pointer-events:none;opacity:0;transform:translateY(4px);transition:opacity .2s,transform .2s var(--ease-out,ease)}
+.hinttip.on{opacity:1;transform:none}
 .freesw{display:flex;align-items:center;gap:6px;font-size:12.5px;color:#2a2926}
 .freesw .tog{transform:scale(0.85)}
 .panel .phead b{font-weight:300;font-size:22px}
@@ -601,6 +610,34 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
   let fadeEdit = false;                                // moving and sizing the fade
   let rsel = null;                                     // the picked part of the running header: 'left' or 'right'
 
+  /* ---------------------------------------------------------------- hints: only when you wait for one */
+  const hintTip = document.createElement('div'); hintTip.className = 'hinttip'; hintTip.setAttribute('role', 'tooltip'); document.body.appendChild(hintTip);
+  let hintT = null, hintOn = null;
+  document.addEventListener('mouseover', e => {
+    const el = e.target.closest && e.target.closest('[data-hint]');
+    if (el === hintOn) return;
+    clearTimeout(hintT); hintTip.classList.remove('on'); hintOn = el;
+    if (!el) return;
+    hintT = setTimeout(() => {
+      if (!el.isConnected) return;
+      hintTip.textContent = el.dataset.hint;
+      const r = el.getBoundingClientRect();
+      hintTip.style.left = Math.max(10, Math.min(innerWidth - 270, r.left)) + 'px';
+      const below = r.bottom + 8;
+      hintTip.style.top = (below + 80 < innerHeight ? below : Math.max(10, r.top - hintTip.offsetHeight - 8)) + 'px';
+      hintTip.classList.add('on');
+    }, 3000);
+  });
+  document.addEventListener('mousedown', () => { clearTimeout(hintT); hintTip.classList.remove('on'); }, true);
+  // The line under the page shows only when the pointer rests on the page for three seconds.
+  let stageRest = null;
+  const stageQuiet = () => { clearTimeout(stageRest); const sh = document.getElementById('stagehint'); if (sh) sh.classList.remove('on'); };
+  document.addEventListener('mousemove', e => {
+    stageQuiet();
+    if (!e.target.closest || !e.target.closest('#stage')) return;
+    stageRest = setTimeout(() => { const sh = document.getElementById('stagehint'); if (sh && sh.textContent) sh.classList.add('on'); }, 3000);
+  });
+
   /* ---------------------------------------------------------------- saving and undo */
   let saveT = null;
   function persist() {
@@ -693,6 +730,43 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
     sc.scrollLeft += (after.left + px * scale) - cx;
     sc.scrollTop += (after.top + py * scale) - cy;
     drawBoxSel();
+  }
+  // Pinching: the page as it's drawn is just scaled — nothing is rebuilt — once a frame. When the fingers stop, it's drawn sharp.
+  let liveZ = null, livePt = null, liveRaf = 0, liveEnd = null, pinching = false;
+  function liveZoom(z, cx, cy) {
+    if (!doc) return;
+    liveZ = clamp(z, ZMIN, ZMAX); livePt = [cx, cy];
+    if (!liveRaf) liveRaf = requestAnimationFrame(liveFrame);
+    clearTimeout(liveEnd); liveEnd = setTimeout(liveDone, 140);
+  }
+  function liveFrame() {
+    liveRaf = 0;
+    const wrap = $('pagewrap'), pg = wrap.querySelector('.pg'), sc = $('scroller');
+    if (!pg || liveZ == null) return;
+    const { W, H } = geometry(doc);
+    const before = wrap.getBoundingClientRect();
+    let [cx, cy] = livePt;
+    if (cx == null) { const r = sc.getBoundingClientRect(); cx = r.left + r.width / 2; cy = r.top + r.height / 2; }
+    const px = (cx - before.left) / scale, py = (cy - before.top) / scale;
+    zoom = Math.abs(liveZ - fitScale) < 0.004 ? null : liveZ;
+    scale = zoom || fitScale;
+    $('stage').classList.add('zooming');
+    sc.style.overflow = zoom && zoom > fitScale ? 'auto' : 'hidden';
+    wrap.style.width = Math.round(W * scale) + 'px';
+    wrap.style.height = Math.round(H * scale) + 'px';
+    pg.style.transform = `scale(${scale})`;
+    const after = wrap.getBoundingClientRect();
+    sc.scrollLeft += (after.left + px * scale) - cx;
+    sc.scrollTop += (after.top + py * scale) - cy;
+    const zp = $('zoomPct'); if (zp) zp.textContent = Math.round(scale * 100) + '%';
+  }
+  function liveDone() {
+    if (pinching) { liveEnd = setTimeout(liveDone, 140); return; }
+    if (liveRaf) { cancelAnimationFrame(liveRaf); liveFrame(); }
+    liveZ = null;
+    $('stage').classList.remove('zooming');
+    const sc = $('scroller'), sl = sc.scrollLeft, st = sc.scrollTop;
+    drawStage(); sc.scrollLeft = sl; sc.scrollTop = st;
   }
   const zoomStep = dir => { const now = scale; const next = dir > 0 ? ZSTEPS.find(z => z > now + 0.005) : [...ZSTEPS].reverse().find(z => z < now - 0.005); setZoom(next == null ? (dir > 0 ? ZMAX : ZMIN) : next); };
   function drawStage() {
@@ -792,7 +866,7 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
     else { const ch = G.H - L.top - L.bottom - G.m, d = (e.clientY - splitDrag.y0) / scale / ch; f = splitDrag.start + (lay === 'top' ? d : -d); }
     p.split = Math.round(clamp(f, SPLIT_MIN, SPLIT_MAX) * 100) / 100;
     drawStage();
-    $('stagehint').textContent = `Pictures take ${Math.round(p.split * 100)}% — up to 80%`;
+    $('stagehint').textContent = `Pictures take ${Math.round(p.split * 100)}% — up to 80%`; $('stagehint').classList.add('on');
   });
   document.addEventListener('mouseup', () => {
     if (!splitDrag) return;
@@ -935,7 +1009,7 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
         <div class="psec"><span class="klabel">Opacity</span>${range('picOp', '', op, 0.1, 1, 0.05, pct)}</div>`;
     }
     // Picture
-    return h + `<div class="psec">${one ? `<span class="empty">${esc(one.title || 'A still')}${one.project && one.project !== project ? ' · ' + esc(one.project) : ''}</span>` : ''}
+    return h + `<div class="psec">${one ? `<span class="empty keep">${esc(one.title || 'A still')}${one.project && one.project !== project ? ' · ' + esc(one.project) : ''}</span>` : ''}
         <div class="hintk"><kbd>↑</kbd> <kbd>↓</kbd> swap it through your stills — <kbd>Return</kbd> keeps it</div>
         ${one && !free ? `<div class="prow"><label>Feature it — the hero of its row</label><span style="flex-grow:1"></span><button class="tog${one.featured ? ' on' : ''}" id="featTog" aria-pressed="${!!one.featured}" title="F"></button></div>` : ''}</div>
       ${one ? `<div class="psec"><span class="klabel">Frame</span><div style="display:flex;gap:6px">
@@ -948,25 +1022,33 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
         <button class="light small" id="removePics">Take ${ks.length > 1 ? 'them' : 'it'} off · ⌫</button></div></div>`;
   }
 
+  // The panel is Page or Text — whichever you chose. It stays there until you switch it; picking things on the page never switches it.
+  let pmode = pref('pmode', 'page') === 'text' ? 'text' : 'page';
+  function textList(p) {
+    const boxes = p.boxes || [];
+    return `<div class="psec"><span class="cap">On this page</span>
+      ${boxes.length ? `<div class="tlist">${boxes.map(x => `<button class="tline" data-pickbox="${esc(x.id)}"><span style="font-family:${esc(fontStack(x.font))}">${esc((x.text || '').trim() || 'Empty box')}</span></button>`).join('')}</div>` : ''}
+      <button class="light small" id="addText" style="align-self:flex-start">Add text · T</button></div>`;
+  }
   function drawPanel() {
     const p = page(), mood = doc.mode === 'mood';
-    const b = !mood && bsel ? boxById(bsel) : null;
-    const ctx = b ? 'text' : sel.size ? 'pic' : 'page';
+    const mode = mood ? 'page' : pmode;
+    const b = mode === 'text' && bsel ? boxById(bsel) : null;
+    const ctx = mode === 'text' ? 'text' : 'page';
     const range = (id, label, v, min, max, step, fmt) => `<div class="prow"><label for="${id}">${label}</label><input type="range" id="${id}" min="${min}" max="${max}" step="${step}" value="${v}"><span class="val">${fmt ? fmt(v) : v}</span></div>`;
     const pct = v => Math.round(v * 100) + '%';
     const pal = paletteOf(p.pics);
-    let h = `<div class="phead"><b>${ctx === 'text' ? 'Text' : ctx === 'pic' ? (sel.size > 1 ? `${sel.size} pictures` : 'Picture') : `Page ${cur + 1}`}</b>${ctx !== 'page' ? '<button class="tbtn" id="panelPage" title="Esc">Page ›</button>' : mood ? '' : `<span class="phbtns"><button class="tbtn" id="panelText" title="${(p.boxes || []).length ? 'The words on this page' : 'Add a text box — T'}" style="color:#d2440f">Text ›</button><label class="freesw" title="Free: move and size the pictures by hand. Off: they lay themselves out again."><span>Free</span><button class="tog${p.layout === 'free' ? ' on' : ''}" id="freeTog" aria-pressed="${p.layout === 'free'}"></button></label></span>`}</div>`;
+    let h = `<div class="phead"><div class="seg pmode" role="tablist"><button data-pmode="page" class="${mode === 'page' ? 'on' : ''}" role="tab">Page ${cur + 1}</button>${mood ? '' : `<button data-pmode="text" class="${mode === 'text' ? 'on' : ''}" role="tab">Text</button>`}</div>
+      <span style="flex-grow:1"></span>${mood ? '' : `<label class="freesw" title="Free: move and size the pictures by hand. Off: they lay themselves out again."><span>Free</span><button class="tog${p.layout === 'free' ? ' on' : ''}" id="freeTog" aria-pressed="${p.layout === 'free'}"></button></label>`}</div>`;
+    if (mode === 'text') {
+      h += b ? inspector('text', p, b, pal, range, pct) : textList(p);
+      $('panel').innerHTML = h; quietHints($('panel'));
+      return;
+    }
+    if (sel.size && p.pics[[...sel][0]]) h += `<span class="ksec">${sel.size > 1 ? `${sel.size} pictures` : 'Picture'}</span>` + inspector('pic', p, null, pal, range, pct) + '<div class="kdiv"></div>';
     if (ctx === 'page') {
       const bgNow = p.bg || doc.bg;
       const presets = ['#f4f1ec', '#ffffff', '#ece6dc', '#141414', '#0a0a0a', '#1e2227'];
-      const pickedN = doc.from === 'picked' ? (doc.fromIds || []).length : trayPick.size, offN = (doc.off || []).length;
-      h += `
-        <div class="psec"><span class="cap">Pictures on this page</span>
-          <span class="empty" id="dealInfo" style="margin-top:-4px">${esc(pageInfo())} — the slider is in the stills bar below</span>
-          <button class="tbtn" id="perAll" style="align-self:flex-start;padding-left:0" title="Fills or trims every page to this many">Make every page ${Math.min(12, p.pics.length)}</button>
-          <span class="cap" style="margin-top:4px">From</span>
-          <div class="seg"><button data-from="project" class="${doc.from !== 'picked' ? 'on' : ''}">The project</button><button data-from="picked" class="${doc.from === 'picked' ? 'on' : ''}" title="The stills picked in the tray">Picked${pickedN ? ` (${pickedN})` : ''}</button></div>
-          ${offN ? `<button class="tbtn" id="unOff" style="align-self:flex-start;padding-left:0" title="Stills you took off are skipped when the slider adds more">Let the ${offN} taken off back in</button>` : ''}</div>`;
       h += mood ? `
         <div class="psec"><div class="prow"><label>Run the pictures off the page edge</label><span style="flex-grow:1"></span><button class="tog${p.bleed ? ' on' : ''}" id="bleedTog" aria-pressed="${!!p.bleed}"></button></div>
           <button class="tbtn" id="bleedAll" style="align-self:flex-start;padding-left:0">${p.bleed ? 'Run off on every page' : 'Keep the margin on every page'}</button></div>
@@ -1001,10 +1083,17 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
           ${mood ? '' : '<button class="light small" id="addText">Add text · T</button>'}
           <button class="light small" id="dupPage">Duplicate · ⌘D</button>
           ${doc.pages.length > 1 ? '<button class="light small" id="delPage">Remove page</button>' : ''}</div></div>`;
-    } else {
-      h += inspector(ctx, p, b, pal, range, pct);
     }
     $('panel').innerHTML = h;
+    quietHints($('panel'));
+  }
+  // What things do stays out of the way: hold the pointer on something for three seconds and it says.
+  function quietHints(root) {
+    root.querySelectorAll('.empty:not(.keep), .hintk').forEach(el => {
+      const host = el.closest('.psec') || el.parentElement, t = el.textContent.replace(/\s+/g, ' ').trim();
+      if (host && t) host.dataset.hint = host.dataset.hint ? host.dataset.hint + ' · ' + t : t;
+      el.remove();
+    });
   }
 
   /* ---------------------------------------------------------------- the tray: your stills */
@@ -1022,7 +1111,7 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
       <div class="seg"><button data-scope="project" class="${scope === 'project' ? 'on' : ''}">${esc(project || 'This project')}</button><button data-scope="vault" class="${scope === 'vault' ? 'on' : ''}">Entire vault</button></div>
       <input class="q" id="trayQ" placeholder="Search" value="${esc(trayQ)}" spellcheck="false">
       <span class="count">${list.length} still${list.length === 1 ? '' : 's'}${trayPick.size ? ` · ${trayPick.size} picked` : ''}</span>
-      ${doc && page() ? `<label class="trayper" title="How many pictures on this page — only this page changes"><span class="cap">This page</span><input type="range" id="perPage" min="0" max="12" step="1" value="${Math.min(12, page().pics.length)}"><span class="val">${Math.min(12, page().pics.length)}</span></label>` : ''}
+      ${doc && page() ? `<label class="trayper" title="How many pictures on this page — only this page changes"><span class="cap">This page</span><input type="range" id="perPage" min="0" max="12" step="1" value="${Math.min(12, page().pics.length)}"><span class="val">${Math.min(12, page().pics.length)}</span></label><button class="tbtn" id="perAll" title="Every page gets this many">All pages</button>` : ''}
       <span style="flex-grow:1"></span>
       ${doc ? `<button class="tbtn" id="addPicked" ${trayPick.size ? '' : 'disabled'} title="Or double-click, drag them onto the page, or right-click for more">Add to page</button>` : ''}
       <button class="tbtn" id="photosBtn2" title="Photos, or whole folders of them, from your Mac">+ Photos</button>
@@ -1170,10 +1259,13 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
   // The slider: this page, and only this page, holds this many. Up takes the next stills used on no page; down takes the last off this page.
   const dealSource = () => doc.from === 'picked' ? (doc.fromIds || []).map(stillById).filter(Boolean) : projStills;
   const unusedCount = () => { const used = usedIds(), off = new Set(doc.off || []); return dealSource().filter(st => !used.has(st.id) && !off.has(st.id)).length; };
+  // Pages are independent: this page takes stills it hasn't got — ones on no page first, then copies of ones on other pages.
   function fillPage(pg, n) {
     if (pg.pics.length > n) { pg.pics = pg.pics.slice(0, n); return; }
-    const used = usedIds(), off = new Set(doc.off || []);
-    for (const st of dealSource()) { if (pg.pics.length >= n) break; if (!used.has(st.id) && !off.has(st.id)) { pg.pics.push(picFromRaw(st)); used.add(st.id); } }
+    const used = usedIds(), off = new Set(doc.off || []), here = new Set(pg.pics.map(x => x.id));
+    const pool = dealSource().filter(st => !here.has(st.id) && !off.has(st.id));
+    const order = pool.filter(st => !used.has(st.id)).concat(pool.filter(st => used.has(st.id)));
+    for (const st of order) { if (pg.pics.length >= n) break; pg.pics.push(picFromRaw(st)); }
   }
   const pageInfo = () => { const n = page().pics.length, u = unusedCount(); return `${n} on this page · ${u} ${doc.from === 'picked' ? 'picked' : 'still'}${u === 1 ? '' : 's'} not used yet`; };
   const dealInfo = () => { const n = dealPool().length, pages = doc.pages.filter((pg, i) => isDealt(pg, i) && pg.pics.length).length; return `${n} still${n === 1 ? '' : 's'} across ${pages} page${pages === 1 ? '' : 's'} — only this page changes as you slide`; };
@@ -1257,17 +1349,20 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
 
   /* ---------------------------------------------------------------- moving pictures */
   // A still that's already on a page moves to where you put it, rather than being there twice.
-  function pullFromPages(ids) {
-    const set = new Set(ids); let n = 0;
-    doc.pages.forEach(pg => { const before = pg.pics.length; pg.pics = pg.pics.filter(x => !set.has(x.id)); n += before - pg.pics.length; });
-    return n;
+  // Every page is its own: a still used again is a copy — it never leaves the page it was on.
+  // Only the page it's going onto loses its own copy, so a page never shows one still twice.
+  function pullFromPages(ids, pageIndex) {
+    const pg = doc.pages[pageIndex == null ? cur : pageIndex]; if (!pg) return 0;
+    const set = new Set(ids), before = pg.pics.length;
+    pg.pics = pg.pics.filter(x => !set.has(x.id));
+    return before - pg.pics.length;
   }
   function addToPage(ids, at, pageIndex) {
     const pi = pageIndex == null ? cur : pageIndex;
     const add = ids.map(stillById).filter(Boolean).map(picFrom);
     if (!add.length) return;
     change(() => {
-      pullFromPages(add.map(x => x.id));
+      pullFromPages(add.map(x => x.id), pi);
       const p = doc.pages[pi];
       const where = at == null ? p.pics.length : at;
       p.pics.splice(where, 0, ...add);
@@ -1506,7 +1601,7 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
     if (!force && picks.length <= 6 && (page().pics.length + picks.length) <= 8) { addToPage(picks.map(x => x.id)); return toast(`${picks.length} photo${picks.length === 1 ? '' : 's'} on this page`); }
     let made = [];
     change(() => {
-      const pics = picks.map(picFrom); pullFromPages(pics.map(x => x.id));
+      const pics = picks.map(picFrom);
       if (doc.mode === 'mood') { const n = doc.perPage || 6; for (let i = 0; i < pics.length; i += n) { const p = newPage('rows'); p.pics = pics.slice(i, i + n); made.push(p); } }
       else { const cycle = ['left', 'right', 'rows']; for (let i = 0, k = 0; i < pics.length; k++) { const lay = cycle[k % 3], n = lay === 'rows' ? 5 : 3; const p = newPage(lay); p.pics = pics.slice(i, i + n); made.push(p); i += n; } }
       let at = cur + 1;
@@ -1527,7 +1622,7 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
     const k = [...sel][0], pic = p.pics[k]; if (!pic) return;
     if (!swap) {
       const used = usedIds(), here = new Set(p.pics.map(x => x.id)); here.delete(pic.id);
-      // Your picked stills first, then the ones on no page, then the ones on other pages (keeping one of those trades their places).
+      // Your picked stills first, then the ones on no page, then the ones on other pages (a copy — they stay there too).
       const tray = trayList().filter(s => !here.has(s.id));
       const rank = s => (trayPick.has(s.id) ? 0 : 2) + (used.has(s.id) && s.id !== pic.id ? 1 : 0);
       const list = tray.slice().sort((a, b) => rank(a) - rank(b));
@@ -1545,13 +1640,8 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
     if (!swap) return;
     if (keep) {
       const now = page().pics[swap.k];
-      if (now && now.id !== swap.original.id) {
-        // Already on another page? The two trade places, so nothing is doubled.
-        doc.pages.forEach((pg, pi) => pg.pics.forEach((x, xi) => {
-          if (x.id === now.id && !(pi === cur && xi === swap.k)) pg.pics[xi] = Object.assign(clone(swap.original), { box: x.box, border: x.border, shadow: x.shadow, radius: x.radius, opacity: x.opacity });
-        }));
-        if (doc.off) doc.off = doc.off.filter(id => id !== now.id);
-      }
+      // Other pages keep what they have — this page just has its own copy now.
+      if (now && now.id !== swap.original.id && doc.off) doc.off = doc.off.filter(id => id !== now.id);
       undo.push(swap.before); redo = []; persist();
     }
     else page().pics[swap.k] = swap.original;
@@ -1576,6 +1666,12 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
       if (p.layout === 'free') { const back = p.prevLayout || 'left'; change(() => { p.layout = back; }); return toast('Laid out again — your Free places are kept if you switch back'); }
       setLayout('free'); return toast('Free: drag pictures anywhere, pull a corner to size them');
     }
+    if (d.pmode) {
+      pmode = d.pmode === 'text' ? 'text' : 'page'; setPref('pmode', pmode);
+      if (pmode === 'text' && !bsel) { const first = (page().boxes || [])[0]; if (first) { sel.clear(); reframe = null; bsel = first.id; drawStage(); } }
+      return drawPanel();
+    }
+    if (d.pickbox) { sel.clear(); reframe = null; bsel = d.pickbox; drawStage(); return drawPanel(); }
     if (t.id === 'panelText') {
       const first = (page().boxes || [])[0];
       if (!first) return addBox();
@@ -1732,7 +1828,7 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
     if (what === 'newpage') {
       change(() => {
         const lay = doc.mode === 'mood' ? 'rows' : page().layout === 'free' ? 'free' : 'left';
-        const np = newPage(lay); np.pics = ids.map(stillById).filter(Boolean).map(picFrom); pullFromPages(ids);
+        const np = newPage(lay); np.pics = ids.map(stillById).filter(Boolean).map(picFrom);
         doc.pages.splice(cur + 1, 0, np); cur += 1; sel.clear(); bsel = null;
       });
       toast(`A new page with ${ids.length === 1 ? 'it' : 'them'}`);
@@ -1810,7 +1906,7 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
       const v = t.parentElement.querySelector('.val'); if (v) v.textContent = /Op|Str/.test(t.id) ? Math.round(t.value * 100) + '%' : /Track|Lead/.test(t.id) ? (+t.value).toFixed(2) : /Radius/.test(t.id) ? t.value + ' pt' : t.value;
       if (t.id === 'bSize') { const pb = $('panel').querySelector('.seg [data-preset].on'); if (pb) pb.classList.remove('on'); }
       if (t.id !== 'perPage') { drawStage(); clearTimeout(drawStrip.t); drawStrip.t = setTimeout(drawStrip, 250); }
-      else { drawStage(); drawStrip(); const di = $('dealInfo'); if (di) di.textContent = pageInfo(); const pa = $('perAll'); if (pa) pa.textContent = `Make every page ${page().pics.length}`;
+      else { drawStage(); drawStrip(); const di = $('dealInfo'); if (di) di.textContent = pageInfo(); 
         if (page().pics.length < +t.value) { t.value = page().pics.length; const v2 = t.parentElement.querySelector('.val'); if (v2) v2.textContent = t.value; }   // no more stills to add
       }
     }
@@ -2011,7 +2107,9 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
   $('stage').addEventListener('wheel', e => {
     if (doc && e.ctrlKey && reframe == null) {          // a pinch on the trackpad arrives as ctrl + wheel
       e.preventDefault();
-      setZoom(scale * Math.exp(-e.deltaY * 0.01), e.clientX, e.clientY);
+      if (pinching) return;                               // Safari's own pinch is already on it
+      const base = liveZ == null ? scale : liveZ;
+      liveZoom(base * Math.exp(-clamp(e.deltaY, -50, 50) * 0.01), e.clientX, e.clientY);
       return;
     }
     if (reframe == null || !doc) return;
@@ -2027,10 +2125,10 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
   let zoomT = null;
   // Safari's own pinch events (the Mac app's page is Safari underneath).
   let pinch0 = 1;
-  $('stage').addEventListener('gesturestart', e => { if (!doc) return; e.preventDefault(); pinch0 = scale; });
-  $('stage').addEventListener('gesturechange', e => { if (!doc) return; e.preventDefault(); setZoom(pinch0 * e.scale, e.clientX, e.clientY); });
-  $('stage').addEventListener('gestureend', e => e.preventDefault());
-  $('scroller').addEventListener('scroll', () => { drawBoxSel(); drawSplit(); drawFadeSel(); drawArrBar(); });
+  $('stage').addEventListener('gesturestart', e => { if (!doc) return; e.preventDefault(); pinching = true; pinch0 = liveZ == null ? scale : liveZ; });
+  $('stage').addEventListener('gesturechange', e => { if (!doc) return; e.preventDefault(); liveZoom(pinch0 * e.scale, e.clientX, e.clientY); });
+  $('stage').addEventListener('gestureend', e => { e.preventDefault(); pinching = false; clearTimeout(liveEnd); liveEnd = setTimeout(liveDone, 60); });
+  $('scroller').addEventListener('scroll', () => { if ($('stage').classList.contains('zooming')) return; drawBoxSel(); drawSplit(); drawFadeSel(); drawArrBar(); });
 
   // Dragging: stills from the tray, pictures between places, pages in the strip. The page does this itself (press, move,
   // let go) rather than with the browser's drag and drop, which the Mac's web view doesn't always hand over.
@@ -2081,7 +2179,7 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
       return;
     }
     const takePics = () => {             // the pictures being moved, off their page
-      if (dd.from === 'tray') { const out = dd.ids.map(stillById).filter(Boolean).map(picFrom); pullFromPages(out.map(x => x.id)); return out; }
+      if (dd.from === 'tray') return dd.ids.map(stillById).filter(Boolean).map(picFrom);     // copies — other pages keep theirs
       const from = doc.pages[dd.page], ks = dd.ks.slice().sort((a, b) => a - b), out = ks.map(k => from.pics[k]);
       from.pics = from.pics.filter((_, k) => !ks.includes(k));
       return out;
@@ -2318,15 +2416,15 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
   const GUIDE = [
     ['Start with your stills', 'Pick a <b>mood board</b> (just pictures) or a <b>treatment</b> (pictures and words). Your stills — and GIFs — wait in the tray at the bottom; drag its top edge to make it bigger. The <b>This page</b> slider in the stills bar fills the page you\u2019re on (up to 12); slide back and they come off. Only that page changes. <b>+ Photos</b> brings in more, whole folders at once.',
       art(blk(4, 8, 58, 64, '#fff', 'box-shadow:0 4px 14px rgba(0,0,0,.12)') + blk(4, 78, 12, 16, '#3b2a22') + blk(18, 78, 18, 16, '#b8461c') + blk(38, 78, 12, 16, '#1e2227') + blk(52, 78, 16, 16, '#e0a24a') + blk(70, 78, 10, 16, '#6d2a18') + blk(66, 8, 30, 64, 'rgba(255,255,255,.6)'))],
-    ['Put pictures on the page', '<b>Double-click</b> a still, or <b>drag it</b> onto the page — or onto another page up in the strip. Pick several (⌘-click, or drag across them) and <b>right-click</b>: this page, a new page, or laid out on new pages. You can drop photos straight from Finder too.',
+    ['Put pictures on the page', '<b>Double-click</b> a still, or <b>drag it</b> onto the page — or onto another page up in the strip. Pick several (⌘-click, or drag across them) and <b>right-click</b>: this page, a new page, or laid out on new pages. Every page is its own — use a still on as many pages as you like; it stays on the others. You can drop photos straight from Finder too.',
       art(blk(8, 10, 84, 60, '#fff', 'box-shadow:0 4px 14px rgba(0,0,0,.12)') + blk(14, 18, 34, 44, '#3b2a22') + blk(52, 18, 34, 44, '#b8461c', 'outline:2px dashed #F05A22;outline-offset:3px') + blk(60, 78, 16, 16, '#b8461c', 'opacity:.45') + '<b class="garrow" style="left:66%;top:62%">↑</b>')],
-    ['Tidy, or place by hand', '<b>Rows, Left, Right, Top, Bottom, Full</b> and <b>None</b> lay the pictures out for you. On Left, Right, Top and Bottom, <b>drag the orange divider</b> to give the pictures up to three quarters of the page. <b>Run off the page edge</b> takes them to the edge. Switch <b>Free</b> on (top of the panel, beside Text) to drag them anywhere and pull a corner to size them; switch it off and they lay themselves out again.',
+    ['Tidy, or place by hand', '<b>Rows, Left, Right, Top, Bottom, Full</b> and <b>None</b> lay the pictures out for you. On Left, Right, Top and Bottom, <b>drag the orange divider</b> to give the pictures up to three quarters of the page. <b>Run off the page edge</b> takes them to the edge. Switch <b>Free</b> on (top of the panel, beside Page and Text) to drag them anywhere and pull a corner to size them; switch it off and they lay themselves out again.',
       art(blk(6, 12, 40, 70, '#fff', 'box-shadow:0 4px 14px rgba(0,0,0,.12)') + blk(9, 17, 17, 28, '#3b2a22') + blk(28, 17, 15, 28, '#1e2227') + blk(9, 48, 34, 28, '#b8461c') + blk(54, 12, 40, 70, '#fff', 'box-shadow:0 4px 14px rgba(0,0,0,.12)') + blk(58, 20, 20, 30, '#3b2a22', 'transform:rotate(-3deg)') + blk(72, 44, 18, 30, '#e0a24a', 'outline:2px solid #F05A22'))],
     ['Swap a picture in a second', 'Click a picture, then <b>↑ ↓</b> runs it through your stills, right there on the page. <b>Return</b> keeps the one you like; <b>Esc</b> puts the first one back.',
       art(blk(8, 10, 84, 62, '#fff', 'box-shadow:0 4px 14px rgba(0,0,0,.12)') + blk(14, 18, 36, 46, '#1e2227', 'outline:2px solid #F05A22') + blk(54, 18, 32, 46, '#b8461c') + blk(20, 78, 10, 16, '#3b2a22', 'opacity:.5') + blk(32, 76, 12, 20, '#1e2227', 'outline:2px solid #F05A22') + blk(46, 78, 10, 16, '#e0a24a', 'opacity:.5') + '<b class="garrow" style="left:62%;top:78%">↑↓</b>')],
     ['Words', 'Press <b>T</b> — or double-click the page — for a text box. <b>Drag</b> it anywhere; it snaps to the margins and the pictures. The side handles set its width, the corner its size. <b>Click it again</b> to type. It starts in Helvetica, black or white to suit the page.',
       art(blk(0, 0, 100, 100, '#1b1b1b') + blk(10, 20, 38, 9, '#fff', 'opacity:.95') + blk(10, 34, 34, 3.5, '#fff', 'opacity:.7') + blk(10, 40, 36, 3.5, '#fff', 'opacity:.7') + blk(10, 46, 30, 3.5, '#fff', 'opacity:.7') + blk(8, 16, 42, 36, 'transparent', 'outline:1.5px solid #F05A22') + '<b class="gdot" style="left:49%;top:33%"></b><b class="gdot" style="left:49%;top:51%"></b>', '#1b1b1b')],
-    ['The panel', 'Pick anything and the panel on the right shows its settings, all in one column. A small bar appears above what you picked — <b>Front, ↑, ↓, Back</b> — and <b>right-click</b> does the same: words can sit behind a picture, or in front. On a Free page, the gaps between pictures show in points as you drag; when one matches a gap already there it turns orange and snaps. <b>Esc</b> takes you back to the page.',
+    ['The panel', 'At the top of the panel: <b>Page</b> or <b>Text</b>. It stays on the one you choose until you switch it. <b>Page</b> has the layout, background, fade and your name — and a picture\u2019s settings when you pick one. <b>Text</b> has the words: pick a box on the page, or from the list. What a setting does stays out of the way: rest the pointer on it for three seconds and it says. A small bar appears above what you picked — <b>Front, ↑, ↓, Back</b> — and <b>right-click</b> does the same: words can sit behind a picture, or in front. On a Free page, the gaps between pictures show in points as you drag; when one matches a gap already there it turns orange and snaps. <b>Esc</b> lets go of what you picked.',
       art(blk(6, 10, 56, 72, '#fff', 'box-shadow:0 4px 14px rgba(0,0,0,.12)') + blk(66, 10, 28, 80, '#fff', 'box-shadow:0 4px 14px rgba(0,0,0,.08)') + blk(68, 14, 7, 6, '#ece6dc') + blk(76, 14, 8, 6, '#141414') + blk(85, 14, 7, 6, '#ece6dc') + blk(68, 26, 24, 5, '#ece6dc') + blk(68, 35, 24, 5, '#ece6dc') + blk(68, 44, 11, 5, '#ece6dc') + blk(81, 44, 11, 5, '#ece6dc') + blk(68, 55, 24, 5, '#F05A22', 'opacity:.8'))],
     ['The fade, your name, and a closer look', 'Switch on <b>Fade</b> in the Page panel and pick where it comes from — top, bottom, left or right — or press <b>R</b> to turn it round. <b>Move &amp; size it</b> lets you drag it anywhere and pull its corners. <b>Name and page numbers</b> puts your name and the project top left and the page number top right, on every page — click either one and press ⌫ to take it off just that page. Pinch, or ⌘+ and ⌘−, to zoom in; ⌘0 fits the page again.',
       art(blk(8, 10, 84, 72, '#fff', 'box-shadow:0 4px 14px rgba(0,0,0,.12)') + blk(10, 16, 46, 60, '#3b2a22') + blk(10, 16, 46, 60, 'linear-gradient(to right,rgba(0,0,0,.7),rgba(0,0,0,0))', 'outline:1.5px dashed #F05A22') + blk(12, 12, 20, 2, '#141414') + blk(80, 12, 8, 2, '#141414') + '<b class="gdot" style="left:10%;top:16%"></b><b class="gdot" style="left:56%;top:76%"></b>')],

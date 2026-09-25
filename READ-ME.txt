@@ -541,3 +541,29 @@ ROUND 12 — NEEDED VAULT ON YOUR PHONE
     The page's buttons run those Shortcuts and come back with what they
     did. Grab & Go on the phone is the phone's own; the Mac keeps its own.
 
+ROUND 13 — DESIGN FEELS FIXED; PROJECTS FROM HOME
+  • Every page is its own. Using a still again — double-click, drag, the
+    slider, swapping, bulk photos — puts a copy on that page; it never
+    leaves the page it was on. The slider fills with stills not on this
+    page yet, fresh ones first.
+  • The panel's top: Page N | Text, with Free beside them — always there.
+    It stays on the side you chose: clicking a picture or a text box on
+    the page never flips it. Text shows the picked box's settings, or the
+    page's text boxes to pick from. Page shows a picked picture's settings
+    first, then the page's.
+  • Gone from the panel: "Pictures on this page" and From (The project /
+    Picked) — the stills bar does that. "All pages" (every page gets this
+    many) sits beside the This page slider.
+  • Descriptions are quiet: rest the pointer on a setting for three
+    seconds and it says what it does. The line under the page shows only
+    when the pointer rests on the page for three seconds.
+  • Pinch and ctrl-scroll zoom are smooth: the page is scaled as drawn,
+    once a frame, and drawn sharp when you stop.
+  • Project page: the final film has Remove (its copy in Final film goes
+    to the Trash; save a new one from Grab).
+  • Home: a Projects tile first in the row — your project, and every
+    other one; pick one and its project page opens.
+  • The top bar's messages (Grab & Go on/off, Sync, renames) are liquid
+    glass and sit left of Sync — never over Grab & Go, so you see it
+    switch. Grab & Go's message has a small dot: orange on, grey off.
+

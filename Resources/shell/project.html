@@ -456,7 +456,7 @@ main>*{animation:rise .45s var(--ease-out) both}
     const f = D.finalFilm;
     $('film').innerHTML = `
       <div style="display:flex;align-items:baseline;gap:12px"><h2>The film</h2><span class="sub">${esc(f.name || '')}</span><span class="grow"></span>
-        <button class="txt" data-reveal="${esc(f.rel)}">Show in Finder</button></div>
+        <button class="txt" data-reveal="${esc(f.rel)}">Show in Finder</button><button class="txt" id="removeFilm" title="Take it off the page — its copy goes to the Trash">Remove</button></div>
       <video controls preload="metadata" playsinline ${f.thumb ? `poster="vault/${esc(encodeURI(f.thumb))}"` : ''} src="vault/${esc(encodeURI(f.rel))}"></video>`;
   }
 
@@ -677,6 +677,12 @@ main>*{animation:rise .45s var(--ease-out) both}
     if (t.id === 'makeMood') return call('projectMood');
     if (t.id === 'openVault') return call('projectTool', { id: 'vault' });
     if (d.reveal) return call('projectReveal', { rel: d.reveal });
+    if (t.id === 'removeFilm') {
+      if (!confirm('Remove the final film from this project? Its copy in the project\u2019s Final film folder goes to the Trash. You can save a new one from Grab.')) return;
+      const r = await call('projectRemoveFilm').catch(() => null);
+      if (!r || !r.ok) return toast("Couldn't remove it");
+      D.finalFilm = null; toast('Final film removed — it\u2019s in the Trash'); return load();
+    }
     if (d.ref) return call('openRef', { id: d.ref });
     if (d.read) return readBrief(d.read);
     if (d.editdel != null && !t.closest('.edit')) { editingDel = d.editdel; renderDels(); const f = $('dels').querySelector('.edit input'); if (f) f.focus(); return; }
