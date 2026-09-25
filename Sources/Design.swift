@@ -558,6 +558,49 @@ extension Shell {
             if let u = Designs.url((body["rel"] as? String) ?? "") { NSWorkspace.shared.activateFileViewerSelecting([u]) }
             reply(["ok": true], nil)
 
+        case "designClipboardSet":
+            // What you copy in Design goes on the Mac's clipboard too: the words themselves, or the
+            // picture files — so they paste into Mail, Messages or Finder. The count says it's ours.
+            let pb = NSPasteboard.general
+            pb.clearContents()
+            if let base = Shared.vault {
+                let urls = ((body["files"] as? [String]) ?? []).map { base.appendingPathComponent($0) }
+                    .filter { FileManager.default.fileExists(atPath: $0.path) }
+                if !urls.isEmpty { pb.writeObjects(urls.map { $0 as NSURL }) }
+            }
+            if let t = body["text"] as? String, !t.isEmpty { pb.setString(t, forType: .string) }
+            reply(["change": pb.changeCount], nil)
+
+        case "designClipboard":
+            // ⌘V: whatever was copied last wins. Design's own copy → the page pastes it. Pictures or
+            // photo files from anywhere else → into the project as references, onto the page. Words → a text box.
+            let pb = NSPasteboard.general
+            if let mine = body["mine"] as? Int, mine == pb.changeCount { reply(["kind": "mine"], nil); return true }
+            let urls = (pb.readObjects(forClasses: [NSURL.self], options: [.urlReadingFileURLsOnly: true]) as? [URL]) ?? []
+            let pics = Designs.pictures(in: urls)
+            if !pics.isEmpty {
+                reply(["kind": "files", "n": pics.count], nil)
+                designImport(urls)
+                return true
+            }
+            if pb.canReadObject(forClasses: [NSImage.self], options: nil), let img = NSImage(pasteboard: pb),
+               let tiff = img.tiffRepresentation, let rep = NSBitmapImageRep(data: tiff),
+               let png = rep.representation(using: .png, properties: [:]) {
+                let f = DateFormatter(); f.dateFormat = "yyyy-MM-dd HH.mm.ss"
+                let dir = FileManager.default.temporaryDirectory.appendingPathComponent("needed-paste-" + UUID().uuidString, isDirectory: true)
+                try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+                let tmp = dir.appendingPathComponent("Pasted \(f.string(from: Date())).png")
+                if (try? png.write(to: tmp)) != nil {
+                    reply(["kind": "image", "n": 1], nil)
+                    designImport([tmp])
+                    return true
+                }
+            }
+            if let t = pb.string(forType: .string), !t.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                reply(["kind": "text", "text": t], nil); return true
+            }
+            reply(["kind": "none"], nil)
+
         case "designAddPhotos":
             // + Photos: as many as you like — files, or whole folders of them.
             let panel = NSOpenPanel()
