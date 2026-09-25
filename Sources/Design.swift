@@ -495,6 +495,24 @@ final class GifWriter {
     }
 }
 
+// MARK: - Looks: saved in the vault (.vault/looks.json), so every project and design can use them
+
+enum Looks {
+    static var url: URL? { Shared.vault?.appendingPathComponent(".vault/looks.json") }
+    static func read() -> [String: Any] {
+        guard let u = url, let d = try? Data(contentsOf: u), let o = try? JSONSerialization.jsonObject(with: d) as? [String: Any] else { return ["looks": [], "default": ""] }
+        return ["looks": o["looks"] ?? [], "default": o["default"] ?? ""]
+    }
+    static func write(_ all: [String: Any]) -> [String: Any] {
+        guard let u = url else { return ["ok": false, "error": "Choose your vault first"] }
+        try? FileManager.default.createDirectory(at: u.deletingLastPathComponent(), withIntermediateDirectories: true)
+        guard let d = try? JSONSerialization.data(withJSONObject: all, options: [.prettyPrinted]), (try? d.write(to: u, options: .atomic)) != nil
+        else { return ["ok": false, "error": "Couldn't save the looks"] }
+        var out = read(); out["ok"] = true
+        return out
+    }
+}
+
 // MARK: - The page talks to the app here
 
 extension Shell {
@@ -604,6 +622,54 @@ extension Shell {
                 reply(["kind": "text", "text": t], nil); return true
             }
             reply(["kind": "none"], nil)
+
+        case "designLooks":
+            reply(Looks.read(), nil)
+
+        case "designLookSave":
+            // A look: the type styles, background, name and page numbers, logos and brand colours — for any design.
+            guard var look = body["look"] as? [String: Any], let name = (look["name"] as? String)?.trimmingCharacters(in: .whitespacesAndNewlines), !name.isEmpty
+            else { reply(["ok": false, "error": "Give the look a name"], nil); return true }
+            look["name"] = name
+            look["saved"] = ISO8601DateFormatter().string(from: Date())
+            var all = Looks.read()
+            var list = (all["looks"] as? [[String: Any]]) ?? []
+            list.removeAll { (($0["name"] as? String) ?? "").caseInsensitiveCompare(name) == .orderedSame }
+            list.insert(look, at: 0)
+            all["looks"] = list
+            reply(Looks.write(all), nil)
+
+        case "designLookDelete":
+            var all = Looks.read()
+            let name = (body["name"] as? String) ?? ""
+            all["looks"] = ((all["looks"] as? [[String: Any]]) ?? []).filter { ($0["name"] as? String) != name }
+            if (all["default"] as? String) == name { all["default"] = "" }
+            reply(Looks.write(all), nil)
+
+        case "designLookDefault":
+            var all = Looks.read()
+            all["default"] = (body["name"] as? String) ?? ""
+            reply(Looks.write(all), nil)
+
+        case "designBrandLogo":
+            // A logo — yours or the client's — kept in the vault so every design and look can use it.
+            guard let vault = Shared.vault else { reply(["ok": false, "error": "Choose your vault first"], nil); return true }
+            let panel = NSOpenPanel()
+            panel.allowsMultipleSelection = false
+            panel.canChooseDirectories = false
+            panel.allowedFileTypes = ["png", "jpg", "jpeg", "svg", "webp", "tif", "tiff", "gif"]
+            panel.message = "Choose a logo — a PNG with a see-through background works best"
+            panel.prompt = "Use this logo"
+            panel.beginSheetModal(for: window) { r in
+                guard r == .OK, let u = panel.url else { return reply(["ok": false, "cancelled": true], nil) }
+                let dir = vault.appendingPathComponent(".vault/brand", isDirectory: true)
+                try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+                let dst = CloudVault.unique(dir, u.lastPathComponent)
+                guard (try? FileManager.default.copyItem(at: u, to: dst)) != nil else { return reply(["ok": false, "error": "Couldn't copy that logo"], nil) }
+                var a: Double = 1
+                if let img = NSImage(contentsOf: dst), img.size.height > 0 { a = Double(img.size.width / img.size.height) }
+                reply(["ok": true, "file": ".vault/brand/" + dst.lastPathComponent, "a": a, "name": u.deletingPathExtension().lastPathComponent], nil)
+            }
 
         case "designAddPhotos":
             // + Photos: as many as you like — files, or whole folders of them.

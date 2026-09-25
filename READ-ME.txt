@@ -766,3 +766,29 @@ ROUND 23.1 — NEEDED MOBILE VAULT
   • Mobile Vault opens on your phone only: on a computer the website shows
     just the QR code (no open button); on a phone it shows the button. The
     Mac's phone panel no longer has "Open it on this Mac".
+
+ROUND 24 — DESIGN: LOOKS, TYPE STYLES, FINER TYPE, BRAND
+  • Build fix: round 23.1 stopped at Notices.swift — fixed.
+  • Type styles: Title, Heading, Body and Caption. Every text box can
+    follow one (top of the Text panel). Change a box, then "Make every
+    Heading like this" and every Heading in the design follows; "Back to
+    Heading" undoes it for that box. With no box picked, the Text panel
+    lists the styles in the design and how many boxes use each.
+  • Finer type (Text panel): space after each paragraph, one, two or three
+    columns, small caps, hyphens, Balance (even line lengths for titles),
+    No orphans (a word never left alone on the last line), and numbers —
+    old-style for reading, or all one width for tables.
+  • Brand (Page panel): add your logo and the client's — pick the corner,
+    the size, which pages (every page, first, first and last, all but the
+    first, last) and whether it turns white on dark pages. Click a logo on
+    the page and press ⌫ to take it off just that page. Brand colours come
+    first in every colour choice — words, fills, backgrounds. Logos are
+    kept in the vault (.vault/brand), so every design can use them.
+  • Looks (Page panel): Save this look keeps the type styles, background,
+    your name and page numbers, logos and brand colours. Pick a look to put
+    it on any treatment, in any project (⌘Z takes it back); tick "Start
+    every new treatment with it" to make it your house style. Your looks
+    lists them — use one, make it the one for new treatments, or delete it.
+    Looks are kept in the vault (.vault/looks.json).
+  • The guides teach all of it: two new steps in Design's guide (press ?),
+    and the Design page of the welcome guide.

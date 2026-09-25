@@ -18,6 +18,15 @@
 .pg .mark,.pg .ttl{z-index:5000}
 .pagewrap .runner.redit{cursor:pointer}
 .pagewrap .runner.rsel{outline:2px solid #F05A22;outline-offset:4px;border-radius:2px}
+.pagewrap .brandlogo.bedit{cursor:pointer}.pagewrap .brandlogo.rsel{outline:2px solid #F05A22;outline-offset:4px}
+.brandrow{display:flex;flex-direction:column;gap:6px;padding:8px;border-radius:10px;background:rgba(255,255,255,0.55);border:1px solid rgba(28,28,28,0.06)}
+.brandrow .blogo{width:34px;height:26px;border-radius:6px;background:repeating-conic-gradient(#e9e4dc 0 25%,#fff 0 50%) 0 0/8px 8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden}
+.brandrow .blogo img{max-width:30px;max-height:22px}
+.brandrow .x,.lookrow .x{border:none;background:none;font-size:18px;color:#8a8784;padding:0 4px;cursor:pointer}
+.sw.brandsw{padding-bottom:4px;margin-bottom:2px;border-bottom:1px dashed rgba(28,28,28,0.12)}
+.tstyle{display:flex;flex-direction:column;align-items:flex-start;gap:1px}.tstyle small{font-size:11px;color:#6b6964}
+.lookrow{align-items:center}.lookrow .lsample{width:64px;height:40px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:20px;position:relative;flex-shrink:0;box-shadow:0 0 0 1px rgba(0,0,0,0.08)}
+.lookrow .lsample img{position:absolute;right:4px;bottom:4px;height:9px}
 .pg .tb{position:absolute;white-space:pre-wrap;word-wrap:break-word;margin:0;box-sizing:border-box}
 .pg .ttl{position:absolute;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;font-weight:400;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .pg .mark{position:absolute;display:block}
@@ -398,7 +407,22 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
   const preset = k => Object.assign({}, (PRESETS.find(p => p[0] === k) || PRESETS[2])[2]);
   const presetOf = b => (PRESETS.find(([, , v]) => v.size === b.size && v.weight === +b.weight && v.upper === !!b.upper) || [''])[0];
   // x, y and w are fractions of the page, so a box keeps its place when the page size changes. colour null: dark on light pages, white on dark.
-  const newBox = (kind, x, y, w, text) => Object.assign({ id: uid(), x, y, w, text: text || '', font: HELV, colour: null, align: 'left', opacity: 1 }, preset(kind));
+  // Type styles: Title, Heading, Body and Caption. A text box follows one; change the style and every box on it follows.
+  const TYPE_KEYS = [['title', 'Title'], ['heading', 'Heading'], ['body', 'Body'], ['caption', 'Caption']];
+  const TYPE_PROPS = ['font', 'size', 'weight', 'italic', 'upper', 'tracking', 'leading', 'colour', 'align', 'para', 'smallcaps', 'nums', 'hyph', 'wrap', 'cols'];
+  const TYPE_DEF = { font: HELV, size: 15, weight: 400, italic: false, upper: false, tracking: 0, leading: 1.3, colour: null, align: 'left', para: 0, smallcaps: false, nums: '', hyph: false, wrap: '', cols: 1 };
+  const baseTypes = () => {
+    const o = {};
+    PRESETS.forEach(([k, , v]) => { o[k] = Object.assign({}, TYPE_DEF, v); });
+    o.title.wrap = 'balance'; o.heading.wrap = 'balance'; o.body.wrap = 'pretty';
+    return o;
+  };
+  const typesOf = d => (d && d.types) || baseTypes();
+  const typeName = k => (TYPE_KEYS.find(t => t[0] === k) || ['', 'Style'])[1];
+  const typeOfBox = b => { const o = {}; TYPE_PROPS.forEach(k => { o[k] = b[k] == null ? TYPE_DEF[k] : b[k]; }); return o; };
+  const sameType = (b, s) => TYPE_PROPS.every(k => String(b[k] == null ? TYPE_DEF[k] : b[k]) === String(s[k] == null ? TYPE_DEF[k] : s[k]));
+  const guessType = b => { const z = +b.size || 15; return z >= 48 ? 'title' : z >= 22 ? 'heading' : z <= 12 ? 'caption' : 'body'; };
+  const newBox = (kind, x, y, w, text) => { const T = typesOf(doc); return Object.assign({ id: uid(), x, y, w, text: text || '', opacity: 1 }, typeOfBox(T[kind] || T.body), { st: T[kind] ? kind : 'body' }); };
   // The old type styles — only to bring earlier treatments across.
   const oldStyles = () => ({
     number: { font: 'Raleway', size: 100, weight: 200, italic: false, colour: '#b3262b', tracking: 0, leading: 1, align: 'left', upper: false },
@@ -408,7 +432,7 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
     caption: { font: 'Courier Prime', size: 11.5, weight: 400, italic: false, colour: '#6b6964', tracking: 0.1, leading: 1.4, align: 'left', upper: true },
   });
   const newPage = (layout) => ({ id: uid(), layout: layout || 'rows', pics: [], boxes: [], bg: null, bleed: false, fade: { on: false, strength: 0.6, to: 'black' } });
-  const newDoc = (mode, name) => ({ v: 2, name: name || '', mode, size: '16:9', bg: '#f4f1ec', title: '', mark: true, perPage: 6, pages: [newPage(mode === 'mood' ? 'rows' : 'left')] });
+  const newDoc = (mode, name) => ({ v: 2, name: name || '', mode, size: '16:9', bg: '#f4f1ec', title: '', mark: true, perPage: 6, types: baseTypes(), pages: [newPage(mode === 'mood' ? 'rows' : 'left')] });
 
   // Metrics: one unit is 1/1600 of a 16:9 page's width, so every size keeps the same proportions.
   function geometry(doc) {
@@ -579,6 +603,22 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
       if (!hide.right && rn.num !== false && pos >= 0)
         h += `<div class="${cls('right')}" data-r="right" style="${base};right:${m}px">${esc(rn.style === 'num' ? String(n) : rn.style === 'pad' ? String(n).padStart(2, '0') : 'Page ' + n)}</div>`;
     }
+    // Brand: your logo and the client's — a corner, a size, which pages; white on dark pages if you like.
+    const logos = (doc.brand && doc.brand.logos) || [];
+    if (logos.length) {
+      const pos = doc.pages.indexOf(page), last = doc.pages.length - 1;
+      logos.forEach(lg => {
+        if (!lg.file) return;
+        const on = lg.pages === 'first' ? pos === 0 : lg.pages === 'firstlast' ? (pos === 0 || pos === last) : lg.pages === 'notfirst' ? pos > 0 : lg.pages === 'last' ? pos === last : true;
+        if (!on || (page.logoHide && page.logoHide[lg.id])) return;
+        const lh = Math.round((lg.size || 30) * u), lw = Math.round(lh * (lg.a || 1)), where = lg.pos || 'br';
+        const off = Math.round(Math.max(8 * u, (m - lh) / 2)), inset = m;
+        const v = where[0] === 't' ? `top:${off}px` : where[0] === 'b' ? `bottom:${off}px` : `top:${Math.round((H - lh) / 2)}px`;
+        const hz = where[1] === 'l' ? `left:${inset}px` : where[1] === 'r' ? `right:${inset}px` : `left:${Math.round((W - lw) / 2)}px`;
+        const tint = lg.tint === 'white' || (lg.tint === 'auto' && dark) ? 'filter:brightness(0) invert(1);' : lg.tint === 'black' ? 'filter:brightness(0);' : '';
+        h += `<img class="brandlogo${opt.edit ? ' bedit' : ''}${opt.rsel === 'logo:' + lg.id ? ' rsel' : ''}" data-logo="${esc(lg.id)}" alt="" draggable="false" src="vault/${esc(encodeURI(lg.file))}" style="position:absolute;${v};${hz};height:${lh}px;width:auto;${tint}z-index:5001">`;
+      });
+    }
     if (doc.mark && opt.mark !== false) {
       const mh = Math.round(22 * u);
       h += `<img class="mark" alt="" src="mark.png" style="right:${m}px;bottom:${Math.round((L.bottom - mh) / 2)}px;height:${mh}px;${dark ? 'filter:brightness(0) invert(1)' : ''}">`;   // the mark, all white on dark pages
@@ -593,13 +633,26 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
       + (b.under || b.strike ? `;text-decoration:${[b.under ? 'underline' : '', b.strike ? 'line-through' : ''].join(' ').trim()}` : '')
       + (b.fill ? `;background:${esc(b.fill)}` : '') + (b.border ? `;border:${(b.border.w || 1) * G.u}px solid ${esc(b.border.c || '#141414')}` : '')
       + (b.fill || b.border ? `;padding:${(0.5 * b.size * G.u).toFixed(1)}px ${(0.7 * b.size * G.u).toFixed(1)}px` : '')
-      + (b.shadow ? (b.fill ? `;box-shadow:0 ${10 * G.u}px ${34 * G.u}px rgba(0,0,0,0.35)` : `;text-shadow:0 ${2 * G.u}px ${12 * G.u}px rgba(0,0,0,0.55)`) : '');
+      + (b.shadow ? (b.fill ? `;box-shadow:0 ${10 * G.u}px ${34 * G.u}px rgba(0,0,0,0.35)` : `;text-shadow:0 ${2 * G.u}px ${12 * G.u}px rgba(0,0,0,0.55)`) : '')
+      // Finer type: small caps, how numbers look, hyphens, how lines break, columns.
+      + (b.smallcaps ? ';font-variant-caps:all-small-caps' : '')
+      + (b.nums === 'old' ? ';font-variant-numeric:oldstyle-nums' : b.nums === 'tab' ? ';font-variant-numeric:tabular-nums lining-nums' : '')
+      + (b.hyph ? ';-webkit-hyphens:auto;hyphens:auto' : '')
+      + (b.wrap === 'balance' ? ';text-wrap:balance' : b.wrap === 'pretty' ? ';text-wrap:pretty' : '')
+      + (+b.cols > 1 ? `;column-count:${+b.cols};column-gap:${(1.6 * b.size * G.u).toFixed(1)}px` : '');
+  }
+  // Space after each paragraph (a new line starts one): drawn as blocks when you're not typing in the box.
+  function boxInner(b, ed) {
+    const para = +b.para || 0, text = String(b.text || '');
+    if (ed || !para || text.indexOf('\n') < 0) return esc(text);
+    const ps = text.split('\n');
+    return ps.map((l, i) => `<span style="display:block${i < ps.length - 1 ? `;margin-bottom:${(para * (b.leading || 1.3)).toFixed(2)}em` : ''}">${l.trim() ? esc(l) : '&#8203;'}</span>`).join('');
   }
   function boxesHTML(page, G, dark, opt) {
     return (page.boxes || []).map(b => {
       if (!(b.text || '').trim() && !opt.edit) return '';
       const ed = opt.editing === b.id;
-      return `<div class="tb" data-b="${esc(b.id)}"${ed ? ' contenteditable="plaintext-only" spellcheck="false"' : ''}${opt.edit ? ' data-ph="Type here"' : ''} style="${boxCss(b, G, dark)};z-index:${zOf(b, (page.boxes || []).indexOf(b), 'box')}">${esc(b.text)}</div>`;
+      return `<div class="tb" lang="en" data-b="${esc(b.id)}"${ed ? ' contenteditable="plaintext-only" spellcheck="false"' : ''}${opt.edit ? ' data-ph="Type here"' : ''} style="${boxCss(b, G, dark)};z-index:${zOf(b, (page.boxes || []).indexOf(b), 'box')}">${boxInner(b, ed)}</div>`;
     }).join('');
   }
 
@@ -956,7 +1009,8 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
   // The panel for what's picked.
   let inspTab = { text: 'text', pic: 'pic' };
   const num = (id, v, unit, step, dis) => `<span class="knum"><input type="number" id="${id}" value="${v}" step="${step || 1}"${dis ? ' disabled' : ''}><i>${unit || ''}</i></span>`;
-  const colourRow = (attr, now, pal, pickId, auto) => `<div class="sw">${auto ? `<button data-${attr}="auto" class="auto${now ? '' : ' on'}" title="Automatic — black on light pages, white on dark"></button>` : ''}${['#141414', '#3a3836', '#8a8784', '#ffffff', '#F05A22'].map(c => `<button data-${attr}="${c}" class="${now === c ? 'on' : ''}" style="background:${c}" title="${c}"></button>`).join('')}<input type="color" id="${pickId}" value="${esc(now && now !== 'auto' ? now : '#141414')}" title="Any colour"></div>`
+  const brandCols = () => (doc && doc.brand && doc.brand.colours) || [];
+  const colourRow = (attr, now, pal, pickId, auto) => (brandCols().length ? `<div class="sw brandsw" title="Brand colours">${brandCols().map(c => `<button data-${attr}="${esc(c)}" class="${now === c ? 'on' : ''}" style="background:${esc(c)}" title="Brand — ${esc(c)}"></button>`).join('')}</div>` : '') + `<div class="sw">${auto ? `<button data-${attr}="auto" class="auto${now ? '' : ' on'}" title="Automatic — black on light pages, white on dark"></button>` : ''}${['#141414', '#3a3836', '#8a8784', '#ffffff', '#F05A22'].map(c => `<button data-${attr}="${c}" class="${now === c ? 'on' : ''}" style="background:${c}" title="${c}"></button>`).join('')}<input type="color" id="${pickId}" value="${esc(now && now !== 'auto' ? now : '#141414')}" title="Any colour"></div>`
     + (pal.length ? `<div class="sw" style="margin-top:2px">${pal.map(c => `<button data-${attr}="${esc(c)}" class="pal${now === c ? ' on' : ''}" style="background:${esc(c)}" title="From these stills — ${esc(c)}"></button>`).join('')}</div>` : '');
   // What the Arrange tab moves: a text box, or a picture on a Free page.
   function arrangeTarget() {
@@ -1000,16 +1054,22 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
     if (ctx === 'text' && tab === 'text') {
       const fontList = BUNDLED.concat(fonts.filter(f => !BUNDLED.includes(f)));
       const weights = WEIGHTS.some(w => w[0] === +b.weight) ? WEIGHTS : WEIGHTS.concat([[+b.weight, String(b.weight)]]);
-      const now = presetOf(b);
+      const T = typesOf(doc), stk = b.st && T[b.st] ? b.st : '', changed = !!stk && !sameType(b, T[stk]);
       return h + `
-        <div class="psec"><select id="bPreset" class="kselect">${now ? '' : '<option value="" selected>Free Form</option>'}${PRESETS.map(([k, n]) => `<option value="${k}"${now === k ? ' selected' : ''}>${n}</option>`).join('')}</select></div>
+        <div class="psec"><span class="klabel">Style</span><select id="bStyle" class="kselect"><option value=""${stk ? '' : ' selected'}>No style — just this box</option>${TYPE_KEYS.map(([k, n]) => `<option value="${k}"${k === stk ? ' selected' : ''}>${n}${k === stk && changed ? ' — changed here' : ''}</option>`).join('')}</select>
+          ${changed ? `<div style="display:flex;gap:6px;flex-wrap:wrap"><button class="light small" id="bStyleUpd" title="Every ${typeName(stk)} box in this design takes this look">Make every ${typeName(stk)} like this</button><button class="light small" id="bStyleReset">Back to ${typeName(stk)}</button></div>` : ''}</div>
         <div class="psec"><span class="klabel">Font</span>
           <select id="bFont" class="kselect">${fontList.map(f => `<option${f === b.font ? ' selected' : ''}>${esc(f)}</option>`).join('')}${fontList.includes(b.font) ? '' : `<option selected>${esc(b.font)}</option>`}</select>
           <div class="kpair"><select id="bWeight" class="kselect">${weights.map(([w, n]) => `<option value="${w}"${w === +b.weight ? ' selected' : ''}>${n}</option>`).join('')}</select>${num('bPt', pt(b.size * G.u), 'pt', 0.5)}</div>
           <div class="kgrid5">${[['bold', '<b>B</b>', +b.weight >= 600], ['italic', '<i>I</i>', b.italic], ['under', '<u>U</u>', b.under], ['strike', '<s>S</s>', b.strike], ['caps', 'AA', b.upper]].map(([k, l, on]) => `<button class="kbtn${on ? ' on' : ''}" data-kb="${k}" title="${k === 'caps' ? 'Capitals' : k[0].toUpperCase() + k.slice(1)}">${l}</button>`).join('')}</div></div>
         <div class="psec"><span class="klabel">Text colour</span>${colourRow('bcolour', b.colour, pal, 'bColourPick', true)}</div>
         <div class="psec"><div class="kgrid4">${['left', 'center', 'right', 'justify'].map(a => `<button class="kicon${(b.align || 'left') === a ? ' on' : ''}" data-balign="${a}" title="${a === 'center' ? 'Centre' : a[0].toUpperCase() + a.slice(1)}">${ICON[a]}</button>`).join('')}</div></div>
-        <div class="psec"><span class="klabel">Spacing</span><div class="kpair">${num('bLeadN', (b.leading || 1.3).toFixed(2), 'lines', 0.05)}${num('bTrackN', Math.round((b.tracking || 0) * 1000), 'letters', 10)}</div></div>`;
+        <div class="psec"><span class="klabel">Spacing</span><div class="kpair">${num('bLeadN', (b.leading || 1.3).toFixed(2), 'lines', 0.05)}${num('bTrackN', Math.round((b.tracking || 0) * 1000), 'letters', 10)}</div>
+          <div class="kpair">${num('bParaN', +(b.para || 0), 'after ¶', 0.25)}<select id="bCols" class="kselect" title="Columns">${[1, 2, 3].map(n => `<option value="${n}"${(+b.cols || 1) === n ? ' selected' : ''}>${n === 1 ? 'One column' : n + ' columns'}</option>`).join('')}</select></div>
+          <div class="kpair klbl"><span>Line · paragraph</span><span>Letters · columns</span></div></div>
+        <div class="psec"><span class="klabel">Fine type</span>
+          <div class="kgrid4">${[['smallcaps', 'Small caps', b.smallcaps], ['hyph', 'Hyphens', b.hyph]].map(([k, n, on]) => `<button class="kbtn${on ? ' on' : ''}" data-kf="${k}"><span>${n}</span></button>`).join('')}<button class="kbtn${b.wrap === 'balance' ? ' on' : ''}" data-kwrap="balance" title="Even line lengths — for titles and headings"><span>Balance</span></button><button class="kbtn${b.wrap === 'pretty' ? ' on' : ''}" data-kwrap="pretty" title="No single word left alone on the last line"><span>No orphans</span></button></div>
+          <select id="bNums" class="kselect" title="How numbers look">${[['', 'Numbers: as the font has them'], ['old', 'Numbers: old-style, for reading'], ['tab', 'Numbers: all one width, for tables']].map(([k, n]) => `<option value="${k}"${(b.nums || '') === k ? ' selected' : ''}>${n}</option>`).join('')}</select></div>`;
     }
     if (ctx === 'text') {      // Style
       const br = b.border || null;
@@ -1045,6 +1105,85 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
         <button class="light small" id="removePics">Take ${ks.length > 1 ? 'them' : 'it'} off · ⌫</button></div></div>`;
   }
 
+  /* ---------------------------------------------------------------- looks and brand, for the whole design */
+  let looks = [], lookDefault = '';
+  async function loadLooks() { const r = await call('designLooks').catch(() => null); looks = (r && r.looks) || []; lookDefault = (r && r.default) || ''; }
+  // What a look keeps: the type styles, the background, the name and page numbers (how they look, not what they say), the brand.
+  function lookFrom(d, name) {
+    const rn = d.runner || null;
+    return { name, types: clone(typesOf(d)), bg: d.bg, mark: d.mark !== false,
+      runner: rn ? { on: !!rn.on, font: rn.font || HELV, size: rn.size || 11, colour: rn.colour || null, upper: rn.upper !== false, style: rn.style || 'page', num: rn.num !== false } : null,
+      brand: clone(d.brand || { logos: [], colours: [] }) };
+  }
+  // A look onto a design: every text box takes its style (a box without one gets the nearest, by size).
+  function lookOnto(d, L) {
+    d.types = Object.assign(baseTypes(), clone(L.types || {}));
+    d.pages.forEach(q => (q.boxes || []).forEach(x => { if (!x.st || !d.types[x.st]) x.st = guessType(x); Object.assign(x, typeOfBox(d.types[x.st])); }));
+    if (L.bg) d.bg = L.bg;
+    if (L.mark != null) d.mark = L.mark;
+    if (L.runner) { const keep = d.runner ? { name: d.runner.name || '', title: d.runner.title || '' } : { name: '', title: project }; d.runner = Object.assign(clone(L.runner), keep); }
+    d.brand = clone(L.brand || { logos: [], colours: [] });
+    d.look = L.name;
+  }
+  function applyLook(name) {
+    const L = looks.find(x => x.name === name); if (!L || !doc) return;
+    change(() => lookOnto(doc, L));
+    toast(`${name} — styles, colours and logos on every page. ⌘Z takes it back`);
+  }
+  function lookPanel() {
+    if (doc.mode === 'mood') return '';
+    return `<div class="psec"><span class="cap">Look — the whole design</span>
+      <select id="lookSel" class="kselect"><option value="">${doc.look ? esc(doc.look) + ' — pick another' : looks.length ? 'Choose a saved look' : 'No saved looks yet'}</option>${looks.map(l => `<option value="${esc(l.name)}">${esc(l.name)}${l.name === lookDefault ? ' · for new treatments' : ''}</option>`).join('')}</select>
+      <div style="display:flex;gap:6px;flex-wrap:wrap"><button class="light small" id="lookSave">Save this look</button>${looks.length ? '<button class="light small" id="lookManage">Your looks</button>' : ''}</div>
+      <span class="empty">A look keeps the type styles, the background, your name and page numbers, logos and brand colours — for any treatment, in any project.</span></div>`;
+  }
+  const LOGO_POS = [['tl', 'Top left'], ['tc', 'Top middle'], ['tr', 'Top right'], ['cc', 'Middle'], ['bl', 'Bottom left'], ['bc', 'Bottom middle'], ['br', 'Bottom right']];
+  const LOGO_PAGES = [['all', 'Every page'], ['first', 'First page'], ['firstlast', 'First and last'], ['notfirst', 'All but the first'], ['last', 'Last page']];
+  const LOGO_TINT = [['', 'As it is'], ['auto', 'White on dark pages'], ['white', 'Always white'], ['black', 'Always black']];
+  function brandPanel() {
+    if (doc.mode === 'mood') return '';
+    const B = doc.brand || { logos: [], colours: [] }, G = geometry(doc);
+    const opts = (list, now) => list.map(([k, n]) => `<option value="${k}"${now === k ? ' selected' : ''}>${n}</option>`).join('');
+    return `<div class="psec"><span class="cap">Brand</span>
+      ${(B.logos || []).map(lg => `<div class="brandrow">
+        <div class="prow"><span class="blogo"><img alt="" src="vault/${esc(encodeURI(lg.file))}"></span><input type="text" class="kselect" data-lgname="${esc(lg.id)}" value="${esc(lg.name || 'Logo')}" spellcheck="false"><button class="x" data-lgdel="${esc(lg.id)}" title="Take this logo off" aria-label="Take this logo off">×</button></div>
+        <div class="kpair"><select class="kselect" data-lgpos="${esc(lg.id)}">${opts(LOGO_POS, lg.pos || 'br')}</select><select class="kselect" data-lgpages="${esc(lg.id)}">${opts(LOGO_PAGES, lg.pages || 'all')}</select></div>
+        <div class="kpair"><select class="kselect" data-lgtint="${esc(lg.id)}">${opts(LOGO_TINT, lg.tint || '')}</select><span class="knum"><input type="number" data-lgsize="${esc(lg.id)}" value="${Math.round((lg.size || 30) * G.u * 10) / 10}" step="1"><i>pt tall</i></span></div></div>`).join('')}
+      ${page() && page().logoHide && Object.keys(page().logoHide).length ? '<button class="tbtn" id="lgBack" style="align-self:flex-start;padding-left:0">Show the logos on this page again</button>' : ''}
+      ${(B.logos || []).length < 3 ? `<button class="light small" id="lgAdd" style="align-self:flex-start">Add a logo${(B.logos || []).length ? '' : ' — yours or the client’s'}</button>` : ''}
+      <span class="klabel" style="margin-top:4px">Brand colours</span>
+      <div class="sw">${(B.colours || []).map(c => `<button data-bcoldel="${esc(c)}" style="background:${esc(c)}" title="${esc(c)} — click to take it off"></button>`).join('')}<input type="color" id="brandColPick" value="#F05A22" title="Add a brand colour"></div>
+      <span class="empty">Brand colours come first in every colour choice — words, fills and backgrounds. Logos sit in the margin; click one on the page and press ⌫ to take it off just that page.</span></div>`;
+  }
+  const logoById = id => ((doc.brand && doc.brand.logos) || []).find(l => l.id === id);
+  const editLogo = (id, fn) => { const lg = logoById(id); if (lg) change(() => fn(lg)); };
+  async function addLogo() {
+    const r = await call('designBrandLogo').catch(() => null);
+    if (!r || !r.ok) { if (r && r.error) toast(r.error); return; }
+    change(() => {
+      doc.brand = doc.brand || { logos: [], colours: [] };
+      const first = !doc.brand.logos.length;
+      doc.brand.logos.push({ id: uid(), file: r.file, a: r.a || 1, name: r.name || 'Logo', pos: first ? 'br' : 'bl', pages: 'all', tint: 'auto', size: 30 });
+    });
+    toast('Logo on every page — pick the corner and the pages in the panel');
+  }
+  function openLookSave() {
+    openSheet('looksave', `
+      <div class="shead"><div class="grow"><h2>Save this look</h2><span class="empty">The type styles, background, name and page numbers, logos and brand colours — ready for any treatment.</span></div>${closeX}</div>
+      <input type="text" id="lookName" class="kselect" style="font-size:15px;padding:10px 12px" placeholder="A name — Lexus, or My house style" value="${esc(doc.look || '')}" spellcheck="false">
+      <label class="prow" style="gap:8px;font-size:13px"><input type="checkbox" id="lookDef"${lookDefault && lookDefault === doc.look ? ' checked' : ''}> Start every new treatment with it</label>
+      <div style="display:flex;gap:8px"><button class="dark" id="lookSaveGo">Save the look</button><button class="light" data-close>Cancel</button></div>`);
+    setTimeout(() => { const i = $('lookName'); if (i) { i.focus(); i.select(); } }, 30);
+  }
+  function openLooks() {
+    openSheet('looks', `
+      <div class="shead"><div class="grow"><h2>Your looks</h2><span class="empty">Kept in your vault — every project can use them.</span></div>${closeX}</div>
+      <div class="dlist">${looks.map(l => { const t = (l.types || {}).title || {}, bl = ((l.brand || {}).logos || [])[0];
+        return `<div class="drow lookrow"><span class="lsample" style="background:${esc(l.bg || '#f4f1ec')};color:${esc(t.colour || (lum(l.bg || '#f4f1ec') < 0.42 ? '#f4f3f1' : '#141414'))};font-family:${esc(fontStack(t.font || HELV))};font-weight:${t.weight || 500}">Aa${bl ? `<img alt="" src="vault/${esc(encodeURI(bl.file))}">` : ''}</span>
+          <span><b>${esc(l.name)}</b><small>${esc(t.font || HELV)}${((l.brand || {}).colours || []).length ? ' · ' + l.brand.colours.length + ' brand colours' : ''}${l.name === lookDefault ? ' · for new treatments' : ''}</small></span>
+          <span style="display:flex;gap:6px"><button class="light small" data-lookuse="${esc(l.name)}">Use it</button><button class="light small" data-lookdef="${esc(l.name)}">${l.name === lookDefault ? 'Not for new ones' : 'For new ones'}</button><button class="x" data-lookdel="${esc(l.name)}" aria-label="Delete ${esc(l.name)}">×</button></span></div>`; }).join('') || '<span class="empty">None yet — Save this look in the Page panel.</span>'}</div>`);
+  }
+
   // The panel is Page or Text — whichever you chose. It stays there until you switch it; picking things on the page never switches it.
   let pmode = pref('pmode', 'page') === 'text' ? 'text' : 'page';
   // The spacing slider: named stops, and it settles on one when you let go near it.
@@ -1055,8 +1194,11 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
       <div class="spaceticks">${SPACE_STOPS.map((s, i) => `<button data-space="${s[0]}" class="${spaceName(v) === s[1] ? 'on' : ''}" style="left:${i * 25}%">${s[1]}</button>`).join('')}</div>`;
   }
   function textList(p) {
-    const boxes = p.boxes || [];
-    return `<div class="psec"><span class="cap">On this page</span>
+    const boxes = p.boxes || [], T = typesOf(doc);
+    const uses = k => doc.pages.reduce((n, q) => n + (q.boxes || []).filter(x => x.st === k).length, 0);
+    const styles = `<div class="psec"><span class="cap">Type styles in this design</span><div class="tlist">${TYPE_KEYS.map(([k, n]) => `<div class="tline tstyle" style="cursor:default"><span style="font-family:${esc(fontStack(T[k].font))};font-weight:${T[k].weight};font-style:${T[k].italic ? 'italic' : 'normal'};text-transform:${T[k].upper ? 'uppercase' : 'none'};letter-spacing:${T[k].tracking}em">${n}</span><small>${esc(T[k].font)} · ${Math.round(T[k].size * geometry(doc).u * 10) / 10} pt · ${uses(k)} box${uses(k) === 1 ? '' : 'es'}</small></div>`).join('')}</div>
+      <span class="empty">Pick a box, change how it looks, then “Make every Heading like this”. Saving a look keeps these styles for other designs.</span></div>`;
+    return styles + `<div class="psec"><span class="cap">On this page</span>
       ${boxes.length ? `<div class="tlist">${boxes.map(x => `<button class="tline" data-pickbox="${esc(x.id)}"><span style="font-family:${esc(fontStack(x.font))}">${esc((x.text || '').trim() || 'Empty box')}</span></button>`).join('')}</div>` : ''}
       <button class="light small" id="addText" style="align-self:flex-start">Add text · T</button></div>`;
   }
@@ -1099,6 +1241,7 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
           <div class="kpair"><select class="kselect" id="runFont">${BUNDLED.concat(fonts.filter(f => !BUNDLED.includes(f))).map(f => `<option${f === (doc.runner.font || HELV) ? ' selected' : ''}>${esc(f)}</option>`).join('')}</select><label class="prow" style="gap:6px;font-size:12.5px">Caps <button class="tog${doc.runner.upper === false ? '' : ' on'}" id="runCaps"></button></label></div>
           ${p.runnerHide && (p.runnerHide.left || p.runnerHide.right) ? '<button class="tbtn" id="runBack" style="align-self:flex-start;padding-left:0">Show them on this page again</button>' : '<span class="empty">Click either one on the page and press ⌫ to take it off just that page.</span>'}` : ''}</div>
         <div class="psec"><span class="cap">Background</span>
+          ${brandCols().length ? `<div class="sw brandsw">${brandCols().map(c => `<button data-bg="${esc(c)}" class="${bgNow === c ? 'on' : ''}" style="background:${esc(c)}" title="Brand — ${esc(c)}"></button>`).join('')}</div>` : ''}
           <div class="sw">${presets.map(c => `<button data-bg="${c}" class="${bgNow === c ? 'on' : ''}" style="background:${c}" title="${c}"></button>`).join('')}<input type="color" id="bgPick" value="${esc(bgNow)}" title="Any colour"></div>
           ${pal.length ? `<span class="cap" style="margin-top:4px">From these stills</span><div class="sw">${pal.map(c => `<button data-bg="${esc(c)}" class="pal${bgNow === c ? ' on' : ''}" style="background:${esc(c)}" title="${esc(c)}"></button>`).join('')}</div>` : ''}
           <div class="prow"><label>Every page</label><span style="flex-grow:1"></span><button class="tog${p.bg ? '' : ' on'}" id="bgAll" aria-pressed="${!p.bg}" title="On: the whole design's background. Off: just this page"></button></div></div>`;
@@ -1111,6 +1254,7 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
             <div class="prow"><label>From the</label><div class="kgrid4" style="flex-grow:1">${[['top', 'Top'], ['bottom', 'Bottom'], ['left', 'Left'], ['right', 'Right']].map(([k, n]) => `<button class="kbtn${fadeFrom(p, p.layout) === k ? ' on' : ''}" data-fadefrom="${k}" title="Darkest at the ${k}">${n}</button>`).join('')}</div></div>
             <div style="display:flex;gap:6px;flex-wrap:wrap"><button class="light small" id="fadeEdit">${fadeEdit ? 'Done' : 'Move &amp; size it'}</button><button class="light small" id="fadeRot" title="R · ⇧R the other way">⟳ Rotate · R</button>${f.box ? '<button class="light small" id="fadeFull">Whole page</button>' : ''}</div>` : ''}</div>`;
       }
+      h += lookPanel() + brandPanel();
       h += `<div class="psec"><span class="cap">This page</span><div style="display:flex;gap:6px;flex-wrap:wrap">
           ${mood ? '' : '<button class="light small" id="addText">Add text · T</button>'}
           <button class="light small" id="dupPage">Duplicate · ⌘D</button>
@@ -1229,6 +1373,7 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
       return q;
     });
     delete d.styles; d.v = 2;
+    if (!d.types) d.types = baseTypes();
     return d;
   }
   // An earlier treatment's words (number, section, heading, body, caption) become text boxes where they were.
@@ -1314,13 +1459,14 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
     const title = (info && info.title) || project;
     doc = newDoc(mode, `${title} ${mode === 'mood' ? 'mood' : 'treatment'}`);
     rel = null; cur = 0; sel.clear(); bsel = null; editing = null; undo = []; redo = [];
+    if (mode === 'treatment' && lookDefault) { await loadLooks(); const L = looks.find(x => x.name === lookDefault); if (L) lookOnto(doc, L); }
     if (mode === 'treatment') {
       // It starts from the project: its title on the cover, the client and the director with it.
       const cover = doc.pages[0];
       cover.layout = 'bleed';
       const G = geometry(doc), L = layout(doc, cover);
       const items = [['caption', (info && info.client) || ''], ['title', title], ['caption', info && info.director ? `Dir. ${info.director}` : '']].filter(x => x[1]);
-      const at = stackIn(G, L.text, items.map(([k, v]) => ({ st: preset(k), text: v })), 'bottom');
+      const at = stackIn(G, L.text, items.map(([k, v]) => ({ st: typesOf(doc)[k] || preset(k), text: v })), 'bottom');
       cover.boxes = items.map(([k, v], i) => newBox(k, at[i].x / G.W, at[i].y / G.H, at[i].w / G.W, v));
     }
     // It starts empty, unless it came with stills you picked (from the Vault, or a right-click): those arrive placed.
@@ -1847,6 +1993,21 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
       return toast(on ? 'Your name and the page number, on every page' : 'Off on every page');
     }
     if (t.id === 'runCaps') { change(() => { doc.runner.upper = doc.runner.upper === false; }); return; }
+    if (t.id === 'bStyleUpd') {
+      const b = boxById(bsel); if (!b || !b.st) return;
+      const k = b.st; let n = 0;
+      change(() => { doc.types[k] = typeOfBox(b); doc.pages.forEach(q => (q.boxes || []).forEach(x => { if (x.st === k) { Object.assign(x, typeOfBox(doc.types[k])); n++; } })); });
+      return toast(`Every ${typeName(k)} looks like this now — ${n} box${n === 1 ? '' : 'es'}`);
+    }
+    if (t.id === 'bStyleReset') return editBox(b => { if (b.st) Object.assign(b, typeOfBox(typesOf(doc)[b.st])); });
+    if (d.kf) return editBox(b => { b[d.kf] = !b[d.kf]; });
+    if (d.kwrap) return editBox(b => { b.wrap = b.wrap === d.kwrap ? '' : d.kwrap; });
+    if (t.id === 'lookSave') return openLookSave();
+    if (t.id === 'lookManage') { await loadLooks(); return openLooks(); }
+    if (t.id === 'lgAdd') return addLogo();
+    if (t.id === 'lgBack') { change(() => { delete page().logoHide; }); return; }
+    if (d.lgdel) { change(() => { doc.brand.logos = doc.brand.logos.filter(l => l.id !== d.lgdel); }); return toast('Logo off every page'); }
+    if (d.bcoldel) { change(() => { doc.brand.colours = doc.brand.colours.filter(c => c !== d.bcoldel); }); return; }
     if (t.id === 'runBack') { change(() => { delete page().runnerHide; }); return; }
     if (t.id === 'bleedAll') { const on = !!page().bleed; change(() => doc.pages.forEach(pg => { pg.bleed = on; })); return toast(on ? 'Every page runs off the edge' : 'Every page keeps its margin'); }
     if (d.bg) {
@@ -2087,10 +2248,20 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
     if (t.id === 'runStyle') { change(() => { if (t.value === 'off') doc.runner.num = false; else { doc.runner.num = true; doc.runner.style = t.value; } }); return; }
     if (t.id === 'runFont') { change(() => { doc.runner.font = t.value; }); return; }
     if (t.id === 'runSize' && parseFloat(t.value) > 0) { change(() => { doc.runner.size = clamp(parseFloat(t.value) / geometry(doc).u, 4, 60); }); return; }
-    if (t.id === 'bPreset' && t.value) return editBox(b => Object.assign(b, preset(t.value)));
+    if (t.id === 'bStyle') return editBox(b => { if (!t.value) { delete b.st; return; } b.st = t.value; Object.assign(b, typeOfBox(typesOf(doc)[t.value])); });
+    if (t.id === 'bCols') return editBox(b => { b.cols = +t.value || 1; });
+    if (t.id === 'bNums') return editBox(b => { b.nums = t.value; });
+    if (t.id === 'lookSel' && t.value) return applyLook(t.value);
+    if (t.dataset.lgpos) return editLogo(t.dataset.lgpos, lg => { lg.pos = t.value; });
+    if (t.dataset.lgpages) return editLogo(t.dataset.lgpages, lg => { lg.pages = t.value; });
+    if (t.dataset.lgtint != null && t.tagName === 'SELECT') return editLogo(t.dataset.lgtint, lg => { lg.tint = t.value; });
+    if (t.dataset.lgname) return editLogo(t.dataset.lgname, lg => { lg.name = t.value.trim() || 'Logo'; });
+    if (t.dataset.lgsize && parseFloat(t.value) > 0) return editLogo(t.dataset.lgsize, lg => { lg.size = clamp(parseFloat(t.value) / geometry(doc).u, 6, 400); });
+    if (t.id === 'brandColPick') { const c = t.value; change(() => { doc.brand = doc.brand || { logos: [], colours: [] }; if (!doc.brand.colours.includes(c)) doc.brand.colours.push(c); if (doc.brand.colours.length > 8) doc.brand.colours.shift(); }); return toast('Brand colour added — first in every colour choice'); }
     const G = geometry(doc), n = parseFloat(t.value);
     if (t.id === 'bPt' && n > 0) return editBox(b => { b.size = clamp(n / G.u, 3, 400); });
     if (t.id === 'bLeadN' && n > 0) return editBox(b => { b.leading = clamp(n, 0.6, 4); });
+    if (t.id === 'bParaN' && !isNaN(n)) return editBox(b => { b.para = clamp(n, 0, 4); });
     if (t.id === 'bTrackN' && !isNaN(n)) return editBox(b => { b.tracking = clamp(n / 1000, -0.1, 1); });
     if (t.id === 'bBorderW' && n > 0) return editBox(b => { if (b.border) b.border.w = n; });
     if (t.id === 'pBorderW' && n > 0) return editPics(x => { if (x.border) x.border.w = n; });
@@ -2122,6 +2293,8 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
     if (!doc || e.button !== 0) return;
     const rn = e.target.closest('#pagewrap .runner');
     if (rn) { e.preventDefault(); stopEditing(); rsel = rn.dataset.r; sel.clear(); bsel = null; drawStage(); drawPanel(); $('stagehint').textContent = '⌫ takes it off this page · the switch in the panel turns it off everywhere'; return; }
+    const lgEl = e.target.closest('#pagewrap .brandlogo');
+    if (lgEl) { e.preventDefault(); stopEditing(); rsel = 'logo:' + lgEl.dataset.logo; sel.clear(); bsel = null; drawStage(); drawPanel(); $('stagehint').textContent = '⌫ takes this logo off this page · the Brand section in the panel changes it everywhere'; return; }
     if (rsel) { rsel = null; }
     const pic = e.target.closest('.pic'), tb = e.target.closest('#pagewrap .tb'), handle = e.target.closest('#boxsel .h');
     if (handle && bsel) {                   // a handle: width from the sides, size from the corner
@@ -2437,7 +2610,7 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
     const t = e.target;
     const typingIn = t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName);
     if ($('play').classList.contains('on')) return playKey(e);
-    if (sheetOpen) { if (e.key === 'Escape') { e.preventDefault(); closeSheet(); } return; }
+    if (sheetOpen) { if (e.key === 'Escape') { e.preventDefault(); closeSheet(); } else if (e.key === 'Enter' && sheetOpen === 'looksave' && $('lookSaveGo')) { e.preventDefault(); $('lookSaveGo').click(); } return; }
     if (!doc) return;
     const cmd = e.metaKey || e.ctrlKey;
     if (cmd && e.key.toLowerCase() === 'z') { if (typingIn && t.isContentEditable === false) return; e.preventDefault(); if (t.isContentEditable) t.blur(); return undoIt(!e.shiftKey); }
@@ -2458,6 +2631,7 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
       swapEnd(true);
     }
     if (fadeEdit && e.key === 'Escape') { fadeEdit = false; drawStage(); drawPanel(); return; }
+    if (rsel && rsel.startsWith('logo:') && (e.key === 'Backspace' || e.key === 'Delete')) { e.preventDefault(); const id = rsel.slice(5); rsel = null; change(() => { const p = page(); p.logoHide = Object.assign({}, p.logoHide, { [id]: true }); }); return toast('Logo off this page — the Brand section brings it back'); }
     if (rsel && (e.key === 'Backspace' || e.key === 'Delete')) { e.preventDefault(); const k = rsel; rsel = null; change(() => { const p = page(); p.runnerHide = Object.assign({}, p.runnerHide, { [k]: true }); }); return toast('Off this page — the panel brings it back'); }
     if (rsel && e.key === 'Escape') { rsel = null; drawStage(); return; }
     if (e.key === 'Escape') { if (reframe != null) { reframe = null; } else { sel.clear(); bsel = null; } drawStage(); drawPanel(); drawBar(); return; }
@@ -2594,6 +2768,10 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
       art(blk(8, 10, 84, 72, '#fff', 'box-shadow:0 4px 14px rgba(0,0,0,.12)') + blk(10, 16, 46, 60, '#3b2a22') + blk(10, 16, 46, 60, 'linear-gradient(to right,rgba(0,0,0,.7),rgba(0,0,0,0))', 'outline:1.5px dashed #F05A22') + blk(12, 12, 20, 2, '#141414') + blk(80, 12, 8, 2, '#141414') + '<b class="gdot" style="left:10%;top:16%"></b><b class="gdot" style="left:56%;top:76%"></b>')],
     ['Copy, cut and paste', '<b>⌘C</b> copies what you picked — pictures, GIFs or a text box — and <b>⌘V</b> puts it on any page, even in another design. <b>⌘X</b> cuts it; <b>⌘A</b> picks every picture on the page. With nothing picked, ⌘C copies the page\u2019s <b>arrangement</b>. A picture copied anywhere else — Safari, Photos, a screenshot, Finder — pastes too: it goes into the project\u2019s vault first, then onto the page. Words copied from Notes or an email become a new text box. And what you copy here pastes into Mail or Messages.',
       art(blk(8, 10, 40, 60, '#fff', 'box-shadow:0 4px 14px rgba(0,0,0,.12)') + blk(12, 16, 32, 30, '#b8461c', 'outline:2px dashed #F05A22;outline-offset:2px') + blk(12, 50, 26, 4, '#141414') + blk(52, 10, 40, 60, '#fff', 'box-shadow:0 4px 14px rgba(0,0,0,.12)') + blk(56, 16, 32, 30, '#b8461c') + blk(56, 50, 26, 4, '#141414') + blk(34, 78, 32, 8, '#F05A22', 'border-radius:20px'))],
+    ['Type styles and finer type', 'Every text box can follow a <b>style</b> — Title, Heading, Body or Caption — picked at the top of the Text panel. Change one box, then <b>Make every Heading like this</b>, and every Heading in the design follows. Under <b>Spacing</b>: space after each paragraph, and one, two or three <b>columns</b>. <b>Fine type</b>: small caps, hyphens, <b>Balance</b> for even headline lines, <b>No orphans</b> so a word never sits alone, and how numbers look.',
+      art(blk(8, 10, 84, 72, '#fff', 'box-shadow:0 4px 14px rgba(0,0,0,.12)') + blk(14, 18, 44, 8, '#141414') + blk(14, 32, 30, 4, '#141414', 'opacity:.8') + blk(14, 42, 34, 2.5, '#6b6964') + blk(14, 47, 34, 2.5, '#6b6964') + blk(52, 42, 34, 2.5, '#6b6964') + blk(52, 47, 30, 2.5, '#6b6964') + blk(14, 56, 34, 2.5, '#6b6964') + blk(52, 56, 34, 2.5, '#6b6964'))],
+    ['Looks and your brand', 'In the Page panel, <b>Brand</b>: add your logo and the client’s — pick the corner, the size, which pages (every page, the first, first and last…), and white on dark pages. Add <b>brand colours</b>: they come first in every colour choice. Click a logo on the page and press ⌫ to take it off just that page. Then <b>Save this look</b>: the type styles, background, your name and page numbers, logos and brand colours — ready for any treatment in any project, and, if you like, for every new one.',
+      art(blk(8, 10, 84, 72, '#1b1b1b') + blk(14, 60, 40, 8, '#fff') + blk(14, 72, 26, 3, '#fff', 'opacity:.7') + blk(76, 70, 10, 6, '#F05A22', 'border-radius:2px') + blk(14, 16, 8, 5, '#fff', 'opacity:.85;border-radius:2px') + blk(60, 16, 6, 6, '#b8461c', 'border-radius:50%') + blk(68, 16, 6, 6, '#e0a24a', 'border-radius:50%') + blk(76, 16, 6, 6, '#F05A22', 'border-radius:50%'), '#1b1b1b')],
     ['Play, keep, export', '<b>Space</b> plays it full screen. Everything saves as you go; <b>⌘S</b> keeps a version. <b>Export</b> makes a PDF, page images for your slides, or both — a new version every time, in the project’s Design folder.',
       art(blk(0, 0, 100, 100, '#0b0b0b') + blk(14, 14, 72, 58, '#3b2a22') + blk(20, 50, 30, 6, '#fff', 'opacity:.9') + blk(40, 80, 20, 8, '#F05A22', 'border-radius:20px'), '#0b0b0b')],
     ['Share it — GIFs and all', 'A PDF keeps GIFs still, so Export has three that move. <b>Web page</b> makes a folder with your pages in it — open it to look, then drag the folder onto <b>Netlify Drop</b> and send the link it gives you. Free, and we show you each step. <b>Video</b> is one MP4, a few seconds a page, fade or cut. <b>Moving pages</b> gives each page with a GIF as an MP4 and a GIF for your slides or a message, and the rest as JPEGs.',
@@ -2747,6 +2925,21 @@ ${slides}
     if (d.guide != null) { e.preventDefault(); return openGuide(+d.guide); }
     if (d.keys != null) return openKeys();
     if (d.snew) { closeSheet(); return makeNew(d.snew, []); }
+    if (t.id === 'lookSaveGo') {
+      const name = ($('lookName').value || '').trim(); if (!name) return $('lookName').focus();
+      const r = await call('designLookSave', { look: lookFrom(doc, name) }).catch(() => null);
+      if (!r || r.ok === false) return toast((r && r.error) || 'Couldn\u2019t save the look');
+      if ($('lookDef').checked) await call('designLookDefault', { name }).catch(() => null);
+      else if (lookDefault === name) await call('designLookDefault', { name: '' }).catch(() => null);
+      await loadLooks(); change(() => { doc.look = name; }); closeSheet();
+      return toast(`Look saved: ${name} — in the Page panel of any treatment`);
+    }
+    if (d.lookuse) { closeSheet(); return applyLook(d.lookuse); }
+    if (d.lookdef != null) { await call('designLookDefault', { name: d.lookdef === lookDefault ? '' : d.lookdef }).catch(() => null); await loadLooks(); return openLooks(); }
+    if (d.lookdel) {
+      if (!confirm(`Delete the look “${d.lookdel}”? Designs that use it keep how they look.`)) return;
+      await call('designLookDelete', { name: d.lookdel }).catch(() => null); await loadLooks(); drawPanel(); return openLooks();
+    }
     if (d.sdel) {
       e.stopPropagation();
       if (!confirm('Move this design to the Trash? Its exports stay where they are.')) return;
@@ -2819,10 +3012,11 @@ ${slides}
   window.__designDrag = on => $('dropveil').classList.toggle('on', !!on);
   window.addEventListener('resize', () => { sizeTray(); if (doc) drawStage(); });
   call('designFonts').then(r => { fonts = (r && r.fonts) || []; }).catch(() => {});
+  loadLooks();
   call('state').then(s => window.__neededShared(s)).catch(() => draw());
 
   // For checks: the layout, from outside.
-  window.__designDebug = { layout, geometry, get doc() { return doc; }, set doc(d) { doc = d; draw(); }, pageHTML, get cur() { return cur; } };
+  window.__designDebug = { layout, geometry, get doc() { return doc; }, set doc(d) { doc = d; draw(); }, pageHTML, get cur() { return cur; }, get bsel() { return bsel; } };
 })();
 </script>
 </body></html>
