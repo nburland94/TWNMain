@@ -538,7 +538,6 @@ main{position:relative;height:100vh;display:grid;grid-template-columns:minmax(0,
         <div><span>New projects?</span><span>Scan again — the code brings them across</span></div>
         <div><span>Bring them in from Photos</span><span>${s.photosAccess === 'denied' && s.photos ? '<button id="photosInbox">Allow in System Settings</button>' : `<button class="tog${s.photos ? ' on' : ''}" id="photosInbox" role="switch" aria-checked="${!!s.photos}" aria-label="Bring them in from Photos"></button>`}</span></div>
         <div><span>Sort Photos into Needed Vault › project albums</span><span><button class="tog${s.albums ? ' on' : ''}" id="photosAlbums" role="switch" aria-checked="${!!s.albums}" aria-label="Sort into albums"></button></span></div>
-        <div><span>Check it here first</span><span><button id="phoneWeb">Open it on this Mac</button></span></div>
       </div>
       <div class="top" style="margin-top:6px"><div><b>At home: browse the whole vault over Wi-Fi</b><span>Optional. Straight to this Mac while your phone's on the same Wi-Fi and Needed Tools is open — nothing goes through anyone else.</span></div>
         <button class="tog${on ? ' on' : ''}" id="phoneOn" role="switch" aria-checked="${on}" aria-label="Browse the vault over Wi-Fi"></button></div>

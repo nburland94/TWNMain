@@ -813,6 +813,12 @@
     .vt-qr img { width: 112px; height: 112px; border-radius: 14px; padding: 6px; background: #fff; image-rendering: pixelated; box-shadow: 0 8px 24px rgba(160,70,20,0.12); }
     .vt-qr span { font-family: var(--title); font-size: 0.82rem; line-height: 1.5; color: rgba(var(--inkrgb),0.7); max-width: 12rem; }
     .vt-right { display: grid; grid-template-columns: 250px minmax(0, 1fr); gap: 1.5rem; align-items: center; }
+    /* On a computer: only the QR code — Mobile Vault is for your phone. On a phone: the button, no QR. */
+    .vt-open { display: none; }
+    @media (hover: none), (pointer: coarse) {
+      .vt-open { display: inline-flex; }
+      .vt-qr { display: none; }
+    }
     /* a drawing of the phone app, not a screenshot */
     .vt-phone { width: 250px; height: 500px; border-radius: 42px; padding: 12px; background: #141414; box-shadow: 0 30px 60px rgba(80,30,10,0.22); }
     .vt-screen { height: 100%; border-radius: 32px; overflow: hidden; position: relative; display: flex; flex-direction: column; gap: 8px; padding: 34px 12px 12px;
@@ -1324,7 +1330,6 @@
       .tl-tabs span:nth-child(n+4) { display: none; }
       #vault { padding: 3.5rem 1.25rem; grid-template-columns: 1fr; gap: 2.2rem; }
       .vt-right { grid-template-columns: 1fr; justify-items: center; }
-      .vt-qr { display: none; }
 
       /* ── contact ── */
       #contact { padding: 3.5rem 1.25rem 3rem; grid-template-columns: 1fr; gap: 2rem; }
@@ -1780,7 +1785,7 @@
       <p class="tl-lead">The pocket half of Needed Tools. Catch references wherever you are — photos, screenshots, clips — straight into a project, with tags. Even with no signal.</p>
       <p class="tl-note">Nothing goes to this website. Your pictures stay on your phone until you tap Sync — then into your own Photos, and iCloud takes them to your Mac, where Sync files each one into its project, once.</p>
       <a class="tl-buy vt-open" href="vault/">Open Needed Mobile Vault ↗</a>
-      <div class="vt-qr"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAPgAAAD4CAIAAABOs7xcAAAEG0lEQVR42u3dQXLbMAxA0bqjK/j+B8whlEW34YIsYADKe9umiqz84XBoDvW67/sPPN1fjwChg9BB6CB0EDoIHc5cq394v98jPsDX11er+4l6brufa/V7o57P9B6M6Ji6gNBB6CB0EDoIHQ5du/+hat16dx139+ejPlfU+vcUU3owomPqAkIHoYPQQeggdDh0RV2oah921f1n7xff/fnd62Q//249GNExdQGhg9BB6CB0EDocujyCWtnr6xjREToIHYQOQgehg9Dhvzx2Hb1qHbrqnJaqfedGdBA6CB2EDkIHoSN0eLiwdXT7oWOf2/R18W73Y0TH1AWEDkIHoYPQQehwaHsdfcp7MbPPS4n6+V1V9z+9ByM6pi4gdBA6CB2EDkKHQ8t1dPvL/9ldJ45an7a/3IgOQgehI3QQOggdhA4tvO77/vEfur3PMnv/d9Q+7Oz76Xa+e9X+9d3fa0TH1AWEDkIHoYPQQehwaLmOvqtq3X36+nS39e9u3w/sXseIjqkLCB2EDkIHoYPQIdj2OnrVfuIp53BXfW+QvZ8++zpGdBA6CB2EjtBB6CB0aOqKulD2uni382SqrtPtvaFV+8uN6CB0hA5CB6GD0EHo8CHLdfQp55Fnm74O/dR18d0+jeiYuoDQQeggdBA6CB0Ojd+Pnr3eH3X/Uc+z2/k2U74/MaJj6gJCB6GD0EHoIHQ4NP589Oz15inr2VXvQ636PsGIDkJH6CB0EDoIHYQOH1J2rsuU89GrdPu82e8TjerHuS6YuoDQQeggdBA6CB2CLfejV61zTzknJHs/fdXzyVZ1/0Z0TF1A6CB0EDoIHYQOh7bX0avOKX/q/uxu56hkqzqHx4iOqQsIHYQOQgehg9Dh0PZ7Rp/6fs2q/fS715m+Tl+1L9+IjqkLCB2EDkIHoYPQ4dD2Onr2emf2PvhsVfv1o+4nu4fs52xEx9QFhA5CB6GD0EHoEOyKutCUc82r7j/7/axV69lRz825LmDqAkIHoSN0EDoIHZpano8+XbfzZ7rtp8/+vd3OvzeiY+oCQgehg9BB6CB0OLTcjz7lfZar9dcp69ZR18ne51217h51fSM6pi4gdBA6CB2EDkKHQ+nno0epOi88an16+vtBo/7u2c/BiI6pCwgdhA5CB6GD0CFY2fnoK1PeW9lN9vnr2Z1kr68b0TF1AaGD0EHoIHQQOhy6ftsHnrLvPOpz7d5n1fkt2X8XIzqmLiB0EDoIHYQOQodDv24dvepclynnzXe7f+e6gNBB6AgdhA5CB6FDsbB19OnnoqxEreNmP59u1+92nr0RHVMXEDoIHYQOQgehw6HtdfQp+6p311mzzy3Jln1OS7e/u/3oIHSEDkIHoYPQQejwIa/7vj0FjOggdBA6CB2EDkIHocPPvgGTigBWzqSddQAAAABJRU5ErkJggg==" alt="QR code for Needed Mobile Vault"><span>On your iPhone, point the camera here — then add it to your Home Screen.</span></div>
+      <div class="vt-qr"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAPgAAAD4CAIAAABOs7xcAAAEG0lEQVR42u3dQXLbMAxA0bqjK/j+B8whlEW34YIsYADKe9umiqz84XBoDvW67/sPPN1fjwChg9BB6CB0EDoIHc5cq394v98jPsDX11er+4l6brufa/V7o57P9B6M6Ji6gNBB6CB0EDoIHQ5du/+hat16dx139+ejPlfU+vcUU3owomPqAkIHoYPQQeggdDh0RV2oah921f1n7xff/fnd62Q//249GNExdQGhg9BB6CB0EDocujyCWtnr6xjREToIHYQOQgehg9Dhvzx2Hb1qHbrqnJaqfedGdBA6CB2EDkIHoSN0eLiwdXT7oWOf2/R18W73Y0TH1AWEDkIHoYPQQehwaHsdfcp7MbPPS4n6+V1V9z+9ByM6pi4gdBA6CB2EDkKHQ8t1dPvL/9ldJ45an7a/3IgOQgehI3QQOggdhA4tvO77/vEfur3PMnv/d9Q+7Oz76Xa+e9X+9d3fa0TH1AWEDkIHoYPQQehwaLmOvqtq3X36+nS39e9u3w/sXseIjqkLCB2EDkIHoYPQIdj2OnrVfuIp53BXfW+QvZ8++zpGdBA6CB2EjtBB6CB0aOqKulD2uni382SqrtPtvaFV+8uN6CB0hA5CB6GD0EHo8CHLdfQp55Fnm74O/dR18d0+jeiYuoDQQeggdBA6CB0Ojd+Pnr3eH3X/Uc+z2/k2U74/MaJj6gJCB6GD0EHoIHQ4NP589Oz15inr2VXvQ636PsGIDkJH6CB0EDoIHYQOH1J2rsuU89GrdPu82e8TjerHuS6YuoDQQeggdBA6CB2CLfejV61zTzknJHs/fdXzyVZ1/0Z0TF1A6CB0EDoIHYQOh7bX0avOKX/q/uxu56hkqzqHx4iOqQsIHYQOQgehg9Dh0PZ7Rp/6fs2q/fS715m+Tl+1L9+IjqkLCB2EDkIHoYPQ4dD2Onr2emf2PvhsVfv1o+4nu4fs52xEx9QFhA5CB6GD0EHoEOyKutCUc82r7j/7/axV69lRz825LmDqAkIHoSN0EDoIHZpano8+XbfzZ7rtp8/+vd3OvzeiY+oCQgehg9BB6CB0OLTcjz7lfZar9dcp69ZR18ne51217h51fSM6pi4gdBA6CB2EDkKHQ+nno0epOi88an16+vtBo/7u2c/BiI6pCwgdhA5CB6GD0CFY2fnoK1PeW9lN9vnr2Z1kr68b0TF1AaGD0EHoIHQQOhy6ftsHnrLvPOpz7d5n1fkt2X8XIzqmLiB0EDoIHYQOQodDv24dvepclynnzXe7f+e6gNBB6AgdhA5CB6FDsbB19OnnoqxEreNmP59u1+92nr0RHVMXEDoIHYQOQgehw6HtdfQp+6p311mzzy3Jln1OS7e/u/3oIHSEDkIHoYPQQejwIa/7vj0FjOggdBA6CB2EDkIHocPPvgGTigBWzqSddQAAAABJRU5ErkJggg==" alt="QR code for Needed Mobile Vault"><span>Mobile Vault is for your phone. Point your iPhone’s camera here — then add it to your Home Screen.</span></div>
     </div>
     <div class="vt-right">
       <div class="vt-phone reveal" aria-hidden="true">

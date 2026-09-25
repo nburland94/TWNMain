@@ -763,3 +763,6 @@ ROUND 23.1 — NEEDED MOBILE VAULT
   • Website: the menu reads Work · Awards · About · Contact · Tools ·
     Mobile Vault, and the page runs in the same order — Contact now comes
     straight after About.
+  • Mobile Vault opens on your phone only: on a computer the website shows
+    just the QR code (no open button); on a phone it shows the button. The
+    Mac's phone panel no longer has "Open it on this Mac".
