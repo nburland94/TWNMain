@@ -1077,7 +1077,9 @@ final class Shell: NSObject, NSApplicationDelegate, NSWindowDelegate, WKScriptMe
 
         case "setLabel":
             // the dropdown beside the project: this project's label, or a new one
-            Labels.set((body["label"] as? String) ?? "", for: Shared.project)
+            // (Home's Projects menu can label any project.)
+            let who = (body["project"] as? String).map { Shell.clean($0) }.flatMap { $0.isEmpty ? nil : $0 } ?? Shared.project
+            Labels.set((body["label"] as? String) ?? "", for: who)
             Shared.notify()
             reply(replyHandler)
 

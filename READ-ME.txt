@@ -612,3 +612,18 @@ ROUND 16 — NEEDED VAULT, THE IPHONE APP
     Shortcuts to build.
   • It uses the same iCloud folder the Mac mirrors; nothing changes on the
     Mac. The web page from rounds 12–14 stays in the kit but isn't needed.
+
+ROUND 17 — HOME FITS, WIDGETS GROW, LABELS ARE BACK
+  • The right-hand column fits the window — no scrolling past the edge.
+    Tighter spacing; notes and the calendar's events share what's left.
+  • Every widget has an expand button (the arrows). It lifts the widget
+    into a big glass panel over Home: the calendar opens to its whole
+    month, notes become a big notepad, the clocks grow (two columns), the
+    timer becomes a big focus screen. Esc or a click outside puts it back.
+  • Labels: the Projects menu on Home has a label for every project — pick
+    one, or New label… The tile shows "Lexus · Commercial".
+  • When the window is narrow, the quick actions drop under the filters
+    instead of sitting on top of them.
+  • Design: highlight stills in the stills bar and the This page slider
+    brings in those (it says "3 picked").
+

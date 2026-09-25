@@ -152,6 +152,7 @@ body.dragging,body.dragging *{cursor:grabbing!important;user-select:none}
 .spaceticks button:first-child{transform:none}.spaceticks button:last-child{transform:translateX(-100%)}
 .spaceticks button.on{color:#d2440f}
 #perPage:disabled{opacity:.35}
+.trayper.picked{border-color:rgba(240,90,34,0.55)!important}.trayper.picked .cap{color:#d2440f}
 .tline{border:none;background:transparent;text-align:left;padding:8px 10px;border-radius:10px;font-size:13.5px;color:#2a2926;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .tline:hover{background:rgba(255,255,255,0.7)}
 .hinttip{position:fixed;z-index:95;max-width:260px;padding:9px 12px;border-radius:12px;background:#141414;color:#fff;font-size:12px;line-height:1.45;pointer-events:none;opacity:0;transform:translateY(4px);transition:opacity .2s,transform .2s var(--ease-out,ease)}
@@ -1142,7 +1143,7 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
       <div class="seg"><button data-scope="project" class="${scope === 'project' ? 'on' : ''}">${esc(project || 'This project')}</button><button data-scope="vault" class="${scope === 'vault' ? 'on' : ''}">Entire vault</button></div>
       <input class="q" id="trayQ" placeholder="Search" value="${esc(trayQ)}" spellcheck="false">
       <span class="count">${list.length} still${list.length === 1 ? '' : 's'}${trayPick.size ? ` · ${trayPick.size} picked` : ''}</span>
-      ${doc && page() ? `<label class="trayper" title="How many pictures on this page — only this page changes"><span class="cap">This page</span><input type="range" id="perPage" min="0" max="12" step="1" value="${Math.min(12, page().pics.length)}"${isTitle(page()) ? ' disabled title="A Title page holds one picture"' : ''}><span class="val">${Math.min(12, page().pics.length)}</span></label><button class="tbtn" id="perAll" title="Every page gets this many">All pages</button>` : ''}
+      ${doc && page() ? `<label class="trayper${trayPick.size ? ' picked' : ''}" title="${trayPick.size ? 'Brings in the stills you picked' : 'How many pictures on this page — only this page changes'}"><span class="cap">${trayPick.size ? `${trayPick.size} picked` : 'This page'}</span><input type="range" id="perPage" min="0" max="12" step="1" value="${Math.min(12, page().pics.length)}"${isTitle(page()) ? ' disabled title="A Title page holds one picture"' : ''}><span class="val">${Math.min(12, page().pics.length)}</span></label><button class="tbtn" id="perAll" title="Every page gets this many">All pages</button>` : ''}
       <span style="flex-grow:1"></span>
       ${doc ? `<button class="tbtn" id="addPicked" ${trayPick.size ? '' : 'disabled'} title="Or double-click, drag them onto the page, or right-click for more">Add to page</button>` : ''}
       <button class="tbtn" id="photosBtn2" title="Photos, or whole folders of them, from your Mac">+ Photos</button>
@@ -1295,6 +1296,12 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
   function fillPage(pg, n) {
     if (pg.pics.length > n) { pg.pics = pg.pics.slice(0, n); return; }
     const used = usedIds(), off = new Set(doc.off || []), here = new Set(pg.pics.map(x => x.id));
+    // Stills highlighted in the stills bar: the slider brings in those, in the order they sit there.
+    if (trayPick.size) {
+      const picked = trayList().filter(st => trayPick.has(st.id) && !here.has(st.id));
+      for (const st of picked) { if (pg.pics.length >= n) break; pg.pics.push(picFromRaw(st)); }
+      return;
+    }
     const pool = dealSource().filter(st => !here.has(st.id) && !off.has(st.id));
     const order = pool.filter(st => !used.has(st.id)).concat(pool.filter(st => used.has(st.id)));
     for (const st of order) { if (pg.pics.length >= n) break; pg.pics.push(picFromRaw(st)); }
@@ -1828,6 +1835,8 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
     const c = $('trayhead').querySelector('.count'), list = trayList();
     if (c) c.textContent = `${list.length} still${list.length === 1 ? '' : 's'}${trayPick.size ? ` · ${trayPick.size} picked` : ''}`;
     const a = $('addPicked'); if (a) a.disabled = !trayPick.size;
+    // The slider says whose stills it brings in: the picked ones, when there are any.
+    const tp = $('trayhead').querySelector('.trayper'); if (tp) { tp.classList.toggle('picked', trayPick.size > 0); const cap = tp.querySelector('.cap'); if (cap) cap.textContent = trayPick.size ? `${trayPick.size} picked` : 'This page'; }
   }
   /* ---------------------------------------------------------------- right-click the picked stills */
   let ctxIds = [], ctxHi = 0;
@@ -2449,7 +2458,7 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
   const art = (inner, bg) => `<div class="gart" style="background:${bg || '#f4f1ec'}">${inner}</div>`;
   const blk = (l, t, w, h, c, extra) => `<i style="left:${l}%;top:${t}%;width:${w}%;height:${h}%;background:${c};${extra || ''}"></i>`;
   const GUIDE = [
-    ['Start with your stills', 'Pick a <b>mood board</b> (just pictures) or a <b>treatment</b> (pictures and words). Your stills — and GIFs — wait in the tray at the bottom; drag its top edge to make it bigger. The <b>This page</b> slider in the stills bar fills the page you\u2019re on (up to 12); slide back and they come off. Only that page changes. <b>+ Photos</b> brings in more, whole folders at once.',
+    ['Start with your stills', 'Pick a <b>mood board</b> (just pictures) or a <b>treatment</b> (pictures and words). Your stills — and GIFs — wait in the tray at the bottom; drag its top edge to make it bigger. The <b>This page</b> slider in the stills bar fills the page you\u2019re on (up to 12); slide back and they come off. Only that page changes. Highlight stills first (⌘-click, or drag across them) and the slider brings in those. <b>+ Photos</b> brings in more, whole folders at once.',
       art(blk(4, 8, 58, 64, '#fff', 'box-shadow:0 4px 14px rgba(0,0,0,.12)') + blk(4, 78, 12, 16, '#3b2a22') + blk(18, 78, 18, 16, '#b8461c') + blk(38, 78, 12, 16, '#1e2227') + blk(52, 78, 16, 16, '#e0a24a') + blk(70, 78, 10, 16, '#6d2a18') + blk(66, 8, 30, 64, 'rgba(255,255,255,.6)'))],
     ['Put pictures on the page', '<b>Double-click</b> a still, or <b>drag it</b> onto the page — or onto another page up in the strip. Pick several (⌘-click, or drag across them) and <b>right-click</b>: this page, a new page, or laid out on new pages. Every page is its own — use a still on as many pages as you like; it stays on the others. You can drop photos straight from Finder too.',
       art(blk(8, 10, 84, 60, '#fff', 'box-shadow:0 4px 14px rgba(0,0,0,.12)') + blk(14, 18, 34, 44, '#3b2a22') + blk(52, 18, 34, 44, '#b8461c', 'outline:2px dashed #F05A22;outline-offset:3px') + blk(60, 78, 16, 16, '#b8461c', 'opacity:.45') + '<b class="garrow" style="left:66%;top:62%">↑</b>')],
@@ -2691,7 +2700,7 @@ ${slides}
   call('state').then(s => window.__neededShared(s)).catch(() => draw());
 
   // For checks: the layout, from outside.
-  window.__designDebug = { layout, geometry, get doc() { return doc; }, set doc(d) { doc = d; draw(); }, pageHTML };
+  window.__designDebug = { layout, geometry, get doc() { return doc; }, set doc(d) { doc = d; draw(); }, pageHTML, get cur() { return cur; } };
 })();
 </script>
 </body></html>

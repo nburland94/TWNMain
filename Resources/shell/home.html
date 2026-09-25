@@ -6,30 +6,31 @@ body{background:#fbf3ed;overflow:hidden}
 .glow{position:fixed;inset:0;background:radial-gradient(ellipse 72% 78% at 50% 54%,#f7bf99 0%,#f9cfb1 26%,#fbdfca 50%,#fcebdf 72%,#fdf5ef 100%)}
 main{position:relative;height:100vh;display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:24px;padding:26px 28px 28px}
 .left{display:flex;flex-direction:column;gap:16px;min-width:0;min-height:0}
-.right{display:flex;flex-direction:column;gap:12px;min-height:0;overflow-y:auto;scrollbar-width:none}
+.right{display:flex;flex-direction:column;gap:10px;min-height:0;overflow:hidden}
 .right::-webkit-scrollbar{display:none}
 .head{display:flex;justify-content:space-between;align-items:center}
 .head b{font-weight:300;font-size:17px}
 .mini{width:26px;height:26px;border-radius:50%;border:1px solid rgba(28,28,28,0.08);background:rgba(255,255,255,0.55);font-size:15px;line-height:1;color:var(--ink)}
 .mini.text{width:auto;padding:0 10px;font-size:12px;border-radius:100px}
 /* world clock */
-.clocks{padding:16px 18px;display:flex;flex-direction:column;gap:8px;flex-shrink:0}
-.zone{display:grid;grid-template-columns:minmax(0,1fr) auto 18px;align-items:baseline;gap:10px;padding:6px 0;border-top:1px solid rgba(28,28,28,0.045)}
+.clocks{padding:12px 16px;display:flex;flex-direction:column;gap:6px;flex-shrink:0}
+#zones{max-height:132px;overflow-y:auto;scrollbar-width:none}#zones::-webkit-scrollbar{display:none}
+.zone{display:grid;grid-template-columns:minmax(0,1fr) auto 18px;align-items:baseline;gap:10px;padding:4px 0;border-top:1px solid rgba(28,28,28,0.045)}
 .zone .city{font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .zone .city small{display:block;font-size:11px;color:#7a5a48}
-.zone time{font-weight:200;font-size:24px;font-variant-numeric:tabular-nums;line-height:1}
+.zone time{font-weight:200;font-size:21px;font-variant-numeric:tabular-nums;line-height:1}
 .zone .x{border:none;background:none;color:#9a8378;font-size:14px;opacity:0;transition:opacity .15s}
 .zone:hover .x{opacity:1}
 .zonepick input{width:100%;border:1px solid rgba(28,28,28,0.08);border-radius:10px;background:rgba(255,255,255,0.72);padding:9px 11px;font-size:13px;outline:none}
 .zonepick input:focus{border-color:var(--accent)}
 /* notes: a clear blank space */
-.notes{padding:16px 18px;display:flex;flex-direction:column;gap:8px;flex:1 1 170px;min-height:150px;
+.notes{padding:12px 16px;display:flex;flex-direction:column;gap:6px;flex:1 1 110px;min-height:88px;
   background:linear-gradient(160deg,rgba(255,255,255,0.72),rgba(255,255,255,0.5))}
-.notes textarea{flex-grow:1;min-height:96px;resize:none;border:none;outline:none;background:transparent;font:15px/1.6 Raleway,sans-serif;color:var(--ink);
+.notes textarea{flex-grow:1;min-height:36px;resize:none;border:none;outline:none;background:transparent;font:15px/1.6 Raleway,sans-serif;color:var(--ink);
   background-image:repeating-linear-gradient(to bottom,transparent 0,transparent 23px,rgba(120,55,20,0.07) 23px,rgba(120,55,20,0.07) 24px);background-attachment:local;padding:0}
 .notes textarea::placeholder{color:#a08a7e}
 /* the timer, half the height */
-.focus{padding:12px 16px;display:grid;grid-template-columns:64px auto minmax(0,1fr);align-items:center;gap:12px;flex-shrink:0}
+.focus{padding:10px 14px;display:grid;grid-template-columns:64px auto minmax(0,1fr);align-items:center;gap:12px;flex-shrink:0}
 .focus .ring{position:relative;width:64px;height:64px}
 .focus .n{display:flex;flex-direction:column}
 .focus .n b{font-weight:200;font-size:30px;line-height:1;font-variant-numeric:tabular-nums}
@@ -73,6 +74,10 @@ main{position:relative;height:100vh;display:grid;grid-template-columns:minmax(0,
 .projmenu button:hover,.projmenu button:focus-visible{background:rgba(255,255,255,0.75);outline:none}
 .projmenu button.here{font-weight:500}
 .projmenu button small{margin-left:auto;font-size:11px;color:#7a5a48}
+.projmenu .prow{display:flex;align-items:center;gap:6px}
+.projmenu .prow button{flex:1;min-width:0}
+.projmenu select{border:1px solid rgba(28,28,28,0.08);border-radius:100px;background:rgba(255,255,255,0.7);font-size:11.5px;color:#6d4e3d;padding:4px 8px;max-width:130px}
+.projmenu{min-width:320px}
 .tile{border:none;text-align:left;padding:16px 15px;display:flex;flex-direction:column;gap:16px;color:var(--ink);transition:transform .25s var(--ease-out)}
 .tile b{font-family:Oswald,sans-serif;font-weight:400;font-size:15px;letter-spacing:0.08em;text-transform:uppercase}
 @media (hover:hover) and (pointer:fine){.tile:hover{transform:translateY(-2px)}}
@@ -83,6 +88,7 @@ main{position:relative;height:100vh;display:grid;grid-template-columns:minmax(0,
 .line{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:nowrap;flex-shrink:0;min-width:0}
 .quick{display:flex;gap:6px;flex-wrap:nowrap;justify-content:flex-end;min-width:0}
 .quick.compact .qa span{display:none}
+.line.wrap{flex-wrap:wrap;row-gap:8px}.line.wrap .quick{margin-left:auto}
 .quick.compact .qa{padding:9px}
 .qa{flex-shrink:0;border:none;display:flex;align-items:center;gap:6px;padding:7px 11px;font-size:12px;white-space:nowrap;color:var(--ink);border-radius:100px;transition:transform .2s var(--ease-out)}
 .qa svg{flex-shrink:0}
@@ -148,7 +154,7 @@ main{position:relative;height:100vh;display:grid;grid-template-columns:minmax(0,
 .reset{border:none;background:none;font-size:12.5px;color:#7a5a48;text-decoration:underline;text-underline-offset:3px}
 
 /* ---- calendar ---- */
-.cal{padding:16px 18px;display:flex;flex-direction:column;gap:10px;flex-shrink:0}
+.cal{padding:12px 16px;display:flex;flex-direction:column;gap:8px;flex:0 1 auto;min-height:0}
 .cal .head{display:flex;justify-content:space-between;align-items:center;gap:8px}
 .cal .ctl{display:flex;gap:4px;align-items:center}
 .cal .ctl .arrow{width:28px;height:28px;border-radius:50%;border:1px solid rgba(28,28,28,0.06);background:rgba(255,255,255,0.45);font-size:13px}
@@ -171,18 +177,43 @@ main{position:relative;height:100vh;display:grid;grid-template-columns:minmax(0,
 .cal .head b{font-weight:300;font-size:18px}
 .cal .head span{font-size:12.5px;color:#7a5a48}
 .week{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:3px}
-.day{display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 0;border-radius:11px;font-size:15px}
+.day{display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 0;border-radius:11px;font-size:15px}
 .day span{font-size:11px;color:#7a5a48}
 .day i{width:5px;height:5px;border-radius:50%;background:transparent}
 .day.dot i{background:var(--accent)}
 .day.today{background:var(--ink);color:#fff}
 .day.today span{color:rgba(255,255,255,0.7)}
-.events{overflow:auto;max-height:150px}
-.ev{display:grid;grid-template-columns:52px minmax(0,1fr);gap:10px;align-items:center;padding:10px 0;border-top:1px solid rgba(28,28,28,0.045);font-size:14px}
+.events{overflow:auto;flex:0 1 auto;min-height:0;max-height:120px;scrollbar-width:none}.events::-webkit-scrollbar{display:none}
+.ev{display:grid;grid-template-columns:52px minmax(0,1fr);gap:10px;align-items:center;padding:7px 0;border-top:1px solid rgba(28,28,28,0.045);font-size:14px}
 .ev time{font-family:'Courier Prime',monospace;font-size:12px;color:var(--mid)}
 .ev div{display:flex;align-items:center;gap:9px;overflow:hidden}
 .ev div i{width:7px;height:7px;border-radius:50%;flex-shrink:0}
 .ev div span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* a widget, big: lifted over Home in glass; Esc or a click outside puts it back */
+.expand{width:26px;height:26px;border-radius:50%;border:1px solid rgba(28,28,28,0.08);background:rgba(255,255,255,0.55);display:inline-flex;align-items:center;justify-content:center;color:var(--ink);padding:0}
+.expand svg{width:12px;height:12px}
+.head .btns{display:flex;gap:6px;align-items:center}
+.focus .expand{position:absolute;top:8px;right:8px;width:22px;height:22px}
+.bigveil{position:fixed;inset:0;z-index:40;background:rgba(251,243,237,0.3);-webkit-backdrop-filter:blur(16px) saturate(1.2);backdrop-filter:blur(16px) saturate(1.2);opacity:0;pointer-events:none;transition:opacity .25s var(--ease-out)}
+.bigveil.on{opacity:1;pointer-events:auto}
+.right section.big{position:fixed;z-index:41;left:50%;top:50%;transform:translate(-50%,-50%);width:min(900px,86vw);height:min(760px,86vh);padding:26px 32px;overflow:auto;box-shadow:0 30px 90px rgba(120,55,20,0.22);animation:bigin .28s var(--ease-out)}
+@keyframes bigin{from{opacity:0;transform:translate(-50%,-48%) scale(.97)}to{opacity:1;transform:translate(-50%,-50%)}}
+.right section.big .head b{font-size:26px;font-weight:200}
+.clocks.big #zones{max-height:none;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:28px}
+.clocks.big .zone{padding:14px 0}
+.clocks.big .zone time{font-size:46px}
+.clocks.big .zone .city{font-size:18px}.clocks.big .zone .city small{font-size:13px}
+.notes.big textarea{font-size:19px;line-height:1.75;padding:6px 2px}
+.cal.big{gap:14px}
+.cal.big .month{gap:6px}.cal.big .mday{padding:16px 0;font-size:17px;border-radius:14px}.cal.big .mday i{width:6px;height:6px}
+.cal.big .week{gap:8px}.cal.big .day{padding:22px 0;font-size:22px}
+.cal.big .events{max-height:none;flex:1 1 auto}.cal.big .ev{font-size:16px;padding:12px 0}
+.focus.big{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:28px}
+.focus.big .ring{width:220px;height:220px}.focus.big .ring svg{width:220px;height:220px}
+.focus.big .n{align-items:center}.focus.big .n b{font-size:84px}.focus.big .n span{font-size:15px}
+.focus.big .ctrls{justify-self:auto;justify-content:center}.focus.big .round{width:48px;height:48px;font-size:20px}.focus.big .start{padding:14px 30px;font-size:16px}
+.focus.big .expand{top:18px;right:18px;width:30px;height:30px}
+.hold{flex-shrink:0}
 .quiet{font-size:13.5px;color:#7a5a48;padding:10px 0;border-top:1px solid rgba(28,28,28,0.045)}
 .connect{border:none;background:var(--ink);color:#fff;border-radius:100px;padding:11px 18px;font-size:13px;align-self:flex-start}
 
@@ -287,7 +318,7 @@ main{position:relative;height:100vh;display:grid;grid-template-columns:minmax(0,
   </div>
   <div class="right">
     <section class="g clocks" aria-label="World clock">
-      <div class="head"><b>World clock</b><button class="mini" id="addZone" aria-label="Add a city" title="Add a city">+</button></div>
+      <div class="head"><b>World clock</b><span class="btns"><button class="mini" id="addZone" aria-label="Add a city" title="Add a city">+</button><button class="expand" data-expand aria-label="Make it bigger" title="Bigger — Esc puts it back"><svg viewBox="0 0 24 24" fill="none" stroke="#1c1c1c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button></span></div>
       <div id="zones"></div>
       <div class="zonepick" id="zonePick" hidden>
         <input id="zoneInput" list="zoneList" placeholder="Type a city — Tokyo, Lagos, New York…" spellcheck="false" autocomplete="off">
@@ -295,12 +326,12 @@ main{position:relative;height:100vh;display:grid;grid-template-columns:minmax(0,
       </div>
     </section>
     <section class="g notes" aria-label="Notes">
-      <div class="head"><b>Notes</b><button class="mini text" id="clearNotes">Clear</button></div>
+      <div class="head"><b>Notes</b><span class="btns"><button class="mini text" id="clearNotes">Clear</button><button class="expand" data-expand aria-label="Make it bigger" title="Bigger — Esc puts it back"><svg viewBox="0 0 24 24" fill="none" stroke="#1c1c1c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button></span></div>
       <textarea id="notes" spellcheck="true" placeholder="A blank space for you — ideas, reminders, a line you don’t want to lose. It saves as you type."></textarea>
     </section>
     <section class="g cal" aria-label="Calendar">
       <div class="head"><b id="calTitle"></b>
-        <div class="ctl"><button class="arrow" id="calPrev" aria-label="Earlier">‹</button><button class="today" id="calToday">Today</button><button class="arrow" id="calNext" aria-label="Later">›</button></div></div>
+        <div class="ctl"><button class="arrow" id="calPrev" aria-label="Earlier">‹</button><button class="today" id="calToday">Today</button><button class="arrow" id="calNext" aria-label="Later">›</button><button class="expand" data-expand aria-label="Make it bigger" title="Bigger — Esc puts it back"><svg viewBox="0 0 24 24" fill="none" stroke="#1c1c1c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button></div></div>
       <div class="seg3" id="calMode" role="group" aria-label="View"><button data-v="week">Week</button><button data-v="month">Month</button></div>
       <div id="calGrid"></div>
       <div class="evhead" id="evHead"></div>
@@ -308,6 +339,7 @@ main{position:relative;height:100vh;display:grid;grid-template-columns:minmax(0,
       <button class="addgoogle" id="addGoogle">Add Google Calendar</button>
     </section>
     <section class="g focus" aria-label="Focus">
+      <button class="expand" data-expand aria-label="Make it bigger" title="Bigger — Esc puts it back"><svg viewBox="0 0 24 24" fill="none" stroke="#1c1c1c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button>
       <div class="ring">
         <svg width="64" height="64" viewBox="0 0 64 64" aria-hidden="true">
           <circle cx="32" cy="32" r="28" fill="none" stroke="rgba(28,28,28,0.08)" stroke-width="3"/>
@@ -324,6 +356,7 @@ main{position:relative;height:100vh;display:grid;grid-template-columns:minmax(0,
     </section>
   </div>
 </main>
+<div class="bigveil" id="bigveil"></div>
 <div class="viewer" id="viewer" role="dialog" aria-label="Reference">
   <div class="media" id="vMedia"></div>
   <aside class="g panel">
@@ -387,10 +420,12 @@ main{position:relative;height:100vh;display:grid;grid-template-columns:minmax(0,
   // Everything on one line: when the window's too narrow, the quick actions drop to icons.
   function fitLine() {
     const q = $('quick'), line = q.parentElement;
-    q.classList.remove('compact');
-    const edge = line.getBoundingClientRect().right, last = q.lastElementChild.getBoundingClientRect().right;
-    const first = q.firstElementChild.getBoundingClientRect().left, filters = line.firstElementChild.getBoundingClientRect().right;
-    if (last > edge + 1 || first < filters + 6) q.classList.add('compact');
+    q.classList.remove('compact'); line.classList.remove('wrap');
+    const over = () => { const edge = line.getBoundingClientRect().right, last = q.lastElementChild.getBoundingClientRect().right;
+      const first = q.firstElementChild.getBoundingClientRect().left, filters = line.firstElementChild.getBoundingClientRect().right;
+      return last > edge + 1 || first < filters + 6; };
+    if (over()) q.classList.add('compact');
+    if (over()) line.classList.add('wrap');          // still too narrow: the quick actions go under the filters
   }
   new ResizeObserver(fitLine).observe(document.querySelector('.line'));
   $('quick').addEventListener('click', e => { const b = e.target.closest('[data-q]'); if (!b) return; if (b.dataset.q === 'phone') return openPhone(); call('quick', { what: b.dataset.q }); });
@@ -478,8 +513,12 @@ main{position:relative;height:100vh;display:grid;grid-template-columns:minmax(0,
     const s = await call('state').catch(() => null) || {};
     const here = s.project || '', all = (s.projects || []).filter(n => n && n !== 'Unsorted');
     const others = all.filter(n => n !== here);
-    projMenu.innerHTML = (here && here !== 'Unsorted' ? `<span class="cap">This project</span><button class="here" role="menuitem" data-proj="${esc(here)}">${esc(here)}<small>Open ›</small></button>` : '')
-      + (others.length ? `<span class="cap">Open another</span>${others.map(n => `<button role="menuitem" data-proj="${esc(n)}">${esc(n)}${(s.projectLabels || {})[n] ? `<small>${esc(s.projectLabels[n])}</small>` : ''}</button>`).join('')}` : '')
+    const labels = s.labels || [], lab = s.projectLabels || {};
+    // Each project: open it, or label it right here.
+    const row = (n, here) => `<div class="prow"><button role="menuitem" class="${here ? 'here' : ''}" data-proj="${esc(n)}">${esc(n)}${here ? '<small>Open ›</small>' : ''}</button>
+      <select data-label-for="${esc(n)}" aria-label="Label for ${esc(n)}" title="What kind of work"><option value="">No label</option>${labels.map(l => `<option${lab[n] === l ? ' selected' : ''}>${esc(l)}</option>`).join('')}${lab[n] && !labels.includes(lab[n]) ? `<option selected>${esc(lab[n])}</option>` : ''}<option value="__new">New label…</option></select></div>`;
+    projMenu.innerHTML = (here && here !== 'Unsorted' ? `<span class="cap">This project</span>${row(here, true)}` : '')
+      + (others.length ? `<span class="cap">Open another</span>${others.map(n => row(n)).join('')}` : '')
       + (!all.length ? '<span class="cap">No projects yet — pick one in the bar at the top</span>' : '');
     const r = $('projTile').getBoundingClientRect();
     projMenu.style.left = r.left + 'px'; projMenu.style.top = (r.bottom + 8) + 'px';
@@ -493,6 +532,14 @@ main{position:relative;height:100vh;display:grid;grid-template-columns:minmax(0,
     await call('setProject', { name: b.dataset.proj }).catch(() => null);
     call('tab', { id: 'project' });
   });
+  projMenu.addEventListener('change', async e => {
+    const sel = e.target.closest('select[data-label-for]'); if (!sel) return;
+    let v = sel.value;
+    if (v === '__new') { v = (prompt('The new label — the kind of work, like Commercial or Music video') || '').trim(); if (!v) { sel.value = ''; return; } }
+    await call('setLabel', { project: sel.dataset.labelFor, label: v }).catch(() => null);
+    toast(v ? `${sel.dataset.labelFor} — ${v}` : `${sel.dataset.labelFor} — no label`);
+    projMenu.classList.remove('on'); toggleProjects(); showCurrentProject();
+  });
   document.addEventListener('mousedown', e => { if (projMenu.classList.contains('on') && !projMenu.contains(e.target) && !e.target.closest('#projTile')) closeProjects(); });
   document.addEventListener('keydown', e => {
     if (!projMenu.classList.contains('on')) return;
@@ -503,7 +550,7 @@ main{position:relative;height:100vh;display:grid;grid-template-columns:minmax(0,
       const n = bs[(i + (e.key === 'ArrowDown' ? 1 : -1) + bs.length) % bs.length]; if (n) n.focus();
     }
   });
-  async function showCurrentProject() { const s = await call('state').catch(() => null); const c = $('projCur'); if (c) c.textContent = s && s.project && s.project !== 'Unsorted' ? s.project : ''; }
+  async function showCurrentProject() { const s = await call('state').catch(() => null); const c = $('projCur'); if (c) c.textContent = s && s.project && s.project !== 'Unsorted' ? s.project + (s.label ? ' · ' + s.label : '') : ''; }
   showCurrentProject();
 
   // the light follows the cursor across each pane of glass
@@ -1014,7 +1061,7 @@ main{position:relative;height:100vh;display:grid;grid-template-columns:minmax(0,
     const sig = JSON.stringify(s.projectLabels || {}) + (s.labels || []).join('|');
     if (sig !== lastLabels) { lastLabels = sig; labels = s.labels || []; paintSegs(); if (scope === 'label') lastSig = ''; }
     if (s.tab === 'home' || (s.project !== lastProject && scope === 'project')) loadWall();
-    { const c = document.getElementById('projCur'); if (c) c.textContent = s.project && s.project !== 'Unsorted' ? s.project : ''; }
+    { const c = document.getElementById('projCur'); if (c) c.textContent = s.project && s.project !== 'Unsorted' ? s.project + (s.label ? ' · ' + s.label : '') : ''; }
     lastProject = s.project;
   };
   document.addEventListener('dragover', e => { e.preventDefault(); });
@@ -1032,6 +1079,31 @@ main{position:relative;height:100vh;display:grid;grid-template-columns:minmax(0,
     return false;
   };
   window.__homeRefresh = loadWall;
+  /* ---------------- a widget, big ---------------- */
+  let bigEl = null, bigHold = null, calBefore = null;
+  function expand(sec) {
+    if (bigEl) { const same = bigEl === sec; shrink(); if (same) return; }
+    bigHold = document.createElement('div'); bigHold.className = 'hold'; bigHold.style.height = sec.offsetHeight + 'px';
+    sec.before(bigHold);
+    sec.classList.add('big'); bigEl = sec;
+    $('bigveil').classList.add('on');
+    sec.querySelectorAll('[data-expand]').forEach(b => { b.setAttribute('aria-label', 'Put it back'); b.title = 'Put it back — Esc'; });
+    if (sec.classList.contains('cal') && calMode !== 'month') { calBefore = calMode; calMode = 'month'; loadCalendar(false); }   // the whole month
+    if (sec.classList.contains('notes')) $('notes').focus();
+  }
+  function shrink() {
+    if (!bigEl) return;
+    const sec = bigEl; bigEl = null;
+    sec.classList.remove('big');
+    if (bigHold) { bigHold.remove(); bigHold = null; }
+    $('bigveil').classList.remove('on');
+    sec.querySelectorAll('[data-expand]').forEach(b => { b.setAttribute('aria-label', 'Make it bigger'); b.title = 'Bigger — Esc puts it back'; });
+    if (sec.classList.contains('cal') && calBefore) { calMode = calBefore; calBefore = null; loadCalendar(false); }
+  }
+  document.querySelector('.right').addEventListener('click', e => { const b = e.target.closest('[data-expand]'); if (b) { e.stopPropagation(); expand(b.closest('section')); } });
+  $('bigveil').addEventListener('click', shrink);
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && bigEl) { e.stopPropagation(); shrink(); } }, true);
+
   window.__neededSynced = () => { lastSig = ''; loadWall(); };     // Sync found new work or colours
   window.__homeToast = toast;
   window.__homeDrag = on => $('veil').classList.toggle('on', !!on);
