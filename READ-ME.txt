@@ -599,3 +599,16 @@ ROUND 15 — TITLE, FULL AND SPACING
     one, or anywhere in between. It sets the gaps between pictures and the
     margin around them together. Tap a stop's name to jump to it.
 
+
+ROUND 16 — NEEDED VAULT, THE IPHONE APP
+  • A real iPhone app now, in the folder "iPhone/NeededVault" — see its
+    READ-ME. Double-click Make-Needed-Vault-iPhone.command, then ▶ in Xcode.
+  • The mock-up: Browse (rows, All/Stills/Clips/GIFs, search, pull to
+    refresh), the dark view (GIFs play, clips play, colours, tags, Source,
+    Share, swipe), Grab & Go on (banner, Tap to add, Today), Photos and
+    Screenshot. No links.
+  • In every app's Share Sheet as "Needed Vault". "Grab & Go" and "Save my
+    latest screenshot" for the Action Button, Back Tap and Siri — no
+    Shortcuts to build.
+  • It uses the same iCloud folder the Mac mirrors; nothing changes on the
+    Mac. The web page from rounds 12–14 stays in the kit but isn't needed.

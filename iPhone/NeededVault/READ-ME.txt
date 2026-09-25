@@ -1,0 +1,47 @@
+NEEDED VAULT FOR IPHONE
+=======================
+
+The iPhone app for your vault — the mock-up, for real. Browse a project's
+stills, clips and GIFs; tap one for the dark full view; Photos and Screenshot
+add to the project; Grab & Go sends everything straight in. "Needed Vault" is
+in every app's Share Sheet, and "Grab & Go" can go on the side button.
+
+It reads and writes the same Needed Vault folder in iCloud that Needed Tools
+mirrors on your Mac (Home › Your phone › Keep it in iCloud). Nothing else to
+set up on the Mac.
+
+PUT IT ON YOUR PHONE
+  1. You need Xcode (free, App Store) and an Apple Developer account
+     ($99/year — so the app stays on your phone and can use TestFlight).
+     A free Apple ID works too, but the app stops opening after 7 days until
+     you press ▶ in Xcode again.
+  2. Double-click "Make-Needed-Vault-iPhone.command". It asks for your Team ID
+     once (or press Return and choose the team in Xcode), makes the project,
+     and opens Xcode.
+  3. Plug in your iPhone, pick it at the top of Xcode, press ▶.
+     The first time: on the iPhone, Settings › General › VPN & Device
+     Management › trust your developer account; and turn on Developer Mode
+     (Settings › Privacy & Security) if it asks.
+
+FIRST OPEN
+  - Tap "Choose the Needed Vault folder" and pick iCloud Drive › Shortcuts ›
+    Needed Vault. That's it — your projects appear.
+  - The first Screenshot asks for Photos access. Photos you pick with the
+    Photos button don't need it.
+
+THE SIDE BUTTON AND BACK TAP
+  - Settings › Action Button › Shortcut › Needed Vault › "Grab & Go".
+  - Or Settings › Accessibility › Touch › Back Tap › Double Tap › "Grab & Go",
+    and Triple Tap › "Save my latest screenshot".
+  - Siri: "Grab and Go in Needed Vault".
+
+HOW IT FITS
+  - What you add goes into Needed Vault/<Project>/Inbox in iCloud. Press Sync
+    on the Mac and it's filed into the project's vault, with #tags from the
+    name.
+  - If iCloud can't be reached, things wait on the phone and go in the next
+    time the app opens ("2 wait on this phone").
+  - The grid shows the project's files directly; Needed Tools' Sync also
+    writes a small index (names, tags, colours, tiny previews) so it's quick.
+
+The web page and the Shortcuts from rounds 12–14 aren't needed any more.
