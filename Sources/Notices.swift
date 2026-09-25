@@ -17,12 +17,12 @@ final class Notices {
 
     func show(_ title: String, _ body: String) {
         guard let host = host else { return }
-        let dark = Shell.theme == "dark"
+        let dark = Shared.theme == "dark"
         let card = NoticeCard(title: title, body: body, width: width, dark: dark)
         card.onClose = { [weak self, weak card] in if let c = card { self?.dismiss(c) } }
         card.frame.origin = NSPoint(x: margin, y: margin - 12)
         card.alphaValue = 0
-        card.autoresizingMask = [.maxXMargin, .maxYMargin]
+        card.autoresizingMask = NSView.AutoresizingMask([.maxXMargin, .maxYMargin])
         host.addSubview(card, positioned: .above, relativeTo: nil)
         cards.insert(card, at: 0)
         while cards.count > 4 { dismiss(cards.last!) }
