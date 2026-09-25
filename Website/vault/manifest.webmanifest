@@ -1,6 +1,6 @@
 {
-  "name": "Needed Vault",
-  "short_name": "Needed Vault",
+  "name": "Needed Mobile Vault",
+  "short_name": "Mobile Vault",
   "description": "Catch photos and clips anywhere, then send them to Needed Tools on your Mac.",
   "scope": "./",
   "display": "standalone",

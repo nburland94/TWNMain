@@ -754,3 +754,12 @@ ROUND 23 — COPY AND PASTE, EVERYWHERE; THE GUIDE
     (press ?), and in the welcome guide. The welcome guide's pages are now
     Welcome, Vault, Design, Shots, Sort, Grab, Credit, Pay, Grab & Go and,
     last, Project.
+
+ROUND 23.1 — NEEDED MOBILE VAULT
+  • The phone app is now called Needed Mobile Vault ("Mobile Vault" under
+    its Home Screen icon), so it's clear it's the one on your phone. The Mac
+    tool is still Needed Vault, and the Photos albums are still
+    Needed Vault › project.
+  • Website: the menu reads Work · Awards · About · Contact · Tools ·
+    Mobile Vault, and the page runs in the same order — Contact now comes
+    straight after About.

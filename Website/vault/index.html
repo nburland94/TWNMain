@@ -3,16 +3,16 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="robots" content="noindex">
-<meta name="apple-mobile-web-app-title" content="Needed Vault">
+<meta name="apple-mobile-web-app-title" content="Mobile Vault">
 <meta name="theme-color" content="#fcf2ec">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="description" content="Needed Vault — catch photos and clips anywhere, then send them to Needed Tools on your Mac.">
+<meta name="description" content="Needed Mobile Vault — catch photos and clips anywhere, then send them to Needed Tools on your Mac.">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon-180.png">
 <link rel="icon" href="icon-192.png">
-<title>Needed Vault</title>
+<title>Needed Mobile Vault</title>
 <style>
 @font-face{font-family:'Raleway';font-weight:200;font-display:swap;src:url('fonts/raleway-latin-200-normal.woff2') format('woff2')}
 @font-face{font-family:'Raleway';font-weight:300;font-display:swap;src:url('fonts/raleway-latin-300-normal.woff2') format('woff2')}
@@ -182,14 +182,14 @@ main{padding-bottom:calc(env(safe-area-inset-bottom) + 190px)}
 <!-- The first time, in Safari: make it an app -->
 <section class="install off" id="install">
   <img class="icon" src="icon-180.png" alt="">
-  <span class="cap">Needed Vault · This Was Needed</span>
-  <h1>Put Needed Vault on your Home Screen</h1>
+  <span class="cap">Needed Mobile Vault · This Was Needed</span>
+  <h1>Put Needed Mobile Vault on your Home Screen</h1>
   <p class="lead">Then it opens like an app — full screen, and it works with no signal at all. Takes ten seconds.</p>
   <span class="mac" id="instMac"></span>
   <div class="steps2" id="instIOS">
     <div class="g step"><span class="n">1</span><div>Tap <b>Share</b><small>At the bottom of Safari (top on iPad). On iOS 26, tap ⋯ first.</small></div><span class="sym"><svg width="20" height="22" viewBox="0 0 20 24" fill="none" stroke="#0a84ff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 15V2M5.5 6.5L10 2l4.5 4.5"/><path d="M6 10H3.5v12h13V10H14"/></svg></span></div>
     <div class="g step"><span class="n">2</span><div>Scroll down, tap <b>Add to Home Screen</b><small>Leave “Open as Web App” on.</small></div><span class="sym"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#141414" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="4.5"/><path d="M12 8v8M8 12h8"/></svg></span></div>
-    <div class="g step"><span class="n">3</span><div>Tap <b>Add</b>, then open <b>Needed Vault</b> from your Home Screen<small>Your projects come with it.</small></div><span class="sym"><img src="icon-180.png" alt="" style="width:30px;border-radius:7px"></span></div>
+    <div class="g step"><span class="n">3</span><div>Tap <b>Add</b>, then open <b>Mobile Vault</b> from your Home Screen<small>Your projects come with it.</small></div><span class="sym"><img src="icon-180.png" alt="" style="width:30px;border-radius:7px"></span></div>
     <div class="pointer" aria-hidden="true">Share is down here<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M8 2v11M3.5 8.5L8 13l4.5-4.5"/></svg></div>
   </div>
   <div class="steps2 off" id="instInApp">
@@ -198,7 +198,7 @@ main{padding-bottom:calc(env(safe-area-inset-bottom) + 190px)}
   <div class="steps2 off" id="instOther">
     <div class="g step"><span class="n">1</span><div>Open your browser’s menu<small>⋮ in Chrome</small></div></div>
     <div class="g step"><span class="n">2</span><div>Tap <b>Add to Home Screen</b> or <b>Install app</b></div></div>
-    <button class="dark off" id="instBtn">Install Needed Vault</button>
+    <button class="dark off" id="instBtn">Install Needed Mobile Vault</button>
   </div>
   <div class="g why"><b>Where do my photos go?</b> They stay on this phone until you tap Sync — then into your Photos, and iCloud takes them to your Mac. Nothing goes up to the website.</div>
   <button class="skip" id="instSkip">Use it in Safari for now</button>
@@ -206,7 +206,7 @@ main{padding-bottom:calc(env(safe-area-inset-bottom) + 190px)}
 
 <div id="app" class="off">
 <header>
-  <button class="markbtn" id="mark" aria-label="Needed Vault — how it works"><img src="mark.png" alt="This Was Needed"></button>
+  <button class="markbtn" id="mark" aria-label="Needed Mobile Vault — how it works"><img src="mark.png" alt="This Was Needed"></button>
   <button class="pill" id="pill" aria-haspopup="dialog"><span id="pillName">Projects</span> <svg width="10" height="7" viewBox="0 0 10 7" aria-hidden="true"><path d="M1 1l4 4 4-4" fill="none" stroke="#fff" stroke-width="1.5"/></svg></button>
   <span style="flex-grow:1"></span>
   <span class="gg" id="ggWrap">Grab &amp; Go <button class="tog" id="gg" aria-label="Grab and Go" aria-pressed="false"></button></span>
@@ -214,7 +214,7 @@ main{padding-bottom:calc(env(safe-area-inset-bottom) + 190px)}
 
 <main>
   <section id="browse">
-    <div class="titlerow"><h1 id="title">Needed Vault</h1><span class="cap" id="count"></span></div>
+    <div class="titlerow"><h1 id="title">Mobile Vault</h1><span class="cap" id="count"></span></div>
     <div class="chips" id="chips">
       <button class="chip on" data-k="all">All</button><button class="chip" data-k="still">Stills</button><button class="chip" data-k="clip">Clips</button><button class="chip" data-k="gif">GIFs</button>
       <span class="grow"></span>
@@ -282,8 +282,8 @@ main{padding-bottom:calc(env(safe-area-inset-bottom) + 190px)}
   <p>Opening Photos gives iCloud a nudge to send them up now. Then press <b>Sync</b> in Needed Tools on your Mac.</p>
   <div class="steps"><button class="dark" id="nudgePhotos">Open Photos</button><button class="light" id="nudgeDone">Done</button></div>
 </div>
-<div class="g sheet menu" id="menuSheet" role="dialog" aria-label="Needed Vault">
-  <span class="cap">Needed Vault</span><h2>How it works</h2>
+<div class="g sheet menu" id="menuSheet" role="dialog" aria-label="Needed Mobile Vault">
+  <span class="cap">Needed Mobile Vault</span><h2>How it works</h2>
   <ol class="how">
     <li>Add photos and clips to a project — anywhere, with or without signal.</li>
     <li>They wait on this phone until you tap <b>Sync</b> — it saves them to Photos, and iCloud takes them to your Mac.</li>

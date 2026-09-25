@@ -1,4 +1,4 @@
-/* Needed Vault — on the phone, anywhere (Round 21).
+/* Needed Mobile Vault — on the phone, anywhere (Round 21).
    Everything you add stays on this phone (IndexedDB) until you send it to your Mac.
    Sync shares the files — Save to Photos (iCloud Photos takes them to your Mac), or
    AirDrop — each named
@@ -122,7 +122,7 @@
     $('pillName').textContent = (on ? S.grabGo : S.project) || 'Projects';
     $('gg').classList.toggle('on', on); $('gg').setAttribute('aria-pressed', on); $('ggWrap').classList.toggle('on', on);
     $('browse').classList.toggle('off', on); $('on').classList.toggle('off', !on);
-    $('title').textContent = S.project || 'Needed Vault';
+    $('title').textContent = S.project || 'Mobile Vault';
     var mine = S.items.filter(function (it) { return it.project === S.project; });
     $('count').textContent = mine.length ? mine.length + ' on this phone' : '';
     [].forEach.call(document.querySelectorAll('#chips [data-k]'), function (b) { b.classList.toggle('on', b.dataset.k === S.kind); });
@@ -249,7 +249,7 @@
       refresh();
     }).catch(function (e) {
       $('prog').classList.remove('on');
-      toast(/quota/i.test(String(e && e.name)) ? 'This phone’s out of room for Needed Vault — send some to your Mac first' : 'Couldn’t keep that one: ' + (e && e.message || e), 4200);
+      toast(/quota/i.test(String(e && e.name)) ? 'This phone’s out of room for Mobile Vault — send some to your Mac first' : 'Couldn’t keep that one: ' + (e && e.message || e), 4200);
       refresh();
     });
   }
