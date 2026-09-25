@@ -576,13 +576,17 @@ extension Shell {
             // photo files from anywhere else → into the project as references, onto the page. Words → a text box.
             let pb = NSPasteboard.general
             if let mine = body["mine"] as? Int, mine == pb.changeCount { reply(["kind": "mine"], nil); return true }
-            let urls = (pb.readObjects(forClasses: [NSURL.self], options: [.urlReadingFileURLsOnly: true]) as? [URL]) ?? []
+            let all = (pb.readObjects(forClasses: [NSURL.self], options: [.urlReadingFileURLsOnly: true]) as? [URL]) ?? []
+            // Pictures already in the vault aren't brought in again — Design's own copy pastes them instead.
+            let inVault = { (u: URL) -> Bool in Shared.vault.map { u.standardizedFileURL.path.hasPrefix($0.standardizedFileURL.path + "/") } ?? false }
+            let urls = all.filter { !inVault($0) }
             let pics = Designs.pictures(in: urls)
             if !pics.isEmpty {
                 reply(["kind": "files", "n": pics.count], nil)
                 designImport(urls)
                 return true
             }
+            if !all.isEmpty && urls.isEmpty { reply(["kind": "mine"], nil); return true }
             if pb.canReadObject(forClasses: [NSImage.self], options: nil), let img = NSImage(pasteboard: pb),
                let tiff = img.tiffRepresentation, let rep = NSBitmapImageRep(data: tiff),
                let png = rep.representation(using: .png, properties: [:]) {

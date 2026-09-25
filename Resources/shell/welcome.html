@@ -57,16 +57,14 @@ html.only label{visibility:hidden}
               'Added files in Finder? Press Sync, top right \u2014 it brings every tool up to date, with a bar while it works.', 'Open any tool from the tabs, or from Home.',
               'When something\u2019s done \u2014 a sync, an export, things in from your phone \u2014 a note rises in the bottom-left corner. Click it to close it.'] },
     { key: 'Vault', id: 'vault', title: 'Needed Vault', line: 'Your reference library, sorted by project.',
-      steps: ['Paste a link \u2014 YouTube, Vimeo or Instagram.', 'Grab stills, GIFs or MP4 clips from it \u2014 each in its own shapes.', 'Tag them, and add them to boards.',
-              'Find anything again by project, label, board, tag or colour.', 'Pick stills and press Make mood board \u2014 they open in Needed Design.',
+      steps: ['Paste a link \u2014 YouTube, Vimeo or Instagram \u2014 and grab stills, GIFs or MP4 clips from it, each in its own shapes.',
+              'Tag them and add them to boards; find anything again by project, label, board, tag or colour.', 'Pick stills and press Make mood board \u2014 they open in Needed Design.',
               'On your phone too: press the phone button, top right, and scan the QR code. Needed Vault opens from your website \u2014 add it to your Home Screen and it works anywhere, even with no signal.',
               'Tap Sync on the phone: it saves to Photos, and iCloud brings it to your Mac. Press Sync here \u2014 each one goes into its project, tagged, and into Needed Vault \u203a the project in Photos. Nothing lands twice.'] },
     { key: 'Design', id: 'design', title: 'Needed Design', line: 'Mood boards and treatments, from your stills.',
       steps: ['Mood: just pictures, in tight rows \u2014 up to 12 a page \u2014 slide to fill the page you\u2019re on from the project\u2019s stills.', 'Treatment: pictures and words \u2014 drag photos onto the page, T for a text box, and the panel shows what you picked.',
-              'Click a picture, then \u2191 \u2193 to swap it through your stills. \u2190 \u2192 moves it, \u2318\u2190 \u2192 to another page.', 'Press ? in Design for a step-by-step guide. Export a PDF, page images, a web page to share (GIFs play), or a video \u2014 every export a new version.'] },
-    { key: 'Project', id: 'project', title: 'The project page', line: 'One job, all in one place.',
-      steps: ['Dates, deliverables and to-dos \u2014 or read the brief and it finds them.', 'Drop anything on it: it\u2019s filed into the project by what it is.',
-              'Pick documents and send them \u2014 To, Cc, Bcc \u2014 from Pay\u2019s account.', 'Crew from your contacts; Make credits opens Credit with them all in.'] },
+              'Click a picture, then \u2191 \u2193 to swap it through your stills. \u2190 \u2192 moves it, \u2318\u2190 \u2192 to another page.', 'Press ? in Design for a step-by-step guide. Export a PDF, page images, a web page to share (GIFs play), or a video \u2014 every export a new version.',
+              'Copy and paste: \u2318C and \u2318V for pictures, GIFs, text boxes or a page\u2019s arrangement; \u2318X cuts, \u2318A picks every picture. A picture copied anywhere else goes into the project\u2019s vault first, then onto the page; copied words become a text box.'] },
     { key: 'Shots', id: 'shots', title: 'Needed Shots', line: 'Treatment in, shot list out.',
       steps: ['Paste your beats or treatment \u2014 each one becomes a shot.', 'Add the details, and stills from your vault.',
               'Preview it \u2014 page, layout, size.', 'Export the PDF.'] },
@@ -83,6 +81,9 @@ html.only label{visibility:hidden}
     { key: 'Grab & Go', id: 'grabgo', title: 'Grab & Go', line: 'Save any image from the web straight into your project.',
       steps: ['Switch on Grab & Go, top right.', 'In any browser, right-click an image and choose Copy Image \u2014 or drag it onto Needed Tools.',
               'It lands in your project\u2019s stills, at the biggest size the site offers.'] },
+    { key: 'Project', id: 'project', title: 'The project page', line: 'One job, all in one place.',
+      steps: ['Dates, deliverables and to-dos \u2014 or read the brief and it finds them.', 'Drop anything on it: it\u2019s filed into the project by what it is.',
+              'Pick documents and send them \u2014 To, Cc, Bcc \u2014 from Pay\u2019s account.', 'Crew from your contacts; Make credits opens Credit with them all in.'] }
   ];
   const want = new URLSearchParams(location.search).get('tool');
   let i = Math.max(0, SLIDES.findIndex(s => s.id === want));

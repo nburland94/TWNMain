@@ -734,3 +734,23 @@ ROUND 22 — SYNC ON BOTH SIDES, THROUGH APPLE PHOTOS, NEVER TWICE
     on the next Sync.
   • Photos keeps its own copy (the original in your camera roll, plus the
     Needed Vault one in its album); your vault keeps one.
+
+ROUND 23 — COPY AND PASTE, EVERYWHERE; THE GUIDE
+  • Needed Design and the Mac's clipboard work together. Whatever you
+    copied last wins:
+      – Copied in Design (pictures, GIFs, a text box, a page's
+        arrangement): ⌘V pastes it on any page, as before.
+      – A picture copied anywhere else — Safari, Photos, a screenshot,
+        files copied in Finder: ⌘V brings it into the project's vault first
+        (References, with its colours), then onto the page. Pictures
+        already in the vault aren't brought in twice.
+      – Words copied in Notes, an email or a brief: ⌘V on the page makes a
+        new text box. Inside a text box they paste as plain words.
+      – What you copy in Design pastes into other apps: a text box's words,
+        or the picture files (Mail, Messages, Finder).
+  • ⌘X cuts pictures or a text box; ⌘A picks every picture on the page.
+    Right-click has Cut too.
+  • The guides teach it: a "Copy, cut and paste" step in Design's guide
+    (press ?), and in the welcome guide. The welcome guide's pages are now
+    Welcome, Vault, Design, Shots, Sort, Grab, Credit, Pay, Grab & Go and,
+    last, Project.

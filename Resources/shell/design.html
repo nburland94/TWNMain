@@ -1645,6 +1645,53 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
     keepClip();
     toast('Arrangement copied — ⌘V on another page, or right-click it › Paste arrangement');
   }
+  /* The Mac's clipboard, both ways. Whatever was copied last wins: Design's own copy pastes as it
+     was; pictures or photo files copied anywhere else go into the project's vault first (References,
+     with their colours), then onto the page; words from another app become a new text box. What you
+     copy here goes on the Mac's clipboard too — the words, or the picture files. */
+  let clipPending = Promise.resolve();
+  function toMacClipboard() {
+    if (!clip) return;
+    const mine = clip;
+    const text = clip.kind === 'items' ? (clip.boxes || []).map(b => b.text || '').join('\n\n').trim() : '';
+    const files = clip.kind === 'items' ? (clip.pics || []).map(x => x.file).filter(Boolean) : [];
+    clipPending = call('designClipboardSet', { text, files })
+      .then(r => { if (r && r.change != null && clip === mine) { clip.change = r.change; keepClip(); } })
+      .catch(() => {});
+  }
+  function copyNow() {
+    if (!doc) return;
+    if (!copyItems()) copyArrangement();
+    toMacClipboard();
+  }
+  function cutNow() {
+    if (!doc) return;
+    if (!copyItems()) return toast('Pick a picture or a text box to cut');
+    toMacClipboard();
+    if (bsel) deleteBox(bsel); else removePics([...sel]);
+    toast('Cut — ⌘V puts it back on any page');
+  }
+  function selectAllPics() {
+    const p = page(); if (!p || !p.pics.length) return toast('No pictures on this page');
+    bsel = null; sel = new Set(p.pics.map((_, k) => k));
+    drawStage(); drawPanel(); drawBar();
+    toast(`${p.pics.length} picked — ⌘C copies them, ⌫ takes them off`);
+  }
+  async function pasteNow(i) {
+    if (!doc) return;
+    await clipPending;
+    let r = null;
+    try { r = await call('designClipboard', { mine: clip && clip.change != null ? clip.change : -1 }); } catch (e) {}
+    if (!r || !r.kind || r.kind === 'mine' || r.kind === 'none') return paste(i);
+    if (r.kind === 'files' || r.kind === 'image') return toast(`${r.n > 1 ? r.n + ' pictures' : 'The picture'} from the clipboard — into ${project || 'the project'}’s vault, then onto the page`);
+    if (r.kind === 'text') {
+      if (doc.mode === 'mood') return toast('Mood boards are pictures only — paste words into a treatment');
+      if (i != null) cur = i;
+      addBox(null, String(r.text).replace(/\r/g, '').trim());
+      return toast('Pasted into a new text box');
+    }
+    paste(i);
+  }
   function paste(i) {
     if (!clip || !doc) return toast('Nothing copied yet — ⌘C copies what you picked, or the page\u2019s arrangement');
     const pi = i == null ? cur : i, p = doc.pages[pi]; if (!p) return;
@@ -1914,9 +1961,10 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
     if (what === 'obj:reframe') { const k = [...sel][0]; reframe = k; drawStage(); return drawPanel(); }
     if (what === 'obj:type') return bsel && startEditing(bsel);
     if (what === 'obj:dup') return bsel ? dupBox(bsel) : dupPic();
-    if (what === 'obj:copy') return copyItems();
-    if (what === 'obj:paste') return paste();
-    if (what.startsWith('arr:copy')) return copyArrangement(+what.split(':')[2]);
+    if (what === 'obj:copy') { copyItems(); return toMacClipboard(); }
+    if (what === 'obj:cut') return cutNow();
+    if (what === 'obj:paste') return pasteNow();
+    if (what.startsWith('arr:copy')) { copyArrangement(+what.split(':')[2]); return toMacClipboard(); }
     if (what.startsWith('arr:paste')) return paste(+what.split(':')[2]);
     if (what.startsWith('arr:dup')) { cur = +what.split(':')[2]; return dupPage(); }
     if (what === 'obj:del') return bsel ? deleteBox(bsel) : removePics([...sel]);
@@ -1953,7 +2001,7 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
     drawStage(); drawPanel();
     const m = $('ctxmenu'); ctxIds = []; ctxHi = 0;
     const items = [['z:front', 'Bring to front', ''], ['z:forward', 'Bring forward', ''], ['z:backward', 'Send backward', ''], ['z:back', 'Send to back', ''], null]
-      .concat(pic ? [['obj:reframe', 'Reframe', 'double-click']] : [['obj:type', 'Type in it', 'Return']]).concat([['obj:copy', 'Copy', '⌘C'], ['obj:paste', 'Paste', '⌘V'], ['obj:dup', 'Duplicate', '⌘D'], ['obj:del', tb ? 'Delete' : 'Take off the page', '⌫']]);
+      .concat(pic ? [['obj:reframe', 'Reframe', 'double-click']] : [['obj:type', 'Type in it', 'Return']]).concat([['obj:cut', 'Cut', '⌘X'], ['obj:copy', 'Copy', '⌘C'], ['obj:paste', 'Paste', '⌘V'], ['obj:dup', 'Duplicate', '⌘D'], ['obj:del', tb ? 'Delete' : 'Take off the page', '⌫']]);
     m.innerHTML = items.map(it => it ? `<button role="menuitem" data-ctx="${it[0]}"><span>${esc(it[1])}</span><small>${it[2]}</small></button>` : '<hr>').join('');
     m.hidden = false;
     const r = m.getBoundingClientRect();
@@ -2399,8 +2447,10 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
     if (cmd && e.key === '0') { e.preventDefault(); return setZoom(null); }
     if (cmd && e.key.toLowerCase() === 'd') { e.preventDefault(); if (editing) return; return bsel ? dupBox(bsel) : sel.size === 1 ? dupPic() : dupPage(); }
     if (typingIn) { if (e.key === 'Escape' && t.isContentEditable) { e.preventDefault(); stopEditing(); drawStage(); drawPanel(); } return; }
-    if (cmd && e.key.toLowerCase() === 'c') { e.preventDefault(); if (!copyItems()) copyArrangement(); return; }
-    if (cmd && e.key.toLowerCase() === 'v') { e.preventDefault(); return paste(); }
+    if (cmd && e.key.toLowerCase() === 'c') { e.preventDefault(); return copyNow(); }
+    if (cmd && e.key.toLowerCase() === 'x') { e.preventDefault(); return cutNow(); }
+    if (cmd && e.key.toLowerCase() === 'v') { e.preventDefault(); return pasteNow(); }
+    if (cmd && e.key.toLowerCase() === 'a') { e.preventDefault(); return selectAllPics(); }
     if (swap) {
       if (e.key === 'ArrowUp' || e.key === 'ArrowDown') { e.preventDefault(); return swapStep(e.key === 'ArrowDown' ? 1 : -1); }
       if (e.key === 'Enter') { e.preventDefault(); swapEnd(true); return toast('Kept'); }
@@ -2542,6 +2592,8 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
       art(blk(6, 10, 56, 72, '#fff', 'box-shadow:0 4px 14px rgba(0,0,0,.12)') + blk(66, 10, 28, 80, '#fff', 'box-shadow:0 4px 14px rgba(0,0,0,.08)') + blk(68, 14, 7, 6, '#ece6dc') + blk(76, 14, 8, 6, '#141414') + blk(85, 14, 7, 6, '#ece6dc') + blk(68, 26, 24, 5, '#ece6dc') + blk(68, 35, 24, 5, '#ece6dc') + blk(68, 44, 11, 5, '#ece6dc') + blk(81, 44, 11, 5, '#ece6dc') + blk(68, 55, 24, 5, '#F05A22', 'opacity:.8'))],
     ['The fade, your name, and a closer look', 'Switch on <b>Fade</b> in the Page panel and pick where it comes from — top, bottom, left or right — or press <b>R</b> to turn it round. <b>Move &amp; size it</b> lets you drag it anywhere and pull its corners. <b>Name and page numbers</b> puts your name and the project top left and the page number top right, on every page — click either one and press ⌫ to take it off just that page. Pinch, or ⌘+ and ⌘−, to zoom in; ⌘0 fits the page again.',
       art(blk(8, 10, 84, 72, '#fff', 'box-shadow:0 4px 14px rgba(0,0,0,.12)') + blk(10, 16, 46, 60, '#3b2a22') + blk(10, 16, 46, 60, 'linear-gradient(to right,rgba(0,0,0,.7),rgba(0,0,0,0))', 'outline:1.5px dashed #F05A22') + blk(12, 12, 20, 2, '#141414') + blk(80, 12, 8, 2, '#141414') + '<b class="gdot" style="left:10%;top:16%"></b><b class="gdot" style="left:56%;top:76%"></b>')],
+    ['Copy, cut and paste', '<b>⌘C</b> copies what you picked — pictures, GIFs or a text box — and <b>⌘V</b> puts it on any page, even in another design. <b>⌘X</b> cuts it; <b>⌘A</b> picks every picture on the page. With nothing picked, ⌘C copies the page\u2019s <b>arrangement</b>. A picture copied anywhere else — Safari, Photos, a screenshot, Finder — pastes too: it goes into the project\u2019s vault first, then onto the page. Words copied from Notes or an email become a new text box. And what you copy here pastes into Mail or Messages.',
+      art(blk(8, 10, 40, 60, '#fff', 'box-shadow:0 4px 14px rgba(0,0,0,.12)') + blk(12, 16, 32, 30, '#b8461c', 'outline:2px dashed #F05A22;outline-offset:2px') + blk(12, 50, 26, 4, '#141414') + blk(52, 10, 40, 60, '#fff', 'box-shadow:0 4px 14px rgba(0,0,0,.12)') + blk(56, 16, 32, 30, '#b8461c') + blk(56, 50, 26, 4, '#141414') + blk(34, 78, 32, 8, '#F05A22', 'border-radius:20px'))],
     ['Play, keep, export', '<b>Space</b> plays it full screen. Everything saves as you go; <b>⌘S</b> keeps a version. <b>Export</b> makes a PDF, page images for your slides, or both — a new version every time, in the project’s Design folder.',
       art(blk(0, 0, 100, 100, '#0b0b0b') + blk(14, 14, 72, 58, '#3b2a22') + blk(20, 50, 30, 6, '#fff', 'opacity:.9') + blk(40, 80, 20, 8, '#F05A22', 'border-radius:20px'), '#0b0b0b')],
     ['Share it — GIFs and all', 'A PDF keeps GIFs still, so Export has three that move. <b>Web page</b> makes a folder with your pages in it — open it to look, then drag the folder onto <b>Netlify Drop</b> and send the link it gives you. Free, and we show you each step. <b>Video</b> is one MP4, a few seconds a page, fade or cut. <b>Moving pages</b> gives each page with a GIF as an MP4 and a GIF for your slides or a message, and the rest as JPEGs.',
