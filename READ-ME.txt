@@ -708,3 +708,29 @@ ROUND 21 — NEEDED VAULT ANYWHERE, NOTES IN THE CORNER, THE WEBSITE
     say OK.
   • The website is in the "Website" folder of the kit — see
     "How to put it online.txt" inside.
+
+ROUND 22 — SYNC ON BOTH SIDES, THROUGH APPLE PHOTOS, NEVER TWICE
+  • On the phone, Send to Mac is now Sync. It opens the share sheet: tap
+    Save Images (or Save Video) and they go into the phone's Photos. Then
+    "Open Photos" gives iCloud a nudge to send them up straight away.
+    Next to your Mac? AirDrop still works from the same sheet.
+  • On the Mac, Sync now looks in two places before anything else:
+    Downloads (AirDrop) and your Photos library (what iCloud brought over).
+    Each Needed Vault picture goes into its project's References with its
+    tags. In Photos it's also sorted into an album: Needed Vault › Lexus —
+    and iCloud shows those albums on your phone too.
+  • Never twice: every picture carries the phone's own id in its name
+    ("NV ~ Lexus ~ night ~ IMG_1234 ~ k3f9x2a.jpg"). Needed Tools remembers
+    each id it has filed, so a picture that comes through Photos and
+    AirDrop, or is synced twice, lands in the vault once (an extra AirDrop
+    copy goes to the Bin) and in its Photos album once.
+  • Can't find something? On the phone: the logo › "Sync the last week
+    again". Nothing already in the vault comes in again.
+  • Home › Your phone has two switches: Bring them in from Photos, and Sort
+    Photos into Needed Vault albums. The first Sync asks to let Needed Tools
+    use Photos — say Allow (Full access). Nothing is ever deleted from Photos.
+  • The first time, Sync looks back 60 days in Photos; after that, from the
+    last Sync. A picture iCloud hasn't finished bringing down is picked up
+    on the next Sync.
+  • Photos keeps its own copy (the original in your camera roll, plus the
+    Needed Vault one in its album); your vault keeps one.

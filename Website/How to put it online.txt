@@ -19,7 +19,7 @@ somewhere else, tell me the address and I'll point the app at it.
 
 What the website holds
   Only the pages themselves (a few hundred KB). No photos, GIFs or clips are ever sent to the
-  website — they stay on the phone until you AirDrop them to your Mac. Nothing to store, no
-  server, no accounts.
+  website — they stay on the phone until you tap Sync, which saves them into your own Photos;
+  iCloud Photos carries them to your Mac. Nothing to store, no server, no accounts.
 
 Needed Tools stays "Coming soon" on the Tools section until you're ready to sell it.

@@ -1405,10 +1405,11 @@ extension VaultHost {
             let proj = base.appendingPathComponent(project, isDirectory: true)
             // 0. Needed Vault on the phone: the Cloud vault and this vault made to match, every project.
             //    What arrives for this project is found just below, like anything else.
-            // 00. From the phone by AirDrop: Needed Vault files in Downloads go to their projects first.
-            let drops = PhoneDrops.collect(base: base, fallback: project)
+            // 00. From the phone first — AirDropped into Downloads, or saved to Photos and brought
+            //     over by iCloud. Each goes to its project, once, however many ways it came.
+            let phone = PhoneDrops.collect(base: base, fallback: project, progress: { f in DispatchQueue.main.async { progress(f * 0.25) } })
+            let drops = phone.drops
             let dropPaths = Set(drops.map { $0.file.path })
-            if !drops.isEmpty { DispatchQueue.main.async { progress(0.05) } }
             let cloud = CloudVault.mirror(vault: base, syncing: project)
             var linkFiles: [(URL, [String: Any], String)] = []
             for l in cloud.links {
@@ -1460,7 +1461,7 @@ extension VaultHost {
             var step: Double = 0
             let tick: () -> Void = {
                 step += 1
-                let f: Double = step / total
+                let f: Double = 0.25 + 0.75 * step / total
                 DispatchQueue.main.async { progress(f) }
             }
             // 2. each new one gets its preview and colours, the way register() does it
@@ -1493,7 +1494,8 @@ extension VaultHost {
                 else if d.kind != "clip", let t = self.smallThumb(for: d.file, id: id) { thumbRel = t.path.replacingOccurrences(of: base.path + "/", with: "") }
                 var item: [String: Any] = ["id": id, "kind": d.kind, "file": rel, "thumb": thumbRel, "project": d.project,
                                            "bytes": self.fileSize(d.file), "created": stamp, "origin": "reference",
-                                           "source": ["type": "phone", "via": "airdrop", "title": d.title]]
+                                           "source": ["type": "phone", "via": d.via, "title": d.title]]
+                if !d.phoneId.isEmpty { item["phoneId"] = d.phoneId }
                 if !d.tags.isEmpty { item["tags"] = d.tags }
                 if let p = VaultStore.shared.colours(of: base.appendingPathComponent(thumbRel), kind: d.kind), !p.isEmpty { item["palette"] = p }
                 added.append(item)
@@ -1560,7 +1562,8 @@ extension VaultHost {
                 done(["ok": true, "project": project, "added": fresh.count, "palettes": palettes.count, "previews": thumbs.count,
                       "relinked": relinkCount, "removed": removedItems.count,
                       "cloud": CloudVault.on, "fromPhone": cloud.pulled, "links": linkFiles.count, "toCloud": cloud.pushed,
-                      "phoneTrashed": cloud.trashed, "airdropped": drops.count,
+                      "phoneTrashed": cloud.trashed, "airdropped": drops.filter { $0.via == "airdrop" }.count,
+                      "fromPhotos": drops.filter { $0.via == "photos" }.count, "phoneTwice": phone.twice, "photosNote": phone.photos ?? "",
                       "airdropProjects": Array(Set(drops.map { $0.project })).sorted(), "cloudRetired": cloud.retired, "downloading": cloud.downloading, "bigClips": cloud.skippedBig])
             }
         }

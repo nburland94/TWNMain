@@ -128,6 +128,9 @@ final class PhoneServer {
         var projects = Shared.projects()
         if let i = projects.firstIndex(of: Shared.project) { projects.remove(at: i); projects.insert(Shared.project, at: 0) }
         let pair = PhoneDrops.pairURL(projects: projects, mac: Host.current().localizedName ?? "your Mac")
+        s["photos"] = PhotosInbox.on
+        s["albums"] = PhotosInbox.albums
+        s["photosAccess"] = PhotosInbox.status
         s["vaultURL"] = PhoneDrops.pageURL
         s["pairURL"] = pair
         if let q = PhoneServer.qr(pair) { s["vaultQR"] = q }
@@ -472,26 +475,41 @@ final class HTTPConn {
     }
 }
 
-// MARK: - Round 21: from the phone by AirDrop
-// Needed Vault on the website keeps what you capture on the phone, then Send to Mac
-// AirDrops it here. Each file carries where it's going in its name:
-//     NV ~ Lexus ~ night, car ~ IMG_1234.jpg
-// Sync looks in Downloads first and files every one of them into its project's
-// references, with its tags — then the rest of Sync carries on as before.
+// MARK: - Round 21/22: from the phone — by Photos (iCloud) or AirDrop
+// Needed Vault on the website keeps what you capture on the phone. Its Sync button
+// saves it into the phone's Photos (iCloud Photos brings it to this Mac) — or it can
+// be AirDropped. Either way each file carries where it's going in its name:
+//     NV ~ Lexus ~ night, car ~ IMG_1234 ~ k3f9x2a.jpg      (no tags: "~ - ~")
+// The last part is the phone's own id for it. Sync looks in Downloads and in Photos,
+// files each one into its project's references with its tags, and remembers the id —
+// so the same picture never lands in the vault twice, whichever way it came (or both).
+// In Photos, it's then sorted into an album per project, inside a "Needed Vault" folder.
+
 enum PhoneDrops {
-    struct Drop { let file: URL; let kind: String; let project: String; let tags: [String]; let title: String }
+    struct Drop { let file: URL; let kind: String; let project: String; let tags: [String]; let title: String; let phoneId: String; let via: String }
+    struct Parsed { let project: String; let tags: [String]; let name: String; let id: String }
 
     static var downloads: URL? { FileManager.default.urls(for: .downloadsDirectory, in: .userDomainMask).first }
 
-    /// "NV ~ Lexus ~ night, car ~ IMG_1234.jpg" → Lexus, [night, car], IMG_1234.jpg  (no tags: "NV ~ Lexus ~ - ~ IMG_1234.jpg")
-    static func parse(_ name: String) -> (project: String, tags: [String], name: String)? {
-        guard name.hasPrefix("NV ~ ") else { return nil }
-        let parts = name.components(separatedBy: " ~ ")
+    /// "NV ~ Lexus ~ night, car ~ IMG_1234 ~ k3f9x2a.jpg" → Lexus, [night, car], IMG_1234.jpg, k3f9x2a
+    static func parse(_ file: String) -> Parsed? {
+        guard file.hasPrefix("NV ~ ") else { return nil }
+        let ext = (file as NSString).pathExtension
+        var stem = ext.isEmpty ? file : (file as NSString).deletingPathExtension
+        // AirDrop and Finder add " 2", " 3"… to a name that's already there — not part of it.
+        if let r = stem.range(of: #" \d{1,3}$"#, options: .regularExpression) { stem.removeSubrange(r) }
+        var parts = stem.components(separatedBy: " ~ ")
         guard parts.count >= 4 else { return nil }
         let project = parts[1].trimmingCharacters(in: .whitespaces)
         let tags = parts[2].split(whereSeparator: { $0 == "," || $0 == "#" }).map { $0.trimmingCharacters(in: .whitespaces) }.filter { !$0.isEmpty && $0 != "-" }
-        let rest = parts[3...].joined(separator: " ~ ").trimmingCharacters(in: .whitespaces)
-        return (project, tags, rest.isEmpty ? "From your phone" : rest)
+        var id = ""
+        if parts.count >= 5, let last = parts.last?.trimmingCharacters(in: .whitespaces),
+           last.count >= 6, last.count <= 24, last.allSatisfy({ $0.isLetter || $0.isNumber }) {
+            id = last; parts.removeLast()
+        }
+        var name = parts[3...].joined(separator: " ~ ").trimmingCharacters(in: .whitespaces)
+        if name.isEmpty { name = "From your phone" }
+        return Parsed(project: project, tags: tags, name: ext.isEmpty ? name : name + "." + ext, id: id)
     }
 
     static func kind(_ ext: String) -> String? {
@@ -503,29 +521,67 @@ enum PhoneDrops {
         }
     }
 
-    /// Moves every Needed Vault file in Downloads into its project. Off the main thread.
-    static func collect(base: URL, fallback: String) -> [Drop] {
-        let fm = FileManager.default
-        guard let dl = downloads,
-              let files = try? fm.contentsOfDirectory(at: dl, includingPropertiesForKeys: nil, options: [.skipsHiddenFiles]) else { return [] }
-        // The vault's own project folders, so "lexus" on the phone finds "Lexus" here.
-        let existing = ((try? fm.contentsOfDirectory(at: base, includingPropertiesForKeys: [.isDirectoryKey], options: [.skipsHiddenFiles])) ?? [])
+    // MARK: What's been filed already — the phone's id → where it went
+
+    private static func seenURL(_ base: URL) -> URL { base.appendingPathComponent(".vault/phone-seen.json") }
+    static func loadSeen(_ base: URL) -> [String: String] {
+        ((try? Data(contentsOf: seenURL(base))).flatMap { try? JSONSerialization.jsonObject(with: $0) as? [String: String] }) ?? [:]
+    }
+    static func saveSeen(_ seen: [String: String], _ base: URL) {
+        try? FileManager.default.createDirectory(at: base.appendingPathComponent(".vault", isDirectory: true), withIntermediateDirectories: true)
+        if let d = try? JSONSerialization.data(withJSONObject: seen) { try? d.write(to: seenURL(base), options: .atomic) }
+    }
+
+    /// The vault's own project folders, so "lexus" on the phone finds "Lexus" here.
+    static func projectFolders(_ base: URL) -> [String] {
+        ((try? FileManager.default.contentsOfDirectory(at: base, includingPropertiesForKeys: [.isDirectoryKey], options: [.skipsHiddenFiles])) ?? [])
             .filter { (try? $0.resourceValues(forKeys: [.isDirectoryKey]))?.isDirectory == true }.map { $0.lastPathComponent }
-        var out: [Drop] = []
-        for f in files.sorted(by: { $0.lastPathComponent < $1.lastPathComponent }) {
-            guard let p = parse(f.lastPathComponent), let k = kind(f.pathExtension) else { continue }
-            var project = p.project.trimmingCharacters(in: .whitespaces).isEmpty ? fallback : Shell.clean(p.project)
-            if let same = existing.first(where: { $0.caseInsensitiveCompare(project) == .orderedSame }) { project = same }
-            var clean = p.name.replacingOccurrences(of: "/", with: "-").replacingOccurrences(of: ":", with: "-")
-            if clean.hasPrefix(".") || (clean as NSString).deletingPathExtension.isEmpty { clean = "From your phone." + f.pathExtension }
-            let folder = k == "clip" ? "Motion" : k == "gif" ? "GIFs" : "Stills"
-            let dir = base.appendingPathComponent(project, isDirectory: true).appendingPathComponent(Folders.sub(folder, project: project, grab: false), isDirectory: true)
-            try? fm.createDirectory(at: dir, withIntermediateDirectories: true)
-            let dst = CloudVault.unique(dir, clean)
-            guard (try? fm.moveItem(at: f, to: dst)) != nil else { continue }
-            out.append(Drop(file: dst, kind: k, project: project, tags: p.tags, title: (clean as NSString).deletingPathExtension))
+    }
+    static func projectFor(_ raw: String, fallback: String, existing: [String]) -> String {
+        var project = raw.trimmingCharacters(in: .whitespaces).isEmpty ? fallback : Shell.clean(raw)
+        if let same = existing.first(where: { $0.caseInsensitiveCompare(project) == .orderedSame }) { project = same }
+        return project
+    }
+
+    /// Moves (or copies) one file into its project's references. Nil if it isn't one Needed Tools takes.
+    static func place(_ f: URL, _ p: Parsed, base: URL, fallback: String, existing: [String], move: Bool, via: String) -> Drop? {
+        let fm = FileManager.default
+        guard let k = kind((p.name as NSString).pathExtension) ?? kind(f.pathExtension) else { return nil }
+        let project = projectFor(p.project, fallback: fallback, existing: existing)
+        var clean = p.name.replacingOccurrences(of: "/", with: "-").replacingOccurrences(of: ":", with: "-")
+        if clean.hasPrefix(".") || (clean as NSString).deletingPathExtension.isEmpty { clean = "From your phone." + f.pathExtension }
+        let folder = k == "clip" ? "Motion" : k == "gif" ? "GIFs" : "Stills"
+        let dir = base.appendingPathComponent(project, isDirectory: true).appendingPathComponent(Folders.sub(folder, project: project, grab: false), isDirectory: true)
+        try? fm.createDirectory(at: dir, withIntermediateDirectories: true)
+        let dst = CloudVault.unique(dir, clean)
+        let ok = move ? ((try? fm.moveItem(at: f, to: dst)) != nil) : ((try? fm.copyItem(at: f, to: dst)) != nil)
+        guard ok else { return nil }
+        return Drop(file: dst, kind: k, project: project, tags: p.tags, title: (clean as NSString).deletingPathExtension, phoneId: p.id, via: via)
+    }
+
+    /// Everything from the phone, both ways, each once. Off the main thread (Sync calls it).
+    static func collect(base: URL, fallback: String, progress: ((Double) -> Void)? = nil) -> (drops: [Drop], twice: Int, photos: String?) {
+        var seen = loadSeen(base)
+        let existing = projectFolders(base)
+        var out: [Drop] = [], twice = 0
+        let fm = FileManager.default
+        // 1. AirDrop: Needed Vault files in Downloads
+        if let dl = downloads, let files = try? fm.contentsOfDirectory(at: dl, includingPropertiesForKeys: nil, options: [.skipsHiddenFiles]) {
+            for f in files.sorted(by: { $0.lastPathComponent < $1.lastPathComponent }) {
+                guard let p = parse(f.lastPathComponent), kind(f.pathExtension) != nil else { continue }
+                if !p.id.isEmpty, seen[p.id] != nil {
+                    // Already in the vault (it came through Photos too): the extra copy goes to the Bin.
+                    try? fm.trashItem(at: f, resultingItemURL: nil); twice += 1; continue
+                }
+                guard let d = place(f, p, base: base, fallback: fallback, existing: existing, move: true, via: "airdrop") else { continue }
+                if !d.phoneId.isEmpty { seen[d.phoneId] = d.file.path.replacingOccurrences(of: base.path + "/", with: "") }
+                out.append(d)
+            }
         }
-        return out
+        saveSeen(seen, base)
+        // 2. Photos: what the phone saved there, brought over by iCloud Photos
+        let (fromPhotos, twiceP, note) = PhotosInbox.collect(base: base, fallback: fallback, existing: existing, progress: progress)
+        return (out + fromPhotos, twice + twiceP, note)
     }
 
     /// Where the phone page lives: your website, so it opens anywhere and works offline.

@@ -804,10 +804,14 @@ final class Shell: NSObject, NSApplicationDelegate, NSWindowDelegate, WKScriptMe
                 if added > 0 { bits.append("\(added) new") }
                 if relinked > 0 { bits.append("\(relinked) moved in Finder, found again") }
                 if removed > 0 { bits.append("\(removed) deleted in Finder, taken off the list") }
-                if let a = result["airdropped"] as? Int, a > 0 {
+                let viaPhotos = (result["fromPhotos"] as? Int) ?? 0, viaAir = (result["airdropped"] as? Int) ?? 0
+                if viaPhotos + viaAir > 0 {
                     let into = (result["airdropProjects"] as? [String]) ?? []
-                    bits.append("\(a) from your phone by AirDrop" + (into.isEmpty ? "" : " — into " + into.joined(separator: ", ")))
+                    let how = viaPhotos > 0 && viaAir > 0 ? "through Photos and AirDrop" : viaPhotos > 0 ? "through Photos" : "by AirDrop"
+                    bits.append("\(viaPhotos + viaAir) from your phone \(how)" + (into.isEmpty ? "" : " — into " + into.joined(separator: ", ")))
                 }
+                if let t = result["phoneTwice"] as? Int, t > 0 { bits.append("\(t) already in the vault, not added twice") }
+                if let n = result["photosNote"] as? String, !n.isEmpty { bits.append(n) }
                 let phone = ((result["fromPhone"] as? Int) ?? 0) + ((result["links"] as? Int) ?? 0)
                 if phone > 0 { bits.append("\(phone) from your phone") }
                 if let up = result["toCloud"] as? Int, up > 0 { bits.append("\(up) up to Needed Vault") }
@@ -1189,6 +1193,13 @@ final class Shell: NSObject, NSApplicationDelegate, NSWindowDelegate, WKScriptMe
             // Try it on this Mac first: the same page, in your browser.
             if let u = URL(string: PhoneServer.shared.localURL) { NSWorkspace.shared.open(u) }
             replyHandler(["ok": true], nil)
+
+        case "photosSet":
+            if let v = body["inbox"] as? Bool { PhotosInbox.on = v }
+            if let v = body["albums"] as? Bool { PhotosInbox.albums = v }
+            if PhotosInbox.status == "denied", (body["inbox"] as? Bool) == true,
+               let u = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Photos") { NSWorkspace.shared.open(u) }
+            replyHandler(PhoneServer.shared.status(), nil)
 
         case "phoneWeb":
             // Needed Vault on your website, with your projects — the same page your phone opens.

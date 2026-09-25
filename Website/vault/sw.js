@@ -1,6 +1,6 @@
 // Needed Vault keeps itself on the phone: after the first visit it opens with no signal.
 // Only the page lives here — your photos stay in the phone's own storage, never on the website.
-const CACHE = 'needed-vault-r21';
+const CACHE = 'needed-vault-r22';
 const SHELL = ['./', 'index.html', 'app.js', 'manifest.webmanifest', 'mark.png', 'icon-180.png', 'icon-192.png', 'icon-512.png',
   'fonts/raleway-latin-200-normal.woff2', 'fonts/raleway-latin-300-normal.woff2', 'fonts/raleway-latin-400-normal.woff2',
   'fonts/raleway-latin-500-normal.woff2', 'fonts/oswald-latin-400-normal.woff2',

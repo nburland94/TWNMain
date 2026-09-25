@@ -76,7 +76,7 @@ nav{display:flex;gap:22px;align-items:center}
   <button class="pill sync" id="sync" title="Look through the project you're in and bring every tool up to date">
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#4a4945" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11a8 8 0 0 0-14.3-4.9L4 8"/><path d="M4 4v4h4"/><path d="M4 13a8 8 0 0 0 14.3 4.9L20 16"/><path d="M20 20v-4h-4"/></svg>
     <span>Sync</span></button>
-  <button class="pill phone" id="phoneBtn" title="Needed Vault on your phone — scan once, capture anywhere (even offline), then AirDrop back and press Sync">
+  <button class="pill phone" id="phoneBtn" title="Needed Vault on your phone — scan once, capture anywhere (even offline), Sync on the phone, then Sync here">
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#d2440f" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="7" y="2.5" width="10" height="19" rx="2.2"/><path d="M11 18.5h2"/></svg>
     <span>Phone</span><i class="phdot" id="phoneDot" hidden></i></button>
   <button class="pill vault" id="vault" title="Your vault — the folder every tool saves into">
@@ -111,7 +111,7 @@ nav{display:flex;gap:22px;align-items:center}
   };
   let S = { tab: 'home' };
   function render(s) {
-    if (s && document.getElementById('phoneDot')) { document.getElementById('phoneDot').hidden = !s.phoneOn; document.getElementById('phoneBtn').title = s.phoneOn ? 'Needed Vault — your phone can browse the vault on this Wi-Fi. Click for the QR code' : 'Needed Vault on your phone — scan once, capture anywhere (even offline), then AirDrop back and press Sync'; }
+    if (s && document.getElementById('phoneDot')) { document.getElementById('phoneDot').hidden = !s.phoneOn; document.getElementById('phoneBtn').title = s.phoneOn ? 'Needed Vault — your phone can browse the vault on this Wi-Fi. Click for the QR code' : 'Needed Vault on your phone — scan once, capture anywhere (even offline), Sync on the phone, then Sync here'; }
     S = s || S;
     $('back').disabled = !S.canBack; $('fwd').disabled = !S.canForward;
     const away = S.undocked || [];

@@ -200,7 +200,7 @@ main{padding-bottom:calc(env(safe-area-inset-bottom) + 190px)}
     <div class="g step"><span class="n">2</span><div>Tap <b>Add to Home Screen</b> or <b>Install app</b></div></div>
     <button class="dark off" id="instBtn">Install Needed Vault</button>
   </div>
-  <div class="g why"><b>Where do my photos go?</b> Nowhere but this phone — until you send them to your Mac by AirDrop. Nothing goes up to the website.</div>
+  <div class="g why"><b>Where do my photos go?</b> They stay on this phone until you tap Sync — then into your Photos, and iCloud takes them to your Mac. Nothing goes up to the website.</div>
   <button class="skip" id="instSkip">Use it in Safari for now</button>
 </section>
 
@@ -234,8 +234,8 @@ main{padding-bottom:calc(env(safe-area-inset-bottom) + 190px)}
 
 <div class="g sendbar off" id="sendBar">
   <div><b id="sendN"></b><span id="sendWhere"></span></div>
-  <button class="q" id="sendHow" aria-label="How sending works">?</button>
-  <button class="dark" id="sendGo">Send to Mac</button>
+  <button class="q" id="sendHow" aria-label="How Sync works">?</button>
+  <button class="dark" id="sendGo">Sync</button>
 </div>
 <div class="bottom" id="bottom">
   <button class="dark" id="photos"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="M3 15l5-5 4 4 3-3 6 6"/></svg>Photos</button>
@@ -266,25 +266,32 @@ main{padding-bottom:calc(env(safe-area-inset-bottom) + 190px)}
   <input class="tagin" id="addTags" placeholder="Tags, if you like — night, car" autocomplete="off" autocapitalize="off">
   <div class="steps"><button class="dark" id="addGo">Keep</button><button class="light" id="addCancel">Cancel</button></div>
 </div>
-<div class="g sheet sendSheet" id="sendSheet" role="dialog" aria-label="Sending to your Mac">
-  <span class="cap">Send to Mac</span><h2>How it gets there</h2>
+<div class="g sheet sendSheet" id="sendSheet" role="dialog" aria-label="How Sync works">
+  <span class="cap">Sync</span><h2>How it gets to your Mac</h2>
   <ol class="how">
-    <li>Tap <b>Send to Mac</b>, then pick your Mac under <b>AirDrop</b>.</li>
-    <li>On the Mac, press <b>Sync</b> in Needed Tools.</li>
-    <li>Everything goes into its project’s vault — Stills, GIFs and Motion references — with its tags.</li>
+    <li>Tap <b>Sync</b>, then <b>Save Images</b> (or Save Video). They go into this phone’s Photos.</li>
+    <li>iCloud Photos takes them to your Mac — anywhere you’ve got signal.</li>
+    <li>On the Mac, press <b>Sync</b> in Needed Tools. Each goes into its project’s vault, with its tags, and into <b>Needed Vault › its project</b> in Photos.</li>
   </ol>
-  <p>No Wi-Fi needed — just the phone near your Mac, with Bluetooth on. Same Apple ID, and the Mac takes them without asking.</p>
+  <p>Next to your Mac? You can pick it under <b>AirDrop</b> instead. Either way, nothing lands in the vault twice.</p>
   <div class="steps"><button class="dark" id="sendOk">Got it</button></div>
+</div>
+<div class="g sheet sendSheet" id="nudgeSheet" role="dialog" aria-label="Synced">
+  <span class="cap">Synced</span><h2>Now let iCloud take them</h2>
+  <p id="nudgeN" style="color:var(--oi)"></p>
+  <p>Opening Photos gives iCloud a nudge to send them up now. Then press <b>Sync</b> in Needed Tools on your Mac.</p>
+  <div class="steps"><button class="dark" id="nudgePhotos">Open Photos</button><button class="light" id="nudgeDone">Done</button></div>
 </div>
 <div class="g sheet menu" id="menuSheet" role="dialog" aria-label="Needed Vault">
   <span class="cap">Needed Vault</span><h2>How it works</h2>
   <ol class="how">
     <li>Add photos and clips to a project — anywhere, with or without signal.</li>
-    <li>They wait on this phone.</li>
-    <li>Back at your Mac: <b>Send to Mac</b> (AirDrop), then <b>Sync</b> in Needed Tools.</li>
+    <li>They wait on this phone until you tap <b>Sync</b> — it saves them to Photos, and iCloud takes them to your Mac.</li>
+    <li>On the Mac: <b>Sync</b> in Needed Tools. Each lands in its project, once.</li>
   </ol>
   <div class="line"><span>Your Mac</span><span id="mMac"></span></div>
   <div class="line"><span>New projects from the Mac</span><span>Needed Tools › Your phone — scan again, or type one here</span></div>
+  <div class="line"><span>Can’t find something on the Mac?</span><span><button id="mResync">Sync the last week again</button></span></div>
   <div class="line"><span>Room on this phone</span><span><span id="mSent" style="color:inherit"></span> · <button id="mClear">Clear</button></span></div>
   <div class="line" id="mHomeRow"><span>Make it an app</span><span><button id="mHome">Show me how</button></span></div>
   <div class="steps" style="margin-top:14px"><button class="dark" id="mDone">Done</button></div>

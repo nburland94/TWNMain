@@ -24,6 +24,8 @@
 	<string>11.3</string>
 	<key>NSCalendarsFullAccessUsageDescription</key>
 	<string>Needed Tools shows your week on Home. It only reads your calendars.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Needed Tools files what you saved from Needed Vault on your phone into its project, and sorts it into a Needed Vault album for each project.</string>
 	<key>NSCalendarsUsageDescription</key>
 	<string>Needed Tools shows your week on Home. It only reads your calendars.</string>
 	<key>NSHighResolutionCapable</key>

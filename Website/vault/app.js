@@ -1,8 +1,10 @@
 /* Needed Vault — on the phone, anywhere (Round 21).
    Everything you add stays on this phone (IndexedDB) until you send it to your Mac.
-   Send to Mac shares the files — AirDrop them to your Mac — each named
-       NV ~ Lexus ~ night, car ~ IMG_1234.jpg
-   so Needed Tools knows where each goes when you press Sync. Nothing is uploaded
+   Sync shares the files — Save to Photos (iCloud Photos takes them to your Mac), or
+   AirDrop — each named
+       NV ~ Lexus ~ night, car ~ IMG_1234 ~ k3f9x2a.jpg
+   so Needed Tools knows where each goes when you press Sync there. The last part is
+   this phone's id for it: however many times it's sent, the vault files it once. Nothing is uploaded
    to the website: it only hands over this page, once, and then it works offline. */
 (function () {
   'use strict';
@@ -94,7 +96,7 @@
         var it = c[0], th = thumbURL(it);
         return '<button class="tile" data-i="' + c[2] + '" style="flex:' + c[1] + ' 1 0;height:' + h + 'px">' + (th ? '<img alt="" src="' + th + '">' : '')
           + (it.kind !== 'still' ? '<span class="badge">' + (it.kind === 'clip' ? 'CLIP' : 'GIF') + '</span>' : '')
-          + (it.sent ? '<span class="badge sent">ON MAC</span>' : '<span class="badge new">WAITING</span>') + '</button>';
+          + (it.sent ? '<span class="badge sent">SYNCED</span>' : '<span class="badge new">NOT SYNCED</span>') + '</button>';
       }).join('') + '</div>';
     }).join('') : '<div class="empty">' + (S.project ? 'Nothing in ' + esc(S.project) + ' on this phone yet — Photos or Camera below adds some. It all stays here until you send it to your Mac.' : 'Pick a project up top — or make one — then add photos and clips.') + '</div>';
   }
@@ -103,7 +105,7 @@
     $('todayN').textContent = 'Today, ' + list.length + ' added';
     $('feed').innerHTML = list.length ? list.slice(0, 40).map(function (it) {
       var t = new Date(it.at), hm = ('0' + t.getHours()).slice(-2) + ':' + ('0' + t.getMinutes()).slice(-2);
-      return '<div class="it"><span class="th" style="' + (it.thumb ? 'background-image:url(' + it.thumb + ')' : '') + '"></span><span class="tx"><span>' + (it.kind === 'clip' ? 'Clip' : it.kind === 'gif' ? 'GIF' : 'Photo') + ' ' + hm + '</span><span>' + esc((it.tags || []).map(function (x) { return '#' + x; }).join(' ')) + '</span></span><span class="st' + (it.sent ? '' : ' wait') + '">' + (it.sent ? 'On your Mac' : 'Waiting') + '</span></div>';
+      return '<div class="it"><span class="th" style="' + (it.thumb ? 'background-image:url(' + it.thumb + ')' : '') + '"></span><span class="tx"><span>' + (it.kind === 'clip' ? 'Clip' : it.kind === 'gif' ? 'GIF' : 'Photo') + ' ' + hm + '</span><span>' + esc((it.tags || []).map(function (x) { return '#' + x; }).join(' ')) + '</span></span><span class="st' + (it.sent ? '' : ' wait') + '">' + (it.sent ? 'Synced' : 'Not synced') + '</span></div>';
     }).join('') : '<div class="empty" style="padding:18px 0">Nothing yet today.</div>';
   }
   function drawSend() {
@@ -111,9 +113,9 @@
     $('sendBar').classList.toggle('off', !n);
     if (!n) return;
     var ps = []; w.forEach(function (it) { if (ps.indexOf(it.project) < 0) ps.push(it.project); });
-    $('sendN').textContent = n + ' waiting for ' + MAC;
+    $('sendN').textContent = n + ' not synced yet';
     $('sendWhere').textContent = ps.length === 1 ? 'All for ' + ps[0] : ps.length + ' projects';
-    $('sendGo').textContent = n > BATCH ? 'Send ' + BATCH + ' to Mac' : 'Send to Mac';
+    $('sendGo').textContent = n > BATCH ? 'Sync ' + BATCH : 'Sync';
   }
   function draw() {
     var on = !!S.grabGo;
@@ -129,9 +131,10 @@
   }
 
   /* ---- sheets */
-  var SHEETS = ['projSheet', 'addSheet', 'menuSheet', 'sendSheet'];
+  var SHEETS = ['projSheet', 'addSheet', 'menuSheet', 'sendSheet', 'nudgeSheet'];
   function sheet(id, open) {
     SHEETS.forEach(function (s) { $(s).classList.toggle('on', open && s === id); });
+    if (open) $('toast').classList.remove('show');
     $('veil').classList.toggle('on', !!open);
   }
   $('veil').addEventListener('click', function () { sheet(null, false); pending = []; });
@@ -242,7 +245,7 @@
     next().then(function () {
       $('prog').classList.remove('on');
       if (project !== S.project && !S.grabGo) { S.project = project; put('project', project); }
-      toast((n === 1 ? 'Kept for ' : n + ' kept for ') + project + ' — send when you’re back at your Mac');
+      toast((n === 1 ? 'Kept for ' : n + ' kept for ') + project + ' — Sync when you’re ready');
       refresh();
     }).catch(function (e) {
       $('prog').classList.remove('on');
@@ -251,33 +254,41 @@
     });
   }
 
-  /* ---- Send to Mac: the share sheet → AirDrop → Downloads → Sync files them */
+  /* ---- Sync: the share sheet → Save to Photos (iCloud → your Mac) or AirDrop → Sync on the Mac files them */
   var BATCH = 25;
-  function shareName(it, used) {
-    var tags = (it.tags || []).join(', ') || '-';
-    var name = 'NV ~ ' + cleanName(it.project) + ' ~ ' + tags + ' ~ ' + it.name;
-    var n = 2, base = name.replace(/\.[^.]+$/, ''), ext = name.split('.').pop();
-    while (used[name]) { name = base + ' ' + n + '.' + ext; n++; }
-    used[name] = 1;
-    return name;
+  function shareName(it) {
+    var tags = (it.tags || []).map(cleanName).join(', ') || '-';
+    var stem = it.name.replace(/\.[^.]+$/, ''), ext = (it.name.match(/\.([^.]+)$/) || [0, 'jpg'])[1];
+    return 'NV ~ ' + cleanName(it.project) + ' ~ ' + tags + ' ~ ' + cleanName(stem) + ' ~ ' + it.id + '.' + ext;
   }
-  $('sendGo').addEventListener('click', function () {
-    var w = waiting().slice().reverse().slice(0, BATCH);     // oldest first
+  function syncItems(w) {
     if (!w.length) return;
     if (!navigator.share || !window.File) return sheet('sendSheet', true);
-    var used = {}, files = w.map(function (it) { return new File([it.blob], shareName(it, used), { type: it.type || it.blob.type || 'application/octet-stream' }); });
+    var files = w.map(function (it) { return new File([it.blob], shareName(it), { type: it.type || it.blob.type || 'application/octet-stream' }); });
     if (navigator.canShare && !navigator.canShare({ files: files })) return sheet('sendSheet', true);
     navigator.share({ files: files }).then(function () {
       var at = Date.now();
       return Promise.all(w.map(function (it) { it.sent = at; return save(it); }));
     }).then(function () {
-      var left = waiting().length - w.length;
-      toast(left > 0 ? w.length + ' sent — ' + left + ' more to go' : 'Sent — now press Sync on your Mac', 4200);
-      refresh();
+      return refresh();
+    }).then(function () {
+      var left = waiting().length;
+      $('nudgeN').textContent = left > 0 ? w.length + ' synced — ' + left + ' more to go. Sync again for the next ' + Math.min(BATCH, left) + '.' : '';
+      sheet('nudgeSheet', true);                                   // give iCloud its nudge
     }).catch(function (e) {
       if (e && e.name === 'AbortError') return;                    // closed the share sheet
-      toast('Couldn’t send those — try fewer at once', 4200);
+      toast('Couldn’t sync those — try fewer at once', 4200);
     });
+  }
+  $('sendGo').addEventListener('click', function () { syncItems(waiting().slice().reverse().slice(0, BATCH)); });   // oldest first
+  // Opening Photos is what nudges iCloud to send them up now.
+  $('nudgePhotos').addEventListener('click', function () { sheet(null, false); location.href = 'photos-redirect://'; });
+  $('nudgeDone').addEventListener('click', function () { sheet(null, false); });
+  // Can't find something on the Mac? Send the last week again — the vault still files each one once.
+  $('mResync').addEventListener('click', function () {
+    var week = Date.now() - 7 * 86400000, list = S.items.filter(function (it) { return it.at > week; }).reverse().slice(0, BATCH);
+    if (!list.length) return toast('Nothing from the last week on this phone');
+    sheet(null, false); syncItems(list);
   });
   $('sendHow').addEventListener('click', function () { sheet('sendSheet', true); });
   $('sendOk').addEventListener('click', function () { sheet(null, false); });
@@ -285,7 +296,7 @@
   /* ---- the menu: how it works, room on the phone, make it an app */
   $('mark').addEventListener('click', function () {
     var sent = S.items.filter(function (it) { return it.sent; }), bytes = sent.reduce(function (a, it) { return a + (it.bytes || 0); }, 0);
-    $('mSent').textContent = sent.length ? sent.length + ' already on your Mac · ' + (bytes / 1048576).toFixed(bytes > 1048576 * 10 ? 0 : 1) + ' MB' : 'Nothing to clear';
+    $('mSent').textContent = sent.length ? sent.length + ' synced · ' + (bytes / 1048576).toFixed(bytes > 1048576 * 10 ? 0 : 1) + ' MB' : 'Nothing to clear';
     $('mClear').disabled = !sent.length;
     $('mMac').textContent = MAC;
     $('mHomeRow').classList.toggle('off', APP);
@@ -293,7 +304,7 @@
   });
   $('mClear').addEventListener('click', function () {
     var sent = S.items.filter(function (it) { return it.sent; });
-    if (!sent.length || !confirm('Take the ' + sent.length + ' already sent off this phone? They stay safe in your vault on the Mac.')) return;
+    if (!sent.length || !confirm('Take the ' + sent.length + ' already synced off this phone? They stay in Photos and in your vault on the Mac.')) return;
     Promise.all(sent.map(function (it) { return drop(it.id); })).then(function () { sheet(null, false); toast('Room made on this phone'); refresh(); });
   });
   $('mHome').addEventListener('click', function () { sheet(null, false); showInstall(true); });
@@ -309,7 +320,7 @@
     $('vPic').innerHTML = it.kind === 'clip' ? '<video src="' + vurl + '" controls playsinline preload="metadata"></video>' : '<img alt="" src="' + vurl + '">';
     $('vT').textContent = it.name.replace(/\.[^.]+$/, '');
     var d = new Date(it.at);
-    $('vM').textContent = [it.kind === 'clip' ? 'Clip' : it.kind === 'gif' ? 'GIF' : 'Still', 'added ' + d.toLocaleDateString(undefined, { day: 'numeric', month: 'short' }), it.sent ? 'on your Mac' : 'waiting for your Mac'].join(' · ');
+    $('vM').textContent = [it.kind === 'clip' ? 'Clip' : it.kind === 'gif' ? 'GIF' : 'Still', 'added ' + d.toLocaleDateString(undefined, { day: 'numeric', month: 'short' }), it.sent ? 'synced' : 'not synced yet'].join(' · ');
     $('vTags').innerHTML = (it.tags || []).map(function (t) { return '<span class="chip">#' + esc(t) + '</span>'; }).join('');
     $('view').classList.add('on');
   }
