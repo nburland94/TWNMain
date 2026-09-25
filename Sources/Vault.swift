@@ -1405,6 +1405,10 @@ extension VaultHost {
             let proj = base.appendingPathComponent(project, isDirectory: true)
             // 0. Needed Vault on the phone: the Cloud vault and this vault made to match, every project.
             //    What arrives for this project is found just below, like anything else.
+            // 00. From the phone by AirDrop: Needed Vault files in Downloads go to their projects first.
+            let drops = PhoneDrops.collect(base: base, fallback: project)
+            let dropPaths = Set(drops.map { $0.file.path })
+            if !drops.isEmpty { DispatchQueue.main.async { progress(0.05) } }
             let cloud = CloudVault.mirror(vault: base, syncing: project)
             var linkFiles: [(URL, [String: Any], String)] = []
             for l in cloud.links {
@@ -1424,7 +1428,7 @@ extension VaultHost {
                 for (sub, origin) in Folders.all(folder, project: project) {
                     let dir = proj.appendingPathComponent(sub, isDirectory: true)
                     for f in (try? fm.contentsOfDirectory(at: dir, includingPropertiesForKeys: nil, options: [.skipsHiddenFiles])) ?? [] {
-                        guard exts.contains(f.pathExtension.lowercased()) else { continue }
+                        guard exts.contains(f.pathExtension.lowercased()), !dropPaths.contains(f.path) else { continue }
                         let rel = f.path.replacingOccurrences(of: base.path + "/", with: "")
                         if !known.contains(rel) { found.append((f, kind, origin)) }
                     }
@@ -1452,7 +1456,7 @@ extension VaultHost {
             let projectThere = fm.fileExists(atPath: proj.path)
             let gone: Set<String> = projectThere ? Set(missing.filter { $0.project == project && relinked[$0.id] == nil }.map { $0.id }) : []
             let moves = relinked
-            let total: Double = Double(max(1, found.count + needThumb.count + needPalette.count))
+            let total: Double = Double(max(1, drops.count + found.count + needThumb.count + needPalette.count))
             var step: Double = 0
             let tick: () -> Void = {
                 step += 1
@@ -1477,6 +1481,21 @@ extension VaultHost {
                 item["source"] = source
                 item["origin"] = origin
                 if let p = VaultStore.shared.colours(of: base.appendingPathComponent(thumbRel), kind: kind), !p.isEmpty { item["palette"] = p }
+                added.append(item)
+                tick()
+            }
+            // 2b. what came by AirDrop: into its own project, tagged the way the phone tagged it
+            for d in drops {
+                let id = UUID().uuidString
+                let rel = d.file.path.replacingOccurrences(of: base.path + "/", with: "")
+                var thumbRel = rel
+                if d.kind == "clip", let t = self.poster(for: d.file, id: id) { thumbRel = t.path.replacingOccurrences(of: base.path + "/", with: "") }
+                else if d.kind != "clip", let t = self.smallThumb(for: d.file, id: id) { thumbRel = t.path.replacingOccurrences(of: base.path + "/", with: "") }
+                var item: [String: Any] = ["id": id, "kind": d.kind, "file": rel, "thumb": thumbRel, "project": d.project,
+                                           "bytes": self.fileSize(d.file), "created": stamp, "origin": "reference",
+                                           "source": ["type": "phone", "via": "airdrop", "title": d.title]]
+                if !d.tags.isEmpty { item["tags"] = d.tags }
+                if let p = VaultStore.shared.colours(of: base.appendingPathComponent(thumbRel), kind: d.kind), !p.isEmpty { item["palette"] = p }
                 added.append(item)
                 tick()
             }
@@ -1541,7 +1560,8 @@ extension VaultHost {
                 done(["ok": true, "project": project, "added": fresh.count, "palettes": palettes.count, "previews": thumbs.count,
                       "relinked": relinkCount, "removed": removedItems.count,
                       "cloud": CloudVault.on, "fromPhone": cloud.pulled, "links": linkFiles.count, "toCloud": cloud.pushed,
-                      "phoneTrashed": cloud.trashed, "cloudRetired": cloud.retired, "downloading": cloud.downloading, "bigClips": cloud.skippedBig])
+                      "phoneTrashed": cloud.trashed, "airdropped": drops.count,
+                      "airdropProjects": Array(Set(drops.map { $0.project })).sorted(), "cloudRetired": cloud.retired, "downloading": cloud.downloading, "bigClips": cloud.skippedBig])
             }
         }
     }

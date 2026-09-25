@@ -377,6 +377,7 @@ final class Shell: NSObject, NSApplicationDelegate, NSWindowDelegate, WKScriptMe
         area.autoresizingMask = [.width, .height]
         content.addSubview(area)
         content.addSubview(chrome)
+        Notices.shared.attach(to: content)                         // what's done, bottom-left, over every page
 
         home = page("home.html", drop: true)
         if let h = home as? DropWebView {
@@ -803,6 +804,10 @@ final class Shell: NSObject, NSApplicationDelegate, NSWindowDelegate, WKScriptMe
                 if added > 0 { bits.append("\(added) new") }
                 if relinked > 0 { bits.append("\(relinked) moved in Finder, found again") }
                 if removed > 0 { bits.append("\(removed) deleted in Finder, taken off the list") }
+                if let a = result["airdropped"] as? Int, a > 0 {
+                    let into = (result["airdropProjects"] as? [String]) ?? []
+                    bits.append("\(a) from your phone by AirDrop" + (into.isEmpty ? "" : " — into " + into.joined(separator: ", ")))
+                }
                 let phone = ((result["fromPhone"] as? Int) ?? 0) + ((result["links"] as? Int) ?? 0)
                 if phone > 0 { bits.append("\(phone) from your phone") }
                 if let up = result["toCloud"] as? Int, up > 0 { bits.append("\(up) up to Needed Vault") }
@@ -879,6 +884,14 @@ final class Shell: NSObject, NSApplicationDelegate, NSWindowDelegate, WKScriptMe
     /// first one asks permission; after that they just arrive.
     static func post(_ title: String, _ body: String, sound: Bool = false) {
         if UserDefaults.standard.bool(forKey: "quiet") { return }      // Account › notifications off
+        // Looking at the app: a card in the window's bottom-left corner. Elsewhere: macOS's banner.
+        let inApp = { () -> Bool in
+            guard NSApp.isActive, let w = Shell.shared?.window, w.isVisible, !w.isMiniaturized else { return false }
+            Notices.shared.show(title, body)
+            return true
+        }
+        if Thread.isMainThread { if inApp() { return } }
+        else if DispatchQueue.main.sync(execute: inApp) { return }
         let centre = UNUserNotificationCenter.current()
         let send = {
             let content = UNMutableNotificationContent()
@@ -1175,6 +1188,13 @@ final class Shell: NSObject, NSApplicationDelegate, NSWindowDelegate, WKScriptMe
         case "phoneTest":
             // Try it on this Mac first: the same page, in your browser.
             if let u = URL(string: PhoneServer.shared.localURL) { NSWorkspace.shared.open(u) }
+            replyHandler(["ok": true], nil)
+
+        case "phoneWeb":
+            // Needed Vault on your website, with your projects — the same page your phone opens.
+            var projects = Shared.projects()
+            if let i = projects.firstIndex(of: Shared.project) { projects.remove(at: i); projects.insert(Shared.project, at: 0) }
+            if let u = URL(string: PhoneDrops.pairURL(projects: projects, mac: Host.current().localizedName ?? "your Mac")) { NSWorkspace.shared.open(u) }
             replyHandler(["ok": true], nil)
 
         case "phoneLog":

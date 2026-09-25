@@ -1,0 +1,9 @@
+# Netlify: the phone page checks for a new version each time it has signal.
+/vault/sw.js
+  Cache-Control: no-cache
+/vault/index.html
+  Cache-Control: no-cache
+/vault/app.js
+  Cache-Control: no-cache
+/vault/manifest.webmanifest
+  Content-Type: application/manifest+json

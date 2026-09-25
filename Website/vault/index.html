@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex">
+<meta name="apple-mobile-web-app-title" content="Needed Vault">
+<meta name="theme-color" content="#fcf2ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="description" content="Needed Vault — catch photos and clips anywhere, then send them to Needed Tools on your Mac.">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" href="icon-192.png">
+<title>Needed Vault</title>
+<style>
+@font-face{font-family:'Raleway';font-weight:200;font-display:swap;src:url('fonts/raleway-latin-200-normal.woff2') format('woff2')}
+@font-face{font-family:'Raleway';font-weight:300;font-display:swap;src:url('fonts/raleway-latin-300-normal.woff2') format('woff2')}
+@font-face{font-family:'Raleway';font-weight:400;font-display:swap;src:url('fonts/raleway-latin-400-normal.woff2') format('woff2')}
+@font-face{font-family:'Raleway';font-weight:500;font-display:swap;src:url('fonts/raleway-latin-500-normal.woff2') format('woff2')}
+@font-face{font-family:'Oswald';font-weight:400;font-display:swap;src:url('fonts/oswald-latin-400-normal.woff2') format('woff2')}
+@font-face{font-family:'Courier Prime';font-weight:400;font-display:swap;src:url('fonts/courier-prime-latin-400-normal.woff2') format('woff2')}
+@font-face{font-family:'Courier Prime';font-weight:700;font-display:swap;src:url('fonts/courier-prime-latin-700-normal.woff2') format('woff2')}
+:root{--o:#F05A22;--oi:#d2440f;--ink:#141414;--soft:#6b6964;--ease:cubic-bezier(.23,1,.32,1)}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:#fcf2ec;color:var(--ink);font-family:'Raleway',-apple-system,sans-serif;-webkit-font-smoothing:antialiased}
+body{min-height:100vh;overflow-x:hidden}
+button{font:inherit;cursor:pointer;color:inherit}
+button:active{transform:scale(0.97)}
+.glow{position:fixed;inset:0;z-index:-1;background:radial-gradient(ellipse 90% 60% at 50% 38%,#f7bf99 0%,#f9cfb1 28%,#fbdfca 52%,#fcebdf 74%,#fdf5ef 100%);opacity:.75;pointer-events:none}
+.cap{font-family:'Courier Prime',monospace;font-size:10.5px;letter-spacing:.18em;text-transform:uppercase;color:#7a5a48}
+.g{background:linear-gradient(160deg,rgba(255,255,255,.74),rgba(255,255,255,.5));border:1px solid rgba(255,255,255,.9);box-shadow:inset 0 1px 0 #fff,0 14px 40px rgba(160,70,20,.1);-webkit-backdrop-filter:blur(26px) saturate(1.5);backdrop-filter:blur(26px) saturate(1.5)}
+.chip{display:inline-flex;align-items:center;gap:5px;border-radius:100px;padding:5px 11px;font-size:12.5px;border:1px solid rgba(28,28,28,.12);background:rgba(255,255,255,.75);color:var(--ink)}
+.chip.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+.dark{border:none;border-radius:100px;padding:13px 20px;font-size:15px;font-weight:500;background:linear-gradient(180deg,#2b2b2b,#111);color:#fff;box-shadow:inset 0 1px 0 rgba(255,255,255,.14),0 2px 8px rgba(20,20,20,.16);text-decoration:none;text-align:center;display:inline-flex;align-items:center;justify-content:center;gap:8px}
+.light{border-radius:100px;padding:12px 18px;font-size:14.5px;border:1px solid rgba(28,28,28,.12);background:rgba(255,255,255,.8);color:var(--ink);text-decoration:none;text-align:center;display:inline-flex;align-items:center;justify-content:center;gap:6px}
+.tog{position:relative;width:44px;height:26px;border-radius:100px;border:none;background:rgba(28,28,28,.18);padding:0;flex-shrink:0;transition:background .25s}
+.tog::after{content:'';position:absolute;left:3px;top:3px;width:20px;height:20px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.2);transition:left .25s var(--ease)}
+.tog.on{background:var(--o)}.tog.on::after{left:21px}
+.off{display:none!important}
+
+header{position:sticky;top:0;z-index:5;padding:calc(env(safe-area-inset-top) + 14px) 18px 10px;display:flex;align-items:center;gap:10px;background:linear-gradient(to bottom,rgba(252,236,224,.92) 70%,rgba(252,236,224,0))}
+header img{width:34px;display:block}
+.pill{border:none;border-radius:100px;padding:8px 14px;background:var(--o);color:#fff;font-size:14px;display:flex;align-items:center;gap:6px;max-width:48vw}
+.pill span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.gg{display:flex;align-items:center;gap:8px;font-family:Oswald,sans-serif;font-size:11.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--soft)}
+.gg.on{color:var(--oi)}
+main{padding:0 18px calc(env(safe-area-inset-bottom) + 110px)}
+.titlerow{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-top:4px}
+.titlerow h1{margin:0;font-weight:200;font-size:34px;line-height:1.1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.chips{display:flex;gap:6px;margin:12px 0 14px;align-items:center}
+.chips .grow{flex-grow:1}
+.search{display:none;margin:-4px 0 12px}
+.search input{width:100%;font:inherit;font-size:16px;border-radius:100px;border:1px solid rgba(28,28,28,.12);background:rgba(255,255,255,.85);padding:10px 16px;outline:none}
+.grid{display:flex;flex-direction:column;gap:5px;margin:0 -4px}
+.row{display:flex;gap:5px}
+.tile{position:relative;border:none;padding:0;border-radius:8px;overflow:hidden;background:#d9cfc4}
+.tile img{display:block;width:100%;height:100%;object-fit:cover}
+.badge{position:absolute;left:6px;bottom:6px;font-family:'Courier Prime',monospace;font-size:9.5px;letter-spacing:.1em;color:#fff;background:rgba(0,0,0,.45);border-radius:4px;padding:1px 5px}
+.badge.new{left:auto;right:6px;background:var(--o)}
+.empty{font-size:14px;color:var(--soft);line-height:1.5;padding:30px 4px;text-align:center}
+.bottom{position:fixed;left:0;right:0;bottom:0;z-index:6;padding:40px 18px calc(env(safe-area-inset-bottom) + 20px);display:flex;gap:8px;background:linear-gradient(to top,rgba(252,242,236,.98) 45%,rgba(252,242,236,0))}
+.bottom .dark{flex-grow:1}
+
+/* Grab & Go on */
+.banner{border-radius:18px;padding:14px 16px;background:var(--o);color:#fff;display:flex;flex-direction:column;gap:4px;box-shadow:0 12px 30px rgba(240,90,34,.3);margin-top:6px}
+.banner b{font-family:Oswald,sans-serif;font-weight:400;font-size:12px;letter-spacing:.16em;text-transform:uppercase}
+.banner span{font-size:14px;line-height:1.45}
+.target{width:100%;border-radius:22px;height:190px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;border:1.5px dashed rgba(240,90,34,.55)!important;margin:16px 0}
+.target b{font-weight:200;font-size:26px}
+.target span{font-size:13px;color:var(--soft);max-width:240px;line-height:1.45;text-align:center}
+.feedhead{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px}
+.feed{display:flex;flex-direction:column}
+.feed .it{display:flex;align-items:center;gap:12px;padding:9px 0;border-bottom:1px solid rgba(28,28,28,.07)}
+.feed .th{width:48px;height:34px;border-radius:6px;flex-shrink:0;background:#d9cfc4 center/cover no-repeat}
+.feed .tx{display:flex;flex-direction:column;gap:2px;flex-grow:1;min-width:0}
+.feed .tx span:first-child{font-size:13.5px}
+.feed .tx span+span{font-family:'Courier Prime',monospace;font-size:10.5px;color:var(--soft)}
+.feed .st{font-size:12px;color:#2f7d4a;white-space:nowrap}
+.note{font-size:11.5px;color:var(--soft);line-height:1.45;margin-top:10px}
+
+/* one picture */
+.view{position:fixed;inset:0;z-index:20;background:#0b0b0b;color:#f4f3f1;display:flex;flex-direction:column;transform:translateY(100%);transition:transform .35s var(--ease)}
+.view.on{transform:none}
+.view .top{padding:calc(env(safe-area-inset-top) + 14px) 18px 0;display:flex;align-items:center;justify-content:space-between}
+.view .back{border:none;background:rgba(255,255,255,.12);color:#fff;border-radius:100px;padding:8px 14px;font-size:14px}
+.view .n{font-family:'Courier Prime',monospace;font-size:11px;letter-spacing:.14em;color:rgba(255,255,255,.55)}
+.view .pic{margin-top:28px;height:42vh;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.view .pic img{max-width:100%;max-height:100%;display:block;image-rendering:auto}
+.view .pic .grad{width:100%;height:100%}
+.view .acts>*{height:48px}
+.view .info{padding:22px 20px 0;display:flex;flex-direction:column;gap:14px}
+.view .info .t{font-weight:300;font-size:22px}
+.view .info .m{font-family:'Courier Prime',monospace;font-size:11.5px;letter-spacing:.08em;color:rgba(255,255,255,.55)}
+.view .sw{display:flex;gap:6px}.view .sw i{width:26px;height:26px;border-radius:7px;box-shadow:0 0 0 1px rgba(255,255,255,.15)}
+.view .tags{display:flex;gap:6px;flex-wrap:wrap}
+.view .tags .chip{background:rgba(255,255,255,.1);color:#fff;border-color:rgba(255,255,255,.2)}
+.view .acts{margin-top:auto;padding:0 18px calc(env(safe-area-inset-bottom) + 14px);display:flex;gap:8px}
+.view .acts .light{flex-grow:1;background:rgba(255,255,255,.1);color:#fff;border-color:rgba(255,255,255,.2)}
+.view .acts .light.small{flex-grow:0}
+.view .hint{text-align:center;font-size:11px;color:rgba(255,255,255,.4);padding-bottom:calc(env(safe-area-inset-bottom) + 10px)}
+
+/* sheets: projects, and the first time */
+.veil{position:fixed;inset:0;z-index:30;background:rgba(60,30,15,.22);opacity:0;pointer-events:none;transition:opacity .25s}
+.veil.on{opacity:1;pointer-events:auto}
+.sheet{position:fixed;left:14px;right:14px;bottom:calc(env(safe-area-inset-bottom) + 14px);z-index:31;border-radius:28px;padding:22px 20px 20px;transform:translateY(120%);transition:transform .35s var(--ease);max-height:80vh;overflow:auto;background:linear-gradient(160deg,rgba(255,255,255,.96),rgba(255,255,255,.9))}
+.sheet.on{transform:none}
+.sheet h2{margin:6px 0 16px;font-weight:200;font-size:30px;line-height:1.1}
+.plist{display:flex;flex-direction:column}
+.plist button{border:none;background:transparent;text-align:left;padding:13px 2px;border-bottom:1px solid rgba(28,28,28,.07);display:flex;align-items:baseline;gap:10px;font-size:16px}
+.plist button small{margin-left:auto;font-family:'Courier Prime',monospace;font-size:11px;color:var(--soft)}
+.plist button.on{color:var(--oi)}
+.steps{display:flex;flex-direction:column;gap:10px}
+.steps .dark,.steps .light{width:100%}
+.steps .n{font-family:'Courier Prime',monospace;font-size:12px;opacity:.6}
+.small{font-size:12.5px;color:var(--soft);line-height:1.45;margin:12px 2px 0;text-align:center}
+.toast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom) + 92px);z-index:40;transform:translate(-50%,8px);white-space:nowrap;border-radius:100px;padding:10px 16px;font-size:13.5px;opacity:0;pointer-events:none;transition:opacity .25s,transform .25s var(--ease);max-width:88vw;text-align:center}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+
+/* pairing and "can't reach your Mac" */
+.gate{min-height:100vh;display:flex;flex-direction:column;justify-content:center;gap:16px;padding:0 26px calc(env(safe-area-inset-bottom) + 40px)}
+.gate img{width:56px}
+.gate h1{margin:0;font-weight:200;font-size:40px;line-height:1.08}
+.gate p{margin:0;font-size:15px;color:var(--soft);line-height:1.55}
+.gate ol{margin:0;padding:16px 18px 16px 36px;border-radius:22px;font-size:14px;line-height:1.5;display:flex;flex-direction:column;gap:8px}
+.gate .dark{align-self:stretch}
+.prog{position:fixed;left:18px;right:18px;top:calc(env(safe-area-inset-top) + 8px);z-index:45;height:3px;border-radius:3px;background:rgba(240,90,34,.15);overflow:hidden;opacity:0;transition:opacity .2s}
+.prog.on{opacity:1}.prog i{display:block;height:100%;width:0;background:var(--o);transition:width .2s}
+.view video{max-width:100%;max-height:100%;display:block;background:#000}
+.addpics{display:flex;gap:6px;overflow-x:auto;margin:0 -2px 14px;padding:2px}
+.addpics span{flex-shrink:0;width:72px;height:54px;border-radius:8px;background:#2b2b2b center/cover no-repeat;display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px}
+.pchips{display:flex;gap:6px;overflow-x:auto;margin:6px 0 12px;padding:2px}
+.pchips .chip{flex-shrink:0}
+.tagin{width:100%;font:inherit;font-size:16px;border-radius:100px;border:1px solid rgba(28,28,28,.12);background:rgba(255,255,255,.9);padding:12px 16px;outline:none;margin-bottom:14px}
+.tagin:focus{border-color:var(--o)}
+
+/* Round 21 */
+.badge.sent{left:auto;right:6px;background:rgba(20,20,20,.55)}
+.feed .st.wait{color:var(--oi)}
+header .markbtn{border:none;background:none;padding:0;display:block}
+.sendbar{position:fixed;left:14px;right:14px;bottom:calc(env(safe-area-inset-bottom) + 84px);z-index:7;border-radius:22px;padding:12px 12px 12px 16px;display:flex;align-items:center;gap:10px}
+.sendbar div{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.sendbar b{font-weight:500;font-size:14.5px}
+.sendbar span{font-size:12px;color:var(--soft)}
+.sendbar .dark{padding:11px 16px;font-size:14px;background:var(--o);box-shadow:0 6px 18px rgba(240,90,34,.35)}
+.sendbar .q{border:none;background:none;color:var(--soft);font-size:18px;padding:0 4px}
+main{padding-bottom:calc(env(safe-area-inset-bottom) + 190px)}
+.newp{display:flex;gap:8px;margin-top:14px}
+.newp input{flex:1;min-width:0;font:inherit;font-size:16px;border-radius:100px;border:1px solid rgba(28,28,28,.12);background:rgba(255,255,255,.9);padding:11px 16px;outline:none}
+.newp input:focus,.tagin:focus{border-color:var(--o)}
+.newp .dark{padding:11px 18px;font-size:14px}
+.menu .line{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:13px 2px;border-bottom:1px solid rgba(28,28,28,.07);font-size:14.5px}
+.menu .line span:last-child{color:var(--soft);font-size:13px;text-align:right}
+.menu .line button{border:none;background:none;color:var(--oi);font-size:14px;padding:0}
+.menu .line button:disabled{color:var(--soft)}
+.menu p,.sendSheet p{font-size:13.5px;line-height:1.55;color:var(--soft);margin:0 0 12px}
+.how{margin:0 0 14px;padding:0 0 0 20px;display:flex;flex-direction:column;gap:8px;font-size:14px;line-height:1.5}
+.dark:disabled{opacity:.45}
+/* the Home Screen guide */
+.install{min-height:100vh;display:flex;flex-direction:column;gap:18px;padding:calc(env(safe-area-inset-top) + 34px) 22px calc(env(safe-area-inset-bottom) + 30px)}
+.install .icon{width:84px;height:84px;border-radius:20px;box-shadow:0 14px 34px rgba(160,70,20,.22);display:block}
+.install h1{margin:0;font-weight:200;font-size:38px;line-height:1.06}
+.install .lead{margin:0;font-size:15px;line-height:1.55;color:var(--soft)}
+.install .mac{font-family:'Courier Prime',monospace;font-size:12px;color:var(--oi);letter-spacing:.04em}
+.steps2{display:flex;flex-direction:column;gap:10px}
+.step{border-radius:22px;padding:14px 16px;display:flex;gap:14px;align-items:center}
+.step .n{width:30px;height:30px;border-radius:50%;background:var(--o);color:#fff;display:flex;align-items:center;justify-content:center;font-family:Oswald,sans-serif;font-size:14px;flex-shrink:0}
+.step div{flex:1;font-size:14.5px;line-height:1.45}
+.step div small{display:block;color:var(--soft);font-size:12.5px;margin-top:2px}
+.step .sym{width:40px;height:40px;border-radius:11px;background:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 2px 8px rgba(0,0,0,.08)}
+.pointer{align-self:center;display:flex;flex-direction:column;align-items:center;gap:6px;color:var(--oi);font-family:'Courier Prime',monospace;font-size:11px;letter-spacing:.12em;text-transform:uppercase;animation:bob 1.6s var(--ease) infinite}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(6px)}}
+.install .skip{border:none;background:none;color:var(--soft);font-size:13.5px;text-decoration:underline;text-underline-offset:3px;align-self:center;padding:6px}
+.install .why{border-radius:22px;padding:14px 16px;font-size:13px;line-height:1.55;color:var(--soft)}
+.install .why b{color:var(--ink);font-weight:500}
+.toast{bottom:calc(env(safe-area-inset-bottom) + 168px)}
+</style></head>
+<body>
+<div class="glow"></div>
+<div class="prog" id="prog"><i id="progBar"></i></div>
+
+<!-- The first time, in Safari: make it an app -->
+<section class="install off" id="install">
+  <img class="icon" src="icon-180.png" alt="">
+  <span class="cap">Needed Vault · This Was Needed</span>
+  <h1>Put Needed Vault on your Home Screen</h1>
+  <p class="lead">Then it opens like an app — full screen, and it works with no signal at all. Takes ten seconds.</p>
+  <span class="mac" id="instMac"></span>
+  <div class="steps2" id="instIOS">
+    <div class="g step"><span class="n">1</span><div>Tap <b>Share</b><small>At the bottom of Safari (top on iPad). On iOS 26, tap ⋯ first.</small></div><span class="sym"><svg width="20" height="22" viewBox="0 0 20 24" fill="none" stroke="#0a84ff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 15V2M5.5 6.5L10 2l4.5 4.5"/><path d="M6 10H3.5v12h13V10H14"/></svg></span></div>
+    <div class="g step"><span class="n">2</span><div>Scroll down, tap <b>Add to Home Screen</b><small>Leave “Open as Web App” on.</small></div><span class="sym"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#141414" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="4.5"/><path d="M12 8v8M8 12h8"/></svg></span></div>
+    <div class="g step"><span class="n">3</span><div>Tap <b>Add</b>, then open <b>Needed Vault</b> from your Home Screen<small>Your projects come with it.</small></div><span class="sym"><img src="icon-180.png" alt="" style="width:30px;border-radius:7px"></span></div>
+    <div class="pointer" aria-hidden="true">Share is down here<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M8 2v11M3.5 8.5L8 13l4.5-4.5"/></svg></div>
+  </div>
+  <div class="steps2 off" id="instInApp">
+    <div class="g step"><span class="n">1</span><div>Open this page in <b>Safari</b><small>Tap ⋯ or the compass, then “Open in Safari” — apps like Instagram can’t add it to your Home Screen.</small></div></div>
+  </div>
+  <div class="steps2 off" id="instOther">
+    <div class="g step"><span class="n">1</span><div>Open your browser’s menu<small>⋮ in Chrome</small></div></div>
+    <div class="g step"><span class="n">2</span><div>Tap <b>Add to Home Screen</b> or <b>Install app</b></div></div>
+    <button class="dark off" id="instBtn">Install Needed Vault</button>
+  </div>
+  <div class="g why"><b>Where do my photos go?</b> Nowhere but this phone — until you send them to your Mac by AirDrop. Nothing goes up to the website.</div>
+  <button class="skip" id="instSkip">Use it in Safari for now</button>
+</section>
+
+<div id="app" class="off">
+<header>
+  <button class="markbtn" id="mark" aria-label="Needed Vault — how it works"><img src="mark.png" alt="This Was Needed"></button>
+  <button class="pill" id="pill" aria-haspopup="dialog"><span id="pillName">Projects</span> <svg width="10" height="7" viewBox="0 0 10 7" aria-hidden="true"><path d="M1 1l4 4 4-4" fill="none" stroke="#fff" stroke-width="1.5"/></svg></button>
+  <span style="flex-grow:1"></span>
+  <span class="gg" id="ggWrap">Grab &amp; Go <button class="tog" id="gg" aria-label="Grab and Go" aria-pressed="false"></button></span>
+</header>
+
+<main>
+  <section id="browse">
+    <div class="titlerow"><h1 id="title">Needed Vault</h1><span class="cap" id="count"></span></div>
+    <div class="chips" id="chips">
+      <button class="chip on" data-k="all">All</button><button class="chip" data-k="still">Stills</button><button class="chip" data-k="clip">Clips</button><button class="chip" data-k="gif">GIFs</button>
+      <span class="grow"></span>
+      <button class="chip" id="searchBtn" aria-label="Search"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#141414" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg></button>
+    </div>
+    <div class="search" id="search"><input id="q" type="search" placeholder="Search — tags, names" autocomplete="off" autocapitalize="off"></div>
+    <div class="grid" id="grid"></div>
+  </section>
+
+  <section id="on" class="off">
+    <div class="banner"><b>Grab &amp; Go is on</b><span id="onLine"></span></div>
+    <button class="g target" id="bigTap"><b>Tap to add</b><span>Pick from Photos — kept for the project, no questions</span></button>
+    <div class="feedhead"><span class="cap" id="todayN">Today</span><button class="chip" id="camera2">Camera</button></div>
+    <div class="feed" id="feed"></div>
+  </section>
+</main>
+
+<div class="g sendbar off" id="sendBar">
+  <div><b id="sendN"></b><span id="sendWhere"></span></div>
+  <button class="q" id="sendHow" aria-label="How sending works">?</button>
+  <button class="dark" id="sendGo">Send to Mac</button>
+</div>
+<div class="bottom" id="bottom">
+  <button class="dark" id="photos"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="M3 15l5-5 4 4 3-3 6 6"/></svg>Photos</button>
+  <button class="light" id="camera"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#141414" stroke-width="1.6" aria-hidden="true"><rect x="3" y="6" width="18" height="13" rx="3"/><circle cx="12" cy="12.5" r="3.2"/><path d="M8.5 6l1.5-2h4l1.5 2"/></svg>Camera</button>
+</div>
+<input type="file" id="pick" accept="image/*,video/*" multiple hidden>
+<input type="file" id="shoot" accept="image/*,video/*" capture="environment" hidden>
+</div>
+
+<div class="view" id="view" role="dialog" aria-label="One picture">
+  <div class="top"><button class="back" id="vBack"></button><span class="n" id="vN"></span></div>
+  <div class="pic" id="vPic"></div>
+  <div class="info"><span class="t" id="vT"></span><span class="m" id="vM"></span><div class="tags" id="vTags"></div></div>
+  <div class="acts"><button class="light" id="vShare">Share</button><button class="light small" id="vDel">Delete</button></div>
+  <div class="hint">Swipe for the next · cropping and boards happen on the Mac</div>
+</div>
+
+<div class="veil" id="veil"></div>
+<div class="g sheet" id="projSheet" role="dialog" aria-label="Projects"><span class="cap">Your projects</span><h2>Pick a project</h2><div class="plist" id="plist"></div>
+  <div class="newp"><input id="newProj" placeholder="A new project" autocomplete="off" autocapitalize="words"><button class="dark" id="newProjGo">Make it</button></div>
+  <p class="small">Named the same as on your Mac, it goes straight into that project there.</p></div>
+<div class="g sheet" id="addSheet" role="dialog" aria-label="Keep for a project">
+  <span class="cap">Keep for a project</span><h2 id="addTitle">To keep</h2>
+  <div class="addpics" id="addPics"></div>
+  <span class="cap">For</span>
+  <div class="pchips" id="addProjects"></div>
+  <input class="tagin" id="addNew" placeholder="…or a new project" autocomplete="off" autocapitalize="words">
+  <input class="tagin" id="addTags" placeholder="Tags, if you like — night, car" autocomplete="off" autocapitalize="off">
+  <div class="steps"><button class="dark" id="addGo">Keep</button><button class="light" id="addCancel">Cancel</button></div>
+</div>
+<div class="g sheet sendSheet" id="sendSheet" role="dialog" aria-label="Sending to your Mac">
+  <span class="cap">Send to Mac</span><h2>How it gets there</h2>
+  <ol class="how">
+    <li>Tap <b>Send to Mac</b>, then pick your Mac under <b>AirDrop</b>.</li>
+    <li>On the Mac, press <b>Sync</b> in Needed Tools.</li>
+    <li>Everything goes into its project’s vault — Stills, GIFs and Motion references — with its tags.</li>
+  </ol>
+  <p>No Wi-Fi needed — just the phone near your Mac, with Bluetooth on. Same Apple ID, and the Mac takes them without asking.</p>
+  <div class="steps"><button class="dark" id="sendOk">Got it</button></div>
+</div>
+<div class="g sheet menu" id="menuSheet" role="dialog" aria-label="Needed Vault">
+  <span class="cap">Needed Vault</span><h2>How it works</h2>
+  <ol class="how">
+    <li>Add photos and clips to a project — anywhere, with or without signal.</li>
+    <li>They wait on this phone.</li>
+    <li>Back at your Mac: <b>Send to Mac</b> (AirDrop), then <b>Sync</b> in Needed Tools.</li>
+  </ol>
+  <div class="line"><span>Your Mac</span><span id="mMac"></span></div>
+  <div class="line"><span>New projects from the Mac</span><span>Needed Tools › Your phone — scan again, or type one here</span></div>
+  <div class="line"><span>Room on this phone</span><span><span id="mSent" style="color:inherit"></span> · <button id="mClear">Clear</button></span></div>
+  <div class="line" id="mHomeRow"><span>Make it an app</span><span><button id="mHome">Show me how</button></span></div>
+  <div class="steps" style="margin-top:14px"><button class="dark" id="mDone">Done</button></div>
+</div>
+<div class="g toast" id="toast"></div>
+<script src="app.js"></script>
+</body></html>

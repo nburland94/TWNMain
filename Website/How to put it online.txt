@@ -1,0 +1,25 @@
+This Was Needed — the website, with Needed Vault at /vault/
+===========================================================
+
+What's here
+  index.html                   the site (Work, Awards, About, Tools, Contact, Vault)
+  this-was-needed-logo.svg     the logo, on its own
+  vault/                       Needed Vault — the phone page
+  _headers                     tells Netlify not to hold on to old copies of the phone page
+
+Put it online (Netlify)
+  1. Netlify › your site › Deploys › drag this whole "Website" folder onto the drop area.
+     (Or, if the site is linked to a folder or a Git repo, replace its files with these.)
+  2. Your domain (thiswasneeded.info) should point at that Netlify site. Netlify gives it
+     https on its own — Needed Vault needs https to work offline.
+  3. Open https://thiswasneeded.info/vault/ on your iPhone to check.
+
+Needed Tools makes its QR code for https://thiswasneeded.info/vault/. If the site ends up
+somewhere else, tell me the address and I'll point the app at it.
+
+What the website holds
+  Only the pages themselves (a few hundred KB). No photos, GIFs or clips are ever sent to the
+  website — they stay on the phone until you AirDrop them to your Mac. Nothing to store, no
+  server, no accounts.
+
+Needed Tools stays "Coming soon" on the Tools section until you're ready to sell it.

@@ -124,6 +124,13 @@ final class PhoneServer {
         if let q = PhoneServer.qr(url) { s["qr"] = q }
         if let ip = ipURL { s["ipURL"] = ip; if let q = PhoneServer.qr(ip) { s["ipQR"] = q } }
         if let p = problem { s["problem"] = p }
+        // Round 21: the page on your website — opens anywhere, works offline, sends back by AirDrop.
+        var projects = Shared.projects()
+        if let i = projects.firstIndex(of: Shared.project) { projects.remove(at: i); projects.insert(Shared.project, at: 0) }
+        let pair = PhoneDrops.pairURL(projects: projects, mac: Host.current().localizedName ?? "your Mac")
+        s["vaultURL"] = PhoneDrops.pageURL
+        s["pairURL"] = pair
+        if let q = PhoneServer.qr(pair) { s["vaultQR"] = q }
         return s
     }
 
@@ -462,5 +469,81 @@ final class HTTPConn {
         case "mov": return "video/quicktime"
         default: return "application/octet-stream"
         }
+    }
+}
+
+// MARK: - Round 21: from the phone by AirDrop
+// Needed Vault on the website keeps what you capture on the phone, then Send to Mac
+// AirDrops it here. Each file carries where it's going in its name:
+//     NV ~ Lexus ~ night, car ~ IMG_1234.jpg
+// Sync looks in Downloads first and files every one of them into its project's
+// references, with its tags — then the rest of Sync carries on as before.
+enum PhoneDrops {
+    struct Drop { let file: URL; let kind: String; let project: String; let tags: [String]; let title: String }
+
+    static var downloads: URL? { FileManager.default.urls(for: .downloadsDirectory, in: .userDomainMask).first }
+
+    /// "NV ~ Lexus ~ night, car ~ IMG_1234.jpg" → Lexus, [night, car], IMG_1234.jpg  (no tags: "NV ~ Lexus ~ - ~ IMG_1234.jpg")
+    static func parse(_ name: String) -> (project: String, tags: [String], name: String)? {
+        guard name.hasPrefix("NV ~ ") else { return nil }
+        let parts = name.components(separatedBy: " ~ ")
+        guard parts.count >= 4 else { return nil }
+        let project = parts[1].trimmingCharacters(in: .whitespaces)
+        let tags = parts[2].split(whereSeparator: { $0 == "," || $0 == "#" }).map { $0.trimmingCharacters(in: .whitespaces) }.filter { !$0.isEmpty && $0 != "-" }
+        let rest = parts[3...].joined(separator: " ~ ").trimmingCharacters(in: .whitespaces)
+        return (project, tags, rest.isEmpty ? "From your phone" : rest)
+    }
+
+    static func kind(_ ext: String) -> String? {
+        switch ext.lowercased() {
+        case "gif": return "gif"
+        case "mp4", "mov", "m4v": return "clip"
+        case "jpg", "jpeg", "png", "webp", "heic", "heif", "tif", "tiff": return "still"
+        default: return nil
+        }
+    }
+
+    /// Moves every Needed Vault file in Downloads into its project. Off the main thread.
+    static func collect(base: URL, fallback: String) -> [Drop] {
+        let fm = FileManager.default
+        guard let dl = downloads,
+              let files = try? fm.contentsOfDirectory(at: dl, includingPropertiesForKeys: nil, options: [.skipsHiddenFiles]) else { return [] }
+        // The vault's own project folders, so "lexus" on the phone finds "Lexus" here.
+        let existing = ((try? fm.contentsOfDirectory(at: base, includingPropertiesForKeys: [.isDirectoryKey], options: [.skipsHiddenFiles])) ?? [])
+            .filter { (try? $0.resourceValues(forKeys: [.isDirectoryKey]))?.isDirectory == true }.map { $0.lastPathComponent }
+        var out: [Drop] = []
+        for f in files.sorted(by: { $0.lastPathComponent < $1.lastPathComponent }) {
+            guard let p = parse(f.lastPathComponent), let k = kind(f.pathExtension) else { continue }
+            var project = p.project.trimmingCharacters(in: .whitespaces).isEmpty ? fallback : Shell.clean(p.project)
+            if let same = existing.first(where: { $0.caseInsensitiveCompare(project) == .orderedSame }) { project = same }
+            var clean = p.name.replacingOccurrences(of: "/", with: "-").replacingOccurrences(of: ":", with: "-")
+            if clean.hasPrefix(".") || (clean as NSString).deletingPathExtension.isEmpty { clean = "From your phone." + f.pathExtension }
+            let folder = k == "clip" ? "Motion" : k == "gif" ? "GIFs" : "Stills"
+            let dir = base.appendingPathComponent(project, isDirectory: true).appendingPathComponent(Folders.sub(folder, project: project, grab: false), isDirectory: true)
+            try? fm.createDirectory(at: dir, withIntermediateDirectories: true)
+            let dst = CloudVault.unique(dir, clean)
+            guard (try? fm.moveItem(at: f, to: dst)) != nil else { continue }
+            out.append(Drop(file: dst, kind: k, project: project, tags: p.tags, title: (clean as NSString).deletingPathExtension))
+        }
+        return out
+    }
+
+    /// Where the phone page lives: your website, so it opens anywhere and works offline.
+    static var pageURL: String {
+        let u = UserDefaults.standard.string(forKey: "vaultPageURL") ?? ""
+        return u.hasPrefix("https://") ? u : "https://thiswasneeded.info/vault/"
+    }
+    /// The QR carries your projects (most recent first) and this Mac's name, so the phone knows where things can go.
+    /// In the address itself (not after a #): Add to Home Screen keeps it, so the app on the phone starts with them.
+    static func pairURL(projects: [String], mac: String) -> String {
+        var allowed = CharacterSet.alphanumerics; allowed.insert(charactersIn: "-_. ")
+        let enc = { (s: String) -> String in (s.addingPercentEncoding(withAllowedCharacters: allowed) ?? s).replacingOccurrences(of: " ", with: "%20") }
+        var list: [String] = [], len = 0
+        for p in projects where p != "Unsorted" {
+            let e = enc(p.replacingOccurrences(of: "|", with: "-").replacingOccurrences(of: "~", with: "-"))
+            if len + e.count > 300 { break }                      // a QR a phone can still read at a glance
+            list.append(e); len += e.count + 1
+        }
+        return pageURL + "?p=" + list.joined(separator: "|") + "&m=" + enc(mac)
     }
 }

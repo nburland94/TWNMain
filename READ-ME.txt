@@ -681,3 +681,30 @@ ROUND 20 — THE PHONE PAGE LOADS, COPY & PASTE, YOUR ACCOUNT
   • Pay: Job number is a plain field with the others; left off the invoice
     when it's blank.
 
+
+ROUND 21 — NEEDED VAULT ANYWHERE, NOTES IN THE CORNER, THE WEBSITE
+  • Needed Vault now lives on your website (thiswasneeded.info/vault/),
+    not on the Mac. Scan the QR code (the Phone button, top right): the
+    page shows how to put it on your Home Screen, and from then on it opens
+    like an app and works with no signal at all.
+  • On the phone: pick a project (yours come across in the QR code, or type
+    a new one), add from Photos or the camera, with tags. Grab & Go keeps
+    everything for one project without asking. It all waits on the phone —
+    nothing goes to the website.
+  • Back at your Mac: Send to Mac on the phone (AirDrop), then press Sync.
+    Sync looks in Downloads first: every Needed Vault file goes into its
+    project's References (Stills, GIFs, Motion) with its tags, then Sync
+    carries on as before — with the same loading bar as everywhere else.
+    Files are named "NV ~ Lexus ~ night, car ~ IMG_1234.jpg"; the project is
+    matched to yours whatever the capitals.
+  • Browsing the whole vault over Wi-Fi at home is still there, underneath,
+    for when you want it.
+  • Notes in the corner: whenever something's done (a sync, an export,
+    things in from your phone, an invoice sent…) a small glass card rises in
+    the bottom-left of the window, on any page. It goes by itself; click to
+    close it sooner. When you're in another app, macOS shows its banner
+    instead.
+  • The first Sync after this may ask to let Needed Tools see Downloads —
+    say OK.
+  • The website is in the "Website" folder of the kit — see
+    "How to put it online.txt" inside.
