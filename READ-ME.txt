@@ -809,3 +809,17 @@ ROUND 25 — START AGAIN, EJECT, BOOMERANGS, THE WEBSITE
     open to a blank page any more — the guide shows even before it loads,
     it works with or without the / at the end, and if it can't start it
     says so.
+
+ROUND 26 — DESIGN: TABS, THE QUICK BAR, THE FADE ON TOP
+  • The panel is in tabs: Layout · Picture · Text · Colour · Brand · Look
+    (mood boards: Layout · Picture · Colour · Brand). The tab you choose
+    stays until you choose another — clicking the page, a picture or words
+    never switches it; the tab for what you picked gets an orange dot.
+  • Free is always at the top of the panel, on every tab.
+  • The quick bar, above the page: Text, Free, Fade, next layout, Photos,
+    duplicate page, undo, redo, Play. Drag it by its dots (⋮⋮) anywhere on
+    the stage — it remembers where you put it.
+  • The fade has its own place in front/back: on a Free page, if the fade
+    sits over a picture, clicking there picks the fade — drag it, pull its
+    corners, or send it Back and the picture comes first. Hold ⌥ to click
+    through it. ⌫ with the fade picked turns it off on that page.

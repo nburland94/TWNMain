@@ -80,7 +80,7 @@ select.sel{appearance:none;-webkit-appearance:none;border:1px solid rgba(28,28,2
 .work{display:grid;grid-template-columns:minmax(0,1fr);min-height:0;min-width:0}
 .stage{position:relative;min-width:0;min-height:0;overflow:hidden}
 /* The page sits in its own scroller, so zoomed in you can move around it. */
-.scroller{position:absolute;inset:0;overflow:auto;display:flex;padding:28px;box-sizing:border-box;scrollbar-width:thin}
+.scroller{position:absolute;inset:0;overflow:auto;display:flex;padding:64px 28px 28px;box-sizing:border-box;scrollbar-width:thin}
 .scroller .pagewrap{margin:auto;flex-shrink:0}
 .zoombar{position:absolute;right:14px;bottom:10px;z-index:8;display:flex;align-items:center;gap:0;border-radius:100px;padding:3px}
 .zoombar button{border:none;background:transparent;border-radius:100px;min-width:30px;height:28px;padding:0 8px;font-size:13px;color:#141414}
@@ -115,6 +115,16 @@ select.sel{appearance:none;-webkit-appearance:none;border:1px solid rgba(28,28,2
 .fadesel .fh[data-fh=tl]{left:-6px;top:-6px;cursor:nwse-resize}.fadesel .fh[data-fh=tr]{right:-6px;top:-6px;cursor:nesw-resize}
 .fadesel .fh[data-fh=bl]{left:-6px;bottom:-6px;cursor:nesw-resize}.fadesel .fh[data-fh=br]{right:-6px;bottom:-6px;cursor:nwse-resize}
 .fadelbl{position:absolute;left:8px;top:8px;font-size:11.5px;color:#fff;background:rgba(240,90,34,0.9);border-radius:100px;padding:3px 10px;white-space:nowrap;pointer-events:none}
+.qbar[hidden]{display:none}
+.qbar{position:absolute;z-index:12;display:flex;align-items:center;gap:1px;border-radius:14px;padding:4px;white-space:nowrap;user-select:none;-webkit-user-select:none}
+.qbar .qgrip{width:14px;align-self:stretch;cursor:grab;display:flex;align-items:center;justify-content:center;color:#b3aca6;font-size:11px;letter-spacing:-1px}
+.qbar .qgrip:active{cursor:grabbing}
+.qbar button{border:none;background:transparent;border-radius:10px;height:32px;min-width:34px;padding:0 8px;font-size:12.5px;color:#141414;display:flex;align-items:center;gap:5px}
+.qbar button.on{background:#141414;color:#fff}
+.qbar button svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.qbar .qsep{width:1px;height:18px;background:rgba(28,28,28,0.12);margin:0 3px}
+@media (hover:hover) and (pointer:fine){.qbar button:not(.on):hover{background:rgba(240,90,34,0.12)}}
+.stage.zooming .qbar{visibility:hidden}
 .arrbar[hidden]{display:none}
 .arrbar{position:absolute;z-index:9;display:flex;gap:0;border-radius:100px;padding:3px;white-space:nowrap}
 .arrbar button{border:none;background:transparent;border-radius:100px;padding:5px 10px;font-size:12px;color:#141414}
@@ -152,6 +162,12 @@ body.dragging,body.dragging *{cursor:grabbing!important;user-select:none}
 .swapbar .k{font-size:11.5px;color:#6b6964;padding:0 8px;white-space:nowrap}
 .panel{border-left:1px solid rgba(28,28,28,0.05);overflow-y:auto;padding:14px 16px 20px;display:flex;flex-direction:column;gap:16px;min-width:0}
 .panel .phead{display:flex;align-items:baseline;justify-content:space-between;gap:8px}
+.ptabs{display:grid;grid-template-columns:repeat(auto-fit,minmax(0,1fr));gap:2px;padding:3px;border-radius:12px;background:rgba(28,28,28,0.05);position:sticky;top:-14px;z-index:5;margin:-2px 0 -6px}
+.ptabs button{border:none;background:transparent;border-radius:9px;padding:7px 0;font-size:12px;color:#5a5854;position:relative;white-space:nowrap}
+.ptabs button.on{background:#fff;color:#141414;box-shadow:0 1px 3px rgba(80,30,10,0.12)}
+.ptabs .pdot{position:absolute;top:4px;right:5px;width:6px;height:6px;border-radius:50%;background:#F05A22}
+.pfree{align-items:center!important}.pnum{font-weight:300;font-size:20px}.pnum small{font-size:12px;color:#8a8784;margin-left:2px}
+.pscope{display:flex;flex-direction:column;gap:1px;margin-bottom:-6px}.pscope b{font-family:'Courier Prime',monospace;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:#d2440f;font-weight:400}.pscope span{font-size:12px;color:#8a8784}
 .phbtns{display:flex;align-items:center;gap:6px}
 .phead .pmode button{padding:6px 14px;font-size:13px}
 .tlist{display:flex;flex-direction:column;gap:2px}
@@ -341,6 +357,7 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
   <div class="strip" id="strip"></div>
   <div class="work" id="work">
     <div class="stage" id="stage"><div class="scroller" id="scroller"><div class="pagewrap" id="pagewrap"></div><div class="boxsel" id="boxsel" hidden><i class="h" data-h="l"></i><i class="h" data-h="r"></i><i class="h" data-h="br"></i><i class="h" data-h="b"></i></div><div class="fadesel" id="fadesel" hidden><i class="fh" data-fh="tl"></i><i class="fh" data-fh="tr"></i><i class="fh" data-fh="bl"></i><i class="fh" data-fh="br"></i><span class="fadelbl">Fade — drag to move · corners to size · R rotates · Esc done</span></div><div class="arrbar g" id="arrbar" hidden><button type="button" data-z="front" title="To the front">⤒ Front</button><button type="button" data-z="forward" title="Forward one">↑</button><button type="button" data-z="backward" title="Back one">↓</button><button type="button" data-z="back" title="To the back">⤓ Back</button><button type="button" data-arr="reframe" class="arrpic" title="Reframe — or double-click">Reframe</button></div><div class="splitbar" id="splitbar" hidden title="Drag: more or less room for the pictures"></div><div class="guide v" id="guideX" hidden></div><div class="guide hz" id="guideY" hidden></div></div><div class="swapbar g" id="swapbar" hidden></div><div class="stagehint" id="stagehint"></div>
+      <div class="qbar g" id="qbar" role="toolbar" aria-label="Quick actions" hidden></div>
       <div class="zoombar g" id="zoombar" role="group" aria-label="Zoom"><button type="button" data-zoom="out" aria-label="Zoom out — ⌘−">−</button><button type="button" id="zoomPct" data-zoom="fit" title="Fit the page — ⌘0">100%</button><button type="button" data-zoom="in" aria-label="Zoom in — ⌘+">+</button><button type="button" data-zoom="fit" class="zfit" title="⌘0">Fit</button></div></div>
   </div>
   <aside class="panel" id="panel"></aside>
@@ -584,7 +601,7 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
       // It's darkest at its edge ('from'), and sits in its own box — anywhere on the page, any size.
       const from = fadeFrom(page, L.lay), b = fade.box || { x: 0, y: 0, w: 1, h: 1 };
       const css = { bottom: 'to top', top: 'to bottom', left: 'to right', right: 'to left' }[from];
-      h += `<div class="fade${opt.fadeEdit ? ' fedit' : ''}" style="left:${(b.x * W).toFixed(1)}px;top:${(b.y * H).toFixed(1)}px;width:${(b.w * W).toFixed(1)}px;height:${(b.h * H).toFixed(1)}px;background:linear-gradient(${css}, ${rgba(to, s)} 0%, ${rgba(to, s * 0.55)} 32%, ${rgba(to, 0)} 64%)"></div>`;
+      h += `<div class="fade${opt.fadeEdit ? ' fedit' : ''}" style="z-index:${fade.z != null ? fade.z : 500};left:${(b.x * W).toFixed(1)}px;top:${(b.y * H).toFixed(1)}px;width:${(b.w * W).toFixed(1)}px;height:${(b.h * H).toFixed(1)}px;background:linear-gradient(${css}, ${rgba(to, s)} 0%, ${rgba(to, s * 0.55)} 32%, ${rgba(to, 0)} 64%)"></div>`;
     }
     if (!mood) h += boxesHTML(page, L.G, dark, opt);
     if (mood && (doc.title || '').trim()) {
@@ -849,7 +866,7 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
     const p = page(); if (!p) return;
     const { W, H } = geometry(doc);
     const st = $('stage').getBoundingClientRect();
-    fitScale = Math.max(0.05, Math.min((st.width - 56) / W, (st.height - 56) / H));
+    fitScale = Math.max(0.05, Math.min((st.width - 56) / W, (st.height - 92) / H));      // room above the page for the quick-action bar
     scale = zoom || fitScale;
     const zp = $('zoomPct'); if (zp) zp.textContent = Math.round(scale * 100) + '%';
     $('scroller').style.overflow = zoom && zoom > fitScale ? 'auto' : 'hidden';
@@ -859,10 +876,12 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
     if (doc.mode === 'mood') { bsel = null; editing = null; }
     if (fadeEdit && !(p.fade && p.fade.on)) fadeEdit = false;
     wrap.innerHTML = pageHTML(doc, p, { edit: true, sel, editing, reframe, scale, fadeEdit, rsel });
+    drawQbar();
     const pg = wrap.querySelector('.pg'); pg.style.transform = `scale(${scale})`;
     if (editing) { const el = boxEl(editing); if (el && document.activeElement !== el) { el.focus(); placeCaretEnd(el); } }
     const b = bsel && boxById(bsel);
     $('stagehint').textContent = reframe != null ? 'Drag to reframe · scroll to zoom · Esc when done'
+      : fadeEdit ? 'The fade · drag it · pull a corner to size it · R turns it · ⌫ takes it off · Back sends it behind'
       : editing ? 'Typing · Esc when done'
       : b ? 'Drag to move · pull the handles to size · Return to type · ⌫ deletes it'
       : sel.size === 1 && layoutOf(doc, p) === 'free' && doc.mode !== 'mood' ? 'Drag it anywhere · pull the corner to size it · ↑ ↓ swap it through your stills · ⌫ remove'
@@ -879,10 +898,10 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
   function drawArrBar() {
     const bar = $('arrbar');
     const k = !bsel && sel.size === 1 ? [...sel][0] : null;
-    const el = editing || reframe != null || drag ? null : bsel ? boxEl(bsel) : k != null ? $('pagewrap').querySelector(`.pic[data-k="${k}"]`) : null;
+    const el = editing || reframe != null || drag || fadeDrag ? null : fadeEdit ? $('pagewrap').querySelector('.fade') : bsel ? boxEl(bsel) : k != null ? $('pagewrap').querySelector(`.pic[data-k="${k}"]`) : null;
     if (!el) { bar.hidden = true; return; }
     const sc = $('scroller'), sr = sc.getBoundingClientRect(), r = el.getBoundingClientRect();
-    bar.querySelector('.arrpic').hidden = !!bsel;
+    bar.querySelector('.arrpic').hidden = !!bsel || fadeEdit;
     bar.hidden = false;
     const bw = bar.offsetWidth, top = r.top - sr.top + sc.scrollTop - 44;
     bar.style.left = Math.max(4, r.left - sr.left + sc.scrollLeft + r.width / 2 - bw / 2) + 'px';
@@ -900,9 +919,99 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
     else Object.assign(bar.style, { top: (oy + dv.at * scale - 9) + 'px', left: ox + 'px', height: '18px', width: w.width + 'px' });
     bar.hidden = false;
   }
+  /* ---------------------------------------------------------------- the quick-action bar, on the slide — drag it wherever suits */
+  const QI = {
+    text: '<svg viewBox="0 0 16 16"><path d="M3 3.5h10M8 3.5v9.5M6 13h4"/></svg>',
+    free: '<svg viewBox="0 0 16 16"><path d="M8 1.5v13M1.5 8h13M8 1.5l-2 2M8 1.5l2 2M8 14.5l-2-2M8 14.5l2-2M1.5 8l2-2M1.5 8l2 2M14.5 8l-2-2M14.5 8l-2 2"/></svg>',
+    fade: '<svg viewBox="0 0 16 16"><rect x="2" y="2" width="12" height="12" rx="2"/><path d="M2 10h12M2 12h12M2 8h12" opacity=".5"/></svg>',
+    layout: '<svg viewBox="0 0 16 16"><rect x="2" y="3" width="12" height="10" rx="1.5"/><path d="M8 3v10M8 8h6"/></svg>',
+    photos: '<svg viewBox="0 0 16 16"><rect x="1.5" y="3" width="13" height="10" rx="2"/><path d="M1.5 11l3.5-3.5 3 3 2-2 4.5 4.5"/></svg>',
+    dup: '<svg viewBox="0 0 16 16"><rect x="5" y="5" width="9" height="9" rx="1.5"/><path d="M11 5V3.5A1.5 1.5 0 0 0 9.5 2h-6A1.5 1.5 0 0 0 2 3.5v6A1.5 1.5 0 0 0 3.5 11H5"/></svg>',
+    undo: '<svg viewBox="0 0 16 16"><path d="M5 4L2 7l3 3"/><path d="M2 7h7.5a4 4 0 0 1 0 8H7"/></svg>',
+    redo: '<svg viewBox="0 0 16 16"><path d="M11 4l3 3-3 3"/><path d="M14 7H6.5a4 4 0 0 0 0 8H9"/></svg>',
+    play: '<svg viewBox="0 0 16 16"><path d="M4.5 3l8 5-8 5z"/></svg>',
+  };
+  let qpos = (() => { try { return JSON.parse(localStorage.getItem('design.qbar') || 'null'); } catch (e) { return null; } })();
+  function drawQbar() {
+    const q = $('qbar'); if (!doc) { q.hidden = true; return; }
+    const p = page(), mood = doc.mode === 'mood', free = p.layout === 'free', fade = !!(p.fade && p.fade.on);
+    const B = (id, icon, label, tip, on) => `<button type="button" data-q="${id}" class="${on ? 'on' : ''}" title="${esc(tip)}" aria-label="${esc(label)}">${QI[icon]}${label ? `<span>${label}</span>` : ''}</button>`;
+    q.innerHTML = '<span class="qgrip" title="Drag to move this bar">⋮⋮</span>'
+      + (mood ? '' : B('text', 'text', 'Text', 'A text box — T', false) + B('free', 'free', 'Free', 'Free: move and size the pictures by hand', free)
+        + B('fade', 'fade', 'Fade', 'Fade the pictures on this page — drag it on a Free page, R turns it', fade) + B('layout', 'layout', '', 'Next layout — L', false))
+      + B('photos', 'photos', '', 'Add photos from your Mac', false) + '<i class="qsep"></i>'
+      + B('dup', 'dup', '', 'Duplicate this page — ⌘D', false) + B('undo', 'undo', '', 'Undo — ⌘Z', false) + B('redo', 'redo', '', 'Redo — ⇧⌘Z', false)
+      + B('play', 'play', '', 'Play — Space', false);
+    q.hidden = false;
+    placeQbar();
+  }
+  // Where it sits: remembered, and always kept inside the stage.
+  function placeQbar(x, y) {
+    const q = $('qbar'), st = $('stage'); if (q.hidden) return;
+    const W = st.clientWidth, H = st.clientHeight, qw = q.offsetWidth, qh = q.offsetHeight;
+    if (x == null) { const P = qpos || { fx: 0.5, fy: 0 }; x = P.fx * W - qw / 2; y = qpos ? P.fy * H : 12; }
+    x = clamp(x, 6, Math.max(6, W - qw - 6)); y = clamp(y, 6, Math.max(6, H - qh - 6));
+    q.style.left = x + 'px'; q.style.top = y + 'px';
+    return { x, y, W, H, qw };
+  }
+  let qdrag = null;
+  $('qbar').addEventListener('mousedown', e => {
+    e.stopPropagation();
+    if (!e.target.closest('.qgrip')) return;
+    e.preventDefault();
+    const q = $('qbar');
+    qdrag = { x0: e.clientX, y0: e.clientY, l: q.offsetLeft, t: q.offsetTop };
+  });
+  document.addEventListener('mousemove', e => {
+    if (!qdrag) return;
+    const r = placeQbar(qdrag.l + e.clientX - qdrag.x0, qdrag.t + e.clientY - qdrag.y0);
+    if (r) qdrag.last = r;
+  });
+  document.addEventListener('mouseup', () => {
+    if (!qdrag) return;
+    const r = qdrag.last; qdrag = null;
+    if (r) { qpos = { fx: (r.x + r.qw / 2) / r.W, fy: r.y / r.H }; try { localStorage.setItem('design.qbar', JSON.stringify(qpos)); } catch (e) {} }
+  });
+  $('qbar').addEventListener('click', e => {
+    const b = e.target.closest('[data-q]'); if (!b || !doc) return;
+    const q = b.dataset.q, p = page();
+    if (q === 'text') return addBox();
+    if (q === 'free') {
+      if (p.layout === 'free') { const back = p.prevLayout || 'left'; change(() => { p.layout = back; }); return toast('Laid out again — your Free places are kept if you switch back'); }
+      setLayout('free'); return toast('Free: drag pictures anywhere, pull a corner to size them');
+    }
+    if (q === 'fade') { change(() => { p.fade = Object.assign({ strength: 0.6, to: 'black' }, p.fade || {}, { on: !(p.fade && p.fade.on) }); }); return toast(page().fade.on ? 'Fade on — the Colour tab has its strength and direction' : 'Fade off'); }
+    if (q === 'layout') return cycleLayout();
+    if (q === 'photos') return bringPhotos();
+    if (q === 'dup') return dupPage();
+    if (q === 'undo') return undoIt(true);
+    if (q === 'redo') return undoIt(false);
+    if (q === 'play') return play(true);
+  });
+  window.addEventListener('resize', () => { if (doc) placeQbar(); });
   let fadeDrag = null;
+  // On a Free page, what's on top under the pointer is what you pick: the fade, if it sits above the picture or words there.
+  function fadeOnTop(e, hitEl) {
+    const p = page();
+    if (!p || doc.mode === 'mood' || e.altKey || layoutOf(doc, p) !== 'free' || !p.fade || !p.fade.on) return false;
+    const el = $('pagewrap').querySelector('.fade'); if (!el) return false;
+    const r = el.getBoundingClientRect();
+    if (e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom) return false;
+    if (!hitEl) return true;
+    const fz = p.fade.z != null ? p.fade.z : 500, hz = parseFloat(getComputedStyle(hitEl).zIndex) || 0;
+    return fz > hz;
+  }
   $('fadesel').addEventListener('mousedown', e => {
     if (e.button !== 0 || !doc) return;
+    // Something above the fade here (a picture or words brought in front of it): that's what you meant.
+    const p0 = page(), fz = p0.fade && p0.fade.z != null ? p0.fade.z : 500;
+    const over = !e.target.closest('.fh') && document.elementsFromPoint(e.clientX, e.clientY).find(el => el.closest && el.closest('#pagewrap') && el.closest('.pic, .tb'));
+    const hit = over && over.closest('.pic, .tb');
+    if (hit && (parseFloat(getComputedStyle(hit).zIndex) || 0) > fz) {
+      fadeEdit = false; $('fadesel').hidden = true;
+      hit.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, cancelable: true, clientX: e.clientX, clientY: e.clientY, button: 0, detail: e.detail, metaKey: e.metaKey, shiftKey: e.shiftKey, altKey: e.altKey }));
+      e.preventDefault(); e.stopPropagation(); return;
+    }
     e.preventDefault(); e.stopPropagation();
     const p = page(), h = e.target.closest('.fh');
     fadeDrag = { h: h ? h.dataset.fh : 'move', x0: e.clientX, y0: e.clientY, b: Object.assign({ x: 0, y: 0, w: 1, h: 1 }, p.fade.box), before: JSON.stringify(doc) };
@@ -925,6 +1034,7 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
     if (!fadeDrag) return;
     const d = fadeDrag; fadeDrag = null;
     if (JSON.stringify(doc) !== d.before) { undo.push(d.before); redo = []; persist(); drawStrip(); drawPanel(); }
+    drawArrBar();
   });
   let splitDrag = null;
   $('splitbar').addEventListener('mousedown', e => {
@@ -1022,6 +1132,7 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
   // What front / back moves: the picked text box, or the picked picture on any page.
   function stackTarget() {
     const p = page(); if (!p) return null;
+    if (fadeEdit && p.fade && p.fade.on) return { kind: 'fade', o: p.fade };
     const b = bsel && boxById(bsel); if (b) return { kind: 'box', o: b };
     if (sel.size === 1) { const k = [...sel][0]; return p.pics[k] ? { kind: 'pic', o: p.pics[k], k } : null; }
     return null;
@@ -1185,7 +1296,6 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
   }
 
   // The panel is Page or Text — whichever you chose. It stays there until you switch it; picking things on the page never switches it.
-  let pmode = pref('pmode', 'page') === 'text' ? 'text' : 'page';
   // The spacing slider: named stops, and it settles on one when you let go near it.
   function spaceRow(p) {
     const v = p.space == null ? 50 : p.space, pos = spaceToPos(v);
@@ -1202,25 +1312,25 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
       ${boxes.length ? `<div class="tlist">${boxes.map(x => `<button class="tline" data-pickbox="${esc(x.id)}"><span style="font-family:${esc(fontStack(x.font))}">${esc((x.text || '').trim() || 'Empty box')}</span></button>`).join('')}</div>` : ''}
       <button class="light small" id="addText" style="align-self:flex-start">Add text · T</button></div>`;
   }
+  // Tabs: Layout, Picture, Text, Colour, Brand, Look. The one you chose stays until you choose another —
+  // picking something on the page never switches it; its tab gets a dot instead.
+  let ptab = pref('ptab', pref('pmode', 'page') === 'text' ? 'text' : 'layout');
+  const PTABS = [['layout', 'Layout'], ['picture', 'Picture'], ['text', 'Text'], ['colour', 'Colour'], ['brand', 'Brand'], ['look', 'Look']];
   function drawPanel() {
     const p = page(), mood = doc.mode === 'mood';
-    const mode = mood ? 'page' : pmode;
-    const b = mode === 'text' && bsel ? boxById(bsel) : null;
-    const ctx = mode === 'text' ? 'text' : 'page';
     const range = (id, label, v, min, max, step, fmt) => `<div class="prow"><label for="${id}">${label}</label><input type="range" id="${id}" min="${min}" max="${max}" step="${step}" value="${v}"><span class="val">${fmt ? fmt(v) : v}</span></div>`;
     const pct = v => Math.round(v * 100) + '%';
     const pal = paletteOf(p.pics);
-    let h = `<div class="phead"><div class="seg pmode" role="tablist"><button data-pmode="page" class="${mode === 'page' ? 'on' : ''}" role="tab">Page ${cur + 1}</button>${mood ? '' : `<button data-pmode="text" class="${mode === 'text' ? 'on' : ''}" role="tab">Text</button>`}</div>
-      <span style="flex-grow:1"></span>${mood ? '' : `<label class="freesw" title="Free: move and size the pictures by hand. Off: they lay themselves out again."><span>Free</span><button class="tog${p.layout === 'free' ? ' on' : ''}" id="freeTog" aria-pressed="${p.layout === 'free'}"></button></label>`}</div>`;
-    if (mode === 'text') {
-      h += b ? inspector('text', p, b, pal, range, pct) : textList(p);
-      $('panel').innerHTML = h; quietHints($('panel'));
-      return;
-    }
-    if (sel.size && p.pics[[...sel][0]]) h += `<span class="ksec">${sel.size > 1 ? `${sel.size} pictures` : 'Picture'}</span>` + inspector('pic', p, null, pal, range, pct) + '<div class="kdiv"></div>';
-    if (ctx === 'page') {
-      const bgNow = p.bg || doc.bg;
-      const presets = ['#f4f1ec', '#ffffff', '#ece6dc', '#141414', '#0a0a0a', '#1e2227'];
+    const bgNow = p.bg || doc.bg;
+    const presets = ['#f4f1ec', '#ffffff', '#ece6dc', '#141414', '#0a0a0a', '#1e2227'];
+    const tabs = PTABS.filter(([k]) => !mood || !['text', 'look'].includes(k));
+    const tab = tabs.some(([k]) => k === ptab) ? ptab : 'layout';
+    const b = bsel ? boxById(bsel) : null, picked = sel.size && p.pics[[...sel][0]];
+    const dot = k => (k === 'picture' && picked && tab !== 'picture') || (k === 'text' && b && tab !== 'text');
+    const scope = (what, tip) => `<div class="pscope"><b>${what}</b>${tip ? `<span>${tip}</span>` : ''}</div>`;
+    let h = `<div class="ptabs" role="tablist">${tabs.map(([k, n]) => `<button data-ptab="${k}" class="${k === tab ? 'on' : ''}" role="tab" aria-selected="${k === tab}">${n}${dot(k) ? '<i class="pdot"></i>' : ''}</button>`).join('')}</div>
+      <div class="phead pfree"><span class="pnum">Page ${cur + 1} <small>of ${doc.pages.length}</small></span><span style="flex-grow:1"></span>${mood ? '' : `<label class="freesw" title="Free: move and size the pictures by hand. Off: they lay themselves out again."><span>Free</span><button class="tog${p.layout === 'free' ? ' on' : ''}" id="freeTog" aria-pressed="${p.layout === 'free'}"></button></label>`}</div>`;
+    if (tab === 'layout') {
       h += mood ? `
         <div class="psec"><div class="prow"><label>Run the pictures off the page edge</label><span style="flex-grow:1"></span><button class="tog${p.bleed ? ' on' : ''}" id="bleedTog" aria-pressed="${!!p.bleed}"></button></div>
           <button class="tbtn" id="bleedAll" style="align-self:flex-start;padding-left:0">${p.bleed ? 'Run off on every page' : 'Keep the margin on every page'}</button></div>
@@ -1234,12 +1344,18 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
           ${!['free', 'bleed', 'text'].includes(p.layout) ? `<div class="prow"><label>Run off the page edge</label><span style="flex-grow:1"></span><button class="tog${p.bleed ? ' on' : ''}" id="bleedTog" aria-pressed="${!!p.bleed}"></button></div>` : ''}
           ${p.layout === 'bleed' && p.pics.length > 1 ? '<span class="empty">A Title page shows its first picture.</span>' : ''}
           ${!['bleed', 'text', 'free'].includes(p.layout) ? spaceRow(p) : ''}</div>`;
+      h += `<div class="psec"><span class="cap">This page</span><div style="display:flex;gap:6px;flex-wrap:wrap">
+          ${mood ? '' : '<button class="light small" id="addText">Add text · T</button>'}
+          <button class="light small" id="dupPage">Duplicate · ⌘D</button>
+          ${doc.pages.length > 1 ? '<button class="light small" id="delPage">Remove page</button>' : ''}</div></div>`;
+    } else if (tab === 'picture') {
+      h += picked ? scope(sel.size > 1 ? `${sel.size} pictures` : 'This picture') + inspector('pic', p, null, pal, range, pct)
+        : `<div class="psec"><span class="empty keep">Click a picture on the page to work on it here — swap it, reframe it, give it a border or a shadow.</span></div>`;
+    } else if (tab === 'text') {
+      h += b ? scope('This text box') + inspector('text', p, b, pal, range, pct) : textList(p);
+    } else if (tab === 'colour') {
+      h += scope('Colour', p.bg ? 'this page has its own background' : 'the whole design, unless you switch Every page off');
       h += `
-        <div class="psec"><div class="prow"><span class="cap" style="margin:0">Name and page numbers</span><span style="flex-grow:1"></span><button class="tog${doc.runner && doc.runner.on ? ' on' : ''}" id="runTog" aria-pressed="${!!(doc.runner && doc.runner.on)}" title="Top left and top right, on every page"></button></div>
-          ${doc.runner && doc.runner.on ? `<div class="kpair"><input type="text" class="kselect" id="runName" value="${esc(doc.runner.name || '')}" placeholder="Your name" spellcheck="false"><input type="text" class="kselect" id="runTitle" value="${esc(doc.runner.title || '')}" placeholder="The project" spellcheck="false"></div>
-          <div class="kpair"><select class="kselect" id="runStyle">${[['page', 'Page 7'], ['pad', '07'], ['num', '7'], ['off', 'No numbers']].map(([k, n]) => `<option value="${k}"${(doc.runner.num === false ? 'off' : doc.runner.style || 'page') === k ? ' selected' : ''}>${n}</option>`).join('')}</select>${num('runSize', Math.round((doc.runner.size || 11) * geometry(doc).u * 10) / 10, 'pt', 0.5)}</div>
-          <div class="kpair"><select class="kselect" id="runFont">${BUNDLED.concat(fonts.filter(f => !BUNDLED.includes(f))).map(f => `<option${f === (doc.runner.font || HELV) ? ' selected' : ''}>${esc(f)}</option>`).join('')}</select><label class="prow" style="gap:6px;font-size:12.5px">Caps <button class="tog${doc.runner.upper === false ? '' : ' on'}" id="runCaps"></button></label></div>
-          ${p.runnerHide && (p.runnerHide.left || p.runnerHide.right) ? '<button class="tbtn" id="runBack" style="align-self:flex-start;padding-left:0">Show them on this page again</button>' : '<span class="empty">Click either one on the page and press ⌫ to take it off just that page.</span>'}` : ''}</div>
         <div class="psec"><span class="cap">Background</span>
           ${brandCols().length ? `<div class="sw brandsw">${brandCols().map(c => `<button data-bg="${esc(c)}" class="${bgNow === c ? 'on' : ''}" style="background:${esc(c)}" title="Brand — ${esc(c)}"></button>`).join('')}</div>` : ''}
           <div class="sw">${presets.map(c => `<button data-bg="${c}" class="${bgNow === c ? 'on' : ''}" style="background:${c}" title="${c}"></button>`).join('')}<input type="color" id="bgPick" value="${esc(bgNow)}" title="Any colour"></div>
@@ -1254,11 +1370,18 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
             <div class="prow"><label>From the</label><div class="kgrid4" style="flex-grow:1">${[['top', 'Top'], ['bottom', 'Bottom'], ['left', 'Left'], ['right', 'Right']].map(([k, n]) => `<button class="kbtn${fadeFrom(p, p.layout) === k ? ' on' : ''}" data-fadefrom="${k}" title="Darkest at the ${k}">${n}</button>`).join('')}</div></div>
             <div style="display:flex;gap:6px;flex-wrap:wrap"><button class="light small" id="fadeEdit">${fadeEdit ? 'Done' : 'Move &amp; size it'}</button><button class="light small" id="fadeRot" title="R · ⇧R the other way">⟳ Rotate · R</button>${f.box ? '<button class="light small" id="fadeFull">Whole page</button>' : ''}</div>` : ''}</div>`;
       }
-      h += lookPanel() + brandPanel();
-      h += `<div class="psec"><span class="cap">This page</span><div style="display:flex;gap:6px;flex-wrap:wrap">
-          ${mood ? '' : '<button class="light small" id="addText">Add text · T</button>'}
-          <button class="light small" id="dupPage">Duplicate · ⌘D</button>
-          ${doc.pages.length > 1 ? '<button class="light small" id="delPage">Remove page</button>' : ''}</div></div>`;
+    } else if (tab === 'brand') {
+      h += scope('Whole design', 'your name, the project, page numbers and logos');
+      h += `
+        <div class="psec"><div class="prow"><span class="cap" style="margin:0">Name and page numbers</span><span style="flex-grow:1"></span><button class="tog${doc.runner && doc.runner.on ? ' on' : ''}" id="runTog" aria-pressed="${!!(doc.runner && doc.runner.on)}" title="Top left and top right, on every page"></button></div>
+          ${doc.runner && doc.runner.on ? `<div class="kpair"><input type="text" class="kselect" id="runName" value="${esc(doc.runner.name || '')}" placeholder="Your name" spellcheck="false"><input type="text" class="kselect" id="runTitle" value="${esc(doc.runner.title || '')}" placeholder="The project" spellcheck="false"></div>
+          <div class="kpair"><select class="kselect" id="runStyle">${[['page', 'Page 7'], ['pad', '07'], ['num', '7'], ['off', 'No numbers']].map(([k, n]) => `<option value="${k}"${(doc.runner.num === false ? 'off' : doc.runner.style || 'page') === k ? ' selected' : ''}>${n}</option>`).join('')}</select>${num('runSize', Math.round((doc.runner.size || 11) * geometry(doc).u * 10) / 10, 'pt', 0.5)}</div>
+          <div class="kpair"><select class="kselect" id="runFont">${BUNDLED.concat(fonts.filter(f => !BUNDLED.includes(f))).map(f => `<option${f === (doc.runner.font || HELV) ? ' selected' : ''}>${esc(f)}</option>`).join('')}</select><label class="prow" style="gap:6px;font-size:12.5px">Caps <button class="tog${doc.runner.upper === false ? '' : ' on'}" id="runCaps"></button></label></div>
+          ${p.runnerHide && (p.runnerHide.left || p.runnerHide.right) ? '<button class="tbtn" id="runBack" style="align-self:flex-start;padding-left:0">Show them on this page again</button>' : '<span class="empty">Click either one on the page and press ⌫ to take it off just that page.</span>'}` : ''}</div>`;
+      h += brandPanel();
+    } else if (tab === 'look') {
+      h += scope('Whole design', 'saved looks — styles, colours and logos');
+      h += lookPanel();
     }
     $('panel').innerHTML = h;
     quietHints($('panel'));
@@ -1737,7 +1860,8 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
   function arrangeZ(dir) {
     const t = stackTarget(); if (!t) return;
     const p = page();
-    const all = p.pics.map((o, i) => ({ o, z: zOf(o, i, 'pic') })).concat((p.boxes || []).map((o, i) => ({ o, z: zOf(o, i, 'box') }))).sort((a, b) => a.z - b.z);
+    const fz = p.fade && p.fade.on ? [{ o: p.fade, z: p.fade.z != null ? p.fade.z : 500 }] : [];       // the fade has its place in the stack too
+    const all = p.pics.map((o, i) => ({ o, z: zOf(o, i, 'pic') })).concat((p.boxes || []).map((o, i) => ({ o, z: zOf(o, i, 'box') }))).concat(fz).sort((a, b) => a.z - b.z);
     const i = all.findIndex(x => x.o === t.o);
     const to = dir === 'back' ? 0 : dir === 'front' ? all.length - 1 : clamp(i + (dir === 'forward' ? 1 : -1), 0, all.length - 1);
     if (to === i) return toast(dir === 'back' || dir === 'backward' ? 'Already at the back' : 'Already at the front');
@@ -1745,6 +1869,7 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
       const [x] = all.splice(i, 1); all.splice(to, 0, x);
       all.forEach((y, n) => { y.o.z = n; });              // the stack, written out
     });
+    if (t.kind === 'fade' && (dir === 'back' || dir === 'backward')) { fadeEdit = false; drawStage(); drawPanel(); }   // behind now: let go, so what's in front can be picked
     toast({ front: 'To the front', back: 'To the back', forward: 'Forward one', backward: 'Back one' }[dir]);
   }
   function alignTo(a) {
@@ -1951,9 +2076,9 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
       if (p.layout === 'free') { const back = p.prevLayout || 'left'; change(() => { p.layout = back; }); return toast('Laid out again — your Free places are kept if you switch back'); }
       setLayout('free'); return toast('Free: drag pictures anywhere, pull a corner to size them');
     }
-    if (d.pmode) {
-      pmode = d.pmode === 'text' ? 'text' : 'page'; setPref('pmode', pmode);
-      if (pmode === 'text' && !bsel) { const first = (page().boxes || [])[0]; if (first) { sel.clear(); reframe = null; bsel = first.id; drawStage(); } }
+    if (d.ptab) {
+      ptab = d.ptab; setPref('ptab', ptab);
+      if (ptab === 'text' && !bsel && !(page().boxes || []).length) { /* nothing to pick yet — Add text is right there */ }
       return drawPanel();
     }
     if (d.space != null) { change(() => { page().space = +d.space; }); return; }
@@ -2309,6 +2434,14 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
       drag = { kind: 'psize', h: handle.dataset.h, k, x0: e.clientX, y0: e.clientY, b: clone(ensureBox(k)), before, moved: false };
       return;
     }
+    if (fadeOnTop(e, tb || pic)) {          // Free: the fade is on top here, so it's the one that moves
+      stopEditing(); bsel = null; sel.clear(); reframe = null;
+      const first = !fadeEdit; fadeEdit = true;
+      fadeDrag = { h: 'move', x0: e.clientX, y0: e.clientY, b: Object.assign({ x: 0, y: 0, w: 1, h: 1 }, page().fade.box), before: JSON.stringify(doc) };
+      e.preventDefault(); drawStage(); drawPanel();
+      if (first) $('stagehint').textContent = 'The fade is on top — drag it, pull its corners, or send it Back. Hold ⌥ to click through it.';
+      return;
+    }
     if (tb) {                               // a text box: pick it, drag it; click it again to type
       const id = tb.dataset.b;
       if (editing === id) return;
@@ -2631,6 +2764,7 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
       swapEnd(true);
     }
     if (fadeEdit && e.key === 'Escape') { fadeEdit = false; drawStage(); drawPanel(); return; }
+    if (fadeEdit && (e.key === 'Backspace' || e.key === 'Delete')) { e.preventDefault(); fadeEdit = false; change(() => { page().fade.on = false; }); return toast('Fade off on this page — the Colour tab brings it back'); }
     if (rsel && rsel.startsWith('logo:') && (e.key === 'Backspace' || e.key === 'Delete')) { e.preventDefault(); const id = rsel.slice(5); rsel = null; change(() => { const p = page(); p.logoHide = Object.assign({}, p.logoHide, { [id]: true }); }); return toast('Logo off this page — the Brand section brings it back'); }
     if (rsel && (e.key === 'Backspace' || e.key === 'Delete')) { e.preventDefault(); const k = rsel; rsel = null; change(() => { const p = page(); p.runnerHide = Object.assign({}, p.runnerHide, { [k]: true }); }); return toast('Off this page — the panel brings it back'); }
     if (rsel && e.key === 'Escape') { rsel = null; drawStage(); return; }
@@ -2762,9 +2896,9 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
       art(blk(8, 10, 84, 62, '#fff', 'box-shadow:0 4px 14px rgba(0,0,0,.12)') + blk(14, 18, 36, 46, '#1e2227', 'outline:2px solid #F05A22') + blk(54, 18, 32, 46, '#b8461c') + blk(20, 78, 10, 16, '#3b2a22', 'opacity:.5') + blk(32, 76, 12, 20, '#1e2227', 'outline:2px solid #F05A22') + blk(46, 78, 10, 16, '#e0a24a', 'opacity:.5') + '<b class="garrow" style="left:62%;top:78%">↑↓</b>')],
     ['Words', 'Press <b>T</b> — or double-click the page — for a text box. <b>Drag</b> it anywhere; it snaps to the margins and the pictures. The side handles set its width, the corner its size. <b>Click it again</b> to type. It starts in Helvetica, black or white to suit the page.',
       art(blk(0, 0, 100, 100, '#1b1b1b') + blk(10, 20, 38, 9, '#fff', 'opacity:.95') + blk(10, 34, 34, 3.5, '#fff', 'opacity:.7') + blk(10, 40, 36, 3.5, '#fff', 'opacity:.7') + blk(10, 46, 30, 3.5, '#fff', 'opacity:.7') + blk(8, 16, 42, 36, 'transparent', 'outline:1.5px solid #F05A22') + '<b class="gdot" style="left:49%;top:33%"></b><b class="gdot" style="left:49%;top:51%"></b>', '#1b1b1b')],
-    ['The panel', 'At the top of the panel: <b>Page</b> or <b>Text</b>. It stays on the one you choose until you switch it. <b>Page</b> has the layout, background, fade and your name — and a picture\u2019s settings when you pick one. <b>Text</b> has the words: pick a box on the page, or from the list. What a setting does stays out of the way: rest the pointer on it for three seconds and it says. A small bar appears above what you picked — <b>Front, ↑, ↓, Back</b> — and <b>right-click</b> does the same: words can sit behind a picture, or in front. On a Free page, the gaps between pictures show in points as you drag; when one matches a gap already there it turns orange and snaps. <b>Esc</b> lets go of what you picked.',
+    ['The panel and the quick bar', 'The panel is in tabs: <b>Layout</b> (where the pictures go, spacing), <b>Picture</b>, <b>Text</b>, <b>Colour</b> (background and fade), <b>Brand</b> (your name, page numbers, logos) and <b>Look</b>. The tab you choose stays until you choose another — picking something on the page never switches it; its tab gets an orange dot instead. <b>Free</b> is always at the top. Above the page, the <b>quick bar</b>: Text, Free, Fade, next layout, Photos, duplicate, undo, redo and Play — drag it by its dots to wherever suits you.',
       art(blk(6, 10, 56, 72, '#fff', 'box-shadow:0 4px 14px rgba(0,0,0,.12)') + blk(66, 10, 28, 80, '#fff', 'box-shadow:0 4px 14px rgba(0,0,0,.08)') + blk(68, 14, 7, 6, '#ece6dc') + blk(76, 14, 8, 6, '#141414') + blk(85, 14, 7, 6, '#ece6dc') + blk(68, 26, 24, 5, '#ece6dc') + blk(68, 35, 24, 5, '#ece6dc') + blk(68, 44, 11, 5, '#ece6dc') + blk(81, 44, 11, 5, '#ece6dc') + blk(68, 55, 24, 5, '#F05A22', 'opacity:.8'))],
-    ['The fade, your name, and a closer look', 'Switch on <b>Fade</b> in the Page panel and pick where it comes from — top, bottom, left or right — or press <b>R</b> to turn it round. <b>Move &amp; size it</b> lets you drag it anywhere and pull its corners. <b>Name and page numbers</b> puts your name and the project top left and the page number top right, on every page — click either one and press ⌫ to take it off just that page. Pinch, or ⌘+ and ⌘−, to zoom in; ⌘0 fits the page again.',
+    ['The fade, your name, and a closer look', 'Switch on <b>Fade</b> in the Page panel and pick where it comes from — top, bottom, left or right — or press <b>R</b> to turn it round. <b>Move &amp; size it</b> lets you drag it anywhere and pull its corners. <b>Name and page numbers</b> puts your name and the project top left and the page number top right, on every page — click either one and press ⌫ to take it off just that page. Pinch, or ⌘+ and ⌘−, to zoom in; ⌘0 fits the page again. On a Free page the fade is a thing of its own: if it sits over a picture, clicking there picks the fade — drag it, or send it <b>Back</b> and the picture comes first. Hold ⌥ to click through it.',
       art(blk(8, 10, 84, 72, '#fff', 'box-shadow:0 4px 14px rgba(0,0,0,.12)') + blk(10, 16, 46, 60, '#3b2a22') + blk(10, 16, 46, 60, 'linear-gradient(to right,rgba(0,0,0,.7),rgba(0,0,0,0))', 'outline:1.5px dashed #F05A22') + blk(12, 12, 20, 2, '#141414') + blk(80, 12, 8, 2, '#141414') + '<b class="gdot" style="left:10%;top:16%"></b><b class="gdot" style="left:56%;top:76%"></b>')],
     ['Copy, cut and paste', '<b>⌘C</b> copies what you picked — pictures, GIFs or a text box — and <b>⌘V</b> puts it on any page, even in another design. <b>⌘X</b> cuts it; <b>⌘A</b> picks every picture on the page. With nothing picked, ⌘C copies the page\u2019s <b>arrangement</b>. A picture copied anywhere else — Safari, Photos, a screenshot, Finder — pastes too: it goes into the project\u2019s vault first, then onto the page. Words copied from Notes or an email become a new text box. And what you copy here pastes into Mail or Messages.',
       art(blk(8, 10, 40, 60, '#fff', 'box-shadow:0 4px 14px rgba(0,0,0,.12)') + blk(12, 16, 32, 30, '#b8461c', 'outline:2px dashed #F05A22;outline-offset:2px') + blk(12, 50, 26, 4, '#141414') + blk(52, 10, 40, 60, '#fff', 'box-shadow:0 4px 14px rgba(0,0,0,.12)') + blk(56, 16, 32, 30, '#b8461c') + blk(56, 50, 26, 4, '#141414') + blk(34, 78, 32, 8, '#F05A22', 'border-radius:20px'))],
