@@ -823,3 +823,35 @@ ROUND 26 — DESIGN: TABS, THE QUICK BAR, THE FADE ON TOP
     sits over a picture, clicking there picks the fade — drag it, pull its
     corners, or send it Back and the picture comes first. Hold ⌥ to click
     through it. ⌫ with the fade picked turns it off on that page.
+
+ROUND 27 — DESIGN: TEMPLATES, SHAPES, WORDS TURNED AROUND
+  • From a template (the start screen, or Designs ▾): eleven designed
+    treatments, each 12 pages — Moody, Heat, Road, Swiss, Journey, Poppy,
+    Electric, Kinetic, Editorial, Grid, Monolith — drawn from the
+    treatments you sent (Calm Is a Weapon, Most Wanted, Juicy, Where East
+    Meets West, Everyday Journey and the Instagram decks).
+  • Each fills itself from YOUR vault: every still is scored on its light,
+    its colour and its hues against what the template wants (dark and
+    grainy for Moody, warm reds for Heat, soft and light for Editorial…),
+    this project's stills first; wide slots get wide stills, tall slots
+    tall ones. The same template looks different in every vault.
+  • Colours: pick before you start — the template's own, a preset (Pink &
+    purple, Red & black, Warm sun, Ocean, Forest, Mono) or From this
+    project. Later, the Colour tab changes the whole deck at once
+    (Background, Words, Accent, Second), and words that would be hard to
+    read turn black or white by themselves.
+  • The running line on every page is the director's name and the
+    project; section numbers match the page they are on.
+  • Sample words are lorem ipsum in designed boxes — type over them.
+    Every page is an ordinary Free page: move, swap (↑ ↓), restyle, copy.
+  • Shapes: the quick bar's shape button (or Add a shape in the Text tab)
+    — a block of colour, a line or a circle; the corner sizes it, the
+    bottom handle its height; a block can fade to nothing any way.
+  • Turn and outline, in the Text tab: sideways (reads up or down),
+    outlined letters, depth (a solid drop behind a title), taller letters,
+    wider or narrower Archivo, stretch the last line.
+  • Pictures: black and white, darker, or a circle (Picture tab).
+  • New fonts, all offline and free to use (OFL, licences in
+    fonts/licences): Inter Tight, Archivo (with widths), Archivo Black,
+    Anton, Barlow, Instrument Serif, Italiana, Merriweather, Rubik Mono One.
+  • Two new steps in Design's guide (?) and a line in the Welcome guide.

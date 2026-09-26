@@ -9,9 +9,31 @@
 @font-face{font-family:'Inter';font-weight:500;font-display:swap;src:url('fonts/inter-latin-500-normal.woff2') format('woff2')}
 @font-face{font-family:'Cormorant Garamond';font-weight:400;font-style:normal;font-display:swap;src:url('fonts/cormorant-garamond-latin-400-normal.woff2') format('woff2')}
 @font-face{font-family:'Cormorant Garamond';font-weight:400;font-style:italic;font-display:swap;src:url('fonts/cormorant-garamond-latin-400-italic.woff2') format('woff2')}
+@font-face{font-family:'Inter Tight';font-weight:300;font-display:swap;src:url('fonts/inter-tight-latin-300-normal.woff2') format('woff2')}
+@font-face{font-family:'Inter Tight';font-weight:400;font-display:swap;src:url('fonts/inter-tight-latin-400-normal.woff2') format('woff2')}
+@font-face{font-family:'Inter Tight';font-weight:500;font-display:swap;src:url('fonts/inter-tight-latin-500-normal.woff2') format('woff2')}
+@font-face{font-family:'Inter Tight';font-weight:700;font-display:swap;src:url('fonts/inter-tight-latin-700-normal.woff2') format('woff2')}
+@font-face{font-family:'Inter Tight';font-weight:800;font-display:swap;src:url('fonts/inter-tight-latin-800-normal.woff2') format('woff2')}
+@font-face{font-family:'Inter Tight';font-weight:400;font-style:italic;font-display:swap;src:url('fonts/inter-tight-latin-400-italic.woff2') format('woff2')}
+@font-face{font-family:'Inter Tight';font-weight:700;font-style:italic;font-display:swap;src:url('fonts/inter-tight-latin-700-italic.woff2') format('woff2')}
+@font-face{font-family:'Inter Tight';font-weight:800;font-style:italic;font-display:swap;src:url('fonts/inter-tight-latin-800-italic.woff2') format('woff2')}
+@font-face{font-family:'Anton';font-weight:400;font-display:swap;src:url('fonts/anton-latin-400-normal.woff2') format('woff2')}
+@font-face{font-family:'Instrument Serif';font-weight:400;font-display:swap;src:url('fonts/instrument-serif-latin-400-normal.woff2') format('woff2')}
+@font-face{font-family:'Instrument Serif';font-weight:400;font-style:italic;font-display:swap;src:url('fonts/instrument-serif-latin-400-italic.woff2') format('woff2')}
+@font-face{font-family:'Archivo';font-weight:100 900;font-stretch:62% 125%;font-display:swap;src:url('fonts/archivo-latin-wdth-normal.woff2') format('woff2')}
+@font-face{font-family:'Archivo Black';font-weight:400;font-display:swap;src:url('fonts/archivo-black-latin-400-normal.woff2') format('woff2')}
+@font-face{font-family:'Barlow';font-weight:400;font-display:swap;src:url('fonts/barlow-latin-400-normal.woff2') format('woff2')}
+@font-face{font-family:'Barlow';font-weight:500;font-display:swap;src:url('fonts/barlow-latin-500-normal.woff2') format('woff2')}
+@font-face{font-family:'Barlow';font-weight:600;font-display:swap;src:url('fonts/barlow-latin-600-normal.woff2') format('woff2')}
+@font-face{font-family:'Italiana';font-weight:400;font-display:swap;src:url('fonts/italiana-latin-400-normal.woff2') format('woff2')}
+@font-face{font-family:'Merriweather';font-weight:400;font-display:swap;src:url('fonts/merriweather-latin-400-normal.woff2') format('woff2')}
+@font-face{font-family:'Merriweather';font-weight:700;font-display:swap;src:url('fonts/merriweather-latin-700-normal.woff2') format('woff2')}
+@font-face{font-family:'Merriweather';font-weight:400;font-style:italic;font-display:swap;src:url('fonts/merriweather-latin-400-italic.woff2') format('woff2')}
+@font-face{font-family:'Merriweather';font-weight:700;font-style:italic;font-display:swap;src:url('fonts/merriweather-latin-700-italic.woff2') format('woff2')}
+@font-face{font-family:'Rubik Mono One';font-weight:400;font-display:swap;src:url('fonts/rubik-mono-one-latin-400-normal.woff2') format('woff2')}
 
 /* ---- a page: the same markup on screen, in the strip, playing, and in the export ---- */
-.pg{position:relative;overflow:hidden;flex-shrink:0}
+.pg{position:relative;overflow:hidden;flex-shrink:0;isolation:isolate}
 .pg .pic{position:absolute;overflow:hidden;background:#d9cfc4}
 .pg .pic img{display:block;width:100%;height:100%;object-fit:cover;-webkit-user-drag:none;user-select:none}
 .pg .fade{position:absolute;pointer-events:none;z-index:500}
@@ -95,6 +117,7 @@ select.sel{appearance:none;-webkit-appearance:none;border:1px solid rgba(28,28,2
 .pagewrap .pic.feat::after{content:'★';position:absolute;right:0.4em;top:0.2em;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,0.5)}
 .pagewrap .pic.dropbefore{box-shadow:inset 6px 0 0 #F05A22}
 .pagewrap .tb{cursor:move;-webkit-user-select:none;user-select:none;min-height:0.9em}
+.pg .tb.shp{white-space:normal;padding:0}.pagewrap .tb.shp{min-height:0}
 @media (hover:hover) and (pointer:fine){.pagewrap .tb:hover{outline:1px solid rgba(240,90,34,0.45);outline-offset:2px}}
 .pagewrap .tb[contenteditable]{outline:none;cursor:text;-webkit-user-select:text;user-select:text}
 .pagewrap .tb:empty::before{content:attr(data-ph);opacity:0.35}
@@ -264,7 +287,25 @@ body.resizing,body.resizing *{cursor:ns-resize!important;user-select:none}
 .start{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:26px;padding:40px;z-index:5;overflow-y:auto}
 .start h1{margin:0;font-weight:200;font-size:48px}
 .start .lead{font-size:14.5px;color:#4a4945;max-width:560px;text-align:center;line-height:1.55}
-.choices{display:grid;grid-template-columns:repeat(2,minmax(0,300px));gap:16px}
+.choices{display:grid;grid-template-columns:repeat(3,minmax(0,280px));gap:16px}
+@media (max-width:980px){.choices{grid-template-columns:repeat(2,minmax(0,280px))}}
+/* templates */
+.sheet.wide{width:min(1180px,100%)}
+.tplpals{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.tplpal{border:none;background:rgba(255,255,255,0.6);border-radius:12px;padding:6px 8px 6px 6px;display:flex;align-items:center;gap:8px;font-size:12.5px;cursor:pointer;box-shadow:0 0 0 1px rgba(28,28,28,0.08)}
+.tplpal.on{box-shadow:0 0 0 2px #F05A22}
+.tplpal i{display:flex;border-radius:6px;overflow:hidden}.tplpal i b{width:16px;height:22px;display:block}
+.tplgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;max-height:62vh;overflow-y:auto;padding:4px 4px 8px}
+@media (max-width:980px){.tplgrid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.tplcard{border:none;border-radius:16px;padding:10px;background:rgba(255,255,255,0.6);display:flex;flex-direction:column;gap:8px;text-align:left;cursor:pointer;box-shadow:0 0 0 1px rgba(28,28,28,0.06);transition:transform .2s var(--ease-out)}
+@media (hover:hover) and (pointer:fine){.tplcard:hover{transform:translateY(-3px)}}
+.tplcard .tplpv{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.tplcard .tplpv div{position:relative;overflow:hidden;border-radius:4px;aspect-ratio:16/9;background:#e9e4dc}
+.tplcard .tplpv .pg{position:absolute;left:0;top:0;transform-origin:0 0}
+.tplcard b{font-weight:400;font-size:17px}.tplcard small{font-size:12px;color:#4a4945;line-height:1.45}
+.tplcard .n{font-family:'Courier Prime',monospace;font-size:11px;color:#b3431a;letter-spacing:.08em}
+.tplroles{display:flex;gap:10px;flex-wrap:wrap}.tplroles label{display:flex;flex-direction:column;gap:4px;font-size:11.5px;color:#4a4945}
+.tplroles input[type=color]{width:44px;height:30px;border:none;border-radius:6px;padding:0;background:none}
 .choice{border-radius:22px;padding:22px;text-align:left;display:flex;flex-direction:column;gap:10px;border:none;cursor:pointer;transition:transform .2s var(--ease-out)}
 @media (hover:hover) and (pointer:fine){.choice:hover{transform:translateY(-3px)}}
 .choice b{font-weight:300;font-size:24px}
@@ -374,6 +415,7 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
 <div class="toast" id="toast"></div>
 <div class="ctxmenu" id="ctxmenu" role="menu" hidden></div>
 <script src="load.js"></script>
+<script src="templates.js"></script>
 <script>
 (function () {
   'use strict';
@@ -413,7 +455,7 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
   const splitOf = (page, lay) => clamp(page.split || (lay === 'top' || lay === 'bottom' ? 0.62 : 0.58), SPLIT_MIN, SPLIT_MAX);
   // Words are text boxes: put one anywhere, drag it, size it. Helvetica unless you say otherwise.
   const HELV = 'Helvetica Neue';
-  const BUNDLED = ['Helvetica Neue', 'Helvetica', 'Raleway', 'Oswald', 'Cormorant Garamond', 'Inter', 'Courier Prime'];
+  const BUNDLED = ['Helvetica Neue', 'Helvetica', 'Inter Tight', 'Inter', 'Archivo', 'Archivo Black', 'Anton', 'Barlow', 'Oswald', 'Raleway', 'Rubik Mono One', 'Instrument Serif', 'Italiana', 'Merriweather', 'Cormorant Garamond', 'Courier Prime'];
   const PRESETS = [
     ['title', 'Title', { size: 64, weight: 500, italic: false, upper: false, tracking: -0.01, leading: 1.05 }],
     ['heading', 'Heading', { size: 30, weight: 500, italic: false, upper: false, tracking: 0, leading: 1.15 }],
@@ -498,7 +540,7 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
   const FROMS = ['bottom', 'left', 'top', 'right'];          // clockwise
   // One stacking order for pictures and words on a page: pictures start at the back (in order), then the fade, then the words.
   const zOf = (o, i, kind) => o.z != null ? o.z : kind === 'pic' ? i : 1000 + i;
-  const hasWords = page => (page.boxes || []).some(b => (b.text || '').trim());
+  const hasWords = page => (page.boxes || []).some(b => !b.shape && (b.text || '').trim());
   // Boxes one under another in an area, from the top — or sitting on its bottom edge.
   function stackIn(G, T, items, anchor) {
     const hs = items.map(it => { const px = it.st.size * G.u, per = Math.max(1, Math.floor(T.w / (px * 0.5)));
@@ -572,7 +614,7 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
   const onDark = (c, dark) => dark && lum(c) < 0.5 && sat(c) < 0.35 ? (lum(c) < 0.3 ? '#f4f3f1' : '#d9d5cf') : c;
   const rgba = (h, a) => { const [r, g, b] = hexRgb(h); return `rgba(${r},${g},${b},${a})`; };
   const HELV_STACK = "'Helvetica Neue', Helvetica, Arial, sans-serif";
-  const fontStack = f => /^helvetica/i.test(f || HELV) ? HELV_STACK : `'${String(f).replace(/'/g, '')}', ${/courier|mono/i.test(f) ? 'monospace' : /garamond|serif|baskerville|didot|bodoni|times|georgia/i.test(f) ? 'Georgia, serif' : HELV_STACK}`;
+  const fontStack = f => /^helvetica/i.test(f || HELV) ? HELV_STACK : `'${String(f).replace(/'/g, '')}', ${/courier|mono/i.test(f) ? 'monospace' : /garamond|serif|baskerville|didot|bodoni|times|georgia|italiana|merriweather/i.test(f) ? 'Georgia, serif' : HELV_STACK}`;
 
   /* ---------------------------------------------------------------- one page, as markup */
   function pageHTML(doc, page, opt) {
@@ -589,9 +631,10 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
       const c = p.crop || { x: 50, y: 50, z: 1 };
       const src = 'vault/' + encodeURI(opt.thumbs ? (p.thumb || p.file) : p.file);
       const cls = 'pic' + (sel.has(k) ? ' sel' : '') + (opt.reframe === k ? ' reframe' : '') + (opt.edit && p.featured ? ' feat' : '');
-      const deco = (p.border ? `;border:${(p.border.w || 2) * u}px solid ${esc(p.border.c || '#ffffff')}` : '') + (p.shadow ? `;box-shadow:0 ${14 * u}px ${44 * u}px rgba(0,0,0,0.38)` : '') + (p.radius ? `;border-radius:${p.radius * u}px` : '');
+      const deco = (p.border ? `;border:${(p.border.w || 2) * u}px solid ${esc(p.border.c || '#ffffff')}` : '') + (p.shadow ? `;box-shadow:0 ${14 * u}px ${44 * u}px rgba(0,0,0,0.38)` : '') + (p.radius ? `;border-radius:${p.radius * u}px` : '') + (p.round ? ';border-radius:50%' : '');
+      const flt = [p.mono ? 'grayscale(1) contrast(1.12)' : '', p.dim ? `brightness(${(1 - p.dim).toFixed(2)})` : ''].filter(Boolean).join(' ');
       h += `<div class="${cls}" data-k="${k}" style="left:${r.x.toFixed(1)}px;top:${r.y.toFixed(1)}px;width:${r.w.toFixed(1)}px;height:${r.h.toFixed(1)}px;opacity:${p.opacity == null ? 1 : p.opacity};z-index:${zOf(p, k, 'pic')}${deco}${opt.edit ? `;outline-width:${Math.max(2, 3 / (opt.scale || 1))}px` : ''}">`
-        + `<img alt="" draggable="false" src="${esc(src)}" style="object-position:${c.x}% ${c.y}%;transform:scale(${c.z});transform-origin:${c.x}% ${c.y}%"></div>`;
+        + `<img alt="" draggable="false" src="${esc(src)}" style="object-position:${c.x}% ${c.y}%;transform:scale(${c.z});transform-origin:${c.x}% ${c.y}%${flt ? ';filter:' + flt : ''}"></div>`;
     });
     // The fade: from the side the words are on, to black or to the page colour.
     const fade = page.fade || {};
@@ -618,7 +661,7 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
       if (!hide.left && ((rn.name || '').trim() || (rn.title || '').trim()))
         h += `<div class="${cls('left')}" data-r="left" style="${base};left:${m}px">${(rn.name || '').trim() ? `<b style="font-weight:700">${esc(rn.name)}</b>` : ''}${(rn.name || '').trim() && (rn.title || '').trim() ? ' · ' : ''}${esc(rn.title || '')}</div>`;
       if (!hide.right && rn.num !== false && pos >= 0)
-        h += `<div class="${cls('right')}" data-r="right" style="${base};right:${m}px">${esc(rn.style === 'num' ? String(n) : rn.style === 'pad' ? String(n).padStart(2, '0') : 'Page ' + n)}</div>`;
+        h += `<div class="${cls('right')}" data-r="right" style="${base};right:${m}px">${esc(rn.style === 'num' ? String(n) : rn.style === 'pad' ? String(n).padStart(2, '0') : rn.style === 'pagepad' ? 'Page ' + String(n).padStart(2, '0') : 'Page ' + n)}</div>`;
     }
     // Brand: your logo and the client's — a corner, a size, which pages; white on dark pages if you like.
     const logos = (doc.brand && doc.brand.logos) || [];
@@ -642,7 +685,35 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
     }
     return h + '</div>';
   }
+  // A shape: a block of colour (or a line, or a circle) — x, y, w, h fractions of the page; fading to nothing if you like.
+  const SHAPES = [['rect', 'Block'], ['line', 'Line'], ['circle', 'Circle']];
+  function shapeCss(b, G, dark) {
+    const c = b.fill || (dark ? '#f4f3f1' : '#141414'), W = b.w * G.W;
+    const H = b.shape === 'line' ? Math.max(1, (b.lw || 1.5) * G.u) : (b.h || 0.1) * G.H;
+    const dir = { left: 'to left', right: 'to right', top: 'to top', bottom: 'to bottom' }[b.fadeTo];
+    const bgc = dir ? `linear-gradient(${dir}, ${rgba(c, 1)} 0%, ${rgba(c, 1)} ${Math.round((b.fadeAt == null ? 0.45 : b.fadeAt) * 100)}%, ${rgba(c, 0)} 100%)` : esc(c);
+    return `left:${(b.x * G.W).toFixed(1)}px;top:${(b.y * G.H).toFixed(1)}px;width:${W.toFixed(1)}px;height:${H.toFixed(1)}px;background:${bgc};opacity:${b.opacity == null ? 1 : b.opacity}`
+      + (b.shape === 'circle' ? ';border-radius:50%' : b.radius ? `;border-radius:${b.radius * G.u}px` : '')
+      + (b.border ? `;border:${(b.border.w || 1) * G.u}px solid ${esc(b.border.c || '#141414')}` : '');
+  }
+  // Text you can turn: sideways (up or down), outlined, with depth (a solid drop behind it), taller or wider letters.
+  function boxFx(b, G, colour) {
+    let css = '';
+    const tf = [];
+    if (b.rot === 'up') tf.push('rotate(-90deg) translateX(-100%)'); else if (b.rot === 'down') tf.push('rotate(90deg) translateY(-100%)');
+    if (+b.tall > 1) tf.push(`scaleY(${+b.tall})`);
+    if (tf.length) css += `;transform:${tf.join(' ')};transform-origin:0 0`;
+    if (b.outline) css += `;color:transparent;-webkit-text-stroke:${Math.max(0.6, (b.outline || 1) * G.u).toFixed(2)}px ${esc(colour)}`;
+    if (+b.depth > 0) {
+      const [r, g, bl] = hexRgb(b.depthC || colour), d = `rgb(${Math.round(r * 0.45)},${Math.round(g * 0.45)},${Math.round(bl * 0.45)})`, step = Math.max(1, 2 * G.u), n = Math.max(1, Math.round(+b.depth));
+      css += ';text-shadow:' + Array.from({ length: n }, (_, i) => `${((i + 1) * step).toFixed(1)}px ${((i + 1) * step).toFixed(1)}px 0 ${d}`).join(',');
+    }
+    if (b.stretch && +b.stretch !== 100) css += `;font-stretch:${+b.stretch}%`;
+    if (b.lastJustify) css += ';text-align-last:justify';
+    return css;
+  }
   function boxCss(b, G, dark) {
+    if (b.shape) return shapeCss(b, G, dark);
     const colour = b.colour || (dark ? '#f4f3f1' : '#141414');
     return `left:${(b.x * G.W).toFixed(1)}px;top:${(b.y * G.H).toFixed(1)}px;width:${(b.w * G.W).toFixed(1)}px;font-family:${esc(fontStack(b.font))};font-size:${(b.size * G.u).toFixed(1)}px;`
       + `font-weight:${b.weight || 400};font-style:${b.italic ? 'italic' : 'normal'};color:${esc(colour)};letter-spacing:${b.tracking || 0}em;line-height:${b.leading || 1.3};`
@@ -656,7 +727,8 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
       + (b.nums === 'old' ? ';font-variant-numeric:oldstyle-nums' : b.nums === 'tab' ? ';font-variant-numeric:tabular-nums lining-nums' : '')
       + (b.hyph ? ';-webkit-hyphens:auto;hyphens:auto' : '')
       + (b.wrap === 'balance' ? ';text-wrap:balance' : b.wrap === 'pretty' ? ';text-wrap:pretty' : '')
-      + (+b.cols > 1 ? `;column-count:${+b.cols};column-gap:${(1.6 * b.size * G.u).toFixed(1)}px` : '');
+      + (+b.cols > 1 ? `;column-count:${+b.cols};column-gap:${(1.6 * b.size * G.u).toFixed(1)}px` : '')
+      + boxFx(b, G, colour);
   }
   // Space after each paragraph (a new line starts one): drawn as blocks when you're not typing in the box.
   function boxInner(b, ed) {
@@ -667,6 +739,7 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
   }
   function boxesHTML(page, G, dark, opt) {
     return (page.boxes || []).map(b => {
+      if (b.shape) return `<div class="tb shp" data-b="${esc(b.id)}" style="${boxCss(b, G, dark)};z-index:${zOf(b, (page.boxes || []).indexOf(b), 'box')}"></div>`;
       if (!(b.text || '').trim() && !opt.edit) return '';
       const ed = opt.editing === b.id;
       return `<div class="tb" lang="en" data-b="${esc(b.id)}"${ed ? ' contenteditable="plaintext-only" spellcheck="false"' : ''}${opt.edit ? ' data-ph="Type here"' : ''} style="${boxCss(b, G, dark)};z-index:${zOf(b, (page.boxes || []).indexOf(b), 'box')}">${boxInner(b, ed)}</div>`;
@@ -930,6 +1003,7 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
     undo: '<svg viewBox="0 0 16 16"><path d="M5 4L2 7l3 3"/><path d="M2 7h7.5a4 4 0 0 1 0 8H7"/></svg>',
     redo: '<svg viewBox="0 0 16 16"><path d="M11 4l3 3-3 3"/><path d="M14 7H6.5a4 4 0 0 0 0 8H9"/></svg>',
     play: '<svg viewBox="0 0 16 16"><path d="M4.5 3l8 5-8 5z"/></svg>',
+    shape: '<svg viewBox="0 0 16 16"><rect x="2" y="5" width="8" height="8" rx="1"/><circle cx="11" cy="5.5" r="3.5"/></svg>',
   };
   let qpos = (() => { try { return JSON.parse(localStorage.getItem('design.qbar') || 'null'); } catch (e) { return null; } })();
   function drawQbar() {
@@ -937,7 +1011,7 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
     const p = page(), mood = doc.mode === 'mood', free = p.layout === 'free', fade = !!(p.fade && p.fade.on);
     const B = (id, icon, label, tip, on) => `<button type="button" data-q="${id}" class="${on ? 'on' : ''}" title="${esc(tip)}" aria-label="${esc(label)}">${QI[icon]}${label ? `<span>${label}</span>` : ''}</button>`;
     q.innerHTML = '<span class="qgrip" title="Drag to move this bar">⋮⋮</span>'
-      + (mood ? '' : B('text', 'text', 'Text', 'A text box — T', false) + B('free', 'free', 'Free', 'Free: move and size the pictures by hand', free)
+      + (mood ? '' : B('text', 'text', 'Text', 'A text box — T', false) + B('shape', 'shape', '', 'A shape — a block of colour, a line or a circle', false) + B('free', 'free', 'Free', 'Free: move and size the pictures by hand', free)
         + B('fade', 'fade', 'Fade', 'Fade the pictures on this page — drag it on a Free page, R turns it', fade) + B('layout', 'layout', '', 'Next layout — L', false))
       + B('photos', 'photos', '', 'Add photos from your Mac', false) + '<i class="qsep"></i>'
       + B('dup', 'dup', '', 'Duplicate this page — ⌘D', false) + B('undo', 'undo', '', 'Undo — ⌘Z', false) + B('redo', 'redo', '', 'Redo — ⇧⌘Z', false)
@@ -976,6 +1050,7 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
     const b = e.target.closest('[data-q]'); if (!b || !doc) return;
     const q = b.dataset.q, p = page();
     if (q === 'text') return addBox();
+    if (q === 'shape') return addShape();
     if (q === 'free') {
       if (p.layout === 'free') { const back = p.prevLayout || 'left'; change(() => { p.layout = back; }); return toast('Laid out again — your Free places are kept if you switch back'); }
       setLayout('free'); return toast('Free: drag pictures anywhere, pull a corner to size them');
@@ -1066,7 +1141,7 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
     const f = $('boxsel'), k = freeK();
     const el = bsel ? boxEl(bsel) : k != null ? $('pagewrap').querySelector(`.pic[data-k="${k}"]`) : null;
     $('pagewrap').classList.toggle('free', !!doc && layoutOf(doc, page()) === 'free' && doc.mode !== 'mood');
-    f.classList.toggle('pic', !bsel && k != null);
+    f.classList.toggle('pic', (!bsel && k != null) || !!(bsel && (boxById(bsel) || {}).shape));
     if (!el) { f.hidden = true; return; }
     const sc = $('scroller'), sr = sc.getBoundingClientRect(), r = el.getBoundingClientRect();
     const st = { left: sr.left - sc.scrollLeft, top: sr.top - sc.scrollTop };
@@ -1139,7 +1214,7 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
   }
   // One column, no tabs: for words — the words, the box, where it sits; for pictures — the picture, its look, where it sits.
   function inspector(ctx, p, b, pal, range, pct) {
-    const parts = ctx === 'text' ? [['text', ''], ['style', 'Box'], ['arrange', 'Place it']]
+    const parts = ctx === 'text' ? (b && b.shape ? [['shape', ''], ['arrange', 'Place it']] : [['text', ''], ['style', 'Box'], ['effects', 'Turn and outline'], ['arrange', 'Place it']])
       : doc.mode === 'mood' ? [['pic', ''], ['style', 'Look']] : [['pic', ''], ['style', 'Look'], ['arrange', 'Place it']];
     return parts.map(([tab, title]) => { const inner = inspectorPart(ctx, tab, p, b, pal, range, pct); return inner ? (title ? `<div class="kdiv"></div><span class="ksec">${title}</span>` : '') + inner : ''; }).join('');
   }
@@ -1158,9 +1233,30 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
       return h + `
         <div class="kgrid4">${[['back', 'Back'], ['front', 'Front'], ['backward', 'Backward'], ['forward', 'Forward']].map(([k, n]) => `<button class="kbtn" data-z="${k}"><span>${n}</span></button>`).join('')}</div>
         <div class="psec"><span class="klabel">Align to the page</span><div class="kgrid6">${[['l', 'al', 'Left'], ['c', 'ac', 'Centre'], ['r', 'ar', 'Right'], ['t', 'at', 'Top'], ['m', 'am', 'Middle'], ['b', 'ab', 'Bottom']].map(([k, i, n]) => `<button class="kicon" data-al="${k}" title="${n}">${ICON[i]}</button>`).join('')}</div></div>
-        <div class="psec"><span class="klabel">Size</span><div class="kpair">${num('aW', pt(r.w * G.W), 'pt')}${num('aH', pt(hPx), 'pt', 1, t.kind === 'box')}</div><div class="kpair klbl"><span>Width</span><span>Height${t.kind === 'box' ? ' · fits the words' : ''}</span></div></div>
+        <div class="psec"><span class="klabel">Size</span><div class="kpair">${num('aW', pt(r.w * G.W), 'pt')}${num('aH', pt(t.kind === 'box' && o.shape ? (o.h || 0.1) * G.H : hPx), 'pt', 1, t.kind === 'box' && !o.shape)}</div><div class="kpair klbl"><span>Width</span><span>Height${t.kind === 'box' && !o.shape ? ' · fits the words' : ''}</span></div></div>
         <div class="psec"><span class="klabel">Position</span><div class="kpair">${num('aX', pt(r.x * G.W), 'pt')}${num('aY', pt(r.y * G.H), 'pt')}</div><div class="kpair klbl"><span>X</span><span>Y</span></div></div>
         <div class="psec"><div style="display:flex;gap:6px;flex-wrap:wrap"><button class="light small" id="aDup">Duplicate · ⌘D</button><button class="light small" id="aDel">Delete · ⌫</button></div></div>`;
+    }
+    if (ctx === 'text' && tab === 'shape') {
+      return h + `
+        <div class="psec"><span class="klabel">Shape</span><div class="seg">${SHAPES.map(([k, n]) => `<button data-bshape="${k}" class="${b.shape === k ? 'on' : ''}">${n}</button>`).join('')}</div></div>
+        <div class="psec"><span class="klabel">Colour</span>${colourRow('bfill', b.fill || null, pal, 'bFillPick', false)}</div>
+        ${b.shape === 'line' ? `<div class="psec"><span class="klabel">Thickness</span>${range('bLineW', '', b.lw || 1.5, 0.5, 20, 0.5, v => v + ' pt')}</div>` : `
+        <div class="psec"><span class="klabel">Fade to nothing</span><div class="seg">${[['', 'No'], ['right', '→'], ['left', '←'], ['bottom', '↓'], ['top', '↑']].map(([k, n]) => `<button data-bfade="${k}" class="${(b.fadeTo || '') === k ? 'on' : ''}" title="${k ? 'Fades out towards the ' + k : 'Solid'}">${n}</button>`).join('')}</div>
+          ${b.fadeTo ? range('bFadeAt', 'Solid for', b.fadeAt == null ? 0.45 : b.fadeAt, 0, 0.95, 0.05, pct) : ''}</div>
+        ${b.shape === 'rect' ? `<div class="psec"><span class="klabel">Rounded corners</span>${range('bRad', '', b.radius || 0, 0, 80, 1, v => v + ' pt')}</div>` : ''}`}
+        <div class="psec"><span class="klabel">Opacity</span>${range('bOp', '', b.opacity == null ? 1 : b.opacity, 0.05, 1, 0.05, pct)}</div>
+        <span class="empty">Drag it anywhere. The corner sizes it; the bottom handle changes its height.</span>`;
+    }
+    if (ctx === 'text' && tab === 'effects') {
+      return h + `
+        <div class="psec"><span class="klabel">Sideways</span><div class="seg">${[['', 'No'], ['up', 'Reads up'], ['down', 'Reads down']].map(([k, n]) => `<button data-brot="${k}" class="${(b.rot || '') === k ? 'on' : ''}">${n}</button>`).join('')}</div></div>
+        <div class="psec"><div class="prow"><span class="klabel">Outlined letters</span><span style="flex-grow:1"></span><button class="tog${b.outline ? ' on' : ''}" id="bOutTog"></button></div>
+          ${b.outline ? range('bOutW', 'Line', b.outline, 0.5, 6, 0.25, v => v + ' pt') : ''}</div>
+        <div class="psec"><span class="klabel">Depth — a solid drop behind the letters</span>${range('bDepth', '', +b.depth || 0, 0, 14, 1, v => +v ? v : 'Off')}</div>
+        <div class="psec"><span class="klabel">Taller letters</span>${range('bTall', '', +b.tall || 1, 1, 1.8, 0.05, v => Math.round(v * 100) + '%')}</div>
+        ${/^archivo$/i.test(b.font || '') ? `<div class="psec"><span class="klabel">Wider or narrower</span>${range('bStretch', '', +b.stretch || 100, 62, 125, 1, v => v + '%')}</div>` : ''}
+        <div class="psec"><div class="prow"><label>Stretch the last line too</label><span style="flex-grow:1"></span><button class="tog${b.lastJustify ? ' on' : ''}" data-kf="lastJustify"></button></div></div>`;
     }
     if (ctx === 'text' && tab === 'text') {
       const fontList = BUNDLED.concat(fonts.filter(f => !BUNDLED.includes(f)));
@@ -1199,7 +1295,10 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
         <div class="psec"><div class="prow"><span class="klabel">Border</span><span style="flex-grow:1"></span><button class="tog${br ? ' on' : ''}" id="pBorderTog"></button></div>
           ${br ? `<div class="kpair"><input type="color" id="pBorderPick" value="${esc(br.c || '#ffffff')}">${num('pBorderW', br.w || 2, 'pt', 0.5)}</div>` : ''}</div>
         <div class="psec"><div class="prow"><span class="klabel">Shadow</span><span style="flex-grow:1"></span><button class="tog${first.shadow ? ' on' : ''}" id="pShadowTog"></button></div></div>
-        <div class="psec"><span class="klabel">Rounded corners</span>${range('pRadius', '', first.radius || 0, 0, 60, 1, v => v + ' pt')}</div>
+        <div class="psec"><span class="klabel">Rounded corners</span>${range('pRadius', '', first.radius || 0, 0, 60, 1, v => v + ' pt')}
+          <div class="prow"><label>A circle</label><span style="flex-grow:1"></span><button class="tog${first.round ? ' on' : ''}" id="pRoundTog"></button></div></div>
+        <div class="psec"><div class="prow"><span class="klabel">Black and white</span><span style="flex-grow:1"></span><button class="tog${first.mono ? ' on' : ''}" id="pMonoTog"></button></div>
+          ${range('pDim', 'Darker', first.dim || 0, 0, 0.85, 0.05, pct)}</div>
         <div class="psec"><span class="klabel">Opacity</span>${range('picOp', '', op, 0.1, 1, 0.05, pct)}</div>`;
     }
     // Picture
@@ -1309,8 +1408,8 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
     const styles = `<div class="psec"><span class="cap">Type styles in this design</span><div class="tlist">${TYPE_KEYS.map(([k, n]) => `<div class="tline tstyle" style="cursor:default"><span style="font-family:${esc(fontStack(T[k].font))};font-weight:${T[k].weight};font-style:${T[k].italic ? 'italic' : 'normal'};text-transform:${T[k].upper ? 'uppercase' : 'none'};letter-spacing:${T[k].tracking}em">${n}</span><small>${esc(T[k].font)} · ${Math.round(T[k].size * geometry(doc).u * 10) / 10} pt · ${uses(k)} box${uses(k) === 1 ? '' : 'es'}</small></div>`).join('')}</div>
       <span class="empty">Pick a box, change how it looks, then “Make every Heading like this”. Saving a look keeps these styles for other designs.</span></div>`;
     return styles + `<div class="psec"><span class="cap">On this page</span>
-      ${boxes.length ? `<div class="tlist">${boxes.map(x => `<button class="tline" data-pickbox="${esc(x.id)}"><span style="font-family:${esc(fontStack(x.font))}">${esc((x.text || '').trim() || 'Empty box')}</span></button>`).join('')}</div>` : ''}
-      <button class="light small" id="addText" style="align-self:flex-start">Add text · T</button></div>`;
+      ${boxes.length ? `<div class="tlist">${boxes.map(x => `<button class="tline" data-pickbox="${esc(x.id)}"><span style="font-family:${esc(fontStack(x.font))}">${x.shape ? `<i style="display:inline-block;width:10px;height:10px;margin-right:6px;background:${esc(x.fill || '#141414')};border-radius:${x.shape === 'circle' ? '50%' : '2px'}"></i>${(SHAPES.find(z => z[0] === x.shape) || ['', 'Shape'])[1]}` : esc((x.text || '').trim() || 'Empty box')}</span></button>`).join('')}</div>` : ''}
+      <div style="display:flex;gap:6px;flex-wrap:wrap"><button class="light small" id="addText">Add text · T</button><button class="light small" id="addShape">Add a shape</button></div></div>`;
   }
   // Tabs: Layout, Picture, Text, Colour, Brand, Look. The one you chose stays until you choose another —
   // picking something on the page never switches it; its tab gets a dot instead.
@@ -1361,6 +1460,14 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
           <div class="sw">${presets.map(c => `<button data-bg="${c}" class="${bgNow === c ? 'on' : ''}" style="background:${c}" title="${c}"></button>`).join('')}<input type="color" id="bgPick" value="${esc(bgNow)}" title="Any colour"></div>
           ${pal.length ? `<span class="cap" style="margin-top:4px">From these stills</span><div class="sw">${pal.map(c => `<button data-bg="${esc(c)}" class="pal${bgNow === c ? ' on' : ''}" style="background:${esc(c)}" title="${esc(c)}"></button>`).join('')}</div>` : ''}
           <div class="prow"><label>Every page</label><span style="flex-grow:1"></span><button class="tog${p.bg ? '' : ' on'}" id="bgAll" aria-pressed="${!p.bg}" title="On: the whole design's background. Off: just this page"></button></div></div>`;
+      if (doc.tpl && tplById(doc.tpl.id)) {
+        const tp = doc.tpl.pal || {}, pals = ((window.NeededTemplates || {}).palettes || []);
+        h += `
+        <div class="psec"><span class="cap">The template's colours — every page</span>
+          <div class="tplroles">${[['bg', 'Background'], ['ink', 'Words'], ['accent', 'Accent'], ['tint', 'Second']].map(([k, n]) => `<label><input type="color" id="tplRole-${k}" value="${esc(tp[k] || '#000000')}">${n}</label>`).join('')}</div>
+          <div class="tplpals"><button class="tplpal" data-tplre="own">Its own</button><button class="tplpal" data-tplre="project">This project</button>${pals.map(([n, q]) => `<button class="tplpal" data-tplre="${esc(n)}" title="${esc(n)}"><i>${[q.dark, q.light, q.accent, q.tint].map(c => `<b style="background:${c}"></b>`).join('')}</i></button>`).join('')}</div>
+          <span class="empty">Words keep their contrast: if a colour would make them hard to read, they turn black or white.</span></div>`;
+      }
       if (!mood) {
         const f = p.fade || {};
         h += `
@@ -1375,7 +1482,7 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
       h += `
         <div class="psec"><div class="prow"><span class="cap" style="margin:0">Name and page numbers</span><span style="flex-grow:1"></span><button class="tog${doc.runner && doc.runner.on ? ' on' : ''}" id="runTog" aria-pressed="${!!(doc.runner && doc.runner.on)}" title="Top left and top right, on every page"></button></div>
           ${doc.runner && doc.runner.on ? `<div class="kpair"><input type="text" class="kselect" id="runName" value="${esc(doc.runner.name || '')}" placeholder="Your name" spellcheck="false"><input type="text" class="kselect" id="runTitle" value="${esc(doc.runner.title || '')}" placeholder="The project" spellcheck="false"></div>
-          <div class="kpair"><select class="kselect" id="runStyle">${[['page', 'Page 7'], ['pad', '07'], ['num', '7'], ['off', 'No numbers']].map(([k, n]) => `<option value="${k}"${(doc.runner.num === false ? 'off' : doc.runner.style || 'page') === k ? ' selected' : ''}>${n}</option>`).join('')}</select>${num('runSize', Math.round((doc.runner.size || 11) * geometry(doc).u * 10) / 10, 'pt', 0.5)}</div>
+          <div class="kpair"><select class="kselect" id="runStyle">${[['page', 'Page 7'], ['pagepad', 'Page 07'], ['pad', '07'], ['num', '7'], ['off', 'No numbers']].map(([k, n]) => `<option value="${k}"${(doc.runner.num === false ? 'off' : doc.runner.style || 'page') === k ? ' selected' : ''}>${n}</option>`).join('')}</select>${num('runSize', Math.round((doc.runner.size || 11) * geometry(doc).u * 10) / 10, 'pt', 0.5)}</div>
           <div class="kpair"><select class="kselect" id="runFont">${BUNDLED.concat(fonts.filter(f => !BUNDLED.includes(f))).map(f => `<option${f === (doc.runner.font || HELV) ? ' selected' : ''}>${esc(f)}</option>`).join('')}</select><label class="prow" style="gap:6px;font-size:12.5px">Caps <button class="tog${doc.runner.upper === false ? '' : ' on'}" id="runCaps"></button></label></div>
           ${p.runnerHide && (p.runnerHide.left || p.runnerHide.right) ? '<button class="tbtn" id="runBack" style="align-self:flex-start;padding-left:0">Show them on this page again</button>' : '<span class="empty">Click either one on the page and press ⌫ to take it off just that page.</span>'}` : ''}</div>`;
       h += brandPanel();
@@ -1467,11 +1574,14 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
       <div class="choices">
         <button class="g choice" data-new="mood"><div class="pv">${miniPreview('mood')}</div><b>Mood board</b><span>Just pictures, in tight rows. Up to 12 a page — slide to fill each page from the project. Saves as a mood board.</span></button>
         <button class="g choice" data-new="treatment"><div class="pv">${miniPreview('treatment')}</div><b>Treatment</b><span>Pictures laid out for you, text boxes you drag anywhere. Saves as a treatment.</span></button>
+        <button class="g choice" data-tpl="open"><div class="pv">${miniPreview('template')}</div><b>From a template</b><span>Eleven designed treatments, 12 pages each, filled with the stills from your vault that suit them. Pick the colours, then change anything.</span></button>
       </div>
       ${recent.length ? `<span class="cap">Carry on with</span><div class="recent">${recent.map(d => `<button class="rec g" data-open="${esc(d.rel)}">${d.cover ? `<img alt="" src="vault/${esc(encodeURI(d.cover))}">` : '<div class="ph"></div>'}<b>${esc(d.name)}</b><small>${d.mode === 'mood' ? 'Mood' : 'Treatment'} · ${d.pages} page${d.pages === 1 ? '' : 's'}</small></button>`).join('')}</div>` : ''}`;
   }
   function miniPreview(mode) {
     const cols = ['#3b2a22', '#6d2a18', '#1e2227', '#b8461c', '#e0a24a', '#402e24'];
+    if (mode === 'template') return `<i style="position:absolute;inset:0;background:#0a0605"></i><i style="position:absolute;right:0;top:0;width:58%;height:100%;background:linear-gradient(90deg,#0a0605,#6d2a18 60%,#b8461c)"></i>
+      <b style="position:absolute;left:7%;top:24%;font-family:Anton,Impact,sans-serif;font-weight:400;font-size:30px;line-height:.9;color:#e3231a;text-shadow:2px 2px 0 #6e0c08">PROJECT<br>TITLE</b><b style="position:absolute;left:7%;bottom:12%;width:30%;height:3px;background:#f6efe9;opacity:.6"></b>`;
     if (mode === 'mood') return cols.map((c, i) => `<i style="position:absolute;background:${c};border-radius:2px;left:${[4, 36, 70, 4, 30, 62][i]}%;top:${i < 3 ? 8 : 52}%;width:${[30, 32, 26, 24, 30, 34][i]}%;height:40%"></i>`).join('');
     return `<i style="position:absolute;background:${cols[0]};left:5%;top:8%;width:32%;height:84%;border-radius:2px"></i><i style="position:absolute;background:${cols[3]};left:38%;top:8%;width:18%;height:41%;border-radius:2px"></i><i style="position:absolute;background:${cols[2]};left:38%;top:51%;width:18%;height:41%;border-radius:2px"></i>
       <b style="position:absolute;left:62%;top:12%;width:22%;height:6px;background:#b3262b;border-radius:1px"></b><b style="position:absolute;left:62%;top:26%;width:30%;height:4px;background:#6b6964;border-radius:1px"></b><b style="position:absolute;left:62%;top:34%;width:26%;height:3px;background:#b9aea6;border-radius:1px"></b><b style="position:absolute;left:62%;top:40%;width:28%;height:3px;background:#b9aea6;border-radius:1px"></b><b style="position:absolute;left:62%;bottom:10%;width:12%;height:12px;background:#b3262b;border-radius:1px;opacity:0.5"></b>`;
@@ -1655,6 +1765,193 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
     toast(`${picks.length} stills on ${doc.pages.length} page${doc.pages.length === 1 ? '' : 's'}, grouped by colour`);
   }
 
+  /* ---------------------------------------------------------------- templates: designed treatments, filled from your vault */
+  const TPL = () => (window.NeededTemplates && window.NeededTemplates.list) || [];
+  const tplById = id => TPL().find(t => t.id === id);
+  let vaultStills = null;                         // every still in the vault, for templates to choose from
+  async function loadVaultStills() {
+    if (vaultStills) return vaultStills;
+    if (scope === 'vault' && stills.length) return (vaultStills = stills);
+    const r = await call('designStills', { scope: 'vault' }).catch(() => null);
+    vaultStills = (r && r.stills) || [];
+    return vaultStills;
+  }
+  // How well a still fits a template: its light, its colour, its hues — and a nudge for this project's own stills.
+  function stillLook(st) {
+    const pal = (st.palette || []).slice(0, 6);
+    if (!pal.length) return null;
+    const wts = pal.map((c, i) => 1 / (i + 1.5)), tw = wts.reduce((a, b) => a + b, 0);
+    let l = 0, s = 0; pal.forEach((c, i) => { l += lum(c) * wts[i] / tw; s += sat(c) * wts[i] / tw; });
+    // Its hues: only the colours that are colours (not near black, white or grey), weighted by how much of the picture they are.
+    const hue = {}; let hw = 0;
+    pal.forEach((c, i) => { if (sat(c) > 0.22 && lum(c) > 0.1) { const f = family(c); hue[f] = (hue[f] || 0) + wts[i]; hw += wts[i]; } });
+    return { l, s, hue, hw: hw / tw };
+  }
+  function fitScore(st, want) {
+    const k = stillLook(st);
+    if (!k) return -1.2;
+    let v = -Math.abs(k.l - want.lum) * 2.4;
+    if (want.sat != null) v -= Math.abs(k.s - want.sat) * 1.4;
+    if (want.hues && want.hues.length) {
+      const tot = Object.values(k.hue).reduce((a, b) => a + b, 0);
+      const inW = want.hues.reduce((a, h) => a + (k.hue[h] || 0), 0);
+      v += tot ? 1.1 * (inW / tot) * Math.min(1, k.hw * 2) - 0.5 * (1 - inW / tot) * Math.min(1, k.hw * 2) : 0;
+    }
+    if (want.mono) v += 0.3 * (1 - Math.min(1, k.s * 2));     // black-and-white pages: pictures with strong shapes and little colour
+    if (st.project && st.project === project) v += 0.12;
+    if (st.kind === 'gif') v -= 0.4;
+    return v;
+  }
+  // Hands out stills to a template's picture slots: the best fits first, each shape of slot gets a still of a similar shape.
+  function stillPicker(all, want) {
+    const ranked = all.map(st => ({ st, v: fitScore(st, want) })).sort((a, b) => b.v - a.v);
+    const used = new Set();
+    return aspect => {
+      if (!ranked.length) return null;
+      if (used.size >= ranked.length) used.clear();
+      let best = null, bv = -1e9;
+      for (let i = 0, seen = 0; i < ranked.length && seen < 24; i++) {
+        const r = ranked[i]; if (used.has(r.st.id)) continue; seen++;
+        const v = r.v - 0.35 * Math.abs(Math.log((r.st.a || 1.5) / aspect)) - seen * 0.01;
+        if (v > bv) { bv = v; best = r; }
+      }
+      if (!best) return null;
+      used.add(best.st.id);
+      return best.st;
+    };
+  }
+  // Colours: a template's roles (bg, ink, accent, tint) from its own palette, a preset, this project's stills, or yours.
+  function contrast(a, b) {
+    const L = h => { const c = hexRgb(h).map(v => { v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); }); return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2]; };
+    const x = L(a), y = L(b); return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05);
+  }
+  function palFor(t, choice, from) {
+    if (!choice || choice === 'own') return Object.assign({}, t.pal);
+    let p = null;
+    if (choice === 'project') p = projectPalette(from || projStills);
+    else if (typeof choice === 'object') return Object.assign({}, t.pal, choice);
+    else { const f = ((window.NeededTemplates || {}).palettes || []).find(x => x[0] === choice); p = f && f[1]; }
+    if (!p) return Object.assign({}, t.pal);
+    return t.dark ? { bg: p.dark, ink: p.light, accent: p.accent, tint: p.tint } : { bg: p.light, ink: p.dark, accent: p.accent, tint: p.tint };
+  }
+  function projectPalette(list) {
+    const cs = []; (list || []).slice(0, 80).forEach(st => (st.palette || []).slice(0, 4).forEach(c => cs.push(c)));
+    if (!cs.length) return null;
+    const by = f => cs.slice().sort(f)[0];
+    const dark = by((a, b) => lum(a) - lum(b)), light = by((a, b) => lum(b) - lum(a));
+    const vivid = cs.filter(c => lum(c) > 0.25 && lum(c) < 0.85).sort((a, b) => sat(b) - sat(a));
+    return { dark: lum(dark) < 0.25 ? dark : '#0b0b0b', light: lum(light) > 0.8 ? light : '#f4f1ec', accent: vivid[0] || '#e0245e', tint: vivid.find(c => family(c) !== family(vivid[0])) || vivid[1] || '#8a8784' };
+  }
+  const roleCol = (r, pal) => r == null ? null : r === 'none' ? 'transparent' : pal[r] != null ? pal[r] : r;
+  // Puts a palette on a template-made design: every colour that came from a role follows it; words stay readable.
+  function paintRoles(d, pal) {
+    d.tpl.pal = Object.assign({}, pal);
+    d.bg = pal.bg;
+    d.pages.forEach(pg => {
+      if (pg.bgr) pg.bg = roleCol(pg.bgr, pal);
+      const pageBg = pg.bg || d.bg;
+      (pg.pics || []).forEach(x => { if (x.border && x.border.r) x.border.c = roleCol(x.border.r, pal); });
+      (pg.boxes || []).slice().sort((a, c) => (c.shape ? 1 : 0) - (a.shape ? 1 : 0)).forEach(b => {
+        if (b.fr) b.fill = roleCol(b.fr, pal);
+        if (b.border && b.border.r) b.border.c = roleCol(b.border.r, pal);
+        if (b.cr) {
+          b.colour = roleCol(b.cr, pal);
+          // What's behind the words: their own fill, a block of colour under them, a picture (left alone), or the page.
+          const blk = (pg.boxes || []).filter(q => q.shape && q.shape !== 'line' && (q.z || 0) < (b.z || 0) && q.fill && q.fill !== 'transparent' && (q.opacity == null || q.opacity > 0.6) && !q.fadeTo
+            && b.x + 0.004 >= q.x && b.x + 0.004 <= q.x + q.w && b.y + 0.008 >= q.y && b.y + 0.008 <= q.y + (q.h || 0)).sort((a, c) => (c.z || 0) - (a.z || 0))[0];
+          const under = b.fill && b.fill !== 'transparent' ? b.fill : blk ? blk.fill : b.onPic ? null : pageBg;
+          if (under && !b.outline && contrast(b.colour, under) < 2.6) b.colour = contrast('#ffffff', under) > contrast('#111111', under) ? '#ffffff' : '#111111';
+        }
+      });
+    });
+  }
+  // One page of a template → an ordinary Free page.
+  function tplPage(spec, pick) {
+    const pg = newPage('free'), U = 1.2;
+    pg.bgr = spec.bg || null;
+    if (spec.runner === false) pg.runnerHide = { left: true, right: true };
+    const pics = spec.items.filter(it => it.k === 'pic');
+    (spec.items || []).forEach((it, z) => {
+      const box = { x: it.x / 1920, y: it.y / 1080, w: it.w / 1920, h: (it.h || 0) / 1080 };
+      if (it.k === 'pic') {
+        const st = pick(it.w / it.h); if (!st) return;
+        const x = picFromRaw(st);
+        Object.assign(x, { box, z, opacity: it.op == null ? 1 : it.op });
+        if (it.mono) x.mono = true; if (it.dim) x.dim = it.dim; if (it.round) x.round = true; if (it.radius) x.radius = it.radius / U;
+        if (it.border) x.border = { r: it.border, c: '#ffffff', w: (it.bw || 5) / U };
+        pg.pics.push(x);
+        return;
+      }
+      if (it.k === 'shape') {
+        pg.boxes.push({ id: uid(), shape: it.shape, x: box.x, y: box.y, w: box.w, h: box.h, text: '', z, opacity: it.op == null ? 1 : it.op,
+          fr: it.fill || 'ink', fadeTo: it.fadeTo || null, fadeAt: it.fadeAt, lw: it.lw, radius: it.radius ? it.radius / U : 0,
+          border: it.border ? { r: it.border, c: '#141414', w: 1.5 } : null });
+        return;
+      }
+      const onPic = pics.some(q => it.x >= q.x - 2 && it.y >= q.y - 2 && it.x <= q.x + q.w && it.y <= q.y + q.h);
+      pg.boxes.push({ id: uid(), x: box.x, y: box.y, w: box.w, text: it.text || '', z, st: '',
+        font: it.font || 'Inter Tight', size: Math.round(it.size / U * 10) / 10, weight: it.weight || 400, italic: !!it.italic, upper: !!it.upper,
+        tracking: it.tracking || 0, leading: it.leading || 1.25, align: it.align || 'left', cr: it.c || 'ink', fr: it.fill || null, onPic,
+        opacity: it.op == null ? 1 : it.op, para: it.para || 0, hyph: !!it.hyph, wrap: '', cols: 1, smallcaps: false, nums: '',
+        rot: it.rot || null, outline: it.outline ? it.outline / U : 0, depth: it.depth || 0, tall: it.tall || 1, stretch: it.stretch || 100, lastJustify: !!it.lastJustify });
+    });
+    return pg;
+  }
+  function tplCtx(info) {
+    const d = new Date(), title = (info && info.title) || project || 'Project title';
+    return { title, director: (info && info.director) || 'Director name', client: (info && info.client) || 'Client', talent: (info && info.talent) || (info && info.director) || 'Talent name',
+      short: String(title).split(/\s+/)[0].toUpperCase().slice(0, 6), year: String(d.getFullYear()),
+      month: d.toLocaleString('en-GB', { month: 'long' }).toUpperCase() + ' ' + d.getFullYear() };
+  }
+  function tplDoc(t, pal, all, info, only) {
+    const c = tplCtx(info), d = newDoc('treatment', `${c.title} — ${t.name}`);
+    d.mark = false; d.size = '16:9'; d.tpl = { id: t.id, pal: {} };
+    const f = (t.runner && t.runner.font) || 'Inter Tight', ty = d.types;
+    Object.keys(ty).forEach(k => { ty[k].font = f; });
+    d.runner = t.runner ? { on: true, name: c.director, title: c.title, num: true, style: t.runner.style || 'page', size: Math.round(t.runner.size / 1.2 * 10) / 10, font: f, upper: true } : null;
+    const pick = stillPicker(all, t.want);
+    // Each page knows its number, so section numbers on the page match it.
+    d.pages = t.order.map((o, i) => [o, i]).filter(([, i]) => !only || only.includes(i)).map(([[name, h], i]) => tplPage(t.D[name](c, h || '', String(i + 1).padStart(2, '0')), pick));
+    paintRoles(d, pal);
+    return d;
+  }
+  // The chooser: every template drawn with your own stills, in the palette you pick.
+  let tplChoice = pref('tplPal', 'own');
+  async function openTemplates() {
+    const all = await loadVaultStills();
+    if (!projStills.length) await loadProjStills();
+    const info = await call('designProject').catch(() => ({})) || {};
+    const pals = ((window.NeededTemplates || {}).palettes || []);
+    const sw = cs => `<i>${cs.map(c => `<b style="background:${esc(c)}"></b>`).join('')}</i>`;
+    const projP = projectPalette(projStills.length ? projStills : all);
+    const cards = TPL().map((t, i) => {
+      const d = tplDoc(t, palFor(t, tplChoice, projStills.length ? projStills : all), all, info, [0, 3]);
+      return `<button class="tplcard" data-tpl="${esc(t.id)}"><div class="tplpv">${d.pages.map(pg => `<div>${pageHTML(d, pg, { thumbs: true, mark: false })}</div>`).join('')}</div>
+        <span class="n">${String(i + 1).padStart(2, '0')} · AFTER “${esc(t.after.toUpperCase())}”</span><b>${esc(t.name)}</b><small>${esc(t.feel)}</small></button>`;
+    }).join('');
+    openSheet('templates', `
+      <div class="shead"><div class="grow"><h2>From a template</h2><span class="empty">${all.length ? `Filled with the stills from your vault that suit each one${projStills.length ? ` — ${esc(project)}'s first` : ''}. Everything stays editable.` : 'Add stills to your vault and they fill these pages.'}</span></div>${closeX}</div>
+      <div style="display:flex;flex-direction:column;gap:8px"><span class="cap">Colours</span><div class="tplpals">
+        <button class="tplpal${tplChoice === 'own' ? ' on' : ''}" data-tplpal="own">Each template's own</button>
+        ${projP ? `<button class="tplpal${tplChoice === 'project' ? ' on' : ''}" data-tplpal="project">${sw([projP.dark, projP.light, projP.accent, projP.tint])}From this project</button>` : ''}
+        ${pals.map(([n, p]) => `<button class="tplpal${tplChoice === n ? ' on' : ''}" data-tplpal="${esc(n)}">${sw([p.dark, p.light, p.accent, p.tint])}${esc(n)}</button>`).join('')}</div></div>
+      <div class="tplgrid">${cards}</div>`);
+    $('sheet').classList.add('wide');
+    requestAnimationFrame(() => document.querySelectorAll('.tplpv > div').forEach(el => { const pg = el.firstElementChild; if (pg) pg.style.transform = `scale(${el.clientWidth / 1920})`; }));
+  }
+  async function makeFromTemplate(id) {
+    const t = tplById(id); if (!t) return;
+    const all = await loadVaultStills();
+    if (!projStills.length) await loadProjStills();
+    const info = await call('designProject').catch(() => ({})) || {};
+    if (doc) await flushSave();
+    doc = normalise(tplDoc(t, palFor(t, tplChoice, projStills.length ? projStills : all), all, info));
+    rel = null; cur = 0; sel.clear(); bsel = null; editing = null; reframe = null; undo = []; redo = [];
+    closeSheet(); persist(); draw();
+    const n = doc.pages.reduce((a, p) => a + p.pics.length, 0);
+    toast(all.length ? `${t.name}: ${doc.pages.length} pages, ${n} pictures from your vault — ↑ ↓ on a picture swaps it` : `${t.name}: ${doc.pages.length} pages — add stills to the vault to fill the pictures`);
+  }
+
   /* ---------------------------------------------------------------- moving pictures */
   // A still that's already on a page moves to where you put it, rather than being there twice.
   // Every page is its own: a still used again is a copy — it never leaves the page it was on.
@@ -1739,8 +2036,19 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
     draw();
     return b;
   }
+  // A shape: a block of colour to put words on, a rule, a circle.
+  function addShape(kind) {
+    if (!doc || doc.mode === 'mood') return;
+    const p = page(), G = geometry(doc), dark = lum(p.bg || doc.bg || '#f4f1ec') < 0.42;
+    const b = { id: uid(), shape: kind || 'rect', x: 0.3, y: 0.3, w: 0.4, h: 0.3, fill: dark ? '#f4f3f1' : '#141414', opacity: 1, text: '' };
+    if (b.shape === 'line') { b.y = 0.5; b.lw = 1.5; }
+    change(() => { p.boxes = p.boxes || []; p.boxes.push(b); bsel = b.id; sel.clear(); reframe = null; editing = null; });
+    ptab = 'text'; setPref('ptab', ptab); draw();
+    toast('A shape — drag it, size it from the corner, colour it in the panel. ⌘[ and ⌘] send it back or forward');
+    return b;
+  }
   function startEditing(id, pt) {
-    if (!boxById(id)) return;
+    if (!boxById(id) || boxById(id).shape) return;
     bsel = id; editing = id; sel.clear();
     drawStage(); drawPanel();
     const el = boxEl(id); if (!el) return;
@@ -1754,7 +2062,7 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
     const id = editing, el = boxEl(id); editing = null;
     if (el) { el.removeAttribute('contenteditable'); el.blur(); }
     const b = boxById(id);
-    if (b && !(b.text || '').trim()) { page().boxes = page().boxes.filter(x => x.id !== id); if (bsel === id) bsel = null; persist(); }
+    if (b && !b.shape && !(b.text || '').trim()) { page().boxes = page().boxes.filter(x => x.id !== id); if (bsel === id) bsel = null; persist(); }
     clearTimeout(drawStrip.t); drawStrip();
   }
   function deleteBox(id) { change(() => { page().boxes = page().boxes.filter(x => x.id !== id); }); if (bsel === id) bsel = null; editing = null; draw(); }
@@ -1780,7 +2088,7 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
   function otherRects(skipPic, skipBox) {
     const p = page(), L = layout(doc, p), G = L.G, out = [];
     L.rects.forEach((r, k) => { if (r && k !== skipPic) out.push(r); });
-    (p.boxes || []).forEach(b => { if (b.id === skipBox || !(b.text || '').trim()) return; const el = boxEl(b.id); out.push({ x: b.x * G.W, y: b.y * G.H, w: b.w * G.W, h: el ? el.offsetHeight : 20 }); });
+    (p.boxes || []).forEach(b => { if (b.id === skipBox || (!b.shape && !(b.text || '').trim())) return; const el = boxEl(b.id); out.push({ x: b.x * G.W, y: b.y * G.H, w: b.w * G.W, h: el ? el.offsetHeight : 20 }); });
     return out;
   }
   // While you drag: the gap to your neighbours, in points; snap to (and mark) a gap already on the page.
@@ -1893,6 +2201,7 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
       if (key === 'Y') r.y = clamp(v, -G.H, G.H * 2) / G.H;
       if (key === 'W') { const nw = clamp(v, 20, G.W * 2) / G.W; if (t.kind === 'pic') r.h = r.h * nw / r.w; r.w = nw; }
       if (key === 'H' && t.kind === 'pic') { const nh = clamp(v, 20, G.H * 2) / G.H; r.w = r.w * nh / r.h; r.h = nh; }
+      if (key === 'H' && t.kind === 'box' && r.shape) r.h = clamp(v, 1, G.H * 2) / G.H;
     });
   }
   /* ---------------------------------------------------------------- copy and paste */
@@ -2064,6 +2373,8 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
     if (!t || t.closest('#sheet')) return;
     const d = t.dataset;
     if (d.new) return makeNew(d.new, [...trayPick]);
+    if (d.tpl) return d.tpl === 'open' ? openTemplates() : makeFromTemplate(d.tpl);
+    if (d.tplre && doc && doc.tpl) { const t = tplById(doc.tpl.id); if (t) { change(() => paintRoles(doc, palFor(t, d.tplre, projStills))); toast(d.tplre === 'own' ? `${t.name}'s own colours` : `${d.tplre === 'project' ? "This project's" : d.tplre} colours on every page`); } return; }
     if (d.open) return openDesign(d.open);
     if (d.zoom) return d.zoom === 'fit' ? setZoom(null) : zoomStep(d.zoom === 'in' ? 1 : -1);
     if (t.id === 'photosBtn' || t.id === 'photosBtn2') return bringPhotos();
@@ -2174,13 +2485,20 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
     if (t.id === 'bItalic') return editBox(b => { b.italic = !b.italic; });
     if (t.id === 'bUpper') return editBox(b => { b.upper = !b.upper; });
     if (d.balign) return editBox(b => { b.align = d.balign; });
-    if (d.bcolour) return editBox(b => { b.colour = d.bcolour === 'auto' ? null : d.bcolour; });
+    if (d.bcolour) return editBox(b => { b.colour = d.bcolour === 'auto' ? null : d.bcolour; delete b.cr; });
     if (t.id === 'bDelete') return deleteBox(bsel);
     // the inspector
     if (d.itab) { inspTab[bsel ? 'text' : 'pic'] = d.itab; return drawPanel(); }
     if (t.id === 'makeFree') { setLayout('free'); return toast('Free: drag pictures anywhere, pull a corner to size them'); }
     if (d.kb) return editBox(b => { if (d.kb === 'bold') b.weight = +b.weight >= 600 ? 400 : 700; else if (d.kb === 'italic') b.italic = !b.italic; else if (d.kb === 'under') b.under = !b.under; else if (d.kb === 'strike') b.strike = !b.strike; else b.upper = !b.upper; });
-    if (d.bfill) return editBox(b => { b.fill = d.bfill === 'none' ? null : d.bfill; });
+    if (d.bfill) return editBox(b => { b.fill = d.bfill === 'none' ? null : d.bfill; delete b.fr; });
+    if (d.bshape) return editBox(b => { b.shape = d.bshape; if (b.shape === 'circle') { const G = geometry(doc); b.h = b.w * G.W / G.H; } });
+    if (d.bfade != null) return editBox(b => { b.fadeTo = d.bfade || null; });
+    if (d.brot != null) return editBox(b => { b.rot = d.brot || null; });
+    if (t.id === 'bOutTog') return editBox(b => { b.outline = b.outline ? 0 : 1.5; });
+    if (t.id === 'pMonoTog') { const on = !(page().pics[[...sel][0]] || {}).mono; return editPics(x => { x.mono = on; }); }
+    if (t.id === 'pRoundTog') { const on = !(page().pics[[...sel][0]] || {}).round; return editPics(x => { x.round = on; }); }
+    if (t.id === 'addShape') return addShape();
     if (t.id === 'bBorderTog') return editBox(b => { b.border = b.border ? null : { c: b.colour || '#141414', w: 1 }; });
     if (t.id === 'bShadowTog') return editBox(b => { b.shadow = !b.shadow; });
     if (t.id === 'pBorderTog') return editPics(x => { x.border = x.border ? null : { c: '#ffffff', w: 2 }; });
@@ -2342,6 +2660,9 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
     const liveRange = { perPage: v => { fillPage(page(), +v); sel.clear(); }, spaceR: v => { const x = [0, 25, 50, 75, 100].find(k => Math.abs(k - v) <= 3); page().space = posToSpace(x != null ? x : +v); }, fadeStr: v => { page().fade.strength = +v; },
       picOp: v => { [...sel].forEach(k => { page().pics[k].opacity = +v; }); },
       pRadius: v => { [...sel].forEach(k => { page().pics[k].radius = +v; }); },
+      pDim: v => { [...sel].forEach(k => { page().pics[k].dim = +v; }); },
+      bLineW: v => { bx.lw = +v; }, bFadeAt: v => { bx.fadeAt = +v; }, bRad: v => { bx.radius = +v; }, bOutW: v => { bx.outline = +v; },
+      bDepth: v => { bx.depth = +v; }, bTall: v => { bx.tall = +v; }, bStretch: v => { bx.stretch = +v; },
       bSize: v => { bx.size = +v; }, bTrack: v => { bx.tracking = +v; }, bLead: v => { bx.leading = +v; }, bOp: v => { bx.opacity = +v; } }[t.id];
     if (liveRange) {
       const last = rangeBurst.id === t.id && Date.now() - rangeBurst.at < 1500;
@@ -2349,19 +2670,20 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
       if (last) undo.pop();
       rangeBurst = { id: t.id, at: Date.now() };
       if (t.id === 'spaceR') { const sn = $('spaceName'); if (sn) sn.textContent = spaceName(page().space); document.querySelectorAll('.spaceticks [data-space]').forEach(b => b.classList.toggle('on', b.textContent === spaceName(page().space))); }
-      const v = t.id === 'spaceR' ? null : t.parentElement.querySelector('.val'); if (v) v.textContent = /Op|Str/.test(t.id) ? Math.round(t.value * 100) + '%' : /Track|Lead/.test(t.id) ? (+t.value).toFixed(2) : /Radius/.test(t.id) ? t.value + ' pt' : t.value;
+      const v = t.id === 'spaceR' ? null : t.parentElement.querySelector('.val'); if (v) v.textContent = /Op|Str|pDim|FadeAt|bTall/.test(t.id) ? Math.round(t.value * 100) + '%' : /Track|Lead/.test(t.id) ? (+t.value).toFixed(2) : /Radius|bRad|LineW|OutW/.test(t.id) ? t.value + ' pt' : t.id === 'bStretch' ? t.value + '%' : t.id === 'bDepth' ? (+t.value ? t.value : 'Off') : t.value;
       if (t.id === 'bSize') { const pb = $('panel').querySelector('.seg [data-preset].on'); if (pb) pb.classList.remove('on'); }
       if (t.id !== 'perPage') { drawStage(); clearTimeout(drawStrip.t); drawStrip.t = setTimeout(drawStrip, 250); }
       else { drawStage(); drawStrip(); const di = $('dealInfo'); if (di) di.textContent = pageInfo(); 
         if (page().pics.length < +t.value) { t.value = page().pics.length; const v2 = t.parentElement.querySelector('.val'); if (v2) v2.textContent = t.value; }   // no more stills to add
       }
     }
+    if (t.id && t.id.startsWith('tplRole-') && doc && doc.tpl) { const k = t.id.slice(8), np = Object.assign({}, doc.tpl.pal, { [k]: t.value }); change(() => paintRoles(doc, np), { quiet: true }); drawStage(); clearTimeout(drawStrip.t); drawStrip.t = setTimeout(drawStrip, 300); return; }
     if (t.id === 'bgPick') { const all = !page().bg; change(() => { if (all) doc.bg = t.value; else page().bg = t.value; }, { quiet: true }); drawStage(); drawStrip(); }
     if (t.id === 'runName' || t.id === 'runTitle') { change(() => { doc.runner[t.id === 'runName' ? 'name' : 'title'] = t.value; }, { quiet: true }); drawStage(); clearTimeout(drawStrip.t); drawStrip.t = setTimeout(drawStrip, 300); return; }
-    if (t.id === 'bFillPick') { const b = boxById(bsel); if (b) { change(() => { b.fill = t.value; }, { quiet: true }); drawStage(); } return; }
+    if (t.id === 'bFillPick') { const b = boxById(bsel); if (b) { change(() => { b.fill = t.value; delete b.fr; }, { quiet: true }); drawStage(); } return; }
     if (t.id === 'bBorderPick') { const b = boxById(bsel); if (b && b.border) { change(() => { b.border.c = t.value; }, { quiet: true }); drawStage(); } return; }
     if (t.id === 'pBorderPick') { change(() => [...sel].forEach(k => { const x = page().pics[k]; if (x && x.border) x.border.c = t.value; }), { quiet: true }); drawStage(); return; }
-    if (t.id === 'bColourPick') { const b = boxById(bsel); if (b) { change(() => { b.colour = t.value; }, { quiet: true }); drawStage(); } }
+    if (t.id === 'bColourPick') { const b = boxById(bsel); if (b) { change(() => { b.colour = t.value; delete b.cr; }, { quiet: true }); drawStage(); } }
   });
   let typing = { k: '', at: 0 }, rangeBurst = { id: '', at: 0 };
   function drawTrayKeepFocus() { const pos = $('trayQ').selectionStart; drawTray(); const q = $('trayQ'); q.focus(); q.setSelectionRange(pos, pos); }
@@ -2425,7 +2747,7 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
     if (handle && bsel) {                   // a handle: width from the sides, size from the corner
       const b = boxById(bsel), el = boxEl(bsel); if (!b || !el) return;
       e.preventDefault();
-      drag = { kind: 'size', h: handle.dataset.h, id: bsel, x0: e.clientX, b: clone(b), before: JSON.stringify(doc), moved: false };
+      drag = { kind: 'size', h: handle.dataset.h, id: bsel, x0: e.clientX, y0: e.clientY, b: clone(b), before: JSON.stringify(doc), moved: false };
       return;
     }
     if (handle && freeK() != null) {        // a picture's handles: sides and bottom stretch the frame, the corner keeps its shape
@@ -2529,6 +2851,15 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
       guides(gx, gy);
     } else {
       const x0 = drag.b.x * G.W, w0 = drag.b.w * G.W, min = 40 * G.u;
+      if (b.shape) {
+        const dy = (e.clientY - (drag.y0 == null ? e.clientY : drag.y0)) / scale, h0 = (drag.b.h || 0.1) * G.H, mn = 4 * G.u;
+        if (drag.h === 'r') b.w = Math.max(mn, w0 + dx) / G.W;
+        else if (drag.h === 'l') { const nx = Math.min(x0 + dx, x0 + w0 - mn); b.x = nx / G.W; b.w = (x0 + w0 - nx) / G.W; }
+        else if (drag.h === 'b') b.h = Math.max(mn, h0 + dy) / G.H;
+        else { b.w = Math.max(mn, w0 + dx) / G.W; if (b.shape === 'circle') b.h = b.w * G.W / G.H; else b.h = Math.max(mn, h0 + dy) / G.H; }
+        Object.assign(el.style, { left: (b.x * G.W).toFixed(1) + 'px', width: (b.w * G.W).toFixed(1) + 'px', height: (b.shape === 'line' ? Math.max(1, (b.lw || 1.5) * G.u) : b.h * G.H).toFixed(1) + 'px' });
+        drawBoxSel(); return;
+      }
       if (drag.h === 'r') b.w = clamp(w0 + dx, min, G.W - x0) / G.W;
       else if (drag.h === 'l') { const nx = clamp(x0 + dx, 0, x0 + w0 - min); b.x = nx / G.W; b.w = (x0 + w0 - nx) / G.W; }
       else { const f = clamp((w0 + dx) / w0, 0.15, 8); b.w = clamp(w0 * f, min, G.W - x0) / G.W; b.size = Math.round(clamp(drag.b.size * f, 4, 400) * 2) / 2; }
@@ -2845,7 +3176,7 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
   /* ---------------------------------------------------------------- sheets: designs, keys, export */
   let sheetOpen = null;
   function openSheet(name, html) { sheetOpen = name; $('sheet').innerHTML = html; $('veil').classList.add('on'); }
-  function closeSheet() { sheetOpen = null; $('veil').classList.remove('on'); }
+  function closeSheet() { sheetOpen = null; $('veil').classList.remove('on'); $('sheet').classList.remove('wide'); }
   $('veil').addEventListener('mousedown', e => { if (e.target === $('veil')) closeSheet(); });
   window.__neededBack = () => {
     if ($('play').classList.contains('on')) { play(false); return true; }
@@ -2861,7 +3192,7 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
     await flushSave(); await refreshList();
     openSheet('docs', `
       <div class="shead"><div class="grow"><h2>Designs</h2><span class="empty">For ${esc(project)} — in ${esc(project)}_Design, beside the rest of the project.</span></div>${closeX}</div>
-      <div style="display:flex;gap:8px"><button class="light" data-snew="mood">New mood board</button><button class="light" data-snew="treatment">New treatment</button></div>
+      <div style="display:flex;gap:8px"><button class="light" data-snew="mood">New mood board</button><button class="light" data-snew="treatment">New treatment</button><button class="light" data-tpl="open">From a template</button></div>
       <div class="dlist">${designs.map(d => `<div class="drow${d.rel === rel ? ' on' : ''}" data-sopen="${esc(d.rel)}" role="button" tabindex="0">
           ${d.cover ? `<img alt="" src="vault/${esc(encodeURI(d.cover))}">` : '<div class="ph"></div>'}
           <span><b>${esc(d.name)}</b><small>${d.mode === 'mood' ? 'Mood' : 'Treatment'} · ${d.pages} page${d.pages === 1 ? '' : 's'}</small></span>
@@ -2888,6 +3219,8 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
   const GUIDE = [
     ['Start with your stills', 'Pick a <b>mood board</b> (just pictures) or a <b>treatment</b> (pictures and words). Your stills — and GIFs — wait in the tray at the bottom; drag its top edge to make it bigger. The <b>This page</b> slider in the stills bar fills the page you\u2019re on (up to 12); slide back and they come off. Only that page changes. Highlight stills first (⌘-click, or drag across them) and the slider brings in those. <b>+ Photos</b> brings in more, whole folders at once.',
       art(blk(4, 8, 58, 64, '#fff', 'box-shadow:0 4px 14px rgba(0,0,0,.12)') + blk(4, 78, 12, 16, '#3b2a22') + blk(18, 78, 18, 16, '#b8461c') + blk(38, 78, 12, 16, '#1e2227') + blk(52, 78, 16, 16, '#e0a24a') + blk(70, 78, 10, 16, '#6d2a18') + blk(66, 8, 30, 64, 'rgba(255,255,255,.6)'))],
+    ['Start from a template', 'Choose <b>From a template</b> when you start, or in <b>Designs ▾</b>. Eleven designed treatments — Moody, Heat, Road, Swiss, Journey, Poppy, Electric, Kinetic, Editorial, Grid and Monolith — each 12 pages with a cover, sections and a thank-you. Every one fills itself with <b>the stills from your vault that suit it</b>: dark, grainy ones for Moody, warm reds for Heat, soft light ones for Editorial — this project’s first. Pick the <b>colours</b> before you start: the template’s own, a preset, or <b>From this project</b>. Afterwards the <b>Colour</b> tab changes the whole deck’s colours at once, and words that would get hard to read turn black or white. The sample words are there to be typed over; everything moves, swaps and restyles like any other page.',
+      art(blk(0, 0, 100, 100, '#0a0605') + blk(46, 0, 54, 100, 'linear-gradient(90deg,#0a0605,#6d2a18 60%,#b8461c)') + '<b style="position:absolute;left:8%;top:22%;font-family:Anton,Impact,sans-serif;font-weight:400;font-size:34px;line-height:.9;color:#e3231a;text-shadow:2px 2px 0 #6e0c08">PROJECT<br>TITLE</b>' + blk(8, 74, 26, 3, '#f6efe9', 'opacity:.7') + blk(8, 80, 18, 3, '#f6efe9', 'opacity:.5'), '#0a0605')],
     ['Put pictures on the page', '<b>Double-click</b> a still, or <b>drag it</b> onto the page — or onto another page up in the strip. Pick several (⌘-click, or drag across them) and <b>right-click</b>: this page, a new page, or laid out on new pages. Every page is its own — use a still on as many pages as you like; it stays on the others. You can drop photos straight from Finder too.',
       art(blk(8, 10, 84, 60, '#fff', 'box-shadow:0 4px 14px rgba(0,0,0,.12)') + blk(14, 18, 34, 44, '#3b2a22') + blk(52, 18, 34, 44, '#b8461c', 'outline:2px dashed #F05A22;outline-offset:3px') + blk(60, 78, 16, 16, '#b8461c', 'opacity:.45') + '<b class="garrow" style="left:66%;top:62%">↑</b>')],
     ['Tidy, or place by hand', '<b>Title</b> is one picture over the whole page, words on it — the slider stays put there. <b>Full, Left, Right, Top, Bottom</b> and <b>None</b> lay the pictures out for you. <b>Spacing</b> sets the gaps and the margin, page by page: Closed, Hairline, Tight, Medium or Wide, or anywhere between. On Left, Right, Top and Bottom, <b>drag the orange divider</b> to give the pictures up to three quarters of the page. <b>Run off the page edge</b> takes them to the edge. Switch <b>Free</b> on (top of the panel, beside Page and Text) to drag them anywhere and pull a corner to size them; switch it off and they lay themselves out again.',
@@ -2896,6 +3229,8 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
       art(blk(8, 10, 84, 62, '#fff', 'box-shadow:0 4px 14px rgba(0,0,0,.12)') + blk(14, 18, 36, 46, '#1e2227', 'outline:2px solid #F05A22') + blk(54, 18, 32, 46, '#b8461c') + blk(20, 78, 10, 16, '#3b2a22', 'opacity:.5') + blk(32, 76, 12, 20, '#1e2227', 'outline:2px solid #F05A22') + blk(46, 78, 10, 16, '#e0a24a', 'opacity:.5') + '<b class="garrow" style="left:62%;top:78%">↑↓</b>')],
     ['Words', 'Press <b>T</b> — or double-click the page — for a text box. <b>Drag</b> it anywhere; it snaps to the margins and the pictures. The side handles set its width, the corner its size. <b>Click it again</b> to type. It starts in Helvetica, black or white to suit the page.',
       art(blk(0, 0, 100, 100, '#1b1b1b') + blk(10, 20, 38, 9, '#fff', 'opacity:.95') + blk(10, 34, 34, 3.5, '#fff', 'opacity:.7') + blk(10, 40, 36, 3.5, '#fff', 'opacity:.7') + blk(10, 46, 30, 3.5, '#fff', 'opacity:.7') + blk(8, 16, 42, 36, 'transparent', 'outline:1.5px solid #F05A22') + '<b class="gdot" style="left:49%;top:33%"></b><b class="gdot" style="left:49%;top:51%"></b>', '#1b1b1b')],
+    ['Shapes, and words turned around', 'The <b>shape</b> button on the quick bar (or <b>Add a shape</b> in the Text tab) puts down a <b>block of colour</b>, a <b>line</b> or a <b>circle</b> — to sit words on, to rule a page, to frame. Drag it; the corner sizes it, the bottom handle its height. A block can <b>fade to nothing</b> in any direction. For words, <b>Turn and outline</b> in the Text tab: <b>sideways</b> (reading up or down), <b>outlined letters</b>, <b>depth</b> — a solid drop behind big titles — <b>taller letters</b> for tall, condensed capitals, and wider or narrower Archivo. Pictures can go <b>black and white</b>, <b>darker</b>, or into a <b>circle</b> from the Picture tab.',
+      art(blk(8, 10, 84, 72, '#f6d3c4', 'box-shadow:0 4px 14px rgba(0,0,0,.12)') + blk(8, 56, 84, 26, '#0b0b0b') + blk(56, 16, 30, 32, '#b8461c', 'border-radius:50%') + '<b style="position:absolute;left:12%;top:18%;font:900 italic 22px/1 Archivo,Arial;color:transparent;-webkit-text-stroke:1.2px #0b0b0b">OUTLINE</b>' + '<b style="position:absolute;left:4%;top:70%;transform:rotate(-90deg);transform-origin:0 0;font:700 7px/1 Arial;letter-spacing:.2em;color:#F05A22">SIDEWAYS</b>' + blk(14, 62, 30, 3, '#f6d3c4') + blk(14, 68, 40, 2, '#f6d3c4', 'opacity:.6'))],
     ['The panel and the quick bar', 'The panel is in tabs: <b>Layout</b> (where the pictures go, spacing), <b>Picture</b>, <b>Text</b>, <b>Colour</b> (background and fade), <b>Brand</b> (your name, page numbers, logos) and <b>Look</b>. The tab you choose stays until you choose another — picking something on the page never switches it; its tab gets an orange dot instead. <b>Free</b> is always at the top. Above the page, the <b>quick bar</b>: Text, Free, Fade, next layout, Photos, duplicate, undo, redo and Play — drag it by its dots to wherever suits you.',
       art(blk(6, 10, 56, 72, '#fff', 'box-shadow:0 4px 14px rgba(0,0,0,.12)') + blk(66, 10, 28, 80, '#fff', 'box-shadow:0 4px 14px rgba(0,0,0,.08)') + blk(68, 14, 7, 6, '#ece6dc') + blk(76, 14, 8, 6, '#141414') + blk(85, 14, 7, 6, '#ece6dc') + blk(68, 26, 24, 5, '#ece6dc') + blk(68, 35, 24, 5, '#ece6dc') + blk(68, 44, 11, 5, '#ece6dc') + blk(81, 44, 11, 5, '#ece6dc') + blk(68, 55, 24, 5, '#F05A22', 'opacity:.8'))],
     ['The fade, your name, and a closer look', 'Switch on <b>Fade</b> in the Page panel and pick where it comes from — top, bottom, left or right — or press <b>R</b> to turn it round. <b>Move &amp; size it</b> lets you drag it anywhere and pull its corners. <b>Name and page numbers</b> puts your name and the project top left and the page number top right, on every page — click either one and press ⌫ to take it off just that page. Pinch, or ⌘+ and ⌘−, to zoom in; ⌘0 fits the page again. On a Free page the fade is a thing of its own: if it sits over a picture, clicking there picks the fade — drag it, or send it <b>Back</b> and the picture comes first. Hold ⌥ to click through it.',
@@ -3059,6 +3394,8 @@ ${slides}
     if (d.guide != null) { e.preventDefault(); return openGuide(+d.guide); }
     if (d.keys != null) return openKeys();
     if (d.snew) { closeSheet(); return makeNew(d.snew, []); }
+    if (d.tpl) return d.tpl === 'open' ? openTemplates() : makeFromTemplate(d.tpl);
+    if (d.tplpal) { tplChoice = d.tplpal; setPref('tplPal', tplChoice); return openTemplates(); }
     if (t.id === 'lookSaveGo') {
       const name = ($('lookName').value || '').trim(); if (!name) return $('lookName').focus();
       const r = await call('designLookSave', { look: lookFrom(doc, name) }).catch(() => null);
