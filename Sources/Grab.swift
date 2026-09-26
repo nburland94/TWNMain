@@ -580,6 +580,7 @@ extension GrabHost {
         }
         let start = number(b["start"]), end = number(b["end"])
         let fps = min(30, max(4, number(b["fps"])))
+        let boomerang = (b["boomerang"] as? Bool) ?? false          // forward, then back, round and round
         let (crop, out) = geometry(b, even: false)
         let url = uniqueURL(in: folder, name: name)
         jobCancel = false
@@ -594,8 +595,9 @@ extension GrabHost {
             gen.requestedTimeToleranceAfter = .zero
 
             let count = max(1, Int(((end - start) * fps).rounded()))
+            let slots = boomerang && count > 2 ? count * 2 - 2 : count
             guard let dest = CGImageDestinationCreateWithURL(url as CFURL, "com.compuserve.gif" as CFString,
-                                                             count, nil),
+                                                             slots, nil),
                   let space = CGColorSpace(name: CGColorSpace.sRGB) else {
                 return finish(["ok": false, "error": "Couldn't create the GIF"])
             }
@@ -608,6 +610,7 @@ extension GrabHost {
                                kCGImagePropertyGIFUnclampedDelayTime as String: delay]] as CFDictionary
 
             var last: CGImage?
+            var kept: [CGImage] = []                                   // a boomerang plays these again, backwards
             for i in 0..<count {
                 if self.jobCancel { break }
                 let t = CMTime(seconds: start + Double(i) / fps, preferredTimescale: 6000)
@@ -625,8 +628,13 @@ extension GrabHost {
                 if let f = frame ?? last {
                     CGImageDestinationAddImage(dest, f, frameProps)
                     last = f
+                    if boomerang { kept.append(f) }
                 }
                 self.jobProgress = Double(i + 1) / Double(count)
+            }
+            // The way back: every frame again in reverse, without doubling the two ends.
+            if boomerang && !self.jobCancel && kept.count > 2 {
+                for f in kept.dropFirst().dropLast().reversed() { CGImageDestinationAddImage(dest, f, frameProps) }
             }
             if self.jobCancel || last == nil {
                 try? FileManager.default.removeItem(at: url)

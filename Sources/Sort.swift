@@ -112,6 +112,17 @@ final class SortHost: NSObject, NSApplicationDelegate, NSWindowDelegate,
     private var lastOutput: URL?                // the sub-folder written to most recently
     var jobLabel: String = ""                   // the file being read or copied right now
     var lastRoot: URL?                          // the project folder just built
+
+    /// The drive a path is on — a card can be ejected; the Mac's own disk can't.
+    static func volumeInfo(_ path: String) -> (volume: URL, name: String, ejectable: Bool)? {
+        let u = URL(fileURLWithPath: path)
+        guard let v = (try? u.resourceValues(forKeys: [.volumeURLKey]))?.volume else { return nil }
+        let rv = try? v.resourceValues(forKeys: [.volumeIsEjectableKey, .volumeIsRemovableKey, .volumeIsInternalKey, .volumeNameKey, .volumeIsRootFileSystemKey])
+        let name = rv?.volumeName ?? v.lastPathComponent
+        if rv?.volumeIsRootFileSystem == true || v.path == "/" { return (v, name, false) }
+        let ejectable = (rv?.volumeIsEjectable ?? false) || (rv?.volumeIsRemovable ?? false) || (rv?.volumeIsInternal == false) || v.path.hasPrefix("/Volumes/")
+        return (v, name, ejectable)
+    }
     var currentProcess: Process?                // a running lookup or pull
     /// Where new things are filed inside the vault. Boards are labels that
     /// cut across projects; a project is the folder a file actually lives in.
@@ -402,7 +413,29 @@ extension SortHost {
             panel.message = "Choose the card, or the folder you copied it into"
             if FileManager.default.fileExists(atPath: "/Volumes") { panel.directoryURL = URL(fileURLWithPath: "/Volumes") }
             panel.beginSheetModal(for: window) { r in
-                reply(["paths": r == .OK ? panel.urls.map { $0.path } : []], nil)
+                let paths = r == .OK ? panel.urls.map { $0.path } : []
+                reply(["paths": paths, "removable": paths.filter { SortHost.volumeInfo($0)?.ejectable == true }], nil)
+            }
+
+        case "cardInfo":
+            let paths = (body["paths"] as? [String]) ?? []
+            reply(["removable": paths.filter { SortHost.volumeInfo($0)?.ejectable == true }], nil)
+
+        case "eject":
+            // Safely eject the cards — the same as dragging them to the Bin in Finder.
+            var vols: [URL: (name: String, paths: [String])] = [:]
+            for p in (body["paths"] as? [String]) ?? [] {
+                guard let v = SortHost.volumeInfo(p), v.ejectable else { continue }
+                vols[v.volume, default: (v.name, [])].paths.append(p)
+            }
+            let jobs = vols
+            DispatchQueue.global(qos: .userInitiated).async {
+                var ejected: [String] = [], failed: [String] = [], gone: [String] = []
+                for (v, info) in jobs {
+                    do { try NSWorkspace.shared.unmountAndEjectDevice(at: v); ejected.append(info.name); gone += info.paths }
+                    catch { failed.append(info.name) }
+                }
+                DispatchQueue.main.async { reply(["ejected": ejected, "failed": failed, "gone": gone], nil) }
             }
 
         case "chooseDest":
@@ -419,7 +452,7 @@ extension SortHost {
             }
 
         case "defaults":
-            reply(["dest": UserDefaults.standard.string(forKey: "dest") ?? "",
+            reply(["dest": UserDefaults.standard.string(forKey: "dest") ?? "", "project": Shared.project,
                    "structure": loadStructure() ?? NSNull(),
                    "ffprobe": ffprobePath != nil], nil)
 

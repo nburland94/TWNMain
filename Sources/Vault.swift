@@ -644,6 +644,24 @@ extension VaultHost {
             reply(["ok": true], nil)
         case "vaultRemove":
             reply(["ok": removeItem((body["id"] as? String) ?? "")], nil)
+        case "boomerangItem":
+            // A GIF already in the vault, again as a boomerang: forward, then back. The original stays.
+            guard let base = saveFolder, let item = index.first(where: { ($0["id"] as? String) == (body["id"] as? String) }),
+                  let rel = item["file"] as? String else { return reply(["ok": false, "error": "Couldn't find that GIF"], nil) }
+            let src = base.appendingPathComponent(rel)
+            let dst = uniqueURL(in: src.deletingLastPathComponent(), name: src.deletingPathExtension().lastPathComponent + "_boomerang.gif")
+            let project = (item["project"] as? String) ?? currentProject
+            var meta: [String: Any] = ["origin": (item["origin"] as? String) ?? "reference", "source": (item["source"] as? [String: Any]) ?? ["type": "file"]]
+            if let t = item["tags"] { meta["tags"] = t }
+            DispatchQueue.global(qos: .userInitiated).async {
+                let ok = VaultHost.boomerang(src, to: dst)
+                DispatchQueue.main.async {
+                    guard ok else { return reply(["ok": false, "error": "Couldn't read that GIF"], nil) }
+                    _ = self.register(kind: "gif", file: dst, meta: meta, project: project)
+                    reply(["ok": true, "name": dst.lastPathComponent], nil)
+                }
+            }
+
         case "revealItem":
             if let base = saveFolder, let item = index.first(where: { ($0["id"] as? String) == (body["id"] as? String) }),
                let rel = item["file"] as? String {
@@ -724,6 +742,31 @@ extension VaultHost {
 
     // MARK: GIF — frames pulled from the original file, looping forever
 
+    /// Any GIF, written again to play forward then backwards — each frame keeps its own timing.
+    static func boomerang(_ src: URL, to dst: URL) -> Bool {
+        guard let source = CGImageSourceCreateWithURL(src as CFURL, nil) else { return false }
+        let n = CGImageSourceGetCount(source)
+        guard n > 0 else { return false }
+        var frames: [(CGImage, Double)] = []
+        for i in 0..<n {
+            guard let img = CGImageSourceCreateImageAtIndex(source, i, nil) else { continue }
+            let props = CGImageSourceCopyPropertiesAtIndex(source, i, nil) as? [String: Any]
+            let gif = props?[kCGImagePropertyGIFDictionary as String] as? [String: Any]
+            let d = (gif?[kCGImagePropertyGIFUnclampedDelayTime as String] as? Double) ?? (gif?[kCGImagePropertyGIFDelayTime as String] as? Double) ?? 0.07
+            frames.append((img, d > 0.01 ? d : 0.07))
+        }
+        guard !frames.isEmpty else { return false }
+        let order = frames.count > 2 ? frames + frames.dropFirst().dropLast().reversed() : frames
+        guard let dest = CGImageDestinationCreateWithURL(dst as CFURL, "com.compuserve.gif" as CFString, order.count, nil) else { return false }
+        CGImageDestinationSetProperties(dest, [kCGImagePropertyGIFDictionary as String: [kCGImagePropertyGIFLoopCount as String: 0]] as CFDictionary)
+        for (img, d) in order {
+            CGImageDestinationAddImage(dest, img, [kCGImagePropertyGIFDictionary as String:
+                [kCGImagePropertyGIFDelayTime as String: d, kCGImagePropertyGIFUnclampedDelayTime as String: d]] as CFDictionary)
+        }
+        guard CGImageDestinationFinalize(dest) else { try? FileManager.default.removeItem(at: dst); return false }
+        return true
+    }
+
     func makeGif(_ b: [String: Any], _ reply: @escaping (Any?, String?) -> Void) {
         guard let film = currentFilm else {
             return reply(["ok": false, "error": "Pull a moment, or open a file, first"], nil)
@@ -737,6 +780,7 @@ extension VaultHost {
         }
         let start = number(b["start"]), end = number(b["end"])
         let fps = min(30, max(4, number(b["fps"])))
+        let boomerang = (b["boomerang"] as? Bool) ?? false          // forward, then back, round and round
         let url = uniqueURL(in: folder, name: name)
         jobCancel = false
         jobProgress = 0
@@ -751,8 +795,9 @@ extension VaultHost {
 
             let (_, out) = self.geometry(b, even: false, frame: CGSize(width: 1, height: 1))
             let count = max(1, Int(((end - start) * fps).rounded()))
+            let slots = boomerang && count > 2 ? count * 2 - 2 : count
             guard let dest = CGImageDestinationCreateWithURL(url as CFURL, "com.compuserve.gif" as CFString,
-                                                             count, nil),
+                                                             slots, nil),
                   let space = CGColorSpace(name: CGColorSpace.sRGB) else {
                 return finish(["ok": false, "error": "Couldn't create the GIF"])
             }
@@ -765,6 +810,7 @@ extension VaultHost {
                                kCGImagePropertyGIFUnclampedDelayTime as String: delay]] as CFDictionary
 
             var last: CGImage?
+            var kept: [CGImage] = []                                   // a boomerang plays these again, backwards
             for i in 0..<count {
                 if self.jobCancel { break }
                 let t = CMTime(seconds: start + Double(i) / fps, preferredTimescale: 6000)
@@ -784,8 +830,13 @@ extension VaultHost {
                 if let f = frame ?? last {
                     CGImageDestinationAddImage(dest, f, frameProps)
                     last = f
+                    if boomerang { kept.append(f) }
                 }
                 self.jobProgress = Double(i + 1) / Double(count)
+            }
+            // The way back: every frame again in reverse, without doubling the two ends.
+            if boomerang && !self.jobCancel && kept.count > 2 {
+                for f in kept.dropFirst().dropLast().reversed() { CGImageDestinationAddImage(dest, f, frameProps) }
             }
             if self.jobCancel || last == nil {
                 try? FileManager.default.removeItem(at: url)

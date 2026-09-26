@@ -792,3 +792,20 @@ ROUND 24 — DESIGN: LOOKS, TYPE STYLES, FINER TYPE, BRAND
     Looks are kept in the vault (.vault/looks.json).
   • The guides teach all of it: two new steps in Design's guide (press ?),
     and the Design page of the welcome guide.
+
+ROUND 25 — START AGAIN, EJECT, BOOMERANGS, THE WEBSITE
+  • Grab, Vault and Sort have ↺ Start again beside their name: a fresh page.
+    Everything already saved stays in the vault; it asks first.
+  • Sort: ⏏ beside a card ejects it safely (the same as dragging it to the
+    Bin), and after a good copy "Eject card" appears along the bottom. Sort
+    follows the project in the top bar — with a card loaded, it asks
+    "Sort this card into Lexus instead?" before it switches.
+  • Boomerang GIFs, in Grab and the Vault: under the GIF settings, Plays —
+    Loop or Boomerang (forward, then backwards, round and round; about
+    twice the file size — pick a smaller width to keep it light). The
+    preview plays it the same way. Files end in _boomerang. In the Vault,
+    open any GIF and press "Make a boomerang" for a copy beside it.
+  • Website: the Tools section shows the real Home screen. Mobile Vault can't
+    open to a blank page any more — the guide shows even before it loads,
+    it works with or without the / at the end, and if it can't start it
+    says so.
