@@ -5,6 +5,9 @@
 body{background:#fcf2ec;display:flex;flex-direction:column;align-items:center;justify-content:center;-webkit-user-select:auto;user-select:auto}
 body::before{content:'';position:fixed;inset:0;z-index:-1;background:radial-gradient(ellipse 60% 66% at 50% 52%,#fad9c2 0%,#fbe6d7 40%,#fcf1e9 72%,#fdf6f1 100%)}
 @keyframes resolve{from{opacity:0;filter:blur(14px);transform:translateY(6px)}to{opacity:1;filter:blur(0);transform:none}}
+/* Dark mode: the logo is white — its fade-in has to carry the white too, or the animation would keep it black. */
+@keyframes resolveNight{from{opacity:0;filter:blur(14px) brightness(0) invert(1);transform:translateY(6px)}to{opacity:1;filter:blur(0) brightness(0) invert(1);transform:none}}
+html[data-theme=dark] .mark{animation-name:resolveNight}
 @keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
 .mark{width:168px;animation:resolve 1.3s var(--ease-out) both}
 .title{margin-top:20px;font-weight:300;font-size:11px;letter-spacing:0.46em;color:#7a6358;animation:rise .6s var(--ease-out) .85s both}
