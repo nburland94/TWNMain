@@ -838,6 +838,9 @@
     .vt-step em { font-style: normal; width: 26px; height: 26px; border-radius: 50%; background: var(--orange); color: #fff; display: flex; align-items: center; justify-content: center; font-family: var(--display); font-size: 0.8rem; flex-shrink: 0; }
     .vt-step b { display: block; font-family: var(--display); font-weight: 400; font-size: 0.9rem; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 0.2rem; }
     .vt-step span { font-family: var(--title); font-size: 0.82rem; line-height: 1.5; color: rgba(var(--inkrgb),0.72); }
+    /* the real app: Home, as it looks on a Mac */
+    .tl-shot { margin: 0; border-radius: 14px; overflow: hidden; box-shadow: 0 30px 70px rgba(80,30,10,0.22), 0 0 0 1px rgba(255,255,255,0.7); background: #fcebdf; }
+    .tl-shot img { display: block; width: 100%; height: auto; }
     /* a drawing of the app's Home, not a screenshot */
     .tl-win { border-radius: 18px; overflow: hidden; height: 380px; display: flex; flex-direction: column; }
     .tl-bar {
@@ -1744,22 +1747,12 @@
       <span class="tl-req">For Mac · macOS 11.3 or later · Apple Silicon and Intel</span>
     </div>
     <div class="tl-right">
-      <div class="tl-win tl-glass reveal" aria-hidden="true">
-        <div class="tl-bar">
-          <span class="tl-dot" style="background:#ff5f57"></span><span class="tl-dot" style="background:#febc2e"></span><span class="tl-dot" style="background:#28c840"></span>
-          <span class="tl-tabs"><span class="on">Home</span><span>Vault</span><span>Design</span><span>Shots</span><span>Sort</span><span>Grab</span><span>Credit</span><span>Pay</span></span>
-          <span class="tl-pill">Lexus</span>
-        </div>
-        <div class="tl-body">
-          <div class="tl-wall">
-            <i style="grid-column:span 2;grid-row:span 2;background:linear-gradient(160deg,#3b2a22,#b8461c)"></i><i style="background:#1e2227"></i><i style="grid-row:span 2;background:linear-gradient(180deg,#262a31,#5a3a24)"></i><i style="background:#e0a24a"></i><i style="grid-column:span 2;background:#15181c"></i><i style="background:#6d2a18"></i><i style="background:#402e24"></i>
-          </div>
-          <div class="tl-side">
-            <div class="tl-card" style="flex-grow:1"><b>World clock</b><span class="m">London 14:20 · Toronto 09:20</span></div>
-            <div class="tl-card" style="flex-grow:2"><b>Wednesday</b><span>09:30 Lexus — recce</span><span>13:00 Edit review</span></div>
-          </div>
-        </div>
-      </div>
+      <figure class="tl-shot reveal">
+        <picture>
+          <source type="image/webp" srcset="assets/needed-tools-home-1200.webp 1200w, assets/needed-tools-home.webp 2000w" sizes="(max-width: 700px) 92vw, 62vw">
+          <img src="assets/needed-tools-home.jpg" width="2000" height="1256" loading="lazy" decoding="async" alt="Needed Tools on a Mac: Home, with the tools along the top, the vault's stills and GIFs, and the world clock, notes, calendar and focus timer.">
+        </picture>
+      </figure>
       <div class="tl-grid">
         <div class="tl-tile tl-glass reveal"><b>Vault</b><span>Links in, references kept — by project, board, tag and colour.</span></div>
         <div class="tl-tile tl-glass reveal"><b>Design</b><span>Mood boards and treatments from your stills, laid out for you.</span></div>

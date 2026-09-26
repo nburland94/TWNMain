@@ -1,6 +1,6 @@
 // Needed Vault keeps itself on the phone: after the first visit it opens with no signal.
 // Only the page lives here — your photos stay in the phone's own storage, never on the website.
-const CACHE = 'needed-vault-r23';
+const CACHE = 'needed-vault-r24';
 const SHELL = ['./', 'index.html', 'app.js', 'manifest.webmanifest', 'mark.png', 'icon-180.png', 'icon-192.png', 'icon-512.png',
   'fonts/raleway-latin-200-normal.woff2', 'fonts/raleway-latin-300-normal.woff2', 'fonts/raleway-latin-400-normal.woff2',
   'fonts/raleway-latin-500-normal.woff2', 'fonts/oswald-latin-400-normal.woff2',
@@ -12,6 +12,12 @@ self.addEventListener('activate', e => {
 // The copy on the phone straight away; a fresh one fetched behind it for next time.
 self.addEventListener('fetch', e => {
   if (e.request.method !== 'GET' || new URL(e.request.url).origin !== location.origin) return;
+  // The page and its script: fresh when there's signal, the saved copy when there isn't.
+  if (e.request.mode === 'navigate' || /\/(app\.js|index\.html)?$/.test(new URL(e.request.url).pathname)) {
+    e.respondWith(fetch(e.request).then(r => { if (r && r.ok) { const copy = r.clone(); caches.open(CACHE).then(c => c.put(e.request.url.split('?')[0], copy)); } return r; })
+      .catch(() => caches.match(e.request, { ignoreSearch: true }).then(hit => hit || caches.match('./', { ignoreSearch: true }))));
+    return;
+  }
   e.respondWith(caches.open(CACHE).then(c => c.match(e.request, { ignoreSearch: true }).then(hit => {
     const net = fetch(e.request).then(r => { if (r && r.ok) c.put(e.request.url.split('?')[0], r.clone()); return r; }).catch(() => hit);
     return hit || net;

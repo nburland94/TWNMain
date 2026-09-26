@@ -348,10 +348,11 @@
   addEventListener('resize', function () { if (!S.grabGo) drawGrid(); });
 
   /* ---- offline: the page keeps itself on the phone */
-  if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('sw.js').catch(function () {});
+  if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1')) navigator.serviceWorker.register('/vault/sw.js', { scope: '/vault/' }).catch(function () {});
 
   if (S.project) keepProject(S.project);
   showInstall(false);
   open().then(refresh).catch(function (e) { toast('This browser can’t keep files here: ' + (e && e.message || e), 6000); draw(); });
   window.__nv = { S: S, refresh: refresh };
+  window.__nvReady = true;
 })();

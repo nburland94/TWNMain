@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en"><head>
 <meta charset="utf-8">
+<base href="/vault/">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="robots" content="noindex">
 <meta name="apple-mobile-web-app-title" content="Mobile Vault">
@@ -180,7 +181,7 @@ main{padding-bottom:calc(env(safe-area-inset-bottom) + 190px)}
 <div class="prog" id="prog"><i id="progBar"></i></div>
 
 <!-- The first time, in Safari: make it an app -->
-<section class="install off" id="install">
+<section class="install" id="install">
   <img class="icon" src="icon-180.png" alt="">
   <span class="cap">Needed Mobile Vault · This Was Needed</span>
   <h1>Put Needed Mobile Vault on your Home Screen</h1>
@@ -297,5 +298,18 @@ main{padding-bottom:calc(env(safe-area-inset-bottom) + 190px)}
   <div class="steps" style="margin-top:14px"><button class="dark" id="mDone">Done</button></div>
 </div>
 <div class="g toast" id="toast"></div>
-<script src="app.js"></script>
+<div class="g why off" id="nvFail" style="position:fixed;left:16px;right:16px;bottom:calc(env(safe-area-inset-bottom) + 16px);z-index:60;border-radius:18px;padding:14px 16px;font-size:13px;line-height:1.5"></div>
+<script>
+// If the page's script doesn't start (a patchy connection, an old copy on the phone), say so — never a blank page.
+(function () {
+  function fail(why) {
+    var el = document.getElementById('nvFail'); if (!el || window.__nvReady) return;
+    el.innerHTML = '<b>Mobile Vault didn\u2019t finish opening.</b> Check you\u2019ve got signal, then pull down to refresh. If it keeps happening, open thiswasneeded.info/vault/ in Safari.<br><span style="font-family:Courier Prime,monospace;font-size:11px;opacity:.7">' + String(why || '').replace(/[<>&]/g, '') + '</span>';
+    el.classList.remove('off');
+  }
+  window.addEventListener('error', function (e) { fail(e.message || 'script error'); });
+  setTimeout(function () { fail('app.js did not start'); }, 6000);
+})();
+</script>
+<script src="/vault/app.js"></script>
 </body></html>
