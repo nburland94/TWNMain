@@ -6,10 +6,14 @@ What's here
   this-was-needed-logo.svg     the logo, on its own
   vault/                       Needed Mobile Vault — the phone page
   _headers                     tells Netlify not to hold on to old copies of the phone page
+  _redirects                   sends /Vault, /mobile-vault and similar to /vault/
 
 Put it online (Netlify)
-  1. Netlify › your site › Deploys › drag this whole "Website" folder onto the drop area.
-     (Or, if the site is linked to a folder or a Git repo, replace its files with these.)
+  1. Unzip. Open the folder: you should see index.html, vault, assets, _headers, _redirects
+     right there at the top. Drag THAT folder (the one those sit in) onto
+     Netlify › the site thiswasneeded.info uses › Deploys › the drop area.
+     (If the site is linked to a folder or a Git repo, replace its files with these.)
+     Check: in Deploys, the new deploy says "Published", and its file list shows vault/ at the top.
   2. Your domain (thiswasneeded.info) should point at that Netlify site. Netlify gives it
      https on its own — Needed Mobile Vault needs https to work offline.
   3. Open https://thiswasneeded.info/vault/ on your iPhone to check.

@@ -1,0 +1,6 @@
+# Needed Mobile Vault lives at /vault/ — these send near-misses there too.
+/Vault/*        /vault/:splat   301
+/VAULT/*        /vault/:splat   301
+/mobile-vault   /vault/         301
+/mobilevault    /vault/         301
+/mobile         /vault/         301
