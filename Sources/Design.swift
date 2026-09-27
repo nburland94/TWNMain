@@ -152,12 +152,19 @@ enum Designs {
 
     static func stills(scope: String, project: String, aspects: inout [String: Double]) -> [[String: Any]] {
         guard let base = Shared.vault else { return [] }
+        return stillRows(stillItems(scope: scope, project: project), base: base, aspects: &aspects)
+    }
+    /// The vault's stills and GIFs for Design — read from the vault list (on the main thread, where it lives).
+    static func stillItems(scope: String, project: String) -> [[String: Any]] {
         VaultStore.shared.load()
-        let all = VaultStore.shared.items.filter { (it: [String: Any]) -> Bool in
+        return VaultStore.shared.items.filter { (it: [String: Any]) -> Bool in
             let kind = (it["kind"] as? String) ?? ""
             guard kind == "still" || kind == "gif" else { return false }       // GIFs too: they play on the page
             return scope == "vault" || ((it["project"] as? String) ?? "Unsorted") == project
         }.sorted { ($0["created"] as? String ?? "") > ($1["created"] as? String ?? "") }
+    }
+    /// Each one's shape (read from the file when the list doesn't know it) — safe off the main thread.
+    static func stillRows(_ all: [[String: Any]], base: URL, aspects: inout [String: Double]) -> [[String: Any]] {
         var out: [[String: Any]] = []
         for it in all.prefix(2000) {
             guard let id = it["id"] as? String, let file = it["file"] as? String else { continue }
@@ -527,22 +534,33 @@ enum Looks {
 
 // MARK: - The page talks to the app here
 
+extension Designs {
+    /// Reading and writing designs happens here, one at a time and in order — never on the main
+    /// thread, so a slow disk or an iCloud folder can't freeze the window (the pinwheel).
+    static let io = DispatchQueue(label: "needed.design.files", qos: .userInitiated)
+    static func off(_ work: @escaping () -> Any?, _ reply: @escaping (Any?, String?) -> Void) {
+        io.async { let r = work(); DispatchQueue.main.async { reply(r, nil) } }
+    }
+}
+
 extension Shell {
     func designAction(_ action: String, _ body: [String: Any], _ reply: @escaping (Any?, String?) -> Void) -> Bool {
         let project = Shared.project
         switch action {
         case "designList":
-            reply(["designs": Designs.list(project), "project": project], nil)
+            Designs.off({ ["designs": Designs.list(project), "project": project] }, reply)
 
         case "designLoad":
-            guard let doc = Designs.load((body["rel"] as? String) ?? "") else { reply(["ok": false, "error": "Couldn't open that design"], nil); return true }
-            reply(["ok": true, "doc": doc], nil)
+            let rel = (body["rel"] as? String) ?? ""
+            Designs.off({ Designs.load(rel).map { ["ok": true, "doc": $0] as [String: Any] } ?? ["ok": false, "error": "Couldn't open that design"] }, reply)
 
         case "designSave":
-            reply(Designs.save(rel: body["rel"] as? String, doc: (body["doc"] as? [String: Any]) ?? [:], project: project), nil)
+            let rel = body["rel"] as? String, doc = (body["doc"] as? [String: Any]) ?? [:]
+            Designs.off({ Designs.save(rel: rel, doc: doc, project: project) }, reply)
 
         case "designVersion":
-            reply(Designs.keepVersion((body["rel"] as? String) ?? ""), nil)
+            let rel = (body["rel"] as? String) ?? ""
+            Designs.off({ Designs.keepVersion(rel) }, reply)
 
         case "designRename":
             // The file follows the name; exports already made keep theirs.
@@ -561,7 +579,17 @@ extension Shell {
             reply(["ok": true, "designs": Designs.list(project)], nil)
 
         case "designStills":
-            reply(["stills": Designs.stills(scope: (body["scope"] as? String) ?? "project", project: project, aspects: &designAspects)], nil)
+            // The list is read here; each still's shape is worked out off the main thread.
+            guard let base = Shared.vault else { reply(["stills": [Any]()], nil); return true }
+            let items = Designs.stillItems(scope: (body["scope"] as? String) ?? "project", project: project)
+            var known = designAspects
+            DispatchQueue.global(qos: .userInitiated).async {
+                let rows = Designs.stillRows(items, base: base, aspects: &known)
+                DispatchQueue.main.async { [weak self] in
+                    self?.designAspects.merge(known) { _, new in new }
+                    reply(["stills": rows], nil)
+                }
+            }
 
         case "designFonts":
             // Every font on this Mac — Adobe Fonts you've turned on too — like Keynote.

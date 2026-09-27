@@ -839,13 +839,18 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
 
   /* ---------------------------------------------------------------- saving and undo */
   let saveT = null;
+  // Saved a moment after you stop — and only when something actually changed since the last save.
+  let lastSaved = '';
   function persist() {
     clearTimeout(saveT);
     saveT = setTimeout(async () => {
+      saveT = null;
       if (!doc) return;
+      const now = JSON.stringify(doc);
+      if (rel && now === lastSaved) return;
       const r = await call('designSave', { rel, doc }).catch(() => null);
-      if (r && r.ok) rel = r.rel; else if (r && r.error) toast(r.error);
-    }, 500);
+      if (r && r.ok) { rel = r.rel; lastSaved = now; } else if (r && r.error) toast(r.error);
+    }, 700);
   }
   // Every change: remembered for ⌘Z, saved a moment later, drawn again.
   function change(fn, opts) {
@@ -1679,7 +1684,7 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
   async function openDesign(r) {
     const res = await call('designLoad', { rel: r }).catch(() => null);
     if (!res || !res.ok) return toast((res && res.error) || "Couldn't open that one");
-    doc = normalise(res.doc); rel = r; cur = 0; sel.clear(); bsel = null; editing = null; reframe = null; undo = []; redo = [];
+    doc = normalise(res.doc); rel = r; lastSaved = JSON.stringify(doc); cur = 0; sel.clear(); bsel = null; editing = null; reframe = null; undo = []; redo = [];
     setPref('last:' + project, r);
     closeSheet(); draw();
     if (!pref('guideSeen', '')) setTimeout(() => openGuide(0), 350);
@@ -3434,7 +3439,7 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
     clearTimeout(saveT); saveT = null;
     const r = await call('designSave', { rel, doc }).catch(() => null);
     if (!r || !r.ok) return toast((r && r.error) || "Couldn't save it");
-    rel = r.rel;
+    rel = r.rel; lastSaved = JSON.stringify(doc);
     const b = $('saveBtn'); if (b) { b.textContent = 'Saved ✓'; clearTimeout(saveNow.t); saveNow.t = setTimeout(() => { const x = $('saveBtn'); if (x) x.textContent = 'Save'; }, 1800); }
     toast(`Saved — ${doc.name || 'this design'}, in ${project}_Design › ${doc.mode === 'mood' ? 'Mood' : 'Treatments'}`);
   }
@@ -3444,7 +3449,7 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
     doc = null; rel = null; sel.clear(); bsel = null; editing = null; swap = null; reframe = null; closeSheet();
     await refreshList(); draw();
   }
-  async function flushSave() { if (saveT) { clearTimeout(saveT); saveT = null; const r = await call('designSave', { rel, doc }).catch(() => null); if (r && r.ok) rel = r.rel; } }
+  async function flushSave() { if (saveT && doc) { clearTimeout(saveT); saveT = null; const r = await call('designSave', { rel, doc }).catch(() => null); if (r && r.ok) { rel = r.rel; lastSaved = JSON.stringify(doc); } } }
 
   /* ---------------------------------------------------------------- play */
   let playAt = 0;

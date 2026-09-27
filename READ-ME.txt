@@ -930,3 +930,8 @@ ROUND 29 — DESIGN STAYS PUT AND IS QUICKER; MOBILE VAULT AS A FEED
     your Mac and in Photos. Clips become their first frame then.
   • Put the Website folder online again (How to put it online.txt) for the
     phone to get it; the page updates itself the next time it opens.
+  Speed (round 29b)
+  • Design's saving, opening, listing and gathering stills now happen off
+    the Mac's main thread, so a slow disk or an iCloud vault can't freeze
+    the window (the pinwheel). Pictures were already read that way.
+  • It saves only when something actually changed, a moment after you stop.
