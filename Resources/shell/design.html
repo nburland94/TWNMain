@@ -116,6 +116,9 @@ select.sel{appearance:none;-webkit-appearance:none;border:1px solid rgba(28,28,2
 .pagewrap .pic.reframe{cursor:grab;outline:dashed #F05A22}
 .pagewrap .pic.feat::after{content:'★';position:absolute;right:0.4em;top:0.2em;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,0.5)}
 .pagewrap .pic.dropbefore{box-shadow:inset 6px 0 0 #F05A22}
+#pagewrap .pg{overflow:visible}
+#pagewrap{isolation:isolate}
+#pagewrap .pgclip{position:absolute;inset:0;pointer-events:none;z-index:9000;box-shadow:0 0 0 6000px rgba(251,243,237,0.62)}
 .pagewrap .tb{cursor:move;-webkit-user-select:none;user-select:none;min-height:0.9em}
 .pg .tb.shp{white-space:normal;padding:0}.pagewrap .tb.shp{min-height:0}
 @media (hover:hover) and (pointer:fine){.pagewrap .tb:hover{outline:1px solid rgba(240,90,34,0.45);outline-offset:2px}}
@@ -145,6 +148,13 @@ select.sel{appearance:none;-webkit-appearance:none;border:1px solid rgba(28,28,2
 .qbar button{border:none;background:transparent;border-radius:10px;height:32px;min-width:34px;padding:0 8px;font-size:12.5px;color:#141414;display:flex;align-items:center;gap:5px}
 .qbar button.on{background:#141414;color:#fff}
 .qbar button svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.qbar .qcaret{min-width:20px;padding:0 4px;color:#8a8580;font-size:11px}
+.shapemenu[hidden]{display:none}
+.shapemenu{position:fixed;z-index:95;display:flex;flex-direction:column;gap:2px;padding:6px;border-radius:14px;min-width:190px}
+.shapemenu button{border:none;background:transparent;border-radius:9px;height:32px;padding:0 10px;display:flex;align-items:center;gap:10px;font-size:13px;color:#141414;text-align:left}
+.shapemenu button.on{background:rgba(240,90,34,0.14)}
+@media (hover:hover) and (pointer:fine){.shapemenu button:hover{background:rgba(240,90,34,0.10)}}
+.shapemenu svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.6}
 .qbar .qsep{width:1px;height:18px;background:rgba(28,28,28,0.12);margin:0 3px}
 @media (hover:hover) and (pointer:fine){.qbar button:not(.on):hover{background:rgba(240,90,34,0.12)}}
 .stage.zooming .qbar{visibility:hidden}
@@ -297,12 +307,24 @@ body.resizing,body.resizing *{cursor:ns-resize!important;user-select:none}
 .tplpal i{display:flex;border-radius:6px;overflow:hidden}.tplpal i b{width:16px;height:22px;display:block}
 .tplgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;max-height:62vh;overflow-y:auto;padding:4px 4px 8px}
 @media (max-width:980px){.tplgrid{grid-template-columns:repeat(2,minmax(0,1fr))}}
-.tplcard{border:none;border-radius:16px;padding:10px;background:rgba(255,255,255,0.6);display:flex;flex-direction:column;gap:8px;text-align:left;cursor:pointer;box-shadow:0 0 0 1px rgba(28,28,28,0.06);transition:transform .2s var(--ease-out)}
-@media (hover:hover) and (pointer:fine){.tplcard:hover{transform:translateY(-3px)}}
-.tplcard .tplpv{display:grid;grid-template-columns:1fr 1fr;gap:6px}
-.tplcard .tplpv div{position:relative;overflow:hidden;border-radius:4px;aspect-ratio:16/9;background:#e9e4dc}
-.tplcard .tplpv .pg{position:absolute;left:0;top:0;transform-origin:0 0}
+.tplcard{border-radius:16px;padding:10px;background:rgba(255,255,255,0.6);display:flex;flex-direction:column;gap:8px;text-align:left;box-shadow:0 0 0 1px rgba(28,28,28,0.06)}
+.tplcard .tplpv{border:none;padding:0;background:none;display:grid;grid-template-columns:1fr 1fr;gap:6px;cursor:pointer;transition:transform .2s var(--ease-out)}
+@media (hover:hover) and (pointer:fine){.tplcard .tplpv:hover{transform:translateY(-3px)}}
+.tplcard .tplpv img{display:block;width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:4px;background:#e9e4dc}
+.tplrow{display:flex;align-items:center;gap:10px}.tplrow .abseg{margin-left:auto}
 .tplcard b{font-weight:400;font-size:17px}.tplcard small{font-size:12px;color:#4a4945;line-height:1.45}
+.abseg{display:inline-flex;border-radius:9px;box-shadow:0 0 0 1px rgba(28,28,28,0.16);overflow:hidden}
+.abseg button{border:none;background:transparent;width:30px;height:26px;font-size:12.5px;font-weight:600;color:#4a4945;cursor:pointer}
+.abseg button.on{background:#141414;color:#fbf8f4}
+.ppgrid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px;max-height:58vh;overflow-y:auto;padding:4px}
+@media (max-width:980px){.ppgrid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+.ppcard{border:none;background:none;padding:0;display:flex;flex-direction:column;gap:6px;text-align:left;cursor:pointer;font-size:11.5px;color:#4a4945}
+.ppcard .ppv{position:relative;overflow:hidden;border-radius:4px;aspect-ratio:16/9;background:#e9e4dc;box-shadow:0 0 0 1px rgba(28,28,28,0.08);transition:box-shadow .15s}
+@media (hover:hover) and (pointer:fine){.ppcard:hover .ppv{box-shadow:0 0 0 2px #F05A22}}
+.ppcard .ppv .pg{position:absolute;left:0;top:0;transform-origin:0 0}
+#pagewrap .pic .sdot{position:absolute;left:0.6em;top:0.6em;padding:0.25em 0.6em;border-radius:1em;background:rgba(20,20,20,0.72);color:#fff;letter-spacing:.12em;font-family:'Inter Tight',Helvetica,sans-serif;font-weight:700;pointer-events:none;z-index:2}
+.samplebtn{color:#b3431a}
+.samplewarn{box-shadow:inset 3px 0 0 #F05A22}
 .tplcard .n{font-family:'Courier Prime',monospace;font-size:11px;color:#b3431a;letter-spacing:.08em}
 .tplroles{display:flex;gap:10px;flex-wrap:wrap}.tplroles label{display:flex;flex-direction:column;gap:4px;font-size:11.5px;color:#4a4945}
 .tplroles input[type=color]{width:44px;height:30px;border:none;border-radius:6px;padding:0;background:none}
@@ -589,7 +611,7 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
     } else if (lay === 'free') {
       // Free: every picture where you put it — x, y, w, h as fractions of the page.
       rects = page.pics.map((p, k) => { const b = p.box || defaultBox(G, p, k); return { x: b.x * W, y: b.y * H, w: b.w * W, h: b.h * H }; });
-      if (!page.pics.length) hole = { x: m, y: top, w: W - 2 * m, h: H - top - bottom };
+      if (!page.pics.length && !page.tpl) hole = { x: m, y: top, w: W - 2 * m, h: H - top - bottom };
       text = { x: m, y: top, w: Math.round((W - 2 * m) * 0.5), h: H - top - bottom };
     } else {
       const bleed = !!page.bleed;
@@ -629,12 +651,13 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
     L.rects.forEach((r, k) => {
       const p = page.pics[k]; if (!r || !p) return;
       const c = p.crop || { x: 50, y: 50, z: 1 };
-      const src = 'vault/' + encodeURI(opt.thumbs ? (p.thumb || p.file) : p.file);
+      const src = p.sample ? 'samples/' + (opt.thumbs ? p.thumb : p.file) : 'vault/' + encodeURI(opt.thumbs ? (p.thumb || p.file) : p.file);
       const cls = 'pic' + (sel.has(k) ? ' sel' : '') + (opt.reframe === k ? ' reframe' : '') + (opt.edit && p.featured ? ' feat' : '');
       const deco = (p.border ? `;border:${(p.border.w || 2) * u}px solid ${esc(p.border.c || '#ffffff')}` : '') + (p.shadow ? `;box-shadow:0 ${14 * u}px ${44 * u}px rgba(0,0,0,0.38)` : '') + (p.radius ? `;border-radius:${p.radius * u}px` : '') + (p.round ? ';border-radius:50%' : '');
       const flt = [p.mono ? 'grayscale(1) contrast(1.12)' : '', p.dim ? `brightness(${(1 - p.dim).toFixed(2)})` : ''].filter(Boolean).join(' ');
       h += `<div class="${cls}" data-k="${k}" style="left:${r.x.toFixed(1)}px;top:${r.y.toFixed(1)}px;width:${r.w.toFixed(1)}px;height:${r.h.toFixed(1)}px;opacity:${p.opacity == null ? 1 : p.opacity};z-index:${zOf(p, k, 'pic')}${deco}${opt.edit ? `;outline-width:${Math.max(2, 3 / (opt.scale || 1))}px` : ''}">`
-        + `<img alt="" draggable="false" src="${esc(src)}" style="object-position:${c.x}% ${c.y}%;transform:scale(${c.z});transform-origin:${c.x}% ${c.y}%${flt ? ';filter:' + flt : ''}"></div>`;
+        + `<img alt="" draggable="false" src="${esc(src)}" style="object-position:${c.x}% ${c.y}%;transform:scale(${c.z});transform-origin:${c.x}% ${c.y}%${flt ? ';filter:' + flt : ''}">`
+        + (opt.edit && p.sample ? `<span class="sdot" style="font-size:${(10 / (opt.scale || 1)).toFixed(1)}px">SAMPLE</span>` : '') + '</div>';
     });
     // The fade: from the side the words are on, to black or to the page colour.
     const fade = page.fade || {};
@@ -646,7 +669,7 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
       const css = { bottom: 'to top', top: 'to bottom', left: 'to right', right: 'to left' }[from];
       h += `<div class="fade${opt.fadeEdit ? ' fedit' : ''}" style="z-index:${fade.z != null ? fade.z : 500};left:${(b.x * W).toFixed(1)}px;top:${(b.y * H).toFixed(1)}px;width:${(b.w * W).toFixed(1)}px;height:${(b.h * H).toFixed(1)}px;background:linear-gradient(${css}, ${rgba(to, s)} 0%, ${rgba(to, s * 0.55)} 32%, ${rgba(to, 0)} 64%)"></div>`;
     }
-    if (!mood) h += boxesHTML(page, L.G, dark, opt);
+    if (!mood) { autoPlace(page, L); h += boxesHTML(page, L.G, dark, opt); }
     if (mood && (doc.title || '').trim()) {
       const tc = onDark('#141414', lum(bg) < 0.42);
       h += `<div class="ttl" style="left:${m}px;top:${Math.round(34 * u)}px;right:${m}px;font-size:${Math.round(30 * u)}px;line-height:1.2;color:${tc}">${esc(doc.title)}</div>`;
@@ -654,14 +677,14 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
     // The running header: your name and the project top left, the page number top right. Off on a page if you took it off.
     const rn = doc.runner, hide = page.runnerHide || {};
     if (rn && rn.on) {
-      const pos = doc.pages.indexOf(page), n = pos + 1, rs = (rn.size || 11) * u, ry = Math.round(Math.max(8 * u, (m - rs * 1.25) / 2));
-      const rc = rn.colour || onDark('#141414', dark), font = esc(fontStack(rn.font || HELV));
+      const pos = doc.pages.indexOf(page), n = pos + 1, rs = (rn.size || 11) * u, ry = rn.top != null ? Math.round(rn.top * u) : Math.round(Math.max(8 * u, (m - rs * 1.25) / 2)), rx = rn.inset != null ? Math.round(rn.inset * u) : m;
+      const rc = page.rc || rn.colour || onDark('#141414', dark), font = esc(fontStack(rn.font || HELV));   // a page over a picture can ask for white
       const base = `position:absolute;top:${ry}px;font-family:${font};font-size:${rs.toFixed(1)}px;line-height:1.25;color:${esc(rc)};white-space:nowrap;letter-spacing:${rn.upper === false ? 0 : 0.04}em;text-transform:${rn.upper === false ? 'none' : 'uppercase'};z-index:5000`;
       const cls = k => `runner${opt.edit ? ' redit' : ''}${opt.rsel === k ? ' rsel' : ''}`;
       if (!hide.left && ((rn.name || '').trim() || (rn.title || '').trim()))
-        h += `<div class="${cls('left')}" data-r="left" style="${base};left:${m}px">${(rn.name || '').trim() ? `<b style="font-weight:700">${esc(rn.name)}</b>` : ''}${(rn.name || '').trim() && (rn.title || '').trim() ? ' · ' : ''}${esc(rn.title || '')}</div>`;
+        h += `<div class="${cls('left')}" data-r="left" style="${base};left:${rx}px">${(rn.name || '').trim() ? `<b style="font-weight:700">${esc(rn.name)}</b>` : ''}${(rn.name || '').trim() && (rn.title || '').trim() ? ' · ' : ''}${esc(rn.title || '')}</div>`;
       if (!hide.right && rn.num !== false && pos >= 0)
-        h += `<div class="${cls('right')}" data-r="right" style="${base};right:${m}px">${esc(rn.style === 'num' ? String(n) : rn.style === 'pad' ? String(n).padStart(2, '0') : rn.style === 'pagepad' ? 'Page ' + String(n).padStart(2, '0') : 'Page ' + n)}</div>`;
+        h += `<div class="${cls('right')}" data-r="right" style="${base};right:${rx}px">${esc(rn.style === 'num' ? String(n) : rn.style === 'pad' ? String(n).padStart(2, '0') : rn.style === 'pagepad' ? 'Page ' + String(n).padStart(2, '0') : 'Page ' + n)}</div>`;
     }
     // Brand: your logo and the client's — a corner, a size, which pages; white on dark pages if you like.
     const logos = (doc.brand && doc.brand.logos) || [];
@@ -712,6 +735,16 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
     if (b.lastJustify) css += ';text-align-last:justify';
     return css;
   }
+  // Sample words on a new page sit in the space the layout leaves for words — and follow it as you drag the divider,
+  // until you type in them or move them; then they're yours and stay put.
+  function autoPlace(page, L) {
+    const auto = (page.boxes || []).filter(b => b.auto); if (!auto.length || !L.text) return;
+    const G = L.G, T = L.text;
+    const at = stackIn(G, T, auto.map(b => ({ st: b, text: b.text })), T.anchor);
+    auto.forEach((b, i) => { b.x = at[i].x / G.W; b.y = at[i].y / G.H; b.w = Math.max(80 * G.u, T.w) / G.W; });
+  }
+  const SAMPLE_HEAD = 'A heading for this page', SAMPLE_BODY = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aenean lacinia bibendum nulla sed consectetur. Maecenas sed diam eget risus varius blandit sit amet non magna.';
+  const sampleWords = () => [Object.assign(newBox('heading', 0, 0, 0.3, SAMPLE_HEAD), { auto: true }), Object.assign(newBox('body', 0, 0, 0.3, SAMPLE_BODY), { auto: true })];
   function boxCss(b, G, dark) {
     if (b.shape) return shapeCss(b, G, dark);
     const colour = b.colour || (dark ? '#f4f3f1' : '#141414');
@@ -854,19 +887,34 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
       <input class="name" id="docName" value="${esc(doc.name)}" placeholder="Name it" spellcheck="false" aria-label="Name">
       <div class="seg" role="group" aria-label="Mood or treatment"><button data-mode="mood" class="${mood ? 'on' : ''}" title="Just pictures">Mood</button><button data-mode="treatment" class="${mood ? '' : 'on'}" title="Pictures and words">Treatment</button></div>
       <span class="sp"></span>
+      ${sampleCount() ? '<button class="tbtn samplebtn" id="useMine" title="Swap every sample picture for the stills in your vault that suit this template">Use my stills</button>' : ''}
       <button class="tbtn" id="addPage" title="A new page after this one">+ Page</button>
       ${mood ? '' : '<button class="tbtn" id="textBtn" title="A text box — or press T, or double-click the page"><b style="font-family:Georgia,serif;font-size:15px;line-height:1">T</b> Text</button>'}
       <button class="tbtn" id="photosBtn" title="Photos, or whole folders of them, from your Mac">+ Photos</button>
       <span class="vsep"></span>
-      <select class="sel" id="sizeSel" aria-label="Page size">${Object.keys(SIZES).map(k => `<option value="${k}"${k === doc.size ? ' selected' : ''}>${esc(SIZE_NAMES[k])}</option>`).join('')}</select>
+      <select class="sel" id="sizeSel" aria-label="Page size"${doc.tpl ? ' disabled title="Template decks are 16:9"' : ''}>${Object.keys(SIZES).map(k => `<option value="${k}"${k === doc.size ? ' selected' : ''}>${esc(SIZE_NAMES[k])}</option>`).join('')}</select>
       <button class="tbtn" id="playBtn" title="Play through the pages — Space">▶ Play</button>
       <button class="tbtn" id="keysBtn" title="How it works — ?">?</button>
       <button class="dark" id="exportBtn">Export</button>`;
   }
 
   // The pages, small, in a row: click one, drag to reorder, drop stills on one.
+  // Only the pages that changed are drawn again: each small page remembers what it was drawn from.
+  let stripKeys = [];
   function drawStrip() {
-    const th = 66, parts = [];
+    const th = 66, parts = [], deckKey = JSON.stringify([doc.size, doc.bg, doc.runner, doc.brand, doc.types, doc.mark, doc.mode, doc.title, doc.pages.length]);
+    const keys = doc.pages.map((p, i) => deckKey + i + JSON.stringify(p));
+    const thumbs = $('strip').querySelectorAll('.thumb');
+    if (thumbs.length === doc.pages.length && stripKeys.length === keys.length && drawStrip.deck === deckKey) {
+      thumbs.forEach((el, i) => {
+        el.classList.toggle('on', i === cur);
+        if (keys[i] !== stripKeys[i]) el.firstElementChild.innerHTML = pageHTML(doc, doc.pages[i], { thumbs: true });
+      });
+      stripKeys = keys;
+      const t = $('strip').querySelector('.thumb.on'); if (t) t.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+      return;
+    }
+    stripKeys = keys; drawStrip.deck = deckKey;
     doc.pages.forEach((p, i) => {
       const { W, H } = geometry(doc);
       const s = th / H;
@@ -939,7 +987,7 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
     const p = page(); if (!p) return;
     const { W, H } = geometry(doc);
     const st = $('stage').getBoundingClientRect();
-    fitScale = Math.max(0.05, Math.min((st.width - 56) / W, (st.height - 92) / H));      // room above the page for the quick-action bar
+    fitScale = Math.max(0.05, Math.min((st.width - 150) / W, (st.height - 150) / H));      // room above the page for the quick-action bar, and a strip of workspace round it
     scale = zoom || fitScale;
     const zp = $('zoomPct'); if (zp) zp.textContent = Math.round(scale * 100) + '%';
     $('scroller').style.overflow = zoom && zoom > fitScale ? 'auto' : 'hidden';
@@ -948,7 +996,8 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
     wrap.style.height = Math.round(H * scale) + 'px';
     if (doc.mode === 'mood') { bsel = null; editing = null; }
     if (fadeEdit && !(p.fade && p.fade.on)) fadeEdit = false;
-    wrap.innerHTML = pageHTML(doc, p, { edit: true, sel, editing, reframe, scale, fadeEdit, rsel });
+    // Things can sit off the page, in the workspace: shown faded there, and never in an export.
+    wrap.innerHTML = pageHTML(doc, p, { edit: true, sel, editing, reframe, scale, fadeEdit, rsel }) + '<div class="pgclip"></div>';
     drawQbar();
     const pg = wrap.querySelector('.pg'); pg.style.transform = `scale(${scale})`;
     if (editing) { const el = boxEl(editing); if (el && document.activeElement !== el) { el.focus(); placeCaretEnd(el); } }
@@ -1004,18 +1053,43 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
     redo: '<svg viewBox="0 0 16 16"><path d="M11 4l3 3-3 3"/><path d="M14 7H6.5a4 4 0 0 0 0 8H9"/></svg>',
     play: '<svg viewBox="0 0 16 16"><path d="M4.5 3l8 5-8 5z"/></svg>',
     shape: '<svg viewBox="0 0 16 16"><rect x="2" y="5" width="8" height="8" rx="1"/><circle cx="11" cy="5.5" r="3.5"/></svg>',
+    shp_rect: '<svg viewBox="0 0 16 16"><rect x="2.5" y="3.5" width="11" height="9" rx="1"/></svg>',
+    shp_line: '<svg viewBox="0 0 16 16"><path d="M2 8h12"/></svg>',
+    shp_circle: '<svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="5.5"/></svg>',
+    shp_fade: '<svg viewBox="0 0 16 16"><defs><linearGradient id="qfd"><stop offset="0" stop-color="currentColor"/><stop offset="1" stop-color="currentColor" stop-opacity="0"/></linearGradient></defs><rect x="2.5" y="3.5" width="11" height="9" rx="1" fill="url(#qfd)"/></svg>',
   };
+  // The shape button adds the shape you last picked; its little arrow picks another.
+  const SHAPE_Q = { rect: ['Block', 'rect'], line: ['Line', 'line'], circle: ['Circle', 'circle'], fade: ['Block that fades out', 'rect'] };
+  let qShape = pref('qShape', 'rect'), qShort = pref('qShort', '') === '1';
+  function openShapeMenu(btn) {
+    let m = $('shapemenu');
+    if (!m) { m = document.createElement('div'); m.id = 'shapemenu'; m.className = 'shapemenu g'; document.body.appendChild(m); }
+    m.innerHTML = Object.entries(SHAPE_Q).map(([k, [n]]) => `<button type="button" data-shapepick="${k}" class="${k === qShape ? 'on' : ''}">${QI['shp_' + k]}<span>${n}</span></button>`).join('');
+    const r = btn.getBoundingClientRect();
+    Object.assign(m.style, { left: Math.round(r.left - 40) + 'px', top: Math.round(r.bottom + 6) + 'px' });
+    m.hidden = false;
+  }
+  document.addEventListener('mousedown', e => { const m = $('shapemenu'); if (m && !m.hidden && !e.target.closest('#shapemenu') && !e.target.closest('[data-q="shapemenu"]')) m.hidden = true; }, true);
+  document.addEventListener('click', e => {
+    const b = e.target.closest('[data-shapepick]'); if (!b) return;
+    qShape = b.dataset.shapepick; setPref('qShape', qShape); $('shapemenu').hidden = true; drawQbar();
+    addShape(qShape);
+  });
   let qpos = (() => { try { return JSON.parse(localStorage.getItem('design.qbar') || 'null'); } catch (e) { return null; } })();
   function drawQbar() {
     const q = $('qbar'); if (!doc) { q.hidden = true; return; }
     const p = page(), mood = doc.mode === 'mood', free = p.layout === 'free', fade = !!(p.fade && p.fade.on);
     const B = (id, icon, label, tip, on) => `<button type="button" data-q="${id}" class="${on ? 'on' : ''}" title="${esc(tip)}" aria-label="${esc(label)}">${QI[icon]}${label ? `<span>${label}</span>` : ''}</button>`;
+    // Short: the handle, Text, Free, undo and the arrow. Long: everything.
+    const short = qShort;
     q.innerHTML = '<span class="qgrip" title="Drag to move this bar">⋮⋮</span>'
-      + (mood ? '' : B('text', 'text', 'Text', 'A text box — T', false) + B('shape', 'shape', '', 'A shape — a block of colour, a line or a circle', false) + B('free', 'free', 'Free', 'Free: move and size the pictures by hand', free)
-        + B('fade', 'fade', 'Fade', 'Fade the pictures on this page — drag it on a Free page, R turns it', fade) + B('layout', 'layout', '', 'Next layout — L', false))
-      + B('photos', 'photos', '', 'Add photos from your Mac', false) + '<i class="qsep"></i>'
-      + B('dup', 'dup', '', 'Duplicate this page — ⌘D', false) + B('undo', 'undo', '', 'Undo — ⌘Z', false) + B('redo', 'redo', '', 'Redo — ⇧⌘Z', false)
-      + B('play', 'play', '', 'Play — Space', false);
+      + (mood ? '' : B('text', 'text', short ? '' : 'Text', 'A text box — T', false)
+        + (short ? '' : B('shape', SHAPE_Q[qShape] ? 'shp_' + qShape : 'shape', '', 'Add a shape — pick which', false) + '<button type="button" data-q="shapemenu" class="qcaret" title="Which shape" aria-label="Which shape">▾</button>')
+        + B('free', 'free', short ? '' : 'Free', 'Free: move and size the pictures by hand', free)
+        + (short ? '' : B('fade', 'fade', 'Fade', 'Fade the pictures on this page — drag it on a Free page, R turns it', fade) + B('layout', 'layout', '', 'Next layout — L', false)))
+      + (short ? '' : B('photos', 'photos', '', 'Add photos from your Mac', false)) + '<i class="qsep"></i>'
+      + (short ? '' : B('dup', 'dup', '', 'Duplicate this page — ⌘D', false)) + B('undo', 'undo', '', 'Undo — ⌘Z', false) + (short ? '' : B('redo', 'redo', '', 'Redo — ⇧⌘Z', false) + B('play', 'play', '', 'Play — Space', false))
+      + `<button type="button" data-q="qsize" class="qcaret" title="${short ? 'Show every tool' : 'Make this bar shorter'}" aria-label="${short ? 'Longer' : 'Shorter'}">${short ? '›' : '‹'}</button>`;
     q.hidden = false;
     placeQbar();
   }
@@ -1050,7 +1124,9 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
     const b = e.target.closest('[data-q]'); if (!b || !doc) return;
     const q = b.dataset.q, p = page();
     if (q === 'text') return addBox();
-    if (q === 'shape') return addShape();
+    if (q === 'shape') return addShape(qShape);
+    if (q === 'shapemenu') return openShapeMenu(b);
+    if (q === 'qsize') { qShort = !qShort; setPref('qShort', qShort ? '1' : ''); return drawQbar(); }
     if (q === 'free') {
       if (p.layout === 'free') { const back = p.prevLayout || 'left'; change(() => { p.layout = back; }); return toast('Laid out again — your Free places are kept if you switch back'); }
       setLayout('free'); return toast('Free: drag pictures anywhere, pull a corner to size them');
@@ -1246,7 +1322,7 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
           ${b.fadeTo ? range('bFadeAt', 'Solid for', b.fadeAt == null ? 0.45 : b.fadeAt, 0, 0.95, 0.05, pct) : ''}</div>
         ${b.shape === 'rect' ? `<div class="psec"><span class="klabel">Rounded corners</span>${range('bRad', '', b.radius || 0, 0, 80, 1, v => v + ' pt')}</div>` : ''}`}
         <div class="psec"><span class="klabel">Opacity</span>${range('bOp', '', b.opacity == null ? 1 : b.opacity, 0.05, 1, 0.05, pct)}</div>
-        <span class="empty">Drag it anywhere. The corner sizes it; the bottom handle changes its height.</span>`;
+`;
     }
     if (ctx === 'text' && tab === 'effects') {
       return h + `
@@ -1302,14 +1378,13 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
         <div class="psec"><span class="klabel">Opacity</span>${range('picOp', '', op, 0.1, 1, 0.05, pct)}</div>`;
     }
     // Picture
-    return h + `<div class="psec">${one ? `<span class="empty keep">${esc(one.title || 'A still')}${one.project && one.project !== project ? ' · ' + esc(one.project) : ''}</span>` : ''}
+    return h + `<div class="psec">
         <div class="hintk"><kbd>↑</kbd> <kbd>↓</kbd> swap it through your stills — <kbd>Return</kbd> keeps it</div>
         ${one && !free ? `<div class="prow"><label>Feature it — the hero of its row</label><span style="flex-grow:1"></span><button class="tog${one.featured ? ' on' : ''}" id="featTog" aria-pressed="${!!one.featured}" title="F"></button></div>` : ''}</div>
       ${one ? `<div class="psec"><span class="klabel">Frame</span><div style="display:flex;gap:6px">
         <button class="light small" id="reframeBtn">${reframe != null ? 'Done reframing' : 'Reframe'}</button>
         ${one.crop && (one.crop.z !== 1 || one.crop.x !== 50 || one.crop.y !== 50) ? '<button class="light small" id="reframeReset">Centre it</button>' : ''}</div>
         <span class="empty">Or double-click the picture: drag inside it, scroll to zoom.</span></div>` : ''}
-      ${one && (one.palette || []).length ? `<div class="psec"><span class="klabel">Its colours — for the background</span><div class="sw">${one.palette.slice(0, 6).map(c => `<button data-bg="${esc(c)}" class="pal" style="background:${esc(c)}" title="${esc(c)}"></button>`).join('')}</div></div>` : ''}
       <div class="psec"><div style="display:flex;gap:6px;flex-wrap:wrap">
         ${one && ks[0] > 0 && !free ? '<button class="light small" id="breakBtn" title="This picture and the ones after it go onto a new page">New page from here</button>' : ''}
         <button class="light small" id="removePics">Take ${ks.length > 1 ? 'them' : 'it'} off · ⌫</button></div></div>`;
@@ -1406,15 +1481,15 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
     const boxes = p.boxes || [], T = typesOf(doc);
     const uses = k => doc.pages.reduce((n, q) => n + (q.boxes || []).filter(x => x.st === k).length, 0);
     const styles = `<div class="psec"><span class="cap">Type styles in this design</span><div class="tlist">${TYPE_KEYS.map(([k, n]) => `<div class="tline tstyle" style="cursor:default"><span style="font-family:${esc(fontStack(T[k].font))};font-weight:${T[k].weight};font-style:${T[k].italic ? 'italic' : 'normal'};text-transform:${T[k].upper ? 'uppercase' : 'none'};letter-spacing:${T[k].tracking}em">${n}</span><small>${esc(T[k].font)} · ${Math.round(T[k].size * geometry(doc).u * 10) / 10} pt · ${uses(k)} box${uses(k) === 1 ? '' : 'es'}</small></div>`).join('')}</div>
-      <span class="empty">Pick a box, change how it looks, then “Make every Heading like this”. Saving a look keeps these styles for other designs.</span></div>`;
+      <span class="empty">Change one box, then “Make every Heading like this”.</span></div>`;
     return styles + `<div class="psec"><span class="cap">On this page</span>
       ${boxes.length ? `<div class="tlist">${boxes.map(x => `<button class="tline" data-pickbox="${esc(x.id)}"><span style="font-family:${esc(fontStack(x.font))}">${x.shape ? `<i style="display:inline-block;width:10px;height:10px;margin-right:6px;background:${esc(x.fill || '#141414')};border-radius:${x.shape === 'circle' ? '50%' : '2px'}"></i>${(SHAPES.find(z => z[0] === x.shape) || ['', 'Shape'])[1]}` : esc((x.text || '').trim() || 'Empty box')}</span></button>`).join('')}</div>` : ''}
       <div style="display:flex;gap:6px;flex-wrap:wrap"><button class="light small" id="addText">Add text · T</button><button class="light small" id="addShape">Add a shape</button></div></div>`;
   }
-  // Tabs: Layout, Picture, Text, Colour, Brand, Look. The one you chose stays until you choose another —
+  // Tabs: Layout (with colour and brand), Picture, Text. The one you chose stays until you choose another —
   // picking something on the page never switches it; its tab gets a dot instead.
   let ptab = pref('ptab', pref('pmode', 'page') === 'text' ? 'text' : 'layout');
-  const PTABS = [['layout', 'Layout'], ['picture', 'Picture'], ['text', 'Text'], ['colour', 'Colour'], ['brand', 'Brand'], ['look', 'Look']];
+  const PTABS = [['layout', 'Layout'], ['picture', 'Picture'], ['text', 'Text']];
   function drawPanel() {
     const p = page(), mood = doc.mode === 'mood';
     const range = (id, label, v, min, max, step, fmt) => `<div class="prow"><label for="${id}">${label}</label><input type="range" id="${id}" min="${min}" max="${max}" step="${step}" value="${v}"><span class="val">${fmt ? fmt(v) : v}</span></div>`;
@@ -1422,20 +1497,29 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
     const pal = paletteOf(p.pics);
     const bgNow = p.bg || doc.bg;
     const presets = ['#f4f1ec', '#ffffff', '#ece6dc', '#141414', '#0a0a0a', '#1e2227'];
-    const tabs = PTABS.filter(([k]) => !mood || !['text', 'look'].includes(k));
+    const tabs = PTABS.filter(([k]) => !mood || k !== 'text');
     const tab = tabs.some(([k]) => k === ptab) ? ptab : 'layout';
     const b = bsel ? boxById(bsel) : null, picked = sel.size && p.pics[[...sel][0]];
     const dot = k => (k === 'picture' && picked && tab !== 'picture') || (k === 'text' && b && tab !== 'text');
     const scope = (what, tip) => `<div class="pscope"><b>${what}</b>${tip ? `<span>${tip}</span>` : ''}</div>`;
     let h = `<div class="ptabs" role="tablist">${tabs.map(([k, n]) => `<button data-ptab="${k}" class="${k === tab ? 'on' : ''}" role="tab" aria-selected="${k === tab}">${n}${dot(k) ? '<i class="pdot"></i>' : ''}</button>`).join('')}</div>
-      <div class="phead pfree"><span class="pnum">Page ${cur + 1} <small>of ${doc.pages.length}</small></span><span style="flex-grow:1"></span>${mood ? '' : `<label class="freesw" title="Free: move and size the pictures by hand. Off: they lay themselves out again."><span>Free</span><button class="tog${p.layout === 'free' ? ' on' : ''}" id="freeTog" aria-pressed="${p.layout === 'free'}"></button></label>`}</div>`;
+      <div class="phead pfree"><span class="pnum">Page ${cur + 1} <small>of ${doc.pages.length}</small></span><span style="flex-grow:1"></span>${mood || p.tpl ? '' : `<label class="freesw" title="Free: move and size the pictures by hand. Off: they lay themselves out again."><span>Free</span><button class="tog${p.layout === 'free' ? ' on' : ''}" id="freeTog" aria-pressed="${p.layout === 'free'}"></button></label>`}</div>`;
+    if (tab === 'layout' && !mood && p.tpl && tplOf(p.tpl.t, p.tpl.v)) {
+      const v = p.tpl.v, n = sampleCount();
+      h += `
+        <div class="psec"><span class="cap">Designed page — ${esc((tplById(p.tpl.t) || {}).name || '')}</span>
+          <div class="prow"><label>This page</label><span style="flex-grow:1"></span><span class="abseg"><button data-tplab="pa" class="${v === 'a' ? 'on' : ''}" title="A — calm grids and splits">A</button><button data-tplab="pb" class="${v === 'b' ? 'on' : ''}" title="B — led by the design">B</button></span></div>
+          ${doc.tpl ? `<div class="prow"><label>Every designed page</label><span style="flex-grow:1"></span><span class="abseg"><button data-tplab="da" class="${doc.tpl.v !== 'b' ? 'on' : ''}">A</button><button data-tplab="db" class="${doc.tpl.v === 'b' ? 'on' : ''}">B</button></span></div>` : ''}
+          <span class="empty">Your words and pictures come with you when you switch.</span>
+          ${n ? `<button class="light small" data-usemine="1" style="align-self:flex-start">Use my stills · ${n} sample${n === 1 ? '' : 's'} left</button>` : ''}</div>`;
+    }
     if (tab === 'layout') {
       h += mood ? `
         <div class="psec"><div class="prow"><label>Run the pictures off the page edge</label><span style="flex-grow:1"></span><button class="tog${p.bleed ? ' on' : ''}" id="bleedTog" aria-pressed="${!!p.bleed}"></button></div>
           <button class="tbtn" id="bleedAll" style="align-self:flex-start;padding-left:0">${p.bleed ? 'Run off on every page' : 'Keep the margin on every page'}</button></div>
         <div class="psec">${spaceRow(p)}</div>
         <div class="psec"><span class="cap">Title — top left of every page</span><div class="prow"><input type="text" id="moodTitle" value="${esc(doc.title || '')}" placeholder="Optional" style="flex-grow:1"></div></div>`
-      : `
+      : p.tpl ? '' : `
         <div class="psec"><span class="cap">Where the pictures go</span><div class="lays">${LAYOUTS.map(([k, n]) => `<button class="lay${p.layout === k ? ' on' : ''}" data-lay="${k}" title="${esc(n)}" aria-label="${esc(n)}">${layIcon(k)}</button>`).join('')}</div>
           <div class="laynames">${LAYNAMES.map(n => `<span>${n}</span>`).join('')}</div>
           ${p.layout === 'free' ? '<span class="empty">This page is Free — switch Free off at the top to lay the pictures out again.</span>' : ''}
@@ -1448,12 +1532,13 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
           <button class="light small" id="dupPage">Duplicate · ⌘D</button>
           ${doc.pages.length > 1 ? '<button class="light small" id="delPage">Remove page</button>' : ''}</div></div>`;
     } else if (tab === 'picture') {
-      h += picked ? scope(sel.size > 1 ? `${sel.size} pictures` : 'This picture') + inspector('pic', p, null, pal, range, pct)
+      h += picked ? (sel.size > 1 ? scope(`${sel.size} pictures`) : '') + inspector('pic', p, null, pal, range, pct)
         : `<div class="psec"><span class="empty keep">Click a picture on the page to work on it here — swap it, reframe it, give it a border or a shadow.</span></div>`;
     } else if (tab === 'text') {
       h += b ? scope('This text box') + inspector('text', p, b, pal, range, pct) : textList(p);
-    } else if (tab === 'colour') {
-      h += scope('Colour', p.bg ? 'this page has its own background' : 'the whole design, unless you switch Every page off');
+    }
+    if (tab === 'layout') {
+      h += `<div class="kdiv"></div><span class="ksec">Colour</span>`;
       h += `
         <div class="psec"><span class="cap">Background</span>
           ${brandCols().length ? `<div class="sw brandsw">${brandCols().map(c => `<button data-bg="${esc(c)}" class="${bgNow === c ? 'on' : ''}" style="background:${esc(c)}" title="Brand — ${esc(c)}"></button>`).join('')}</div>` : ''}
@@ -1477,8 +1562,9 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
             <div class="prow"><label>From the</label><div class="kgrid4" style="flex-grow:1">${[['top', 'Top'], ['bottom', 'Bottom'], ['left', 'Left'], ['right', 'Right']].map(([k, n]) => `<button class="kbtn${fadeFrom(p, p.layout) === k ? ' on' : ''}" data-fadefrom="${k}" title="Darkest at the ${k}">${n}</button>`).join('')}</div></div>
             <div style="display:flex;gap:6px;flex-wrap:wrap"><button class="light small" id="fadeEdit">${fadeEdit ? 'Done' : 'Move &amp; size it'}</button><button class="light small" id="fadeRot" title="R · ⇧R the other way">⟳ Rotate · R</button>${f.box ? '<button class="light small" id="fadeFull">Whole page</button>' : ''}</div>` : ''}</div>`;
       }
-    } else if (tab === 'brand') {
-      h += scope('Whole design', 'your name, the project, page numbers and logos');
+    }
+    if (tab === 'layout') {
+      h += `<div class="kdiv"></div>`;
       h += `
         <div class="psec"><div class="prow"><span class="cap" style="margin:0">Name and page numbers</span><span style="flex-grow:1"></span><button class="tog${doc.runner && doc.runner.on ? ' on' : ''}" id="runTog" aria-pressed="${!!(doc.runner && doc.runner.on)}" title="Top left and top right, on every page"></button></div>
           ${doc.runner && doc.runner.on ? `<div class="kpair"><input type="text" class="kselect" id="runName" value="${esc(doc.runner.name || '')}" placeholder="Your name" spellcheck="false"><input type="text" class="kselect" id="runTitle" value="${esc(doc.runner.title || '')}" placeholder="The project" spellcheck="false"></div>
@@ -1486,9 +1572,6 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
           <div class="kpair"><select class="kselect" id="runFont">${BUNDLED.concat(fonts.filter(f => !BUNDLED.includes(f))).map(f => `<option${f === (doc.runner.font || HELV) ? ' selected' : ''}>${esc(f)}</option>`).join('')}</select><label class="prow" style="gap:6px;font-size:12.5px">Caps <button class="tog${doc.runner.upper === false ? '' : ' on'}" id="runCaps"></button></label></div>
           ${p.runnerHide && (p.runnerHide.left || p.runnerHide.right) ? '<button class="tbtn" id="runBack" style="align-self:flex-start;padding-left:0">Show them on this page again</button>' : '<span class="empty">Click either one on the page and press ⌫ to take it off just that page.</span>'}` : ''}</div>`;
       h += brandPanel();
-    } else if (tab === 'look') {
-      h += scope('Whole design', 'saved looks — styles, colours and logos');
-      h += lookPanel();
     }
     $('panel').innerHTML = h;
     quietHints($('panel'));
@@ -1496,8 +1579,9 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
   // What things do stays out of the way: hold the pointer on something for three seconds and it says.
   function quietHints(root) {
     root.querySelectorAll('.empty:not(.keep), .hintk').forEach(el => {
-      const host = el.closest('.psec') || el.parentElement, t = el.textContent.replace(/\s+/g, ' ').trim();
-      if (host && t) host.dataset.hint = host.dataset.hint ? host.dataset.hint + ' · ' + t : t;
+      // Only a section gets a hint, never the whole panel — and only one short line.
+      const host = el.closest('.psec'), t = el.textContent.replace(/\s+/g, ' ').trim().split(/(?<=[.;—])\s/)[0].replace(/[.;—]\s*$/, '');
+      if (host && host !== root && t && !host.dataset.hint) host.dataset.hint = t.length > 90 ? t.slice(0, 88) + '…' : t;
       el.remove();
     });
   }
@@ -1517,7 +1601,7 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
       <div class="seg"><button data-scope="project" class="${scope === 'project' ? 'on' : ''}">${esc(project || 'This project')}</button><button data-scope="vault" class="${scope === 'vault' ? 'on' : ''}">Entire vault</button></div>
       <input class="q" id="trayQ" placeholder="Search" value="${esc(trayQ)}" spellcheck="false">
       <span class="count">${list.length} still${list.length === 1 ? '' : 's'}${trayPick.size ? ` · ${trayPick.size} picked` : ''}</span>
-      ${doc && page() ? `<label class="trayper${trayPick.size ? ' picked' : ''}" title="${trayPick.size ? 'Brings in the stills you picked' : 'How many pictures on this page — only this page changes'}"><span class="cap">${trayPick.size ? `${trayPick.size} picked` : 'This page'}</span><input type="range" id="perPage" min="0" max="12" step="1" value="${Math.min(12, page().pics.length)}"${isTitle(page()) ? ' disabled title="A Title page holds one picture"' : ''}><span class="val">${Math.min(12, page().pics.length)}</span></label><button class="tbtn" id="perAll" title="Every page gets this many">All pages</button>` : ''}
+      ${doc && page() && !page().tpl ? `<label class="trayper${trayPick.size ? ' picked' : ''}" title="${trayPick.size ? 'Brings in the stills you picked' : 'How many pictures on this page — only this page changes'}"><span class="cap">${trayPick.size ? `${trayPick.size} picked` : 'This page'}</span><input type="range" id="perPage" min="0" max="12" step="1" value="${Math.min(12, page().pics.length)}"${isTitle(page()) ? ' disabled title="A Title page holds one picture"' : ''}><span class="val">${Math.min(12, page().pics.length)}</span></label><button class="tbtn" id="perAll" title="Every page gets this many">All pages</button>` : ''}
       <span style="flex-grow:1"></span>
       ${doc ? `<button class="tbtn" id="addPicked" ${trayPick.size ? '' : 'disabled'} title="Or double-click, drag them onto the page, or right-click for more">Add to page</button>` : ''}
       <button class="tbtn" id="photosBtn2" title="Photos, or whole folders of them, from your Mac">+ Photos</button>
@@ -1563,7 +1647,7 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
   const stillById = id => stills.find(s => s.id === id) || projStills.find(s => s.id === id);
   // A still coming onto a page is wanted again, if it had been taken off.
   const picFrom = s => { if (doc && doc.off && doc.off.includes(s.id)) doc.off = doc.off.filter(x => x !== s.id); return picFromRaw(s); };
-  const picFromRaw = s => ({ id: s.id, kind: s.kind === 'gif' ? 'gif' : undefined, file: s.file, thumb: s.thumb, a: s.a || 1.5, palette: (s.palette || []).slice(0, 6), title: s.title || '', project: s.project || '', crop: { x: 50, y: 50, z: 1 }, opacity: 1, featured: false });
+  const picFromRaw = s => ({ id: s.id, kind: s.kind === 'gif' ? 'gif' : undefined, file: s.file, thumb: s.thumb, a: s.a || 1.5, palette: (s.palette || []).slice(0, 6), title: s.title || '', project: s.project || '', crop: { x: 50, y: 50, z: 1 }, opacity: 1, featured: false, sample: s.sample ? true : undefined });
 
   /* ---------------------------------------------------------------- the start: pick Mood or Treatment */
   function drawStart() {
@@ -1574,7 +1658,7 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
       <div class="choices">
         <button class="g choice" data-new="mood"><div class="pv">${miniPreview('mood')}</div><b>Mood board</b><span>Just pictures, in tight rows. Up to 12 a page — slide to fill each page from the project. Saves as a mood board.</span></button>
         <button class="g choice" data-new="treatment"><div class="pv">${miniPreview('treatment')}</div><b>Treatment</b><span>Pictures laid out for you, text boxes you drag anywhere. Saves as a treatment.</span></button>
-        <button class="g choice" data-tpl="open"><div class="pv">${miniPreview('template')}</div><b>From a template</b><span>Eleven designed treatments, 12 pages each, filled with the stills from your vault that suit them. Pick the colours, then change anything.</span></button>
+        <button class="g choice" data-tpl="open"><div class="pv">${miniPreview('template')}</div><b>From a template</b><span>Nine designed treatments, 15 pages each, in an A and a B. They open with sample pictures — swap in your stills in one click.</span></button>
       </div>
       ${recent.length ? `<span class="cap">Carry on with</span><div class="recent">${recent.map(d => `<button class="rec g" data-open="${esc(d.rel)}">${d.cover ? `<img alt="" src="vault/${esc(encodeURI(d.cover))}">` : '<div class="ph"></div>'}<b>${esc(d.name)}</b><small>${d.mode === 'mood' ? 'Mood' : 'Treatment'} · ${d.pages} page${d.pages === 1 ? '' : 's'}</small></button>`).join('')}</div>` : ''}`;
   }
@@ -1765,10 +1849,18 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
     toast(`${picks.length} stills on ${doc.pages.length} page${doc.pages.length === 1 ? '' : 's'}, grouped by colour`);
   }
 
-  /* ---------------------------------------------------------------- templates: designed treatments, filled from your vault */
+  /* ---------------------------------------------------------------- templates: nine designed treatments, each in an A and a B */
   const TPL = () => (window.NeededTemplates && window.NeededTemplates.list) || [];
   const tplById = id => TPL().find(t => t.id === id);
-  let vaultStills = null;                         // every still in the vault, for templates to choose from
+  const tplBase = id => String(id || '').replace(/-b$/, '');
+  const tplOf = (base, v) => tplById(v === 'b' ? tplBase(base) + '-b' : tplBase(base));
+  const tplBases = () => TPL().filter(t => !/-b$/.test(t.id));
+  const pad2 = n => String(n).padStart(2, '0');
+  // The sample pictures a template opens with: bundled with the app, marked SAMPLE in the editor, swapped for yours in a click.
+  const sampleRaw = s => ({ id: 'sample-' + s.id, file: s.id + '.jpg', thumb: 't/' + s.id + '.jpg', a: s.a, palette: s.palette, title: 'Sample', project: '', sample: true, pref: s.group === (window.NeededTemplates || {}).samplePick });
+  const sampleStills = () => (((window.NeededTemplates || {}).samples) || []).map(sampleRaw);
+  const sampleCount = pages => (pages || (doc ? doc.pages : [])).reduce((a, p) => a + (p.pics || []).filter(x => x.sample).length, 0);
+  let vaultStills = null;                         // every still in the vault, for "Use my stills"
   async function loadVaultStills() {
     if (vaultStills) return vaultStills;
     if (scope === 'vault' && stills.length) return (vaultStills = stills);
@@ -1798,17 +1890,17 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
       v += tot ? 1.1 * (inW / tot) * Math.min(1, k.hw * 2) - 0.5 * (1 - inW / tot) * Math.min(1, k.hw * 2) : 0;
     }
     if (want.mono) v += 0.3 * (1 - Math.min(1, k.s * 2));     // black-and-white pages: pictures with strong shapes and little colour
-    if (st.project && st.project === project) v += 0.12;
+    if (st.pref || (st.project && st.project === project)) v += 0.12;
     if (st.kind === 'gif') v -= 0.4;
     return v;
   }
-  // Hands out stills to a template's picture slots: the best fits first, each shape of slot gets a still of a similar shape.
-  function stillPicker(all, want) {
+  // Hands out stills to a template's picture places: the best fits first, each shape of place gets a still of a similar shape.
+  function stillPicker(all, want, skip) {
     const ranked = all.map(st => ({ st, v: fitScore(st, want) })).sort((a, b) => b.v - a.v);
-    const used = new Set();
+    const used = new Set(skip || []);
     return aspect => {
       if (!ranked.length) return null;
-      if (used.size >= ranked.length) used.clear();
+      if (ranked.every(r => used.has(r.st.id))) used.clear();
       let best = null, bv = -1e9;
       for (let i = 0, seen = 0; i < ranked.length && seen < 24; i++) {
         const r = ranked[i]; if (used.has(r.st.id)) continue; seen++;
@@ -1843,40 +1935,52 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
     return { dark: lum(dark) < 0.25 ? dark : '#0b0b0b', light: lum(light) > 0.8 ? light : '#f4f1ec', accent: vivid[0] || '#e0245e', tint: vivid.find(c => family(c) !== family(vivid[0])) || vivid[1] || '#8a8784' };
   }
   const roleCol = (r, pal) => r == null ? null : r === 'none' ? 'transparent' : pal[r] != null ? pal[r] : r;
-  // Puts a palette on a template-made design: every colour that came from a role follows it; words stay readable.
+  // One page in a palette: every colour that came from a role follows it; words stay readable.
+  function paintPage(pg, pal, deckBg) {
+    if (pg.bgr) pg.bg = roleCol(pg.bgr, pal); else if (pg.pal) pg.bg = pal.bg;
+    const pageBg = pg.bg || deckBg;
+    (pg.pics || []).forEach(x => { if (x.border && x.border.r) x.border.c = roleCol(x.border.r, pal); });
+    (pg.boxes || []).slice().sort((a, c) => (c.shape ? 1 : 0) - (a.shape ? 1 : 0)).forEach(b => {
+      if (b.fr) b.fill = roleCol(b.fr, pal);
+      if (b.border && b.border.r) b.border.c = roleCol(b.border.r, pal);
+      if (b.cr) {
+        b.colour = roleCol(b.cr, pal);
+        // What's behind the words: their own fill, a block of colour under them, a picture (left alone), or the page.
+        const blk = (pg.boxes || []).filter(q => q.shape && q.shape !== 'line' && (q.z || 0) < (b.z || 0) && q.fill && q.fill !== 'transparent' && (q.opacity == null || q.opacity > 0.6) && !q.fadeTo
+          && b.x + 0.004 >= q.x && b.x + 0.004 <= q.x + q.w && b.y + 0.008 >= q.y && b.y + 0.008 <= q.y + (q.h || 0)).sort((a, c) => (c.z || 0) - (a.z || 0))[0];
+        const under = b.fill && b.fill !== 'transparent' ? b.fill : blk ? blk.fill : b.onPic ? null : pageBg;
+        if (under && !b.outline && contrast(b.colour, under) < 2.6) b.colour = contrast('#ffffff', under) > contrast('#111111', under) ? '#ffffff' : '#111111';
+      }
+    });
+  }
+  // The whole deck in a palette — pages that keep their own template's look keep their own colours.
   function paintRoles(d, pal) {
     d.tpl.pal = Object.assign({}, pal);
     d.bg = pal.bg;
-    d.pages.forEach(pg => {
-      if (pg.bgr) pg.bg = roleCol(pg.bgr, pal);
-      const pageBg = pg.bg || d.bg;
-      (pg.pics || []).forEach(x => { if (x.border && x.border.r) x.border.c = roleCol(x.border.r, pal); });
-      (pg.boxes || []).slice().sort((a, c) => (c.shape ? 1 : 0) - (a.shape ? 1 : 0)).forEach(b => {
-        if (b.fr) b.fill = roleCol(b.fr, pal);
-        if (b.border && b.border.r) b.border.c = roleCol(b.border.r, pal);
-        if (b.cr) {
-          b.colour = roleCol(b.cr, pal);
-          // What's behind the words: their own fill, a block of colour under them, a picture (left alone), or the page.
-          const blk = (pg.boxes || []).filter(q => q.shape && q.shape !== 'line' && (q.z || 0) < (b.z || 0) && q.fill && q.fill !== 'transparent' && (q.opacity == null || q.opacity > 0.6) && !q.fadeTo
-            && b.x + 0.004 >= q.x && b.x + 0.004 <= q.x + q.w && b.y + 0.008 >= q.y && b.y + 0.008 <= q.y + (q.h || 0)).sort((a, c) => (c.z || 0) - (a.z || 0))[0];
-          const under = b.fill && b.fill !== 'transparent' ? b.fill : blk ? blk.fill : b.onPic ? null : pageBg;
-          if (under && !b.outline && contrast(b.colour, under) < 2.6) b.colour = contrast('#ffffff', under) > contrast('#111111', under) ? '#ffffff' : '#111111';
-        }
-      });
+    d.pages.forEach(pg => paintPage(pg, pg.pal || pal, d.bg));
+  }
+  // Swatches and their codes follow the picture they came from: fill 'pic:i:k', words '{hex:i:k}'.
+  function refreshSwatches(pg) {
+    const pc = (i, k) => { const q = pg.pics[+i]; return (q && q.palette && q.palette[+k]) || '#8a8784'; };
+    (pg.boxes || []).forEach(b => {
+      if (b.sw) b.fill = pc(b.sw[0], b.sw[1]);
+      if (b.hexOf && b.text === b.hexWas) b.text = b.hexWas = b.hexOf.replace(/\{hex:(\d+):(\d+)\}/g, (_, i, k) => pc(i, k).toUpperCase());
     });
   }
-  // One page of a template → an ordinary Free page.
-  function tplPage(spec, pick) {
+  // One page of a template → an ordinary Free page: everything moves freely; it remembers where it came from.
+  function tplPage(spec, pick, tag) {
     const pg = newPage('free'), U = 1.2;
     pg.bgr = spec.bg || null;
+    if (tag) pg.tpl = tag;
     if (spec.runner === false) pg.runnerHide = { left: true, right: true };
+    if (spec.rc) pg.rc = spec.rc;
     const pics = spec.items.filter(it => it.k === 'pic');
     (spec.items || []).forEach((it, z) => {
       const box = { x: it.x / 1920, y: it.y / 1080, w: it.w / 1920, h: (it.h || 0) / 1080 };
       if (it.k === 'pic') {
         const st = pick(it.w / it.h); if (!st) return;
         const x = picFromRaw(st);
-        Object.assign(x, { box, z, opacity: it.op == null ? 1 : it.op });
+        Object.assign(x, { box, z, opacity: it.op == null ? 1 : it.op, slot: 1 });
         if (it.mono) x.mono = true; if (it.dim) x.dim = it.dim; if (it.round) x.round = true; if (it.radius) x.radius = it.radius / U;
         if (it.border) x.border = { r: it.border, c: '#ffffff', w: (it.bw || 5) / U };
         pg.pics.push(x);
@@ -1888,13 +1992,20 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
           border: it.border ? { r: it.border, c: '#141414', w: 1.5 } : null });
         return;
       }
-      const onPic = pics.some(q => it.x >= q.x - 2 && it.y >= q.y - 2 && it.x <= q.x + q.w && it.y <= q.y + q.h);
+      const onPic = pics.some(q => it.x >= q.x - 2 && it.y >= q.y - 2 && it.x <= q.x + q.w && it.y <= q.y + q.h), size = Math.round(it.size / U * 10) / 10;
       pg.boxes.push({ id: uid(), x: box.x, y: box.y, w: box.w, text: it.text || '', z, st: '',
-        font: it.font || 'Inter Tight', size: Math.round(it.size / U * 10) / 10, weight: it.weight || 400, italic: !!it.italic, upper: !!it.upper,
+        font: it.font || 'Inter Tight', size, weight: it.weight || 400, italic: !!it.italic, upper: !!it.upper,
         tracking: it.tracking || 0, leading: it.leading || 1.25, align: it.align || 'left', cr: it.c || 'ink', fr: it.fill || null, onPic,
         opacity: it.op == null ? 1 : it.op, para: it.para || 0, hyph: !!it.hyph, wrap: '', cols: 1, smallcaps: false, nums: '',
-        rot: it.rot || null, outline: it.outline ? it.outline / U : 0, depth: it.depth || 0, tall: it.tall || 1, stretch: it.stretch || 100, lastJustify: !!it.lastJustify });
+        rot: it.rot || null, outline: it.outline ? it.outline / U : 0, depth: it.depth || 0, tall: it.tall || 1, stretch: it.stretch || 100, lastJustify: !!it.lastJustify,
+        role: it.role || undefined, orig: it.text || '', fit: it.fit ? 1 : undefined, fitMax: it.fit ? size : undefined });
     });
+    pg.boxes.forEach(b => {
+      const m = /^pic:(\d+):(\d+)$/.exec(b.fr || ''); if (m) { b.sw = [+m[1], +m[2]]; b.fr = null; }
+      if (b.text && b.text.includes('{hex:')) { b.hexOf = b.text; b.hexWas = ''; b.text = ''; }
+    });
+    refreshSwatches(pg);
+    pg.boxes.forEach(b => { if (b.hexOf) b.orig = b.text; });
     return pg;
   }
   function tplCtx(info) {
@@ -1903,53 +2014,191 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
       short: String(title).split(/\s+/)[0].toUpperCase().slice(0, 6), year: String(d.getFullYear()),
       month: d.toLocaleString('en-GB', { month: 'long' }).toUpperCase() + ' ' + d.getFullYear() };
   }
-  function tplDoc(t, pal, all, info, only) {
-    const c = tplCtx(info), d = newDoc('treatment', `${c.title} — ${t.name}`);
-    d.mark = false; d.size = '16:9'; d.tpl = { id: t.id, pal: {} };
+  // Page i of a template (A or B), with sample pictures in it.
+  function tplMakePage(base, v, i, ctx, pick, n) {
+    const t = tplOf(base, v); if (!t || !t.order[i]) return null;
+    const [name, h] = t.order[i];
+    return tplPage(t.D[name](ctx, h || '', pad2(n || i + 1)), pick || stillPicker(sampleStills(), t.want), { t: tplBase(base), v, i });
+  }
+  function tplDoc(t, pal, info) {
+    const c = tplCtx(info), base = tplBase(t.id), v = /-b$/.test(t.id) ? 'b' : 'a', A = tplById(base) || t;
+    const d = newDoc('treatment', `${c.title} — ${A.name}`);
+    d.mark = false; d.size = '16:9'; d.tpl = { id: base, v, pal: {}, ctx: c };
     const f = (t.runner && t.runner.font) || 'Inter Tight', ty = d.types;
     Object.keys(ty).forEach(k => { ty[k].font = f; });
-    d.runner = t.runner ? { on: true, name: c.director, title: c.title, num: true, style: t.runner.style || 'page', size: Math.round(t.runner.size / 1.2 * 10) / 10, font: f, upper: true } : null;
-    const pick = stillPicker(all, t.want);
-    // Each page knows its number, so section numbers on the page match it.
-    d.pages = t.order.map((o, i) => [o, i]).filter(([, i]) => !only || only.includes(i)).map(([[name, h], i]) => tplPage(t.D[name](c, h || '', String(i + 1).padStart(2, '0')), pick));
+    d.runner = t.runner ? { on: true, name: c.director, title: c.title, num: true, style: t.runner.style || 'page', size: Math.round(t.runner.size / 1.2 * 10) / 10, font: f, upper: t.runner.upper !== false,
+      inset: t.runner.inset != null ? t.runner.inset / 1.2 : null, top: t.runner.top != null ? t.runner.top / 1.2 : null } : null;
+    const pick = stillPicker(sampleStills(), t.want);
+    d.pages = t.order.map((o, i) => tplMakePage(base, v, i, c, pick));
     paintRoles(d, pal);
     return d;
   }
-  // The chooser: every template drawn with your own stills, in the palette you pick.
+  // A picture into a template's place: it takes the place's frame, size and effects.
+  const keepFx = (x, slot) => Object.assign(x, { box: slot.box, z: slot.z, opacity: slot.opacity, mono: slot.mono, dim: slot.dim, round: slot.round, radius: slot.radius, border: slot.border, shadow: slot.shadow, slot: slot.slot, featured: slot.featured, crop: { x: 50, y: 50, z: 1 } });
+  // A or B for a page: your words go where the same kind of words are; your pictures into its picture places.
+  function tplSwitch(pg, v) {
+    const tag = pg.tpl; if (!tag || tag.v === v) return pg;
+    const ctx = (doc.tpl && doc.tpl.ctx) || tplCtx();
+    const skip = doc.pages.flatMap(p => p.pics.filter(x => x.sample).map(x => x.id));
+    const t = tplOf(tag.t, v); if (!t) return pg;
+    const np = tplMakePage(tag.t, v, tag.i, ctx, stillPicker(sampleStills(), t.want, skip), doc.pages.indexOf(pg) + 1); if (!np) return pg;
+    const mine = pg.pics.filter(x => x.slot && !x.sample), extra = pg.pics.filter(x => !x.slot);
+    np.pics = np.pics.map((x, k) => mine[k] ? keepFx(Object.assign({}, mine[k]), x) : x).concat(extra);
+    ['head', 'idea', 'body', 'sign', 'kick'].forEach(r => {
+      const olds = pg.boxes.filter(b => b.role === r), news = np.boxes.filter(b => b.role === r);
+      olds.forEach((o, k) => { if (o.text !== o.orig && news[k]) { news[k].text = o.text; if (news[k].fit) fitBox(news[k]); } });
+    });
+    np.boxes.push(...pg.boxes.filter(b => !b.role && !b.cr && !b.fr && !b.sw && !b.hexOf));     // what you added yourself comes along
+    if (pg.pal) np.pal = pg.pal;
+    np.id = pg.id; if (pg.logoHide) np.logoHide = pg.logoHide;
+    refreshSwatches(np);
+    paintPage(np, np.pal || (doc.tpl && doc.tpl.pal) || t.pal, doc.bg);
+    return np;
+  }
+  function tplSwitchPages(v, all) {
+    let n = 0;
+    change(() => {
+      doc.pages = doc.pages.map((pg, i) => (all || i === cur) && pg.tpl && pg.tpl.v !== v ? (n++, tplSwitch(pg, v)) : pg);
+      if (all && doc.tpl) doc.tpl.v = v;
+      sel.clear(); bsel = null; editing = null;
+    });
+    toast(n ? (all ? `Every designed page is now ${v.toUpperCase()} — your words and pictures came with them` : `This page is now ${v.toUpperCase()}`) : `Already ${v.toUpperCase()}`);
+  }
+  // Headings shrink as you type so the longest word always fits the width.
+  let fitCtx = null;
+  function fitBox(b) {
+    if (!b.fit || !doc) return;
+    const G = geometry(doc), max = b.fitMax || b.size, words = String(b.upper ? b.text.toUpperCase() : b.text).split(/\s+/).filter(Boolean);
+    if (!words.length) { b.size = max; return; }
+    fitCtx = fitCtx || document.createElement('canvas').getContext('2d');
+    fitCtx.font = `${b.italic ? 'italic ' : ''}${b.weight || 400} 100px ${fontStack(b.font)}`;
+    const wide = Math.max(...words.map(w => fitCtx.measureText(w).width + (b.tracking || 0) * 100 * w.length)) * (b.stretch ? b.stretch / 100 : 1) / 100;
+    const room = (b.rot === 'up' || b.rot === 'down' ? (b.h || b.w) : b.w) * G.W;
+    b.size = Math.round(clamp(room * 0.97 / Math.max(0.01, wide) / G.u, max * 0.4, max) * 10) / 10;
+  }
+  // Every sample picture → the stills in your vault that suit each page's template (this project's first).
+  async function useMyStills() {
+    if (!doc) return;
+    const all = (await loadVaultStills()).filter(s => s.kind !== 'gif');
+    if (!all.length) return toast('No stills in your vault yet — add some, then try again');
+    if (!sampleCount()) return toast('No sample pictures left — they are all yours');
+    const G = geometry(doc), pickers = {}, taken = new Set(doc.pages.flatMap(p => p.pics.filter(x => !x.sample).map(x => x.id)));
+    let n = 0;
+    change(() => doc.pages.forEach(pg => {
+      const t = pg.tpl ? tplOf(pg.tpl.t, pg.tpl.v) : doc.tpl ? tplOf(doc.tpl.id, doc.tpl.v) : null, key = t ? t.id : '-';
+      const pick = pickers[key] || (pickers[key] = stillPicker(all, t ? t.want : { lum: 0.4 }, taken));
+      pg.pics.forEach((x, k) => {
+        if (!x.sample) return;
+        const b = x.box || { w: 0.4, h: 0.4 }, st = pick((b.w * G.W) / Math.max(1, (b.h || 0.4) * G.H)); if (!st) return;
+        pg.pics[k] = keepFx(picFromRaw(st), x); n++;
+      });
+      refreshSwatches(pg);
+      if (pg.tpl || doc.tpl) paintPage(pg, pg.pal || (doc.tpl && doc.tpl.pal) || {}, doc.bg);
+    }));
+    toast(`${n} sample picture${n === 1 ? '' : 's'} swapped for your stills — ↑ ↓ on one tries the next`);
+  }
+
+  // The chooser: nine templates, A or B, pictured as they open. Nothing is built until you pick one.
   let tplChoice = pref('tplPal', 'own');
+  const tplV = {};
+  function tplCard(t, i) {
+    const v = tplV[t.id] || 'a', id = v === 'b' ? t.id + '-b' : t.id;
+    return `<div class="tplcard" data-card="${esc(t.id)}" data-n="${i}">
+      <button class="tplpv" data-tpl="${esc(id)}" aria-label="Use ${esc(t.name)} ${v.toUpperCase()}"><img alt="" src="templates/${esc(t.id)}-${v}0.jpg"><img alt="" src="templates/${esc(t.id)}-${v}1.jpg"></button>
+      <div class="tplrow"><span class="n">${pad2(i + 1)}</span><b>${esc(t.name)}</b><span class="abseg" role="group" aria-label="Version">
+        <button data-tplv="${esc(t.id)}:a" class="${v === 'a' ? 'on' : ''}" title="A — calm grids and splits">A</button><button data-tplv="${esc(t.id)}:b" class="${v === 'b' ? 'on' : ''}" title="B — led by the design: mosaics, insets, chapter numbers">B</button></span></div>
+      <small>${esc(t.feel)}</small></div>`;
+  }
   async function openTemplates() {
-    const all = await loadVaultStills();
-    if (!projStills.length) await loadProjStills();
-    const info = await call('designProject').catch(() => ({})) || {};
+    if (!projStills.length) await loadProjStills().catch(() => {});
     const pals = ((window.NeededTemplates || {}).palettes || []);
     const sw = cs => `<i>${cs.map(c => `<b style="background:${esc(c)}"></b>`).join('')}</i>`;
-    const projP = projectPalette(projStills.length ? projStills : all);
-    const cards = TPL().map((t, i) => {
-      const d = tplDoc(t, palFor(t, tplChoice, projStills.length ? projStills : all), all, info, [0, 3]);
-      return `<button class="tplcard" data-tpl="${esc(t.id)}"><div class="tplpv">${d.pages.map(pg => `<div>${pageHTML(d, pg, { thumbs: true, mark: false })}</div>`).join('')}</div>
-        <span class="n">${String(i + 1).padStart(2, '0')} · AFTER “${esc(t.after.toUpperCase())}”</span><b>${esc(t.name)}</b><small>${esc(t.feel)}</small></button>`;
-    }).join('');
+    const projP = projectPalette(projStills);
     openSheet('templates', `
-      <div class="shead"><div class="grow"><h2>From a template</h2><span class="empty">${all.length ? `Filled with the stills from your vault that suit each one${projStills.length ? ` — ${esc(project)}'s first` : ''}. Everything stays editable.` : 'Add stills to your vault and they fill these pages.'}</span></div>${closeX}</div>
+      <div class="shead"><div class="grow"><h2>From a template</h2><span class="empty">Nine treatments, 15 pages each. A is calm, B is led by the design. They open with sample pictures — swap in yours with one click.</span></div>${closeX}</div>
       <div style="display:flex;flex-direction:column;gap:8px"><span class="cap">Colours</span><div class="tplpals">
         <button class="tplpal${tplChoice === 'own' ? ' on' : ''}" data-tplpal="own">Each template's own</button>
         ${projP ? `<button class="tplpal${tplChoice === 'project' ? ' on' : ''}" data-tplpal="project">${sw([projP.dark, projP.light, projP.accent, projP.tint])}From this project</button>` : ''}
         ${pals.map(([n, p]) => `<button class="tplpal${tplChoice === n ? ' on' : ''}" data-tplpal="${esc(n)}">${sw([p.dark, p.light, p.accent, p.tint])}${esc(n)}</button>`).join('')}</div></div>
-      <div class="tplgrid">${cards}</div>`);
+      <div class="tplgrid">${tplBases().map(tplCard).join('')}</div>`);
     $('sheet').classList.add('wide');
-    requestAnimationFrame(() => document.querySelectorAll('.tplpv > div').forEach(el => { const pg = el.firstElementChild; if (pg) pg.style.transform = `scale(${el.clientWidth / 1920})`; }));
+  }
+  function tplFlip(id, v) {
+    tplV[id] = v;
+    const card = document.querySelector(`.tplcard[data-card="${CSS.escape(id)}"]`), t = tplById(id);
+    if (card && t) card.outerHTML = tplCard(t, +card.dataset.n);
   }
   async function makeFromTemplate(id) {
     const t = tplById(id); if (!t) return;
-    const all = await loadVaultStills();
-    if (!projStills.length) await loadProjStills();
+    if (!projStills.length) await loadProjStills().catch(() => {});
     const info = await call('designProject').catch(() => ({})) || {};
     if (doc) await flushSave();
-    doc = normalise(tplDoc(t, palFor(t, tplChoice, projStills.length ? projStills : all), all, info));
+    doc = normalise(tplDoc(t, palFor(tplById(tplBase(id)) || t, tplChoice, projStills), info));
     rel = null; cur = 0; sel.clear(); bsel = null; editing = null; reframe = null; undo = []; redo = [];
     closeSheet(); persist(); draw();
-    const n = doc.pages.reduce((a, p) => a + p.pics.length, 0);
-    toast(all.length ? `${t.name}: ${doc.pages.length} pages, ${n} pictures from your vault — ↑ ↓ on a picture swaps it` : `${t.name}: ${doc.pages.length} pages — add stills to the vault to fill the pictures`);
+    toast(`${t.name}: ${doc.pages.length} pages with sample pictures — drag a still onto one to swap it, or Use my stills`);
+  }
+
+  // + Page: a blank page of your own (the slider, your words), or a designed page from any template.
+  function openPageMenu(btn) {
+    let m = $('pagemenu');
+    if (!m) { m = document.createElement('div'); m.id = 'pagemenu'; m.className = 'shapemenu g'; document.body.appendChild(m); }
+    m.innerHTML = `<button type="button" data-pagepick="blank"><span>Blank page</span></button><button type="button" data-pagepick="designed"><span>A designed page…</span></button>`;
+    const r = btn.getBoundingClientRect();
+    Object.assign(m.style, { left: Math.round(Math.min(r.left, innerWidth - 220)) + 'px', top: Math.round(r.bottom + 6) + 'px' });
+    if (r.bottom + 100 > innerHeight) m.style.top = Math.round(r.top - 86) + 'px';
+    m.hidden = false; m.dataset.end = btn.id === 'addPage2' ? '1' : '';
+  }
+  document.addEventListener('mousedown', e => { const m = $('pagemenu'); if (m && !m.hidden && !e.target.closest('#pagemenu') && !e.target.closest('#addPage, #addPage2')) m.hidden = true; }, true);
+  function addBlankPage(atEnd) {
+    change(() => {
+      const np = newPage(doc.mode === 'mood' ? 'rows' : 'left');
+      if (doc.mode !== 'mood') np.boxes = sampleWords();        // sample words in the space for words, until you make them yours
+      const at = atEnd ? doc.pages.length : cur + 1;
+      doc.pages.splice(at, 0, np); cur = at; sel.clear();
+    });
+  }
+  // The designed-page picker: a template, A or B, and whose look it takes.
+  let pp = { t: null, v: 'a', look: 'deck', end: false };
+  function openPagePicker(end) {
+    pp.end = !!end;
+    if (!pp.t) pp.t = (doc.tpl && tplById(doc.tpl.id)) ? doc.tpl.id : tplBases()[0].id;
+    if (!doc.tpl) pp.look = 'own';
+    const t = tplOf(pp.t, pp.v), c = (doc.tpl && doc.tpl.ctx) || tplCtx(), pick = stillPicker(sampleStills(), t.want);
+    const names = ['Cover', 'Director’s note', 'The idea', 'Story', 'Look & feel', 'Cinematography', 'Light & colour', 'Casting', 'Wardrobe & styling', 'Locations & design', 'Edit & pace', 'Sound & music', 'References', 'Production', 'Thank you'];
+    const pages = t.order.map((o, i) => { const pg = tplMakePage(pp.t, pp.v, i, c, pick); paintPage(pg, pp.look === 'deck' && doc.tpl ? doc.tpl.pal : t.pal, pp.look === 'deck' && doc.tpl ? doc.bg : t.pal.bg); return pg; });
+    const d = { size: '16:9', pages, bg: pages[0].bg, types: doc.types, runner: null, mark: false, mode: 'treatment' };
+    openSheet('pagepick', `
+      <div class="shead"><div class="grow"><h2>A designed page</h2><span class="empty">Pick one to add after page ${pp.end ? doc.pages.length : cur + 1}. It comes with sample pictures and words; everything on it moves freely.</span></div>${closeX}</div>
+      <div class="tplpals">${tplBases().map(b => `<button class="tplpal${b.id === pp.t ? ' on' : ''}" data-pptpl="${esc(b.id)}">${esc(b.name)}</button>`).join('')}</div>
+      <div style="display:flex;gap:18px;align-items:center;flex-wrap:wrap">
+        <span class="abseg" role="group" aria-label="Version"><button data-ppv="a" class="${pp.v === 'a' ? 'on' : ''}">A</button><button data-ppv="b" class="${pp.v === 'b' ? 'on' : ''}">B</button></span>
+        ${doc.tpl ? `<div class="pills"><button data-pplook="deck" class="${pp.look === 'deck' ? 'on' : ''}">This deck's look</button><button data-pplook="own" class="${pp.look === 'own' ? 'on' : ''}">Keep its own look</button></div>` : ''}</div>
+      <div class="ppgrid">${pages.map((pg, i) => `<button class="ppcard" data-ppadd="${i}"><div class="ppv">${pageHTML(d, pg, { thumbs: true, mark: false })}</div><span>${pad2(i + 1)} · ${esc(names[i] || '')}</span></button>`).join('')}</div>`);
+    $('sheet').classList.add('wide');
+    requestAnimationFrame(() => document.querySelectorAll('.ppv').forEach(el => { const pg = el.firstElementChild; if (pg) pg.style.transform = `scale(${el.clientWidth / 1920})`; }));
+  }
+  // A page from another template, in this deck's look: its words take this deck's type, its colours this deck's palette.
+  function restyle(pg) {
+    const deck = doc.tpl && tplOf(doc.tpl.id, doc.tpl.v), ty = deck && deck.type; if (!ty) return;
+    pg.boxes.forEach(b => {
+      const s = b.role && ty[b.role]; if (!s) return;
+      Object.assign(b, { font: s.font, weight: s.weight, italic: s.italic, upper: s.upper, tracking: s.tracking, stretch: s.stretch || 100 });
+      if (s.upper && b.text) { b.text = b.text.toUpperCase(); b.orig = b.text; }
+      if (b.fit) fitBox(b);
+    });
+  }
+  function addDesignedPage(i) {
+    const skip = doc.pages.flatMap(p => p.pics.filter(x => x.sample).map(x => x.id)), t = tplOf(pp.t, pp.v);
+    const at = pp.end ? doc.pages.length : cur + 1, own = pp.look === 'own' || !doc.tpl;
+    const pg = tplMakePage(pp.t, pp.v, i, (doc.tpl && doc.tpl.ctx) || tplCtx(), stillPicker(sampleStills(), t.want, skip), at + 1);
+    if (!pg) return;
+    if (own && (!doc.tpl || tplBase(pp.t) !== doc.tpl.id)) pg.pal = Object.assign({}, t.pal);
+    else if (tplBase(pp.t) !== (doc.tpl && doc.tpl.id)) restyle(pg);
+    paintPage(pg, pg.pal || (doc.tpl && doc.tpl.pal) || t.pal, doc.bg);
+    change(() => { doc.pages.splice(at, 0, pg); cur = at; sel.clear(); bsel = null; });
+    closeSheet();
+    toast('Added — drag a still onto a sample picture to swap it');
   }
 
   /* ---------------------------------------------------------------- moving pictures */
@@ -2040,8 +2289,10 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
   function addShape(kind) {
     if (!doc || doc.mode === 'mood') return;
     const p = page(), G = geometry(doc), dark = lum(p.bg || doc.bg || '#f4f1ec') < 0.42;
-    const b = { id: uid(), shape: kind || 'rect', x: 0.3, y: 0.3, w: 0.4, h: 0.3, fill: dark ? '#f4f3f1' : '#141414', opacity: 1, text: '' };
+    const b = { id: uid(), shape: kind === 'fade' ? 'rect' : (kind || 'rect'), x: 0.3, y: 0.3, w: 0.4, h: 0.3, fill: dark ? '#f4f3f1' : '#141414', opacity: 1, text: '' };
+    if (kind === 'fade') { b.fadeTo = 'right'; b.fadeAt = 0.3; b.fill = dark ? '#000000' : '#141414'; }
     if (b.shape === 'line') { b.y = 0.5; b.lw = 1.5; }
+    if (b.shape === 'circle') { b.w = 0.25; b.h = b.w * G.W / G.H; b.x = 0.375; b.y = 0.5 - b.h / 2; }
     change(() => { p.boxes = p.boxes || []; p.boxes.push(b); bsel = b.id; sel.clear(); reframe = null; editing = null; });
     ptab = 'text'; setPref('ptab', ptab); draw();
     toast('A shape — drag it, size it from the corner, colour it in the panel. ⌘[ and ⌘] send it back or forward');
@@ -2347,12 +2598,14 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
       const list = tray.slice().sort((a, b) => rank(a) - rank(b));
       if (!list.length) return toast('No other stills to swap in');
       let i = list.findIndex(s => s.id === pic.id);
-      if (i < 0) { list.unshift(stillById(pic.id) || { id: pic.id, file: pic.file, thumb: pic.thumb, a: pic.a, palette: pic.palette, title: pic.title }); i = 0; }
+      if (i < 0) { list.unshift(stillById(pic.id) || { id: pic.id, file: pic.file, thumb: pic.thumb, a: pic.a, palette: pic.palette, title: pic.title, sample: pic.sample }); i = 0; }
       swap = { k, list, i, original: clone(pic), before: JSON.stringify(doc) };
     }
     swap.i = (swap.i + d + swap.list.length) % swap.list.length;
     const s = swap.list[swap.i];
-    p.pics[k] = Object.assign(picFromRaw(s), { opacity: swap.original.opacity, featured: swap.original.featured, box: swap.original.box, border: swap.original.border, shadow: swap.original.shadow, radius: swap.original.radius });
+    const o = swap.original;
+    p.pics[k] = Object.assign(picFromRaw(s), { opacity: o.opacity, featured: o.featured, box: o.box, border: o.border, shadow: o.shadow, radius: o.radius, mono: o.mono, dim: o.dim, round: o.round, z: o.z, slot: o.slot });
+    refreshSwatches(p);
     drawStage(); drawStrip(); drawPanel();
   }
   function swapEnd(keep) {
@@ -2406,7 +2659,14 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
       bsel = null; editing = null;
       return toast(d.mode === 'mood' ? 'Mood: just pictures — the words are kept, hidden' : 'Treatment: layouts and words');
     }
-    if (t.id === 'addPage' || t.id === 'addPage2') { change(() => { doc.pages.splice(t.id === 'addPage2' ? doc.pages.length : cur + 1, 0, newPage(doc.mode === 'mood' ? 'rows' : 'left')); cur = t.id === 'addPage2' ? doc.pages.length - 1 : cur + 1; sel.clear(); }); return; }
+    if (t.id === 'addPage' || t.id === 'addPage2') {
+      if (doc.mode === 'mood') return addBlankPage(t.id === 'addPage2');
+      const m = $('pagemenu'); if (m && !m.hidden) { m.hidden = true; return; }
+      return openPageMenu(t);
+    }
+    if (d.pagepick) { $('pagemenu').hidden = true; return d.pagepick === 'blank' ? addBlankPage($('pagemenu').dataset.end === '1') : openPagePicker($('pagemenu').dataset.end === '1'); }
+    if (t.id === 'useMine' || d.usemine) return useMyStills();
+    if (d.tplab) return tplSwitchPages(d.tplab.slice(-1), d.tplab[0] === 'd');
     if (t.id === 'breakBtn') return breakHere();
     if (t.id === 'playBtn') return play(true);
     if (t.id === 'keysBtn') return openGuide(0);
@@ -2649,7 +2909,9 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
     if (t.id === 'moodTitle') { change(() => { doc.title = t.value; }, { quiet: true }); drawStage(); drawStrip(); return; }
     if (t.classList.contains('tb')) {
       const k = t.dataset.b, b = boxById(k); if (!b) return;
+      delete b.auto;
       change(() => { b.text = t.innerText.replace(/\n$/, ''); }, { quiet: true });
+      if (b.fit) { const was = b.size; fitBox(b); if (b.size !== was) t.style.fontSize = (b.size * geometry(doc).u).toFixed(2) + 'px'; }
       drawBoxSel();
       clearTimeout(drawStrip.t); drawStrip.t = setTimeout(drawStrip, 400);
       if (undo.length > 1 && undo[undo.length - 1] && typing.k === k && Date.now() - typing.at < 1200) undo.pop();   // one undo per burst of typing
@@ -2836,7 +3098,7 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
     if (drag.kind === 'pmove' || drag.kind === 'psize') return picDrag(e);
     const b = boxById(drag.id), el = boxEl(drag.id); if (!b || !el) return;
     if (!drag.moved && Math.abs(e.clientX - drag.x0) + Math.abs(e.clientY - (drag.y0 || e.clientY)) < 4) return;
-    drag.moved = true;
+    drag.moved = true; delete b.auto;
     const G = geometry(doc), dx = (e.clientX - drag.x0) / scale;
     if (drag.kind === 'move') {
       const dy = (e.clientY - drag.y0) / scale, w = b.w * G.W, h = el.offsetHeight;
@@ -2847,7 +3109,7 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
         if (sp.snappedX) { x = sp.x; gx = null; } if (sp.snappedY) { y = sp.y; gy = null; }
         drawGaps(spacing({ x, y, w, h }, otherRects(null, b.id)).marks);
       }
-      b.x = clamp(x, 0, G.W - w) / G.W; b.y = clamp(y, 0, Math.max(0, G.H - h)) / G.H;
+      b.x = clamp(x, -G.W, 2 * G.W - w) / G.W; b.y = clamp(y, -G.H, 2 * G.H - h) / G.H;
       guides(gx, gy);
     } else {
       const x0 = drag.b.x * G.W, w0 = drag.b.w * G.W, min = 40 * G.u;
@@ -2860,9 +3122,9 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
         Object.assign(el.style, { left: (b.x * G.W).toFixed(1) + 'px', width: (b.w * G.W).toFixed(1) + 'px', height: (b.shape === 'line' ? Math.max(1, (b.lw || 1.5) * G.u) : b.h * G.H).toFixed(1) + 'px' });
         drawBoxSel(); return;
       }
-      if (drag.h === 'r') b.w = clamp(w0 + dx, min, G.W - x0) / G.W;
-      else if (drag.h === 'l') { const nx = clamp(x0 + dx, 0, x0 + w0 - min); b.x = nx / G.W; b.w = (x0 + w0 - nx) / G.W; }
-      else { const f = clamp((w0 + dx) / w0, 0.15, 8); b.w = clamp(w0 * f, min, G.W - x0) / G.W; b.size = Math.round(clamp(drag.b.size * f, 4, 400) * 2) / 2; }
+      if (drag.h === 'r') b.w = clamp(w0 + dx, min, 3 * G.W) / G.W;
+      else if (drag.h === 'l') { const nx = clamp(x0 + dx, -G.W, x0 + w0 - min); b.x = nx / G.W; b.w = (x0 + w0 - nx) / G.W; }
+      else { const f = clamp((w0 + dx) / w0, 0.15, 8); b.w = clamp(w0 * f, min, 3 * G.W) / G.W; b.size = Math.round(clamp(drag.b.size * f, 4, 400) * 2) / 2; }
     }
     Object.assign(el.style, { left: (b.x * G.W).toFixed(1) + 'px', top: (b.y * G.H).toFixed(1) + 'px', width: (b.w * G.W).toFixed(1) + 'px', fontSize: (b.size * G.u).toFixed(1) + 'px' });
     drawBoxSel();
@@ -2882,11 +3144,11 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
         if (sp.snappedX) { X = sp.x; gx = null; } if (sp.snappedY) { Y = sp.y; gy = null; }
         drawGaps(spacing({ x: X, y: Y, w: W, h: H }, otherRects(drag.k, null)).marks);
       }
-      X = clamp(X, 0, Math.max(0, G.W - W)); Y = clamp(Y, 0, Math.max(0, G.H - H));
-    } else if (drag.h === 'r') W = clamp(W + dx, min, G.W - X);
-    else if (drag.h === 'l') { const nx = clamp(X + dx, 0, X + W - min); W = X + W - nx; X = nx; }
-    else if (drag.h === 'b') H = clamp(H + dy, min, G.H - Y);
-    else { const f = clamp((W + dx) / W, 0.1, Math.min((G.W - X) / W, (G.H - Y) / H)); W = Math.max(min, W * f); H = Math.max(min, H * f); }
+      X = clamp(X, -G.W, 2 * G.W - W); Y = clamp(Y, -G.H, 2 * G.H - H);
+    } else if (drag.h === 'r') W = clamp(W + dx, min, 3 * G.W);
+    else if (drag.h === 'l') { const nx = clamp(X + dx, -G.W, X + W - min); W = X + W - nx; X = nx; }
+    else if (drag.h === 'b') H = clamp(H + dy, min, 3 * G.H);
+    else { const f = clamp((W + dx) / W, 0.1, 8); W = Math.max(min, W * f); H = Math.max(min, H * f); }
     x.box = { x: X / G.W, y: Y / G.H, w: W / G.W, h: H / G.H };
     Object.assign(el.style, { left: X.toFixed(1) + 'px', top: Y.toFixed(1) + 'px', width: W.toFixed(1) + 'px', height: H.toFixed(1) + 'px' });
     guides(gx, gy); drawBoxSel();
@@ -2990,6 +3252,18 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
       const to = +th.dataset.page;
       change(() => { const pics = takePics(), tp = doc.pages[to]; if (isTitle(tp)) tp.pics = pics.slice(0, 1); else tp.pics.push(...pics); sel.clear(); });
       return toast(`Onto page ${to + 1}`);
+    }
+    // onto a sample picture, or a template's picture place: it takes that place (and its frame and effects)
+    const hit = pic && page().pics[+pic.dataset.k];
+    if (hit && (hit.sample || hit.slot) && dd.from === 'tray' && layoutOf(doc, page()) === 'free' && doc.mode !== 'mood') {
+      const got = dd.ids.map(stillById).filter(Boolean); if (!got.length) return;
+      change(() => {
+        const p = page(), k0 = +pic.dataset.k, ks = [k0].concat(p.pics.map((x, k) => x.sample && k !== k0 ? k : -1).filter(k => k >= 0));
+        got.forEach((st, j) => { const k = ks[j]; if (k != null) p.pics[k] = keepFx(picFrom(st), p.pics[k]); });
+        refreshSwatches(p); sel = new Set([k0]);
+      });
+      trayPick.clear(); drawTray();
+      return toast(got.length > 1 ? 'Swapped in — they keep the frames' : 'Swapped in — it keeps the frame');
     }
     // onto a Free page: right where you let go
     if (layoutOf(doc, page()) === 'free' && doc.mode !== 'mood') {
@@ -3109,8 +3383,8 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
         e.preventDefault();
         const n = (e.shiftKey ? 10 : 1) / scale, el = boxEl(b.id);
         change(() => {
-          if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') b.x = clamp(b.x * G.W + (e.key === 'ArrowRight' ? n : -n), 0, G.W - b.w * G.W) / G.W;
-          else b.y = clamp(b.y * G.H + (e.key === 'ArrowDown' ? n : -n), 0, G.H - (el ? el.offsetHeight : 0)) / G.H;
+          if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') b.x = clamp(b.x * G.W + (e.key === 'ArrowRight' ? n : -n), -G.W, 2 * G.W) / G.W;
+          else b.y = clamp(b.y * G.H + (e.key === 'ArrowDown' ? n : -n), -G.H, 2 * G.H) / G.H;
         });
         return;
       }
@@ -3125,8 +3399,8 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
         const G = geometry(doc), n = (e.shiftKey ? 10 : 1) / scale;
         change(() => {
           const b = ensureBox(fk);
-          if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') b.x = clamp(b.x * G.W + (e.key === 'ArrowRight' ? n : -n), 0, G.W - b.w * G.W) / G.W;
-          else b.y = clamp(b.y * G.H + (e.key === 'ArrowDown' ? n : -n), 0, G.H - b.h * G.H) / G.H;
+          if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') b.x = clamp(b.x * G.W + (e.key === 'ArrowRight' ? n : -n), -G.W, 2 * G.W) / G.W;
+          else b.y = clamp(b.y * G.H + (e.key === 'ArrowDown' ? n : -n), -G.H, 2 * G.H) / G.H;
         });
         return;
       }
@@ -3219,7 +3493,7 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
   const GUIDE = [
     ['Start', 'A <b>mood board</b>, a <b>treatment</b>, or <b>from a template</b>. Your stills wait in the tray below.',
       art(blk(4, 8, 58, 64, '#fff', 'box-shadow:0 4px 14px rgba(0,0,0,.12)') + blk(4, 78, 12, 16, '#3b2a22') + blk(18, 78, 18, 16, '#b8461c') + blk(38, 78, 12, 16, '#1e2227') + blk(52, 78, 16, 16, '#e0a24a') + blk(70, 78, 10, 16, '#6d2a18') + blk(66, 8, 30, 64, 'rgba(255,255,255,.6)'))],
-    ['Templates', 'Eleven designed decks that fill themselves from your vault. Pick the colours first — change them any time in <b>Colour</b>.',
+    ['Templates', 'Nine designed decks, each an <b>A</b> or a <b>B</b>. They open with sample pictures: drag a still onto one, or press <b>Use my stills</b>. <b>+ Page</b> adds a blank page or a designed page from any template.',
       art(blk(0, 0, 100, 100, '#0a0605') + blk(46, 0, 54, 100, 'linear-gradient(90deg,#0a0605,#6d2a18 60%,#b8461c)') + '<b style="position:absolute;left:8%;top:22%;font-family:Anton,Impact,sans-serif;font-weight:400;font-size:34px;line-height:.9;color:#e3231a;text-shadow:2px 2px 0 #6e0c08">PROJECT<br>TITLE</b>' + blk(8, 74, 26, 3, '#f6efe9', 'opacity:.7') + blk(8, 80, 18, 3, '#f6efe9', 'opacity:.5'), '#0a0605')],
     ['Pictures', '<b>Double-click</b> or <b>drag</b> a still onto the page. Click one, then <b>↑ ↓</b> to swap it.',
       art(blk(8, 10, 84, 62, '#fff', 'box-shadow:0 4px 14px rgba(0,0,0,.12)') + blk(14, 18, 36, 46, '#1e2227', 'outline:2px solid #F05A22') + blk(54, 18, 32, 46, '#b8461c') + blk(20, 78, 10, 16, '#3b2a22', 'opacity:.5') + blk(32, 76, 12, 20, '#1e2227', 'outline:2px solid #F05A22') + blk(46, 78, 10, 16, '#e0a24a', 'opacity:.5') + '<b class="garrow" style="left:62%;top:78%">↑↓</b>')],
@@ -3227,7 +3501,7 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
       art(blk(6, 12, 40, 70, '#fff', 'box-shadow:0 4px 14px rgba(0,0,0,.12)') + blk(9, 17, 17, 28, '#3b2a22') + blk(28, 17, 15, 28, '#1e2227') + blk(9, 48, 34, 28, '#b8461c') + blk(54, 12, 40, 70, '#fff', 'box-shadow:0 4px 14px rgba(0,0,0,.12)') + blk(58, 20, 20, 30, '#3b2a22', 'transform:rotate(-3deg)') + blk(72, 44, 18, 30, '#e0a24a', 'outline:2px solid #F05A22'))],
     ['Words and shapes', '<b>T</b> for text. The <b>shape</b> button for blocks, lines and circles. The <b>Text</b> tab styles, turns and outlines words.',
       art(blk(8, 10, 84, 72, '#f6d3c4', 'box-shadow:0 4px 14px rgba(0,0,0,.12)') + blk(8, 56, 84, 26, '#0b0b0b') + blk(56, 16, 30, 32, '#b8461c', 'border-radius:50%') + '<b style="position:absolute;left:12%;top:18%;font:900 italic 22px/1 Archivo,Arial;color:transparent;-webkit-text-stroke:1.2px #0b0b0b">OUTLINE</b>' + '<b style="position:absolute;left:4%;top:70%;transform:rotate(-90deg);transform-origin:0 0;font:700 7px/1 Arial;letter-spacing:.2em;color:#F05A22">SIDEWAYS</b>' + blk(14, 62, 30, 3, '#f6d3c4') + blk(14, 68, 40, 2, '#f6d3c4', 'opacity:.6'))],
-    ['Colour and brand', '<b>Colour</b>: background and fade. <b>Brand</b>: your name, page numbers, logos. <b>Look</b> saves it all for next time.',
+    ['Colour and brand', 'In the <b>Layout</b> tab, under the layouts: <b>Colour</b> (background and fade) and <b>Brand</b> (your name, page numbers, logos).',
       art(blk(8, 10, 84, 72, '#1b1b1b') + blk(14, 60, 40, 8, '#fff') + blk(14, 72, 26, 3, '#fff', 'opacity:.7') + blk(76, 70, 10, 6, '#F05A22', 'border-radius:2px') + blk(14, 16, 8, 5, '#fff', 'opacity:.85;border-radius:2px') + blk(60, 16, 6, 6, '#b8461c', 'border-radius:50%') + blk(68, 16, 6, 6, '#e0a24a', 'border-radius:50%') + blk(76, 16, 6, 6, '#F05A22', 'border-radius:50%'), '#1b1b1b')],
     ['Share it', '<b>⌘C ⌘V</b> copies anything, anywhere. <b>Space</b> plays. <b>Export</b>: PDF, images, a web page or a video.',
       art(blk(0, 0, 100, 100, '#0b0b0b') + blk(14, 14, 72, 58, '#3b2a22') + blk(20, 50, 30, 6, '#fff', 'opacity:.9') + blk(40, 80, 20, 8, '#F05A22', 'border-radius:20px'), '#0b0b0b')],
@@ -3278,6 +3552,8 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
       </div>` : ''}
       ${ex.kind === 'web' ? `<div class="markrow"><div style="display:flex;flex-direction:column;gap:3px;flex-grow:1"><span style="font-size:14px">A folder with a web page in it</span>
         <span class="empty">Open it to see it, or drag the folder onto Netlify Drop and you get a link to send — free, no account needed to try. We'll show you how when it's made.</span></div></div>` : ''}
+      ${sampleCount(exportPages().map(i => doc.pages[i])) ? `<div class="markrow samplewarn"><div style="display:flex;flex-direction:column;gap:3px;flex-grow:1"><span style="font-size:14px">${sampleCount(exportPages().map(i => doc.pages[i]))} sample picture${sampleCount(exportPages().map(i => doc.pages[i])) === 1 ? ' is' : 's are'} still in</span>
+        <span class="empty">They're the template's placeholders — swap them for your own before you send this.</span></div><button class="light" id="exMine">Use my stills</button></div>` : ''}
       <div class="markrow"><img src="mark.png" alt="" style="width:34px"><div style="display:flex;flex-direction:column;gap:3px;flex-grow:1"><span style="font-size:14px">This Was Needed mark on every page</span>
         <span class="empty">Small, bottom right. Taking it off will be part of the Pro plan — for now it's yours to switch.</span></div>
         <button class="tog${ex.mark ? ' on' : ''}" id="exMark" role="switch" aria-checked="${ex.mark}"></button></div>
@@ -3314,7 +3590,7 @@ fit();go((parseInt(location.hash.slice(1),10)||1)-1);})();`;
     return (own ? own.textContent : '').replace(/url\('fonts\//g, "url('assets/fonts/");
   }
   function buildWeb(pages) {
-    const files = [], seen = new Map();
+    const files = [], seen = new Map(), smp = new Set();
     const asset = file => {
       if (seen.has(file)) return seen.get(file);
       const base = String(file).split('/').pop().replace(/[^A-Za-z0-9._-]+/g, '-').replace(/^-+/, '') || 'still';
@@ -3326,9 +3602,10 @@ fit();go((parseInt(location.hash.slice(1),10)||1)-1);})();`;
       let h = pageHTML(doc, doc.pages[i], { mark: ex.mark });
       h = h.replace(/src="vault\/([^"]*)"/g, (_, f) => { let raw = f.replace(/&amp;/g, '&'); try { raw = decodeURI(raw); } catch (e) {} return `src="${esc(encodeURI(asset(raw)))}"`; });
       h = h.replace(/src="mark\.png"/g, 'src="assets/mark.png"');
+      h = h.replace(/src="samples\/([A-Za-z0-9._\/-]+)"/g, (_, f) => { smp.add(f); return `src="assets/samples/${f}"`; });
       return `<section class="slide">${h}</section>`;
     }).join('\n');
-    const bundle = [{ from: 'mark.png', to: 'assets/mark.png' }].concat(
+    const bundle = [{ from: 'mark.png', to: 'assets/mark.png' }].concat([...smp].map(f => ({ from: 'samples/' + f, to: 'assets/samples/' + f })),
       [...webCss().matchAll(/url\('assets\/(fonts\/[^']+)'\)/g)].map(m => ({ from: m[1], to: 'assets/' + m[1] })));
     const title = esc(doc.name || (doc.mode === 'mood' ? 'Mood board' : 'Treatment'));
     const html = `<!DOCTYPE html>
@@ -3382,6 +3659,12 @@ ${slides}
     if (d.snew) { closeSheet(); return makeNew(d.snew, []); }
     if (d.tpl) return d.tpl === 'open' ? openTemplates() : makeFromTemplate(d.tpl);
     if (d.tplpal) { tplChoice = d.tplpal; setPref('tplPal', tplChoice); return openTemplates(); }
+    if (d.tplv) { const [id, v] = d.tplv.split(':'); return tplFlip(id, v); }
+    if (d.pptpl) { pp.t = d.pptpl; return openPagePicker(pp.end); }
+    if (d.ppv) { pp.v = d.ppv; return openPagePicker(pp.end); }
+    if (d.pplook) { pp.look = d.pplook; return openPagePicker(pp.end); }
+    if (d.ppadd != null) return addDesignedPage(+d.ppadd);
+    if (t.id === 'exMine') { await useMyStills(); return openExport(); }
     if (t.id === 'lookSaveGo') {
       const name = ($('lookName').value || '').trim(); if (!name) return $('lookName').focus();
       const r = await call('designLookSave', { look: lookFrom(doc, name) }).catch(() => null);
@@ -3438,24 +3721,29 @@ ${slides}
   $('sheet').addEventListener('input', e => { if (e.target.id === 'exRange') { ex.range = e.target.value; ex.pages = e.target.value.trim() ? 'range' : 'all'; const b = $('exGo'); const n = exportPages().length; if (b) { b.disabled = !n; b.textContent = exLabel(n); } } });
 
   /* ---------------------------------------------------------------- the app tells us */
-  let shared = {};
+  let shared = {}, navGen = 0;
   window.__neededShared = async s => {
     s = s || {};
     const changed = s.project !== shared.project || s.vault !== shared.vault;
+    const arriving = s.tab === 'design' && shared.tab && shared.tab !== 'design';
     shared = s;
+    // Coming into Design always starts on the welcome page — your recent designs are one click away there.
+    if (!changed && arriving) {
+      const gen = ++navGen; await flushSave(); await refreshList();
+      if (gen !== navGen) return;                 // something opened a design meanwhile (the Vault's Make mood board) — leave it
+      doc = null; rel = null; sel.clear(); bsel = null; editing = null; closeSheet(); return draw();
+    }
     if (!changed) { if (s.tab === 'design' && doc) setTimeout(drawStage, 30); return; }
     await flushSave();
     project = s.project || '';
     doc = null; rel = null; sel.clear(); trayPick.clear(); swap = null; reframe = null;
     await refreshList();
     await loadStills();
-    // Back to what you had open in this project.
-    const last = pref('last:' + project, '');
-    if (last && designs.some(d => d.rel === last)) return openDesign(last);
-    draw();
+    draw();                                   // the welcome page: Mood board · Treatment · From a template, and your recent designs
   };
   window.__neededSynced = () => loadStills();
   window.__designOpenWith = async o => {
+    navGen++;
     await flushSave();
     if (!stills.length) await loadStills();
     const ids = (o && o.ids) || [];

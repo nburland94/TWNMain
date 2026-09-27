@@ -855,3 +855,50 @@ ROUND 27 — DESIGN: TEMPLATES, SHAPES, WORDS TURNED AROUND
     fonts/licences): Inter Tight, Archivo (with widths), Archivo Black,
     Anton, Barlow, Instrument Serif, Italiana, Merriweather, Rubik Mono One.
   • Two new steps in Design's guide (?) and a line in the Welcome guide.
+
+ROUND 28 — DESIGN: NINE NEW TEMPLATES (A AND B), TIDIER PANEL, OFF-PAGE WORKSPACE
+  Templates (replace round 27's eleven)
+  • From a template: nine treatments drawn from scratch — Noir, Gallery,
+    Anthem, System, Frame, Soft, Signal (modern, digital), Reel (analogue,
+    film) and Vogue (fashion, editorial). 15 pages each, the same running
+    order: cover, director's note, idea, story, look & feel,
+    cinematography, light & colour, casting, wardrobe, locations, edit,
+    sound, references, production, thank you.
+  • Every template comes as A (calm grids and splits) or B (led by the
+    design: mosaics, insets, chapter numbers, colour stripes, a timeline).
+    Pick A or B on its card. The chooser shows still pictures of each one,
+    so it opens straight away.
+  • Templates open with sample pictures (marked SAMPLE in the editor only).
+    Swap them: drag a still onto one (it keeps the frame, border and
+    effects), ↑ ↓ on a picture, or Use my stills in the bar — every sample
+    becomes the stills from your vault that suit that template, this
+    project's first. Export warns you if any samples are left.
+    NOTE: the sample pictures are frames from other people's work — fine
+    for your own use; replace them (Resources/shell/samples) before selling.
+  • Layout tab on a designed page: This page A | B, and Every designed page
+    A | B. Words you've typed and pictures you've put in come with you.
+  • + Page: Blank page (your own page — the stills slider, layouts, sample
+    words that fill the space) or A designed page… — any page from any
+    template, A or B, in this deck's look (its type and colours) or
+    keeping its own look. Mix pages from different templates freely.
+  • Designed pages are free-moving: no slider, no layouts. Headings shrink
+    as you type so the longest word always fits. Template decks are 16:9.
+  • Light & colour swatches and their codes follow the picture you put in.
+  • Faster: the page strip only redraws the pages that changed.
+  Panel and tools
+  • Tabs are Layout, Picture, Text. Colour and Brand now sit in Layout,
+    under the layouts. Look is gone.
+  • Picture tab: no picture name, no "its colours for the background" row.
+    Feature it and Frame (move and zoom the picture inside its box) stay.
+  • Hints are one short line and no longer repeat.
+  • Quick bar: the shape button has a menu (Block, Line, Circle, Block that
+    fades out) and remembers your last pick; the arrow at the end folds
+    the bar short or opens it long.
+  • Drag words and pictures off the page into the grey workspace to park
+    them; they stay with the page but don't show in exports.
+  • A new treatment page's sample words fill the space for words and move
+    with the divider, until you type in them or move them.
+  • Design always opens on its welcome page (mood board, treatment, from a
+    template, recent designs).
+  • Dark mode: stronger lines and buttons in panels. Sign-in logo white.
+  • The running line is just the director's name and the project.

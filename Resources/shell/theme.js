@@ -41,7 +41,13 @@
     // The accents stay the Needed orange — the one colour that's the same by day and by night (a touch brighter for words).
     if (warm && s >= 0.6) return [...(L < 0.45 ? [255, 122, 69] : [240, 90, 34]), a];
     // Neutrals: light becomes night, dark becomes light.
-    if (s < 0.6 || L > 0.85) { const t = Math.pow(1 - L, 1.05); return [...lerp([13, 21, 33], [234, 240, 247], t), a]; }
+    if (s < 0.6 || L > 0.85) {
+      // Light panels and buttons become a lifted navy tile, not the page's own navy, so their edges show.
+      if (L > 0.85) return [...lerp([30, 44, 66], [22, 33, 50], Math.min(1, (1 - L) / 0.15)), a < 1 ? Math.max(a, 0.72) : a];
+      const t = Math.pow(1 - L, 1.05), c = lerp([13, 21, 33], [234, 240, 247], t);
+      // Fine dark lines and faint tints by day turn into light ones by night — twice as strong, so they stay visible.
+      return [...c, a < 1 && L < 0.5 ? Math.min(1, Math.max(0.16, a * 2.4)) : a];
+    }
     // Every other colour (a red number, a green "paid"): the same, a little lighter.
     return [...lerp([r, g, b], [255, 255, 255], 0.22), a];
   }
