@@ -883,6 +883,7 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
     const mood = doc.mode === 'mood';
     $('bar').innerHTML = `
       <span class="title">Design</span>
+      <button class="tbtn" id="newBtn" title="Start a new mood board, treatment or template — this one's saved">New design</button>
       <button class="tbtn" id="docsBtn" title="Your designs for ${esc(project)}">Designs ▾</button>
       <input class="name" id="docName" value="${esc(doc.name)}" placeholder="Name it" spellcheck="false" aria-label="Name">
       <div class="seg" role="group" aria-label="Mood or treatment"><button data-mode="mood" class="${mood ? 'on' : ''}" title="Just pictures">Mood</button><button data-mode="treatment" class="${mood ? '' : 'on'}" title="Pictures and words">Treatment</button></div>
@@ -895,6 +896,7 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
       <select class="sel" id="sizeSel" aria-label="Page size"${doc.tpl ? ' disabled title="Template decks are 16:9"' : ''}>${Object.keys(SIZES).map(k => `<option value="${k}"${k === doc.size ? ' selected' : ''}>${esc(SIZE_NAMES[k])}</option>`).join('')}</select>
       <button class="tbtn" id="playBtn" title="Play through the pages — Space">▶ Play</button>
       <button class="tbtn" id="keysBtn" title="How it works — ?">?</button>
+      <button class="tbtn" id="saveBtn" title="Save now — ⌘S. It also saves as you go.">Save</button>
       <button class="dark" id="exportBtn">Export</button>`;
   }
 
@@ -1660,7 +1662,7 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
         <button class="g choice" data-new="treatment"><div class="pv">${miniPreview('treatment')}</div><b>Treatment</b><span>Pictures laid out for you, text boxes you drag anywhere. Saves as a treatment.</span></button>
         <button class="g choice" data-tpl="open"><div class="pv">${miniPreview('template')}</div><b>From a template</b><span>Nine designed treatments, 15 pages each, in an A and a B. They open with sample pictures — swap in your stills in one click.</span></button>
       </div>
-      ${recent.length ? `<span class="cap">Carry on with</span><div class="recent">${recent.map(d => `<button class="rec g" data-open="${esc(d.rel)}">${d.cover ? `<img alt="" src="vault/${esc(encodeURI(d.cover))}">` : '<div class="ph"></div>'}<b>${esc(d.name)}</b><small>${d.mode === 'mood' ? 'Mood' : 'Treatment'} · ${d.pages} page${d.pages === 1 ? '' : 's'}</small></button>`).join('')}</div>` : ''}`;
+      ${recent.length ? `<span class="cap">Carry on with</span><div class="recent">${recent.map(d => `<button class="rec g" data-open="${esc(d.rel)}">${d.cover ? `<img alt="" loading="lazy" src="${esc(coverSrc(d))}">` : '<div class="ph"></div>'}<b>${esc(d.name)}</b><small>${d.mode === 'mood' ? 'Mood' : 'Treatment'} · ${d.pages} page${d.pages === 1 ? '' : 's'}</small></button>`).join('')}</div>` : ''}`;
   }
   function miniPreview(mode) {
     const cols = ['#3b2a22', '#6d2a18', '#1e2227', '#b8461c', '#e0a24a', '#402e24'];
@@ -1672,6 +1674,7 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
   }
 
   /* ---------------------------------------------------------------- opening and making */
+  const coverSrc = d => d.coverSample ? 'samples/' + d.cover : 'vault/' + encodeURI(d.cover);
   async function refreshList() { const r = await call('designList').catch(() => null); designs = (r && r.designs) || []; project = (r && r.project) || project; }
   async function openDesign(r) {
     const res = await call('designLoad', { rel: r }).catch(() => null);
@@ -2654,6 +2657,8 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
     }
     if (t.id === 'panelPage') { sel.clear(); bsel = null; reframe = null; stopEditing(); drawStage(); return drawPanel(); }
     if (t.id === 'docsBtn') return openDocs();
+    if (t.id === 'saveBtn') return saveNow();
+    if (t.id === 'newBtn') return newDesign();
     if (d.mode && d.mode !== doc.mode) {
       change(() => { doc.mode = d.mode; if (d.mode === 'treatment') doc.pages.forEach(p => { if (!p.layout) p.layout = 'rows'; }); });
       bsel = null; editing = null;
@@ -3352,7 +3357,7 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
     if (!doc) return;
     const cmd = e.metaKey || e.ctrlKey;
     if (cmd && e.key.toLowerCase() === 'z') { if (typingIn && t.isContentEditable === false) return; e.preventDefault(); if (t.isContentEditable) t.blur(); return undoIt(!e.shiftKey); }
-    if (cmd && e.key.toLowerCase() === 's') { e.preventDefault(); return keepVersion(); }
+    if (cmd && e.key.toLowerCase() === 's') { e.preventDefault(); return e.shiftKey ? keepVersion() : saveNow(); }
     if (cmd && (e.key === '=' || e.key === '+')) { e.preventDefault(); return zoomStep(1); }
     if (cmd && (e.key === '-' || e.key === '_')) { e.preventDefault(); return zoomStep(-1); }
     if (cmd && e.key === '0') { e.preventDefault(); return setZoom(null); }
@@ -3423,6 +3428,22 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
     const r = await call('designVersion', { rel }).catch(() => null);
     toast(r && r.ok ? `Kept as version ${r.version} — it's in the Versions folder beside it` : "Couldn't keep a version");
   }
+  // Save now: straight to the file, and say where it is.
+  async function saveNow() {
+    if (!doc) return;
+    clearTimeout(saveT); saveT = null;
+    const r = await call('designSave', { rel, doc }).catch(() => null);
+    if (!r || !r.ok) return toast((r && r.error) || "Couldn't save it");
+    rel = r.rel;
+    const b = $('saveBtn'); if (b) { b.textContent = 'Saved ✓'; clearTimeout(saveNow.t); saveNow.t = setTimeout(() => { const x = $('saveBtn'); if (x) x.textContent = 'Save'; }, 1800); }
+    toast(`Saved — ${doc.name || 'this design'}, in ${project}_Design › ${doc.mode === 'mood' ? 'Mood' : 'Treatments'}`);
+  }
+  // New design: this one's saved and closed; the welcome page to pick the next.
+  async function newDesign() {
+    await flushSave();
+    doc = null; rel = null; sel.clear(); bsel = null; editing = null; swap = null; reframe = null; closeSheet();
+    await refreshList(); draw();
+  }
   async function flushSave() { if (saveT) { clearTimeout(saveT); saveT = null; const r = await call('designSave', { rel, doc }).catch(() => null); if (r && r.ok) rel = r.rel; } }
 
   /* ---------------------------------------------------------------- play */
@@ -3468,10 +3489,10 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
       <div class="shead"><div class="grow"><h2>Designs</h2><span class="empty">For ${esc(project)} — in ${esc(project)}_Design, beside the rest of the project.</span></div>${closeX}</div>
       <div style="display:flex;gap:8px"><button class="light" data-snew="mood">New mood board</button><button class="light" data-snew="treatment">New treatment</button><button class="light" data-tpl="open">From a template</button></div>
       <div class="dlist">${designs.map(d => `<div class="drow${d.rel === rel ? ' on' : ''}" data-sopen="${esc(d.rel)}" role="button" tabindex="0">
-          ${d.cover ? `<img alt="" src="vault/${esc(encodeURI(d.cover))}">` : '<div class="ph"></div>'}
+          ${d.cover ? `<img alt="" loading="lazy" src="${esc(coverSrc(d))}">` : '<div class="ph"></div>'}
           <span><b>${esc(d.name)}</b><small>${d.mode === 'mood' ? 'Mood' : 'Treatment'} · ${d.pages} page${d.pages === 1 ? '' : 's'}</small></span>
           <button class="x" data-sdel="${esc(d.rel)}" aria-label="Move ${esc(d.name)} to the Trash">×</button></div>`).join('') || '<span class="empty">None yet.</span>'}</div>
-      <div class="foot"><span class="grow">Everything saves as you go. ⌘S keeps a version; every export is a new version too.</span><button class="dark" data-close>Done</button></div>`);
+      <div class="foot"><span class="grow">Everything saves as you go — Save (⌘S) saves right now. ⇧⌘S keeps a version; every export is a new version too.</span><button class="dark" data-close>Done</button></div>`);
   }
   function openKeys() {
     const k = [['↑ ↓', 'Swap the picked picture through your stills — Return keeps, Esc puts it back'], ['← →', 'Move it along the page (nothing picked: the page before or after)'], ['⌘← ⌘→', 'Move it to the page before or after'],
@@ -3483,7 +3504,7 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
       ['L', 'Next layout for this page'], ['Paste', 'Words pasted onto the page become a text box'],
       ['Free page', 'Drag a picture anywhere · sides and bottom stretch it, the corner sizes it · ← → nudge (⌥ + any arrow) · ↑ ↓ still swap'],
       ['⌘+  ⌘−  ⌘0', 'Zoom the page in, out, and back to fit — or pinch on the trackpad'],
-      ['⌘D', 'Duplicate what\u2019s picked — or the page'], ['⌘Z  ⇧⌘Z', 'Undo, redo — everything'], ['⌘S', 'Keep a version'], ['Space', 'Play through the pages'], ['Tab', 'Hide the panel — just the page'], ['?', 'How it works']];
+      ['⌘D', 'Duplicate what\u2019s picked — or the page'], ['⌘Z  ⇧⌘Z', 'Undo, redo — everything'], ['⌘S  ⇧⌘S', 'Save now · keep a version'], ['Space', 'Play through the pages'], ['Tab', 'Hide the panel — just the page'], ['?', 'How it works']];
     openSheet('keys', `<div class="shead"><div class="grow"><h2>Keys</h2><span class="empty">The same few moves everywhere. <a href="#" data-guide="0">How it works ›</a></span></div>${closeX}</div>
       <div class="keys">${k.map(([a, b]) => `<kbd>${esc(a)}</kbd><span>${esc(b)}</span>`).join('')}</div>`);
   }
@@ -3727,7 +3748,8 @@ ${slides}
     const changed = s.project !== shared.project || s.vault !== shared.vault;
     const arriving = s.tab === 'design' && shared.tab && shared.tab !== 'design';
     shared = s;
-    // Coming into Design always starts on the welcome page — your recent designs are one click away there.
+    // Coming back to Design: the design you had open stays open. With none open, the welcome page.
+    if (!changed && arriving && doc) { setTimeout(drawStage, 30); return; }
     if (!changed && arriving) {
       const gen = ++navGen; await flushSave(); await refreshList();
       if (gen !== navGen) return;                 // something opened a design meanwhile (the Vault's Make mood board) — leave it

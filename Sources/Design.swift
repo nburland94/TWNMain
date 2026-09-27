@@ -30,6 +30,11 @@ enum Designs {
         return String(s.prefix(80))
     }
 
+    /// What the list knows about each design file, kept until the file changes — so opening Design
+    /// doesn't read every design in the project each time, only the ones saved since.
+    private static var listCache: [String: (date: Date, entry: [String: Any])] = [:]
+    private static let listLock = NSLock()
+
     /// The project's designs, newest first — what the Designs menu lists.
     static func list(_ project: String) -> [[String: Any]] {
         var out: [[String: Any]] = []
@@ -38,12 +43,19 @@ enum Designs {
             guard let dir = folder(project, mode: mode) else { continue }
             let files = (try? FileManager.default.contentsOfDirectory(at: dir, includingPropertiesForKeys: [.contentModificationDateKey], options: [.skipsHiddenFiles])) ?? []
             for f in files where f.lastPathComponent.hasSuffix(".design.json") {
+                let date = (try? f.resourceValues(forKeys: [.contentModificationDateKey]))?.contentModificationDate ?? Date()
+                listLock.lock(); let hit = listCache[f.path]; listLock.unlock()
+                if let h = hit, h.date == date { out.append(h.entry); continue }
                 guard let d = try? Data(contentsOf: f), let doc = try? JSONSerialization.jsonObject(with: d) as? [String: Any] else { continue }
                 let pages = (doc["pages"] as? [[String: Any]]) ?? []
-                let cover = pages.lazy.compactMap { ($0["pics"] as? [[String: Any]])?.first?["thumb"] as? String }.first ?? ""
-                let date = (try? f.resourceValues(forKeys: [.contentModificationDateKey]))?.contentModificationDate ?? Date()
-                out.append(["rel": rel(f), "name": (doc["name"] as? String) ?? f.lastPathComponent.replacingOccurrences(of: ".design.json", with: ""),
-                            "mode": mode, "pages": pages.count, "cover": cover, "updated": iso.string(from: date)])
+                // The cover: the first picture's small copy — from the vault, or a template's sample picture.
+                let first = pages.lazy.compactMap { ($0["pics"] as? [[String: Any]])?.first }.first
+                let thumb = (first?["thumb"] as? String) ?? ""
+                let sample = (first?["sample"] as? Bool) ?? false
+                let entry: [String: Any] = ["rel": rel(f), "name": (doc["name"] as? String) ?? f.lastPathComponent.replacingOccurrences(of: ".design.json", with: ""),
+                            "mode": mode, "pages": pages.count, "cover": thumb, "coverSample": sample, "updated": iso.string(from: date)]
+                listLock.lock(); listCache[f.path] = (date, entry); listLock.unlock()
+                out.append(entry)
             }
         }
         return out.sorted { ($0["updated"] as? String ?? "") > ($1["updated"] as? String ?? "") }

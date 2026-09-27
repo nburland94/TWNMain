@@ -175,6 +175,50 @@ main{padding-bottom:calc(env(safe-area-inset-bottom) + 190px)}
 .install .why{border-radius:22px;padding:14px 16px;font-size:13px;line-height:1.55;color:var(--soft)}
 .install .why b{color:var(--ink);font-weight:500}
 .toast{bottom:calc(env(safe-area-inset-bottom) + 168px)}
+/* Round 29: the feed and the picture, light and picture first */
+main{padding:0 18px calc(env(safe-area-inset-bottom) + 190px)}
+.ggline{margin:2px 0 10px;border-radius:100px;padding:8px 14px;font-size:13px;color:var(--oi);background:rgba(255,255,255,.7);border:1px solid rgba(240,90,34,.3);display:inline-block}
+.titlerow{align-items:center}
+.seg{display:inline-flex;border-radius:100px;padding:3px;background:rgba(255,255,255,.7);border:1px solid rgba(28,28,28,.08);flex-shrink:0;max-width:52vw}
+.seg button{border:none;background:none;border-radius:100px;padding:6px 12px;font-size:12.5px;color:var(--soft);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:34vw}
+.seg button.on{background:#fff;color:var(--ink);box-shadow:0 1px 4px rgba(120,60,20,.14)}
+.chips .cap{font-size:9.5px;letter-spacing:.14em}
+.feed{display:flex;flex-direction:column;gap:30px;margin:6px -10px 0}
+.day h2{margin:0 10px 10px;font-weight:200;font-size:28px;line-height:1.1}
+.run{display:flex;flex-direction:column;gap:6px}
+.run + .run{margin-top:18px}
+.runh{display:flex;justify-content:space-between;align-items:baseline;margin:0 10px 2px}
+.runh .wait{color:var(--oi)}
+.shot{position:relative;display:block;width:100%;border:none;padding:0;border-radius:6px;overflow:hidden;background:#efe4db;max-height:none}
+.shot img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
+.shot:active{transform:scale(.985)}
+.shot .dot{position:absolute;top:9px;right:9px;width:9px;height:9px;border-radius:50%;background:var(--o);box-shadow:0 0 0 2.5px rgba(255,255,255,.92)}
+.shot .kind{position:absolute;left:9px;bottom:9px;height:26px;min-width:26px;border-radius:100px;background:rgba(255,255,255,.86);display:flex;align-items:center;justify-content:center;padding:0 0 0 2px;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
+.shot .kind.gif{padding:0 8px;font-family:'Courier Prime',monospace;font-size:10px;letter-spacing:.1em;color:var(--ink)}
+.cols{display:flex;gap:6px}.col{flex:1;min-width:0;display:flex;flex-direction:column;gap:6px}
+.empty b{font-weight:500;color:var(--ink)}
+.bottom{background:linear-gradient(to top,rgba(252,242,236,.98) 40%,rgba(252,242,236,0))}
+.bottom .dark{background:var(--o);box-shadow:0 8px 22px rgba(240,90,34,.32)}
+.bottom .light{background:rgba(255,255,255,.88)}
+/* one picture */
+.view{position:fixed;inset:0;z-index:20;background:#fbf6f2;color:var(--ink);display:block;transform:none;opacity:0;pointer-events:none;transition:opacity .28s var(--ease)}
+.view.on{opacity:1;pointer-events:auto}
+.view .stage{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:calc(env(safe-area-inset-top) + 64px) 0 calc(env(safe-area-inset-bottom) + 124px)}
+.view .vpic{width:100%;height:100%;display:flex;align-items:center;justify-content:center;transform:scale(.97);transition:transform .35s var(--ease)}
+.view.on .vpic{transform:none}
+.view .vpic img,.view .vpic video{max-width:100%;max-height:100%;display:block;object-fit:contain;background:none}
+.view .chrome{position:absolute;left:0;right:0;transition:opacity .25s;z-index:2}
+.view.bare .chrome{opacity:0;pointer-events:none}
+.view .top{top:0;padding:calc(env(safe-area-inset-top) + 12px) 18px 0;display:flex;align-items:center;justify-content:space-between}
+.view .n{font-family:'Courier Prime',monospace;font-size:11px;letter-spacing:.14em;color:var(--soft)}
+.view .round{width:42px;height:42px;border-radius:50%;border:1px solid rgba(28,28,28,.08);background:rgba(255,255,255,.82);display:flex;align-items:center;justify-content:center;box-shadow:0 4px 14px rgba(120,60,20,.1);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);padding:0}
+.view .bot{bottom:0;padding:0 18px calc(env(safe-area-inset-bottom) + 16px);display:flex;flex-direction:column;align-items:center;gap:14px}
+.view .m{font-family:'Courier Prime',monospace;font-size:11px;letter-spacing:.06em;color:var(--soft);text-align:center;line-height:1.5}
+.view .m.wait{color:var(--oi)}
+.view .acts{display:flex;gap:34px;padding:0;margin:0}
+.view .act{border:none;background:none;padding:0;display:flex;flex-direction:column;align-items:center;gap:6px;font-size:11.5px;color:var(--soft)}
+.view .act .round{width:52px;height:52px}
+body.viewing{overflow:hidden}
 </style></head>
 <body>
 <div class="glow"></div>
@@ -214,23 +258,15 @@ main{padding-bottom:calc(env(safe-area-inset-bottom) + 190px)}
 </header>
 
 <main>
-  <section id="browse">
-    <div class="titlerow"><h1 id="title">Mobile Vault</h1><span class="cap" id="count"></span></div>
-    <div class="chips" id="chips">
-      <button class="chip on" data-k="all">All</button><button class="chip" data-k="still">Stills</button><button class="chip" data-k="clip">Clips</button><button class="chip" data-k="gif">GIFs</button>
-      <span class="grow"></span>
-      <button class="chip" id="searchBtn" aria-label="Search"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#141414" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg></button>
-    </div>
-    <div class="search" id="search"><input id="q" type="search" placeholder="Search — tags, names" autocomplete="off" autocapitalize="off"></div>
-    <div class="grid" id="grid"></div>
-  </section>
-
-  <section id="on" class="off">
-    <div class="banner"><b>Grab &amp; Go is on</b><span id="onLine"></span></div>
-    <button class="g target" id="bigTap"><b>Tap to add</b><span>Pick from Photos — kept for the project, no questions</span></button>
-    <div class="feedhead"><span class="cap" id="todayN">Today</span><button class="chip" id="camera2">Camera</button></div>
-    <div class="feed" id="feed"></div>
-  </section>
+  <div class="ggline off" id="ggLine"></div>
+  <div class="titlerow"><h1 id="title">Your grabs</h1><div class="seg" id="scope" role="group" aria-label="Which projects"><button data-s="all">All</button><button data-s="one" id="scopeP">Project</button></div></div>
+  <div class="chips" id="chips">
+    <button class="chip on" data-k="all">All</button><button class="chip" data-k="still">Stills</button><button class="chip" data-k="clip">Clips</button><button class="chip" data-k="gif">GIFs</button>
+    <span class="grow"></span><span class="cap" id="count"></span>
+    <button class="chip" id="searchBtn" aria-label="Search"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#141414" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg></button>
+  </div>
+  <div class="search" id="search"><input id="q" type="search" placeholder="Search — projects, tags, names" autocomplete="off" autocapitalize="off"></div>
+  <div class="feed" id="feed"></div>
 </main>
 
 <div class="g sendbar off" id="sendBar">
@@ -247,15 +283,20 @@ main{padding-bottom:calc(env(safe-area-inset-bottom) + 190px)}
 </div>
 
 <div class="view" id="view" role="dialog" aria-label="One picture">
-  <div class="top"><button class="back" id="vBack"></button><span class="n" id="vN"></span></div>
-  <div class="pic" id="vPic"></div>
-  <div class="info"><span class="t" id="vT"></span><span class="m" id="vM"></span><div class="tags" id="vTags"></div></div>
-  <div class="acts"><button class="light" id="vShare">Share</button><button class="light small" id="vDel">Delete</button></div>
-  <div class="hint">Swipe for the next · cropping and boards happen on the Mac</div>
+  <div class="stage" id="vStage"><div class="vpic" id="vPic"></div></div>
+  <div class="chrome top"><button class="round" id="vBack" aria-label="Back to the feed"><svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><path d="M2 2l10 10M12 2L2 12" stroke="#141414" stroke-width="1.6" stroke-linecap="round"/></svg></button><span class="n" id="vN"></span></div>
+  <div class="chrome bot">
+    <span class="m" id="vM"></span>
+    <div class="acts">
+      <button class="act" id="vShare"><span class="round"><svg width="17" height="19" viewBox="0 0 20 24" fill="none" stroke="#141414" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 15V2M5.5 6.5L10 2l4.5 4.5"/><path d="M6 10H3.5v12h13V10H14"/></svg></span>Share</button>
+      <button class="act" id="vMove"><span class="round"><svg width="18" height="16" viewBox="0 0 24 20" fill="none" stroke="#141414" stroke-width="1.7" stroke-linejoin="round" aria-hidden="true"><path d="M2 4.5A2.5 2.5 0 014.5 2H9l2.5 3h8A2.5 2.5 0 0122 7.5v8a2.5 2.5 0 01-2.5 2.5h-15A2.5 2.5 0 012 15.5z"/><path d="M9 11.5h7M13.5 8.5l3 3-3 3" stroke-linecap="round"/></svg></span>Move</button>
+      <button class="act" id="vDel"><span class="round"><svg width="16" height="18" viewBox="0 0 20 22" fill="none" stroke="#141414" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M2 5h16M7 5V2.5h6V5M4 5l1 14.5h10L16 5"/></svg></span>Delete</button>
+    </div>
+  </div>
 </div>
 
 <div class="veil" id="veil"></div>
-<div class="g sheet" id="projSheet" role="dialog" aria-label="Projects"><span class="cap">Your projects</span><h2>Pick a project</h2><div class="plist" id="plist"></div>
+<div class="g sheet" id="projSheet" role="dialog" aria-label="Projects"><span class="cap">Your projects</span><h2 id="projH">Pick a project</h2><div class="plist" id="plist"></div>
   <div class="newp"><input id="newProj" placeholder="A new project" autocomplete="off" autocapitalize="words"><button class="dark" id="newProjGo">Make it</button></div>
   <p class="small">Named the same as on your Mac, it goes straight into that project there.</p></div>
 <div class="g sheet" id="addSheet" role="dialog" aria-label="Keep for a project">

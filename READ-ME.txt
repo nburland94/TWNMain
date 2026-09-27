@@ -902,3 +902,31 @@ ROUND 28 — DESIGN: NINE NEW TEMPLATES (A AND B), TIDIER PANEL, OFF-PAGE WORKSP
     template, recent designs).
   • Dark mode: stronger lines and buttons in panels. Sign-in logo white.
   • The running line is just the director's name and the project.
+
+ROUND 29 — DESIGN STAYS PUT AND IS QUICKER; MOBILE VAULT AS A FEED
+  Design
+  • Coming back to Design keeps the design you had open, on the page you
+    were on. The welcome page shows only when nothing is open (first time
+    in, or after New design).
+  • New design (top left): saves this one, closes it, and takes you to the
+    welcome page — mood board, treatment, template, or a recent design.
+  • Save (top right, or ⌘S): saves right now and tells you where. It still
+    saves as you go. ⇧⌘S keeps a version.
+  • Quicker to open: the Designs list no longer reads every saved design
+    each time — only the ones changed since. Covers of template decks
+    show their sample picture.
+  Mobile Vault (the page at thiswasneeded.info/vault/)
+  • The home is now a feed: your grabs by day and project, newest first,
+    every picture its own shape — never cropped. A wide one leads; the rest
+    fall into two columns. An orange dot = not synced yet.
+  • All | <project> at the top: every project's grabs, or just this one.
+    The project pill still chooses where new grabs go.
+  • Open one: light, the picture as big as it goes. Tap to hide everything
+    but the picture; swipe sideways for the next, down to go back. Share,
+    Move (to another project) and Delete sit underneath.
+  • Still one way: the phone sends to the Mac; nothing comes back. A day
+    after a grab is synced, the phone keeps only its preview (sharp enough
+    to fill the screen) and lets the full file go — the original is on
+    your Mac and in Photos. Clips become their first frame then.
+  • Put the Website folder online again (How to put it online.txt) for the
+    phone to get it; the page updates itself the next time it opens.
