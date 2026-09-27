@@ -954,3 +954,16 @@ ROUND 30 — MOBILE VAULT, FROM THE MOCK-UPS
   • One picture: tap the line under it (or swipe up) for details —
     project with Move, tags, Share, Delete. Swipe down to put it away.
   • The QR reader is jsQR (Apache 2.0, licence beside it in vault/).
+
+ROUND 31 — NEEDED TOOLS: LIST VIEW, SQUARE HOME, FASTER HOME, SLIDER ON TEMPLATES
+  • Vault: Grid | List beside Stills/GIFs/Clips. The list is one row each —
+    a small picture, its title, where it's from, its colours, its tags.
+    Selecting, opening and dragging work the same. It remembers your pick.
+  • Home: pictures have square corners. The wall draws the first 48 straight
+    away and the rest as you scroll towards them (it holds your newest 300,
+    or 300 shuffled), so a big vault opens fast.
+  • Design: on template pages the stills slider is back at the bottom — slide
+    to add pictures to the page or take them off. ("All pages" stays off on
+    designed pages, so one slide can't refill the whole deck.)
+  • Design's quick bar has the Page button (from round 29c): blank page or a
+    designed page; on a mood board, a new page straight away.

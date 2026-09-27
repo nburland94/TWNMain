@@ -215,6 +215,22 @@ main{padding:0 3rem;max-width:1180px}
 .ref .tags span{font-family:var(--mono);font-size:9px;letter-spacing:0.06em;color:var(--mid);border:1px solid var(--hair);
   border-radius:100px;padding:1px 7px}
 
+/* The list: one row each — a small picture, its title and where it's from, its colours and tags. */
+.grid.list{display:flex;flex-direction:column;flex-wrap:nowrap;gap:0}
+.grid.list::after{display:none}
+.grid.list .ref{flex:none;max-width:none;width:100%;display:flex;align-items:center;gap:14px;border-radius:0;background:transparent;
+  padding:6px 4px;border-bottom:1px solid var(--hair);animation:none}
+@media (hover:hover){.grid.list .ref:hover{box-shadow:none;background:var(--accent-wash)}}
+.grid.list .ref .media{flex-shrink:0;width:84px;height:52px;aspect-ratio:auto;background:#e9d3c4}
+.grid.list .ref .kind{left:4px;top:4px}
+.grid.list .ref .body{display:grid;grid-template-columns:minmax(0,2.2fr) minmax(0,1.4fr) auto minmax(0,1fr);align-items:center;gap:16px;flex:1;min-width:0;padding:0}
+.grid.list .ref .s{margin-top:0}
+.grid.list .ref .pal{display:flex;gap:2px;height:auto;margin-top:0;border-radius:0}.grid.list .ref .pal span{flex:none;width:12px;height:12px;display:block}
+.grid.list .ref .tags{margin-top:0;flex-wrap:nowrap;overflow:hidden}
+.grid.list .ideacard .media{display:none}
+.grid.list .ref .ideatext{display:none}
+.grid.list.selecting .ref .tick{position:static;flex-shrink:0}
+
 /* ---- a reference, opened ---- */
 .itemwrap{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(280px,1fr);gap:1.6rem;width:min(1180px,100%);
   max-height:88vh;background:var(--bg);border:1px solid var(--hair);border-radius:12px;padding:1.2rem}
@@ -658,6 +674,7 @@ body.marqueeing{user-select:none;-webkit-user-select:none;cursor:crosshair}
       <input type="text" id="search" class="search" spellcheck="false" autocomplete="off" placeholder="Search titles, tags, labels, notes, ideas, channels">
       <div class="seg" id="scopeSeg"><button data-v="project" class="on" id="scopeProject">This project</button><button data-v="all">Entire vault</button></div>
       <div class="seg" id="kindSeg"><button data-v="all" class="on">All</button><button data-v="still">Stills</button><button data-v="gif">GIFs</button><button data-v="clip">Clips</button><button data-v="idea">Ideas</button></div>
+      <div class="seg" id="layoutSeg" title="Pictures, or a list — handy when the vault gets big"><button data-v="grid" class="on">Grid</button><button data-v="list">List</button></div>
       <button class="pill quiet" id="ideaBtn">New idea</button>
       <button class="pill quiet" id="selectBtn">Select</button>
       <button class="pill quiet" id="openFolderBtn">Open folder</button>
@@ -1158,6 +1175,15 @@ body.marqueeing{user-select:none;-webkit-user-select:none;cursor:crosshair}
     b.classList.toggle('on', chosen.has(a));
     b.setAttribute('aria-pressed', chosen.has(a));
     refresh();
+  });
+  // Grid or list — remembered.
+  let gridLayout = (() => { try { return localStorage.getItem('vault.layout') || 'grid'; } catch (e) { return 'grid'; } })();
+  $('layoutSeg').querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.v === gridLayout));
+  $('layoutSeg').addEventListener('click', e => {
+    const b = e.target.closest('button'); if (!b) return;
+    gridLayout = b.dataset.v; try { localStorage.setItem('vault.layout', gridLayout); } catch (x) {}
+    $('layoutSeg').querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b));
+    renderVault();
   });
   function segment(id, set) {
     $(id).addEventListener('click', e => {
@@ -2447,6 +2473,7 @@ body.marqueeing{user-select:none;-webkit-user-select:none;cursor:crosshair}
         .some(x => String(x || '').toLowerCase().includes(q));
     });
     $('grid').classList.toggle('selecting', selecting);
+    $('grid').classList.toggle('list', gridLayout === 'list');
     $('grid').classList.remove('settled'); clearTimeout(renderVault.t);
     renderVault.t = setTimeout(() => $('grid').classList.add('settled'), 900);   // never left invisible
     $('grid').innerHTML = list.map((it, i) => `

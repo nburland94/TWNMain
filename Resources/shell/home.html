@@ -131,11 +131,11 @@ main{position:relative;height:100vh;display:grid;grid-template-columns:minmax(0,
 .colours button:active{transform:scale(0.92)}
 @media (hover:hover) and (pointer:fine){.colours button:hover{transform:scale(1.12)}}
 .colours .clear{width:auto;height:auto;border:none;background:none;border-radius:0;font-size:12px;color:#6b6964;padding:2px 4px;margin-left:4px}
-.wall{flex-grow:1;min-height:0;display:flex;flex-direction:column;gap:4px;overflow-y:auto;overflow-x:hidden;border-radius:14px;scrollbar-width:none}
+.wall{flex-grow:1;min-height:0;display:flex;flex-direction:column;gap:4px;overflow-y:auto;overflow-x:hidden;border-radius:0;scrollbar-width:none}
 .wall::-webkit-scrollbar{display:none}
 .wall[hidden]{display:none}
 .row{display:flex;gap:4px;flex-shrink:0}
-.shot{position:relative;border:none;padding:0;border-radius:8px;overflow:hidden;background:#e9d3c4;cursor:pointer;
+.shot{position:relative;border:none;padding:0;border-radius:0;overflow:hidden;background:#e9d3c4;cursor:pointer;
   transition:transform .3s var(--ease-out)}
 .shot img{display:block;width:100%;height:100%;object-fit:cover}
 @media (hover:hover) and (pointer:fine){.shot:hover{transform:scale(1.015)}}
@@ -778,8 +778,18 @@ main{position:relative;height:100vh;display:grid;grid-template-columns:minmax(0,
       if (h <= target) { rows.push({ row, h }); row = []; sum = 0; }
     }
     if (row.length) rows.push({ row, h: Math.min(target, (W - gap * (row.length - 1)) / sum) });
-    let html = '', n = 0;
-    for (const r of rows) {
+    // Drawn a batch at a time: the first screens straight away, the rest as you scroll towards them.
+    wallRows = rows; wallAt = 0; wallN = 0;
+    wall.innerHTML = '';
+    moreWall();
+  }
+  const BATCH = 48;
+  let wallRows = [], wallAt = 0, wallN = 0;
+  function moreWall() {
+    const wall = $('wall');
+    let html = '', n = wallN, drawn = 0;
+    while (wallAt < wallRows.length && drawn < BATCH) {
+      const r = wallRows[wallAt++]; drawn += r.row.length;
       html += `<div class="row" style="height:${r.h.toFixed(1)}px">` + r.row.map(({ it, a }) => {
         const badge = it.kind === 'gif' ? '<span class="badge">GIF</span>'
           : it.kind === 'clip' ? '<span class="badge play"><svg width="9" height="9" viewBox="0 0 10 10" aria-hidden="true"><path d="M2 1l7 4-7 4z" fill="#fff"/></svg></span>' : '';
@@ -789,9 +799,16 @@ main{position:relative;height:100vh;display:grid;grid-template-columns:minmax(0,
         return `<button class="shot" draggable="true" data-id="${esc(it.id)}" style="width:${(a * r.h).toFixed(1)}px;animation-delay:${Math.min(n++, 14) * 30}ms">${pic}${badge}</button>`;
       }).join('') + '</div>';
     }
-    wall.innerHTML = html;
-    wall.querySelectorAll('video[data-src]').forEach(v => seen.observe(v));
+    wallN = n;
+    if (!html) return;
+    wall.insertAdjacentHTML('beforeend', html);
+    wall.querySelectorAll('video[data-src]:not([data-seen])').forEach(v => { v.dataset.seen = '1'; seen.observe(v); });
+    if (wallAt < wallRows.length && wall.scrollHeight <= wall.clientHeight + 600) requestAnimationFrame(moreWall);   // fill the first screens
   }
+  $('wall').addEventListener('scroll', () => {
+    const w = $('wall');
+    if (wallAt < wallRows.length && w.scrollTop + w.clientHeight > w.scrollHeight - 900) moreWall();
+  }, { passive: true });
   // Clips play while they're on screen, and stop when they scroll away — a big vault stays smooth.
   const seen = new IntersectionObserver(entries => {
     for (const e of entries) {
