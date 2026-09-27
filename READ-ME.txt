@@ -967,3 +967,20 @@ ROUND 31 — NEEDED TOOLS: LIST VIEW, SQUARE HOME, FASTER HOME, SLIDER ON TEMPLA
     designed pages, so one slide can't refill the whole deck.)
   • Design's quick bar has the Page button (from round 29c): blank page or a
     designed page; on a mood board, a new page straight away.
+
+ROUND 32 — PHONE GRABS FILE THEMSELVES; PROJECTS REACH THE PHONE ON THEIR OWN
+  • The Mac watches Photos while Needed Tools is open. When iCloud brings in
+    something you synced from the phone, it's filed into its project a few
+    seconds later — tagged, once — with the usual notification. Sync on the
+    Mac is now the backup. (It needs Photos allowed: the first Sync asks.)
+  • Your projects reach the phone by themselves. The QR code in Home › Your
+    phone now carries a pairing key after the # (a part browsers never send
+    anywhere). The Mac leaves its project list at thiswasneeded.info/api/pair,
+    scrambled with that key; Mobile Vault picks it up whenever it opens, comes
+    back on screen, or you press Sync. New ones are marked NEW. The website
+    only ever holds gibberish — no photos, no project names it can read.
+  • Scan ONCE, inside the Home Screen app (Menu › Pair): iPhone keeps a Home
+    Screen app's storage apart from Safari's.
+  • The relay needs the site linked to GitHub on Netlify, once — the steps
+    are in Website/How to put it online.txt. After that, every push updates
+    the site on its own.

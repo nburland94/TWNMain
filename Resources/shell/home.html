@@ -531,11 +531,11 @@ main{position:relative;height:100vh;display:grid;grid-template-columns:minmax(0,
         <ol>
           <li><b>Point your iPhone's camera here</b> and open the link.</li>
           <li>It shows you how to put it on your <b>Home Screen</b> — then it's an app, and works with no signal at all.</li>
-          <li>Capture anywhere. Tap <b>Sync</b> on the phone — it saves to Photos, and iCloud brings it here. Press <b>Sync</b> on this Mac: each goes into its project, tagged, once.</li>
+          <li>Capture anywhere. Tap <b>Sync</b> on the phone — it saves to Photos, and iCloud brings it here. While Needed Tools is open, each is filed into its project by itself, tagged, once. <b>Sync</b> here is the backup.</li>
         </ol></div>
       <div class="facts">
         <div><span>Where it lives</span><span class="mono">${esc((s.vaultURL || '').replace(/^https:\/\//, ''))}</span></div>
-        <div><span>New projects?</span><span>Scan again — the code brings them across</span></div>
+        <div><span>New projects?</span><span>They reach your phone by themselves — scan once, from the Home Screen app</span></div>
         <div><span>Bring them in from Photos</span><span>${s.photosAccess === 'denied' && s.photos ? '<button id="photosInbox">Allow in System Settings</button>' : `<button class="tog${s.photos ? ' on' : ''}" id="photosInbox" role="switch" aria-checked="${!!s.photos}" aria-label="Bring them in from Photos"></button>`}</span></div>
         <div><span>Sort Photos into Needed Vault › project albums</span><span><button class="tog${s.albums ? ' on' : ''}" id="photosAlbums" role="switch" aria-checked="${!!s.albums}" aria-label="Sort into albums"></button></span></div>
       </div>

@@ -8,7 +8,20 @@ What's here
   _headers                     tells Netlify not to hold on to old copies of the phone page
   _redirects                   sends /Vault, /mobile-vault and similar to /vault/
 
-Put it online (Netlify)
+Put it online (Netlify) — ONCE: link it to GitHub (needed from round 32)
+  Your projects now reach your phone by themselves through a tiny "relay" on the site
+  (Website/netlify/functions/pair.mjs). Netlify only runs that when the site is built from
+  your GitHub repo — a drag-and-drop deploy doesn't include it. One time:
+  1. Netlify › the thiswasneeded.info site › Site configuration › Build & deploy ›
+     Link repository › GitHub › nburland94/TWNMain (allow Netlify access if it asks).
+  2. Branch to deploy: the branch Claude pushes to (or main once it's merged).
+     Base directory: Website   Build command: (leave empty)   Publish directory: Website
+     (Website/netlify.toml fills in the rest, and package.json brings the storage it uses.)
+  3. Deploy. From then on every push updates the site on its own — no more dragging folders.
+  Check: open https://thiswasneeded.info/api/pair?id=0000000000000000 — it should say
+  {"error":"not yet"}. That means the relay is live.
+
+Or, the old way (Netlify drag and drop) — works, but new projects won't reach the phone
   1. Unzip. Open the folder: you should see index.html, vault, assets, _headers, _redirects
      right there at the top. Drag THAT folder (the one those sit in) onto
      Netlify › the site thiswasneeded.info uses › Deploys › the drop area.

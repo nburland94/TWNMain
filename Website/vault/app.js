@@ -35,6 +35,33 @@
   }
   // The link the page was opened with (the Home Screen keeps it) counts once — a later scan isn't undone by it.
   if (fromLink(params).length && get('linkSeen', '') !== params.get('p')) { put('linkSeen', params.get('p')); takeMac(fromLink(params), params.get('m') || ''); }
+  // The pairing key rides after the # in your Mac's QR code (never sent to the website). With it, the phone
+  // fetches your Mac's project list — scrambled on the Mac, unscrambled only here — whenever it opens or syncs.
+  function takeKey(hash) { var m = /[#&]k=([A-Za-z0-9_-]{16,64})\.([A-Za-z0-9_-]{40,64})/.exec(hash || ''); if (m) { put('pairId', m[1]); put('pairKey', m[2]); return true; } return false; }
+  takeKey(location.hash);
+  var b64u = function (s) { s = s.replace(/-/g, '+').replace(/_/g, '/'); while (s.length % 4) s += '='; var b = atob(s), a = new Uint8Array(b.length); for (var i = 0; i < b.length; i++) a[i] = b.charCodeAt(i); return a; };
+  var pulling = null;
+  function pull() {
+    var id = get('pairId', ''), k = get('pairKey', '');
+    if (!id || !k || !window.crypto || !crypto.subtle || !navigator.onLine) return Promise.resolve(false);
+    if (pulling) return pulling;
+    pulling = fetch('/api/pair?id=' + encodeURIComponent(id), { cache: 'no-store' }).then(function (r) { return r.ok ? r.json() : null; }).then(function (j) {
+      if (!j || !j.box) return false;
+      var box = b64u(j.box);
+      return crypto.subtle.importKey('raw', b64u(k), 'AES-GCM', false, ['decrypt']).then(function (key) {
+        return crypto.subtle.decrypt({ name: 'AES-GCM', iv: box.slice(0, 12) }, key, box.slice(12));
+      }).then(function (plain) {
+        var o = JSON.parse(new TextDecoder().decode(plain));
+        if (!o || !Array.isArray(o.projects)) return false;
+        var fresh = takeMac(o.projects.filter(Boolean), o.mac || '');
+        put('pulledAt', Date.now()); MAC = get('mac', 'your Mac');
+        if (fresh.length) toast(fresh.length === 1 ? 'New from ' + MAC + ': ' + fresh[0] : fresh.length + ' new projects from ' + MAC);
+        draw();
+        return true;
+      });
+    }).catch(function () { return false; }).then(function (x) { pulling = null; return x; });
+    return pulling;
+  }
   var MAC = get('mac', 'your Mac');
   function projects() {
     var mine = get('projects', []), all = [];
@@ -163,10 +190,11 @@
     S.items.forEach(function (it) { if (ps.indexOf(it.project) < 0) ps.push(it.project); });
     return ps;
   }
+  function ago(t) { var m = Math.round((Date.now() - t) / 60000); return m < 1 ? 'just now' : m < 60 ? m + ' min ago' : m < 1440 ? Math.round(m / 60) + ' h ago' : new Date(t).toLocaleDateString(undefined, { day: 'numeric', month: 'short' }); }
   function drawProws() {
-    var at = get('macAt', 0), fresh = get('newProjects', []);
+    var at = get('pulledAt', 0) || get('macAt', 0), fresh = get('newProjects', []);
     $('pairLine').className = 'pairline' + (at ? '' : ' none');
-    $('pairLine').innerHTML = at ? '● ' + esc(MAC) + ' · paired ' + esc(new Date(at).toLocaleDateString(undefined, { day: 'numeric', month: 'short' })) + '<button id="plUpdate">Update projects</button>'
+    $('pairLine').innerHTML = at ? '● ' + esc(MAC) + ' · ' + (get('pairKey', '') ? 'up to date ' + esc(ago(at)) : 'paired ' + esc(new Date(at).toLocaleDateString(undefined, { day: 'numeric', month: 'short' }))) + '<button id="plUpdate">' + (get('pairKey', '') ? 'Scan again' : 'Update projects') + '</button>'
       : 'Not paired yet<button id="plUpdate">Pair with your Mac</button>';
     $('prows').innerHTML = allProjects().map(function (p) {
       var mine = S.items.filter(function (it) { return it.project === p; }), w = mine.filter(function (it) { return !it.sent; }).length;
@@ -395,6 +423,7 @@
     return 'NV ~ ' + cleanName(it.project) + ' ~ ' + tags + ' ~ ' + cleanName(stem) + ' ~ ' + it.id + '.' + ext;
   }
   function syncItems(w) {
+    pull();
     if (!w.length) return;
     if (!navigator.share || !window.File) return sheet('sendSheet', true);
     var files = w.map(function (it) { return new File([it.blob], shareName(it), { type: it.type || it.blob.type || 'application/octet-stream' }); });
@@ -548,6 +577,7 @@
     if (!list.length) { pairStat('That’s not the code from Needed Tools — Home › Your phone', true); scan.t = setTimeout(tick, 900); return; }
     stopScan();
     if (navigator.vibrate) navigator.vibrate(30);
+    try { takeKey(new URL(text, location.href).hash); } catch (e) {}
     showPaired(takeMac(list, q.get('m') || ''));
   }
   function showPaired(fresh) {
@@ -555,6 +585,7 @@
     var list = get('macProjects', []);
     $('pairH').textContent = 'Paired with ' + MAC;
     $('pairN').textContent = list.length + ' project' + (list.length === 1 ? '' : 's') + ' · up to date just now';
+    $('pairDone').querySelector('p').textContent = get('pairKey', '') ? 'New projects on your Mac come across by themselves — whenever this opens, or you Sync.' : 'Made a new project on your Mac? Scan again and it comes across.';
     var ordered = fresh.concat(list.filter(function (p) { return fresh.indexOf(p) < 0; }));
     $('pairList').innerHTML = ordered.slice(0, 8).map(function (p) { var n = S.items.filter(function (it) { return it.project === p; }).length; return '<div>' + esc(p) + (fresh.indexOf(p) >= 0 ? '<b>NEW</b>' : '') + '<small>' + (n ? n + ' here' : '—') + '</small></div>'; }).join('')
       + (ordered.length > 8 ? '<div style="font-size:13px;color:var(--soft)">+ ' + (ordered.length - 8) + ' more</div>' : '');
@@ -591,7 +622,9 @@
 
   if (S.project) keepProject(S.project);
   showInstall(false);
-  open().then(refresh).catch(function (e) { toast('This browser can’t keep files here: ' + (e && e.message || e), 6000); draw(); });
+  addEventListener('visibilitychange', function () { if (document.visibilityState === 'visible') pull(); });
+  addEventListener('online', function () { pull(); });
+  open().then(refresh).then(pull).catch(function (e) { toast('This browser can’t keep files here: ' + (e && e.message || e), 6000); draw(); });
   window.__nv = { S: S, refresh: refresh };
   window.__nvReady = true;
 })();

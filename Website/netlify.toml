@@ -1,0 +1,4 @@
+# Netlify, linked to the GitHub repo: this folder is the site; the pairing relay is a function.
+[build]
+  publish = "."
+  functions = "netlify/functions"

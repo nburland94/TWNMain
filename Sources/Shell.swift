@@ -356,6 +356,11 @@ final class Shell: NSObject, NSApplicationDelegate, NSWindowDelegate, WKScriptMe
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         Shell.shared = self
+        // Once the window's up: your projects to the phone, and phone grabs filed as Photos gets them.
+        DispatchQueue.main.asyncAfter(deadline: .now() + 4) { [weak self] in
+            PairRelay.start()
+            PhotosWatcher.shared.start { self?.autoSyncFromPhotos() }
+        }
         buildMenu()
 
         window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 1440, height: 920),
@@ -776,6 +781,13 @@ final class Shell: NSObject, NSApplicationDelegate, NSWindowDelegate, WKScriptMe
     // MARK: Sync: rescan the project you're in, then bring every tool up to date
 
     private var syncWaiting: [(Any?, String?) -> Void] = []
+    /// A phone grab arrived in Photos: Sync by itself — at most once a minute, never over one already running.
+    private var lastAutoSync = Date.distantPast
+    func autoSyncFromPhotos() {
+        guard Shared.vault != nil, !vaultHost.syncing, Date().timeIntervalSince(lastAutoSync) > 60 else { return }
+        lastAutoSync = Date()
+        sync { _, _ in }
+    }
     private var paletteVault = ""
     private func sync(_ reply: @escaping (Any?, String?) -> Void) {
         guard Shared.vault != nil else { return reply(["ok": false, "error": "Choose your vault first"], nil) }
@@ -821,6 +833,8 @@ final class Shell: NSObject, NSApplicationDelegate, NSWindowDelegate, WKScriptMe
             }
             let waiting = self.syncWaiting; self.syncWaiting = []
             for r in waiting { r(result, nil) }
+            PhotosWatcher.shared.start { [weak self] in self?.autoSyncFromPhotos() }   // Photos may have just been allowed
+            PairRelay.push()
         })
     }
 

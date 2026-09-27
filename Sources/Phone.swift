@@ -600,6 +600,7 @@ enum PhoneDrops {
             if len + e.count > 300 { break }                      // a QR a phone can still read at a glance
             list.append(e); len += e.count + 1
         }
-        return pageURL + "?p=" + list.joined(separator: "|") + "&m=" + enc(mac)
+        // After the #: the pairing key, so new projects reach the phone without scanning again (Pair.swift).
+        return pageURL + "?p=" + list.joined(separator: "|") + "&m=" + enc(mac) + PairRelay.fragment
     }
 }

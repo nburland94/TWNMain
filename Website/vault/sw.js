@@ -1,6 +1,6 @@
 // Needed Vault keeps itself on the phone: after the first visit it opens with no signal.
 // Only the page lives here — your photos stay in the phone's own storage, never on the website.
-const CACHE = 'needed-vault-r30';
+const CACHE = 'needed-vault-r32';
 const SHELL = ['./', 'index.html', 'app.js', 'manifest.webmanifest', 'mark.png', 'icon-180.png', 'icon-192.png', 'icon-512.png', 'jsQR.js',
   'fonts/raleway-latin-200-normal.woff2', 'fonts/raleway-latin-300-normal.woff2', 'fonts/raleway-latin-400-normal.woff2',
   'fonts/raleway-latin-500-normal.woff2', 'fonts/oswald-latin-400-normal.woff2',
@@ -12,6 +12,7 @@ self.addEventListener('activate', e => {
 // The copy on the phone straight away; a fresh one fetched behind it for next time.
 self.addEventListener('fetch', e => {
   if (e.request.method !== 'GET' || new URL(e.request.url).origin !== location.origin) return;
+  if (new URL(e.request.url).pathname.startsWith('/api/')) return;     // the pairing relay: always fresh, never kept
   // The page and its script: fresh when there's signal, the saved copy when there isn't.
   if (e.request.mode === 'navigate' || /\/(app\.js|index\.html)?$/.test(new URL(e.request.url).pathname)) {
     e.respondWith(fetch(e.request).then(r => { if (r && r.ok) { const copy = r.clone(); caches.open(CACHE).then(c => c.put(e.request.url.split('?')[0], copy)); } return r; })

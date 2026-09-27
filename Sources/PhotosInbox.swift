@@ -132,6 +132,24 @@ enum PhotosInbox {
         return (out, twice, note)
     }
 
+    /// Any phone grabs in Photos not filed yet? A quick look at what's come in lately — for filing them as they arrive.
+    static func hasNew(base: URL) -> Bool {
+        guard on, status == "allowed" else { return false }
+        let looked = loadAssets(base)
+        let since = Date().addingTimeInterval(-3 * 86400) as NSDate
+        let opts = PHFetchOptions()
+        opts.predicate = NSPredicate(format: "(creationDate > %@ OR modificationDate > %@) AND (mediaType == %d OR mediaType == %d)",
+                                     since, since, PHAssetMediaType.image.rawValue, PHAssetMediaType.video.rawValue)
+        opts.sortDescriptors = [NSSortDescriptor(key: "modificationDate", ascending: false)]
+        opts.fetchLimit = 400
+        var hit = false
+        PHAsset.fetchAssets(with: opts).enumerateObjects { a, _, stop in
+            if looked.contains(a.localIdentifier) { return }
+            if PHAssetResource.assetResources(for: a).contains(where: { $0.originalFilename.hasPrefix("NV ~ ") }) { hit = true; stop.pointee = true }
+        }
+        return hit
+    }
+
     // MARK: Photos › Needed Vault › <project>
 
     private static func folder() -> PHCollectionList? {
@@ -171,5 +189,39 @@ enum PhotosInbox {
                 PHAssetCollectionChangeRequest(for: a)?.addAssets(assets as NSArray)
             }
         }
+    }
+}
+
+/// Watches Photos while Needed Tools is open: when iCloud brings a phone grab in, it's filed
+/// into its project straight away — no need to press Sync (which stays, as a backup).
+final class PhotosWatcher: NSObject, PHPhotoLibraryChangeObserver {
+    static let shared = PhotosWatcher()
+    private var onNew: (() -> Void)?
+    private var registered = false
+    private var pending: DispatchWorkItem?
+
+    /// Safe to call often: it starts watching once Photos access is there (the first Sync asks for it).
+    func start(_ onNew: @escaping () -> Void) {
+        self.onNew = onNew
+        guard !registered, PhotosInbox.on, PhotosInbox.status == "allowed" else { return }
+        registered = true
+        PHPhotoLibrary.shared().register(self)
+        check()                                    // anything that came in while the app was closed
+    }
+    func photoLibraryDidChange(_ changeInstance: PHChange) {
+        DispatchQueue.main.async { self.check() }
+    }
+    /// A few seconds after Photos settles (iCloud brings things in bursts), look once.
+    private func check() {
+        pending?.cancel()
+        let w = DispatchWorkItem { [weak self] in
+            guard let base = Shared.vault, PhotosInbox.on else { return }
+            DispatchQueue.global(qos: .utility).async {
+                let has = PhotosInbox.hasNew(base: base)
+                DispatchQueue.main.async { if has { self?.onNew?() } }
+            }
+        }
+        pending = w
+        DispatchQueue.main.asyncAfter(deadline: .now() + 6, execute: w)
     }
 }
