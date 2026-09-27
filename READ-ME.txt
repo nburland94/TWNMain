@@ -935,3 +935,22 @@ ROUND 29 — DESIGN STAYS PUT AND IS QUICKER; MOBILE VAULT AS A FEED
     the Mac's main thread, so a slow disk or an iCloud vault can't freeze
     the window (the pinwheel). Pictures were already read that way.
   • It saves only when something actually changed, a moment after you stop.
+
+ROUND 30 — MOBILE VAULT, FROM THE MOCK-UPS
+  (the page at thiswasneeded.info/vault/ — put the Website folder online again)
+  • Days | Projects at the top. Days: your grabs by day, pictures square-
+    cornered, never cropped. Projects: each project a row of its latest
+    grabs — tap its name to see just that project, a picture to open it.
+    Projects new from your Mac say NEW.
+  • Grab & Go on: the whole screen becomes one big orange camera button,
+    "Grabbing into Lexus" with your projects as chips to switch, From
+    Photos under it, and what you just grabbed with Sync below.
+  • Adding without Grab & Go: your recent tags are one-tap chips.
+  • Pair with your Mac (menu, or Projects › Update projects): the page
+    opens the camera and reads the QR code in Needed Tools › Home › Your
+    phone. Your projects come across; the new ones are marked. The phone
+    keeps them — opening it from the Home Screen no longer undoes a newer
+    scan. Only project names come across, never pictures.
+  • One picture: tap the line under it (or swipe up) for details —
+    project with Move, tags, Share, Delete. Swipe down to put it away.
+  • The QR reader is jsQR (Apache 2.0, licence beside it in vault/).

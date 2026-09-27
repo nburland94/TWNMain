@@ -21,9 +21,20 @@
   var INAPP = /FBAN|FBAV|Instagram|Line\/|GSA\//.test(ua);     // a browser inside another app: no Add to Home Screen there
 
   /* ---- projects: from your Mac's QR code (?p=Lexus|Nike&m=Studio), plus any you type here */
+  // Kept on the phone, so they're still here when it's opened from the Home Screen; a scan brings them up to date.
   var params = new URLSearchParams(location.search);
-  var fromMac = (params.get('p') || '').split('|').map(function (s) { return s.trim(); }).filter(Boolean);
-  if (params.get('m')) put('mac', params.get('m'));
+  function fromLink(q) { return (q.get('p') || '').split('|').map(function (s) { return s.trim(); }).filter(Boolean); }
+  var fromMac = get('macProjects', []);
+  function takeMac(list, mac) {
+    if (!list.length) return [];
+    var before = get('macProjects', []), fresh = before.length ? list.filter(function (p) { return before.indexOf(p) < 0; }) : [];
+    fromMac = list; put('macProjects', list); put('macAt', Date.now());
+    if (mac) put('mac', mac);
+    put('newProjects', fresh.concat(get('newProjects', []).filter(function (p) { return list.indexOf(p) >= 0 && fresh.indexOf(p) < 0; })).slice(0, 20));
+    return fresh;
+  }
+  // The link the page was opened with (the Home Screen keeps it) counts once — a later scan isn't undone by it.
+  if (fromLink(params).length && get('linkSeen', '') !== params.get('p')) { put('linkSeen', params.get('p')); takeMac(fromLink(params), params.get('m') || ''); }
   var MAC = get('mac', 'your Mac');
   function projects() {
     var mine = get('projects', []), all = [];
@@ -31,7 +42,7 @@
     return all;
   }
   function keepProject(p) { var mine = get('projects', []); if (mine.indexOf(p) < 0 && fromMac.indexOf(p) < 0) { mine.unshift(p); put('projects', mine.slice(0, 60)); } }
-  var S = { project: get('project', '') || fromMac[0] || '', kind: 'all', q: '', grabGo: get('grabGo', ''), scope: get('scope', 'all'), items: [] };
+  var S = { project: get('project', '') || fromMac[0] || '', kind: 'all', q: '', grabGo: get('grabGo', ''), view: get('view', 'days'), only: '', items: [] };
 
   /* ---- the phone's own store */
   var db = null;
@@ -84,7 +95,7 @@
   function listNow() {
     var s = S.q.trim().toLowerCase();
     return S.items.filter(function (it) {
-      if (S.scope !== 'all' && it.project !== S.project) return false;
+      if (S.only && it.project !== S.only) return false;
       if (S.kind !== 'all' && it.kind !== S.kind) return false;
       return !s || (it.name + ' ' + it.project + ' ' + (it.tags || []).join(' ')).toLowerCase().indexOf(s) >= 0;
     });
@@ -146,19 +157,54 @@
     $('sendWhere').textContent = ps.length === 1 ? 'All for ' + ps[0] : ps.length + ' projects';
     $('sendGo').textContent = n > BATCH ? 'Sync ' + BATCH : 'Sync';
   }
+  // Projects: each one's latest grabs in a row — your Mac's projects first, then any made here.
+  function allProjects() {
+    var ps = projects();
+    S.items.forEach(function (it) { if (ps.indexOf(it.project) < 0) ps.push(it.project); });
+    return ps;
+  }
+  function drawProws() {
+    var at = get('macAt', 0), fresh = get('newProjects', []);
+    $('pairLine').className = 'pairline' + (at ? '' : ' none');
+    $('pairLine').innerHTML = at ? '● ' + esc(MAC) + ' · paired ' + esc(new Date(at).toLocaleDateString(undefined, { day: 'numeric', month: 'short' })) + '<button id="plUpdate">Update projects</button>'
+      : 'Not paired yet<button id="plUpdate">Pair with your Mac</button>';
+    $('prows').innerHTML = allProjects().map(function (p) {
+      var mine = S.items.filter(function (it) { return it.project === p; }), w = mine.filter(function (it) { return !it.sent; }).length;
+      return '<div class="prow1' + (mine.length ? '' : ' empty') + '"><button class="prowh" data-only="' + esc(p) + '"><span class="n">' + esc(p) + '</span>'
+        + (mine.length ? '<span class="c">' + mine.length + '</span>' : '<span class="c">nothing yet</span>') + (w ? '<span class="c wait">' + w + ' TO SYNC</span>' : '')
+        + (fresh.indexOf(p) >= 0 ? '<span class="new">NEW</span>' : '') + (S.grabGo === p ? '<span class="gg2">GRAB &amp; GO</span>' : '') + '</button>'
+        + (mine.length ? '<div class="pstrip">' + mine.slice(0, 10).map(function (it, k) {
+          var src = picURL(it), a = Math.min(2.4, Math.max(0.5, it.a || 1.4));
+          return '<button data-pv="' + esc(p) + '" data-i="' + k + '" style="width:' + Math.round(150 * a) + 'px" aria-label="' + esc(it.name) + '">' + (src ? '<img alt="" loading="lazy" src="' + esc(src) + '">' : '') + (it.sent ? '' : '<span class="dot"></span>') + '</button>';
+        }).join('') + '</div>' : '') + '</div>';
+    }).join('') || '<div class="empty">No projects yet. <b>Pair with your Mac</b> to bring yours across — or make one with the project button up top.</div>';
+  }
+  // Grab & Go on: one big button, straight in.
+  function drawCapture() {
+    var p = S.grabGo, today = new Date().toDateString();
+    $('capName').textContent = p;
+    $('capChips').innerHTML = allProjects().map(function (x) { return '<button class="chip' + (x === p ? ' on' : '') + '" data-gg="' + esc(x) + '">' + esc(x) + '</button>'; }).join('');
+    var now = S.items.filter(function (it) { return it.project === p && new Date(it.at).toDateString() === today; }), w = now.filter(function (it) { return !it.sent; }).length;
+    $('capRecent').classList.toggle('off', !now.length);
+    $('capWait').textContent = w ? w + ' to sync' : 'all synced';
+    $('capStrip').innerHTML = now.slice(0, 12).map(function (it, k) { var src = picURL(it); return '<button data-cap="' + k + '" style="width:' + Math.round(64 * Math.min(2.4, Math.max(0.5, it.a || 1.4))) + 'px" aria-label="' + esc(it.name) + '">' + (src ? '<img alt="" src="' + esc(src) + '">' : '') + '</button>'; }).join('');
+  }
   function draw() {
     var on = !!S.grabGo;
     $('pillName').textContent = (on ? S.grabGo : S.project) || 'Projects';
     $('gg').classList.toggle('on', on); $('gg').setAttribute('aria-pressed', on); $('ggWrap').classList.toggle('on', on);
-    $('ggLine').classList.toggle('off', !on);
-    $('ggLine').textContent = on ? 'Grab & Go — everything goes straight into ' + S.grabGo : '';
-    $('title').textContent = S.scope === 'all' ? 'Your grabs' : (S.project || 'Your grabs');
-    [].forEach.call(document.querySelectorAll('#scope [data-s]'), function (b) { b.classList.toggle('on', b.dataset.s === S.scope); });
-    $('scopeP').textContent = S.project || 'Project';
-    var mine = S.items.filter(function (it) { return S.scope === 'all' || it.project === S.project; });
-    $('count').textContent = mine.length ? mine.length + ' on this phone' : '';
+    document.body.classList.toggle('capturing', on);
+    $('home').classList.toggle('off', on); $('capture').classList.toggle('off', !on);
+    if (on) { drawCapture(); drawSend(); return; }
+    var days = S.view !== 'projects' || !!S.only;
+    $('title').textContent = S.only || (days ? 'Your grabs' : 'Projects');
+    $('viewSeg').classList.toggle('off', !!S.only); $('onlyBack').classList.toggle('off', !S.only);
+    [].forEach.call(document.querySelectorAll('#viewSeg [data-v]'), function (b) { b.classList.toggle('on', b.dataset.v === (days ? 'days' : 'projects')); });
+    $('daysBox').classList.toggle('off', !days); $('projBox').classList.toggle('off', days);
+    var mine = S.items.filter(function (it) { return !S.only || it.project === S.only; });
+    $('count').textContent = mine.length ? mine.length + ' here' : '';
     [].forEach.call(document.querySelectorAll('#chips [data-k]'), function (b) { b.classList.toggle('on', b.dataset.k === S.kind); });
-    drawFeed();
+    if (days) drawFeed(); else drawProws();
     drawSend();
   }
 
@@ -174,7 +220,7 @@
   /* ---- projects */
   var moving = null;                                            // a grab being moved to another project
   function drawProjects() {
-    var ps = projects();
+    var ps = allProjects();
     $('projH').textContent = moving ? 'Move it to' : 'Pick a project';
     $('plist').innerHTML = ps.map(function (p) {
       var n = S.items.filter(function (it) { return it.project === p; }).length;
@@ -190,7 +236,7 @@
   function moveTo(p) {
     var it = moving; moving = null; if (!it || it.project === p) return;
     keepProject(p); it.project = p;
-    save(it).then(function () { toast(it.sent ? 'Moved to ' + p + ' here — on your Mac it stays where it was filed' : 'Moved to ' + p); refresh().then(function () { var k = listNow().indexOf(S.items.filter(function (x) { return x.id === it.id; })[0]); if (k >= 0) openView(k); else closeView(); }); });
+    save(it).then(function () { toast(it.sent ? 'Moved to ' + p + ' here — on your Mac it stays where it was filed' : 'Moved to ' + p); refresh().then(function () { var k = vlist().indexOf(S.items.filter(function (x) { return x.id === it.id; })[0]); if (k >= 0) openView(k); else closeView(); }); });
   }
   $('plist').addEventListener('click', function (e) { var b = e.target.closest('[data-p]'); if (!b) return; sheet(null, false); if (moving) return moveTo(b.dataset.p); pickProject(b.dataset.p); });
   function cleanName(s) { return String(s || '').replace(/[~\/:|#]/g, '-').replace(/\s+/g, ' ').trim().slice(0, 80); }
@@ -216,16 +262,35 @@
     pending = files;
     $('addTitle').textContent = files.length === 1 ? 'One to keep' : files.length + ' to keep';
     $('addPics').innerHTML = files.slice(0, 30).map(function (f) { return /^image\//.test(f.type) ? '<span style="background-image:url(' + URL.createObjectURL(f) + ')"></span>' : '<span>clip</span>'; }).join('');
-    addTo = S.project; drawAddProjects(); $('addTags').value = ''; $('addNew').value = '';
+    addTo = S.project; drawAddProjects(); $('addTags').value = ''; $('addNew').value = ''; drawTagChips();
     sheet('addSheet', true);
   }
   $('pick').addEventListener('change', picked);
   $('shoot').addEventListener('change', picked);
   function drawAddProjects() {
-    $('addProjects').innerHTML = projects().map(function (p) { return '<button class="chip' + (p === addTo ? ' on' : '') + '" data-to="' + esc(p) + '">' + esc(p) + '</button>'; }).join('');
+    $('addProjects').innerHTML = allProjects().map(function (p) { return '<button class="chip' + (p === addTo ? ' on' : '') + '" data-to="' + esc(p) + '">' + esc(p) + '</button>'; }).join('');
     $('addGo').textContent = addTo ? 'Keep for ' + addTo : 'Pick a project';
     $('addGo').disabled = !addTo;
   }
+  // Your recent tags, one tap each.
+  function recentTags() {
+    var n = {}; S.items.slice(0, 200).forEach(function (it) { (it.tags || []).forEach(function (t) { n[t] = (n[t] || 0) + 1; }); });
+    return Object.keys(n).sort(function (a, b) { return n[b] - n[a]; }).slice(0, 10);
+  }
+  function typedTags() { return $('addTags').value.split(/[\s,#]+/).map(cleanName).filter(Boolean); }
+  function drawTagChips() {
+    var have = typedTags(), rec = recentTags();
+    $('addTagChips').innerHTML = rec.map(function (t) { return '<button class="chip' + (have.indexOf(t) >= 0 ? ' on' : '') + '" data-tag="' + esc(t) + '">#' + esc(t) + '</button>'; }).join('');
+    $('addTagChips').classList.toggle('off', !rec.length);
+    $('addTagChips').previousElementSibling.classList.toggle('off', !rec.length);
+  }
+  $('addTagChips').addEventListener('click', function (e) {
+    var b = e.target.closest('[data-tag]'); if (!b) return;
+    var t = b.dataset.tag, have = typedTags(), i = have.indexOf(t);
+    if (i >= 0) have.splice(i, 1); else have.push(t);
+    $('addTags').value = have.join(', '); drawTagChips();
+  });
+  $('addTags').addEventListener('input', drawTagChips);
   $('addProjects').addEventListener('click', function (e) { var b = e.target.closest('[data-to]'); if (b) { addTo = b.dataset.to; $('addNew').value = ''; drawAddProjects(); } });
   $('addNew').addEventListener('input', function () { var p = cleanName($('addNew').value); if (p) { addTo = p; } else addTo = S.project; drawAddProjects(); });
   $('addCancel').addEventListener('click', function () { pending = []; sheet(null, false); });
@@ -379,9 +444,10 @@
   $('mDone').addEventListener('click', function () { sheet(null, false); });
 
   /* ---- one picture: light, the picture as big as it goes, the rest out of its way */
-  var vi = -1, vurl = '';
+  var vi = -1, vurl = '', vsrc = listNow;
+  function vlist() { return vsrc(); }
   function openView(i) {
-    var list = listNow(), it = list[i]; if (!it) return; vi = i;
+    var list = vlist(), it = list[i]; if (!it) return; vi = i;
     var v = $('vPic').querySelector('video'); if (v) v.pause();
     if (vurl) { URL.revokeObjectURL(vurl); vurl = ''; }
     var full = it.blob && (it.kind !== 'still' || !it.pv || it.blob.size < 6e6);     // stills show the preview; clips and GIFs play while they're here
@@ -393,20 +459,28 @@
     $('vM').textContent = [it.project, d.toLocaleDateString(undefined, { day: 'numeric', month: 'short' }) + ' ' + ('0' + d.getHours()).slice(-2) + ':' + ('0' + d.getMinutes()).slice(-2),
       it.sent ? (it.blob ? 'synced' : 'on your Mac') : 'not synced yet'].join('  ·  ') + (it.kind === 'clip' && !it.blob ? '  ·  the clip is on your Mac' : '');
     $('vM').classList.toggle('wait', !it.sent);
+    $('viT').textContent = it.name.replace(/\.[^.]+$/, '');
+    $('viM').textContent = [it.kind === 'clip' ? 'Clip' : it.kind === 'gif' ? 'GIF' : 'Still', d.toLocaleDateString(undefined, { day: 'numeric', month: 'short' }), it.sent ? (it.blob ? 'synced' : 'on your Mac') : 'not synced yet'].join(' · ');
+    $('viP').textContent = it.project;
+    $('viTags').innerHTML = (it.tags || []).map(function (t) { return '<span class="chip">#' + esc(t) + '</span>'; }).join('');
     $('view').classList.add('on'); $('view').classList.remove('bare');
     document.body.classList.add('viewing');
   }
-  function closeView() { var v = $('vPic').querySelector('video'); if (v) v.pause(); $('view').classList.remove('on'); document.body.classList.remove('viewing'); }
-  $('feed').addEventListener('click', function (e) { var b = e.target.closest('.shot'); if (b) openView(+b.dataset.i); });
+  function closeView() { var v = $('vPic').querySelector('video'); if (v) v.pause(); $('view').classList.remove('on', 'info'); document.body.classList.remove('viewing'); }
+  $('feed').addEventListener('click', function (e) { var b = e.target.closest('.shot'); if (b) { vsrc = listNow; openView(+b.dataset.i); } });
+  $('vM').addEventListener('click', function () { $('view').classList.add('info'); });
+  $('viMove').addEventListener('click', function () { $('vMove').click(); });
+  $('viShare').addEventListener('click', function () { $('vShare').click(); });
+  $('viDel').addEventListener('click', function () { $('vDel').click(); });
   $('vBack').addEventListener('click', closeView);
   $('vDel').addEventListener('click', function () {
-    var it = listNow()[vi]; if (!it) return;
+    var it = vlist()[vi]; if (!it) return;
     if (!confirm(it.sent ? 'Take it off this phone? It stays in your vault on the Mac.' : 'Delete it? It hasn’t gone to your Mac yet.')) return;
-    drop(it.id).then(function () { return refresh(); }).then(function () { var n = listNow().length; if (n) openView(Math.min(vi, n - 1)); else closeView(); });
+    drop(it.id).then(function () { return refresh(); }).then(function () { var n = vlist().length; $('view').classList.remove('info'); if (n) openView(Math.min(vi, n - 1)); else closeView(); });
   });
-  $('vMove').addEventListener('click', function () { var it = listNow()[vi]; if (!it) return; moving = it; drawProjects(); $('newProj').value = ''; sheet('projSheet', true); });
+  $('vMove').addEventListener('click', function () { var it = vlist()[vi]; if (!it) return; moving = it; drawProjects(); $('newProj').value = ''; sheet('projSheet', true); });
   $('vShare').addEventListener('click', function () {
-    var it = listNow()[vi]; if (!it || !navigator.share) return;
+    var it = vlist()[vi]; if (!it || !navigator.share) return;
     var f = it.blob ? new File([it.blob], it.name, { type: it.type || it.blob.type }) : it.pv ? new File([it.pv], it.name.replace(/\.[^.]+$/, '') + '.jpg', { type: 'image/jpeg' }) : null;
     if (!f) return;
     if (!it.blob) toast('Sharing the preview — the full one is on your Mac');
@@ -419,21 +493,98 @@
     lastTouch = Date.now();
     if (!t0) return;
     var dx = e.changedTouches[0].clientX - t0.x, dy = e.changedTouches[0].clientY - t0.y, quick = Date.now() - t0.at < 300; t0 = null;
-    if (dy > 90 && Math.abs(dy) > Math.abs(dx)) return closeView();
+    var info = $('view').classList.contains('info');
+    if (dy < -60 && Math.abs(dy) > Math.abs(dx)) return $('view').classList.add('info');
+    if (dy > 90 && Math.abs(dy) > Math.abs(dx)) return info ? $('view').classList.remove('info') : closeView();
+    if (info) return;
     if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy)) return openView(vi + (dx < 0 ? 1 : -1));
     if (quick && Math.abs(dx) < 8 && Math.abs(dy) < 8) $('view').classList.toggle('bare');
   });
   $('vStage').addEventListener('click', function () { if (Date.now() - lastTouch > 600) $('view').classList.toggle('bare'); });
   addEventListener('keydown', function (e) {
     if (!$('view').classList.contains('on')) return;
-    if (e.key === 'Escape') closeView(); else if (e.key === 'ArrowRight') openView(vi + 1); else if (e.key === 'ArrowLeft') openView(vi - 1);
+    if (e.key === 'Escape') { if ($('view').classList.contains('info')) $('view').classList.remove('info'); else closeView(); } else if (e.key === 'ArrowRight') openView(vi + 1); else if (e.key === 'ArrowLeft') openView(vi - 1);
   });
+
+  /* ---- pairing: scan the code on your Mac — your project names come across, nothing else */
+  var scan = { stream: null, t: 0, busy: false };
+  function loadJsQR() {
+    if (window.jsQR) return Promise.resolve();
+    return new Promise(function (ok, no) { var sc = document.createElement('script'); sc.src = '/vault/jsQR.js'; sc.onload = ok; sc.onerror = function () { no(new Error('The code reader didn’t load — check your signal and try again')); }; document.head.appendChild(sc); });
+  }
+  function pairStat(t, bad) { $('pairStat').textContent = t; $('pairStat').classList.toggle('bad', !!bad); }
+  function openPair() {
+    sheet(null, false);
+    $('pairScan').classList.remove('off'); $('pairDone').classList.add('off');
+    $('pair').classList.add('on'); pairStat('Looking for the code…');
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) return pairStat('This browser can’t use the camera here — open Mobile Vault from your Home Screen', true);
+    loadJsQR().then(function () {
+      return navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' }, audio: false });
+    }).then(function (st) {
+      if (!$('pair').classList.contains('on')) { st.getTracks().forEach(function (t) { t.stop(); }); return; }
+      scan.stream = st; var v = $('pairVid'); v.srcObject = st; v.play().catch(function () {});
+      tick();
+    }).catch(function (e) {
+      pairStat(e && e.name === 'NotAllowedError' ? 'Camera is off for Mobile Vault — allow it in Settings, or type a project instead' : (e && e.message) || 'Couldn’t open the camera', true);
+    });
+  }
+  function stopScan() { clearTimeout(scan.t); if (scan.stream) scan.stream.getTracks().forEach(function (t) { t.stop(); }); scan.stream = null; $('pairVid').srcObject = null; }
+  var qc = null;
+  function tick() {
+    var v = $('pairVid');
+    if (!scan.stream) return;
+    if (v.readyState >= 2 && v.videoWidth) {
+      var w = Math.min(640, v.videoWidth), h = Math.round(w * v.videoHeight / v.videoWidth);
+      qc = qc || document.createElement('canvas'); qc.width = w; qc.height = h;
+      var x = qc.getContext('2d', { willReadFrequently: true }); x.drawImage(v, 0, 0, w, h);
+      var code = window.jsQR(x.getImageData(0, 0, w, h).data, w, h, { inversionAttempts: 'attemptBoth' });
+      if (code && code.data) return found(code.data);
+    }
+    scan.t = setTimeout(tick, 160);
+  }
+  function found(text) {
+    var q = null; try { q = new URL(text, location.href).searchParams; } catch (e) {}
+    var list = q ? fromLink(q) : [];
+    if (!list.length) { pairStat('That’s not the code from Needed Tools — Home › Your phone', true); scan.t = setTimeout(tick, 900); return; }
+    stopScan();
+    if (navigator.vibrate) navigator.vibrate(30);
+    showPaired(takeMac(list, q.get('m') || ''));
+  }
+  function showPaired(fresh) {
+    MAC = get('mac', 'your Mac');
+    var list = get('macProjects', []);
+    $('pairH').textContent = 'Paired with ' + MAC;
+    $('pairN').textContent = list.length + ' project' + (list.length === 1 ? '' : 's') + ' · up to date just now';
+    var ordered = fresh.concat(list.filter(function (p) { return fresh.indexOf(p) < 0; }));
+    $('pairList').innerHTML = ordered.slice(0, 8).map(function (p) { var n = S.items.filter(function (it) { return it.project === p; }).length; return '<div>' + esc(p) + (fresh.indexOf(p) >= 0 ? '<b>NEW</b>' : '') + '<small>' + (n ? n + ' here' : '—') + '</small></div>'; }).join('')
+      + (ordered.length > 8 ? '<div style="font-size:13px;color:var(--soft)">+ ' + (ordered.length - 8) + ' more</div>' : '');
+    $('pairScan').classList.add('off'); $('pairDone').classList.remove('off');
+    if (!S.project && list[0]) { S.project = list[0]; put('project', S.project); }
+    draw();
+  }
+  function closePair() { stopScan(); $('pair').classList.remove('on'); draw(); }
+  $('pairX').addEventListener('click', closePair);
+  $('pairGo').addEventListener('click', function () { closePair(); S.view = 'projects'; put('view', 'projects'); draw(); });
+  $('pairType').addEventListener('click', function () { closePair(); moving = null; drawProjects(); $('newProj').value = ''; sheet('projSheet', true); setTimeout(function () { $('newProj').focus(); }, 350); });
+  $('mPair').addEventListener('click', openPair);
 
   /* ---- filters */
   $('chips').addEventListener('click', function (e) { var b = e.target.closest('[data-k]'); if (b) { S.kind = b.dataset.k; draw(); } });
   $('searchBtn').addEventListener('click', function () { var s = $('search'); var on = s.style.display !== 'block'; s.style.display = on ? 'block' : 'none'; if (on) $('q').focus(); else { $('q').value = ''; S.q = ''; drawFeed(); } });
   $('q').addEventListener('input', function () { S.q = $('q').value; drawFeed(); });
-  $('scope').addEventListener('click', function (e) { var b = e.target.closest('[data-s]'); if (!b) return; S.scope = b.dataset.s; put('scope', S.scope); draw(); });
+  $('viewSeg').addEventListener('click', function (e) { var b = e.target.closest('[data-v]'); if (!b) return; S.view = b.dataset.v; put('view', S.view); scrollTo(0, 0); draw(); });
+  $('onlyBack').addEventListener('click', function () { S.only = ''; S.kind = 'all'; draw(); });
+  $('projBox').addEventListener('click', function (e) {
+    if (e.target.closest('#plUpdate')) return openPair();
+    var h = e.target.closest('[data-only]'); if (h) { S.only = h.dataset.only; S.kind = 'all'; scrollTo(0, 0); return draw(); }
+    var b = e.target.closest('[data-pv]'); if (b) { var p = b.dataset.pv; vsrc = function () { return S.items.filter(function (it) { return it.project === p; }); }; openView(+b.dataset.i); }
+  });
+  $('capture').addEventListener('click', function (e) {
+    var c = e.target.closest('[data-gg]'); if (c) { S.grabGo = S.project = c.dataset.gg; put('grabGo', S.grabGo); put('project', S.project); return draw(); }
+    var k = e.target.closest('[data-cap]'); if (k) { var p = S.grabGo, today = new Date().toDateString(); vsrc = function () { return S.items.filter(function (it) { return it.project === p && new Date(it.at).toDateString() === today; }); }; openView(+k.dataset.cap); }
+  });
+  $('bigShot').addEventListener('click', function () { $('shoot').click(); });
+  $('capPhotos').addEventListener('click', function () { $('pick').click(); });
 
   /* ---- offline: the page keeps itself on the phone */
   if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1')) navigator.serviceWorker.register('/vault/sw.js', { scope: '/vault/' }).catch(function () {});

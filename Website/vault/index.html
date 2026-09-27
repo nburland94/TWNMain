@@ -219,6 +219,81 @@ main{padding:0 18px calc(env(safe-area-inset-bottom) + 190px)}
 .view .act{border:none;background:none;padding:0;display:flex;flex-direction:column;align-items:center;gap:6px;font-size:11.5px;color:var(--soft)}
 .view .act .round{width:52px;height:52px}
 body.viewing{overflow:hidden}
+/* Round 30: the mockups — Days / Projects, capture, pairing, details */
+.shot{border-radius:0}
+.bottom .dark{background:linear-gradient(180deg,#2b2b2b,#111);box-shadow:inset 0 1px 0 rgba(255,255,255,.14),0 2px 8px rgba(20,20,20,.16)}
+.backall{border:none;background:none;padding:6px 0 0;font-size:13.5px;color:var(--oi)}
+.pairline{display:flex;align-items:center;gap:10px;margin:8px 0 18px;font-family:'Courier Prime',monospace;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:#2f7d4a}
+.pairline.none{color:var(--soft)}
+.pairline button{margin-left:auto;border:none;background:none;padding:6px 0;font-family:'Raleway',sans-serif;font-size:13px;letter-spacing:0;text-transform:none;color:var(--oi)}
+.prows{display:flex;flex-direction:column;gap:24px;margin:0 -18px}
+.prow1{display:flex;flex-direction:column;gap:8px}
+.prowh{display:flex;align-items:baseline;gap:10px;padding:0 18px;border:none;background:none;text-align:left}
+.prowh .n{font-size:20px;font-weight:300}
+.prowh .c{font-family:'Courier Prime',monospace;font-size:10.5px;color:var(--soft);letter-spacing:.06em}
+.prowh .c.wait{color:var(--oi)}
+.prowh .gg2{margin-left:auto;font-family:Oswald,sans-serif;font-size:10.5px;letter-spacing:.12em;color:var(--oi)}
+.prowh .new{font-family:'Courier Prime',monospace;font-size:10px;letter-spacing:.14em;color:#fff;background:var(--o);padding:2px 6px}
+.pstrip{display:flex;gap:4px;padding:0 18px;overflow-x:auto;scrollbar-width:none}
+.pstrip::-webkit-scrollbar{display:none}
+.pstrip button{flex-shrink:0;height:150px;border:none;padding:0;background:#efe4db;position:relative}
+.pstrip img{height:100%;width:100%;object-fit:cover;display:block}
+.pstrip .dot{position:absolute;top:8px;right:8px;width:8px;height:8px;border-radius:50%;background:var(--o);box-shadow:0 0 0 2px #fff}
+.prow1.empty .n{color:var(--soft)}
+/* capture — Grab & Go on */
+body.capturing .bottom{display:none}
+body.capturing .sendbar{bottom:calc(env(safe-area-inset-bottom) + 18px)}
+#capture{display:flex;flex-direction:column;min-height:calc(100vh - 150px)}
+.capname{font-weight:200;font-size:44px;line-height:1.05;margin-top:6px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.capchips{display:flex;gap:6px;overflow-x:auto;margin:14px -18px 0;padding:0 18px;scrollbar-width:none}
+.capchips::-webkit-scrollbar{display:none}
+.capchips .chip{flex-shrink:0;padding:7px 13px}
+.capmid{flex-grow:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;padding:34px 0}
+.bigshot{width:168px;height:168px;border-radius:50%;border:none;background:var(--o);box-shadow:0 22px 50px rgba(240,90,34,.38),inset 0 0 0 8px rgba(255,255,255,.22);display:flex;align-items:center;justify-content:center}
+.capnote{font-size:12.5px;color:var(--soft)}
+.caprecent{display:flex;flex-direction:column;gap:8px;padding-bottom:90px}
+.caprh{display:flex;justify-content:space-between}
+.caprh .wait{color:var(--oi)}
+.capstrip{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none}
+.capstrip::-webkit-scrollbar{display:none}
+.capstrip button{flex-shrink:0;height:64px;border:none;padding:0;background:#efe4db}
+.capstrip img{height:100%;width:100%;object-fit:cover;display:block}
+/* one picture: details pulled up */
+.view .m{border:none;background:none;padding:4px 8px}
+.view .m::after{content:' ⌃';color:var(--oi)}
+.vinfo{position:absolute;left:0;right:0;bottom:0;z-index:3;background:#fbf6f2;border-radius:24px 24px 0 0;padding:14px 22px calc(env(safe-area-inset-bottom) + 22px);display:flex;flex-direction:column;gap:16px;box-shadow:0 -12px 40px rgba(120,60,20,.14);transform:translateY(105%);transition:transform .32s var(--ease)}
+.view.info .vinfo{transform:none}
+.view.info .bot{opacity:0;pointer-events:none}
+.vinfo .grab{width:38px;height:4px;border-radius:4px;background:rgba(20,20,20,.15);align-self:center}
+.vinfo .t{font-weight:300;font-size:22px;overflow-wrap:anywhere}
+.vinfo .m2{font-family:'Courier Prime',monospace;font-size:11px;letter-spacing:.06em;color:var(--soft);margin-top:-10px}
+.vinfo .prow{display:flex;align-items:center;gap:10px;padding:12px 14px;background:#fff;border:1px solid rgba(20,20,20,.08);text-align:left;font-size:15px}
+.vinfo .prow .mv{margin-left:auto;font-size:13px;color:var(--oi)}
+.vinfo .tags .chip{background:#fff;color:var(--ink);border-color:rgba(20,20,20,.12)}
+.vinfo .acts2{display:flex;gap:8px}
+.vinfo .acts2 .dark{flex-grow:1}
+/* pairing */
+.pair{position:fixed;inset:0;z-index:50;background:#fbf5f0;display:flex;flex-direction:column;padding:calc(env(safe-area-inset-top) + 12px) 22px calc(env(safe-area-inset-bottom) + 24px);transform:translateY(100%);transition:transform .35s var(--ease);overflow-y:auto}
+.pair.on{transform:none}
+.pair .round{width:42px;height:42px;border-radius:50%;border:1px solid rgba(20,20,20,.08);background:#fff;display:flex;align-items:center;justify-content:center;padding:0}
+.pair h2{margin:8px 0 8px;font-weight:200;font-size:32px;line-height:1.1}
+.pair p{margin:0;font-size:14px;line-height:1.5;color:var(--soft)}
+.pscan,.pdone{display:flex;flex-direction:column;gap:6px;margin-top:22px;flex-grow:1}
+.finder{position:relative;margin:22px 0 18px;aspect-ratio:1/1;max-height:52vh;background:#e9e2da;overflow:hidden}
+.finder video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.finder .c{position:absolute;width:36px;height:36px;border:0 solid var(--o)}
+.finder .tl{left:14%;top:12%;border-left-width:3px;border-top-width:3px}.finder .tr{right:14%;top:12%;border-right-width:3px;border-top-width:3px}
+.finder .bl{left:14%;bottom:16%;border-left-width:3px;border-bottom-width:3px}.finder .br{right:14%;bottom:16%;border-right-width:3px;border-bottom-width:3px}
+.finder .fstat{position:absolute;left:12px;right:12px;bottom:12px;text-align:center;font-family:'Courier Prime',monospace;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:#141414;background:rgba(255,255,255,.8);padding:6px 8px}
+.finder .fstat.bad{color:var(--oi)}
+.pscan .light{margin-top:auto}
+.pdone .ok{width:52px;height:52px;border-radius:50%;background:#2f7d4a;display:flex;align-items:center;justify-content:center;margin-top:40px}
+.plist2{display:flex;flex-direction:column;margin:14px 0 18px}
+.plist2 div{display:flex;align-items:baseline;gap:10px;padding:13px 0;border-bottom:1px solid rgba(20,20,20,.08);font-size:17px}
+.plist2 div small{margin-left:auto;font-family:'Courier Prime',monospace;font-size:11px;color:var(--soft)}
+.plist2 div b{font-weight:400;font-family:'Courier Prime',monospace;font-size:10px;letter-spacing:.14em;color:#fff;background:var(--o);padding:2px 6px}
+.pdone .dark{margin-top:auto}
+#addGo{background:var(--o);box-shadow:0 8px 22px rgba(240,90,34,.3)}
 </style></head>
 <body>
 <div class="glow"></div>
@@ -258,15 +333,31 @@ body.viewing{overflow:hidden}
 </header>
 
 <main>
-  <div class="ggline off" id="ggLine"></div>
-  <div class="titlerow"><h1 id="title">Your grabs</h1><div class="seg" id="scope" role="group" aria-label="Which projects"><button data-s="all">All</button><button data-s="one" id="scopeP">Project</button></div></div>
-  <div class="chips" id="chips">
-    <button class="chip on" data-k="all">All</button><button class="chip" data-k="still">Stills</button><button class="chip" data-k="clip">Clips</button><button class="chip" data-k="gif">GIFs</button>
-    <span class="grow"></span><span class="cap" id="count"></span>
-    <button class="chip" id="searchBtn" aria-label="Search"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#141414" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg></button>
-  </div>
-  <div class="search" id="search"><input id="q" type="search" placeholder="Search — projects, tags, names" autocomplete="off" autocapitalize="off"></div>
-  <div class="feed" id="feed"></div>
+  <section id="home">
+    <div class="titlerow"><h1 id="title">Your grabs</h1><div class="seg" id="viewSeg" role="group" aria-label="View"><button data-v="days">Days</button><button data-v="projects">Projects</button></div></div>
+    <button class="backall off" id="onlyBack">‹ All projects</button>
+    <div id="daysBox">
+      <div class="chips" id="chips">
+        <button class="chip on" data-k="all">All</button><button class="chip" data-k="still">Stills</button><button class="chip" data-k="clip">Clips</button><button class="chip" data-k="gif">GIFs</button>
+        <span class="grow"></span><span class="cap" id="count"></span>
+        <button class="chip" id="searchBtn" aria-label="Search"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#141414" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg></button>
+      </div>
+      <div class="search" id="search"><input id="q" type="search" placeholder="Search — projects, tags, names" autocomplete="off" autocapitalize="off"></div>
+      <div class="feed" id="feed"></div>
+    </div>
+    <div id="projBox" class="off"><div class="pairline" id="pairLine"></div><div class="prows" id="prows"></div></div>
+  </section>
+  <section id="capture" class="off">
+    <span class="cap">Grabbing into</span>
+    <div class="capname" id="capName"></div>
+    <div class="capchips" id="capChips"></div>
+    <div class="capmid">
+      <button class="bigshot" id="bigShot" aria-label="Camera"><svg width="46" height="46" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.5" aria-hidden="true"><rect x="3" y="6" width="18" height="13" rx="3"/><circle cx="12" cy="12.5" r="3.4"/><path d="M8.5 6l1.5-2h4l1.5 2"/></svg></button>
+      <button class="light" id="capPhotos">From Photos</button>
+      <span class="capnote">Straight in — no questions. Tags later, on the Mac.</span>
+    </div>
+    <div class="caprecent off" id="capRecent"><div class="caprh"><span class="cap">Just now</span><span class="cap wait" id="capWait"></span></div><div class="capstrip" id="capStrip"></div></div>
+  </section>
 </main>
 
 <div class="g sendbar off" id="sendBar">
@@ -286,12 +377,39 @@ body.viewing{overflow:hidden}
   <div class="stage" id="vStage"><div class="vpic" id="vPic"></div></div>
   <div class="chrome top"><button class="round" id="vBack" aria-label="Back to the feed"><svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><path d="M2 2l10 10M12 2L2 12" stroke="#141414" stroke-width="1.6" stroke-linecap="round"/></svg></button><span class="n" id="vN"></span></div>
   <div class="chrome bot">
-    <span class="m" id="vM"></span>
+    <button class="m" id="vM" aria-label="Details"></button>
     <div class="acts">
       <button class="act" id="vShare"><span class="round"><svg width="17" height="19" viewBox="0 0 20 24" fill="none" stroke="#141414" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 15V2M5.5 6.5L10 2l4.5 4.5"/><path d="M6 10H3.5v12h13V10H14"/></svg></span>Share</button>
       <button class="act" id="vMove"><span class="round"><svg width="18" height="16" viewBox="0 0 24 20" fill="none" stroke="#141414" stroke-width="1.7" stroke-linejoin="round" aria-hidden="true"><path d="M2 4.5A2.5 2.5 0 014.5 2H9l2.5 3h8A2.5 2.5 0 0122 7.5v8a2.5 2.5 0 01-2.5 2.5h-15A2.5 2.5 0 012 15.5z"/><path d="M9 11.5h7M13.5 8.5l3 3-3 3" stroke-linecap="round"/></svg></span>Move</button>
       <button class="act" id="vDel"><span class="round"><svg width="16" height="18" viewBox="0 0 20 22" fill="none" stroke="#141414" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M2 5h16M7 5V2.5h6V5M4 5l1 14.5h10L16 5"/></svg></span>Delete</button>
     </div>
+  </div>
+  <div class="vinfo" id="vInfo" aria-label="Details">
+    <span class="grab" aria-hidden="true"></span>
+    <span class="t" id="viT"></span>
+    <span class="m2" id="viM"></span>
+    <button class="prow" id="viMove"><span class="cap">Project</span><span id="viP"></span><span class="mv">Move ›</span></button>
+    <div class="tags" id="viTags"></div>
+    <div class="acts2"><button class="dark" id="viShare">Share</button><button class="light" id="viDel">Delete</button></div>
+  </div>
+</div>
+
+<div class="pair" id="pair" role="dialog" aria-label="Pair with your Mac">
+  <div class="ptop"><button class="round" id="pairX" aria-label="Close"><svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><path d="M2 2l10 10M12 2L2 12" stroke="#141414" stroke-width="1.6" stroke-linecap="round"/></svg></button></div>
+  <div class="pscan" id="pairScan">
+    <span class="cap">Pair with your Mac</span>
+    <h2>Point at the code on your Mac</h2>
+    <p>Needed Tools › Home › Your phone. Only your project names come across — your pictures never go anywhere but your own Photos and your Mac.</p>
+    <div class="finder"><video id="pairVid" playsinline muted autoplay></video><i class="c tl"></i><i class="c tr"></i><i class="c bl"></i><i class="c br"></i><span class="fstat" id="pairStat">Looking for the code…</span></div>
+    <button class="light" id="pairType">Type a project instead</button>
+  </div>
+  <div class="pdone off" id="pairDone">
+    <span class="ok"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7"/></svg></span>
+    <h2 id="pairH">Paired</h2>
+    <span class="cap" id="pairN"></span>
+    <div class="plist2" id="pairList"></div>
+    <p>Made a new project on your Mac? Scan again and it comes across.</p>
+    <button class="dark" id="pairGo">Start grabbing</button>
   </div>
 </div>
 
@@ -304,7 +422,9 @@ body.viewing{overflow:hidden}
   <div class="addpics" id="addPics"></div>
   <span class="cap">For</span>
   <div class="pchips" id="addProjects"></div>
-  <input class="tagin" id="addNew" placeholder="…or a new project" autocomplete="off" autocapitalize="words">
+  <input class="tagin" id="addNew" placeholder="+ A new project" autocomplete="off" autocapitalize="words">
+  <span class="cap">Tags</span>
+  <div class="pchips" id="addTagChips"></div>
   <input class="tagin" id="addTags" placeholder="Tags, if you like — night, car" autocomplete="off" autocapitalize="off">
   <div class="steps"><button class="dark" id="addGo">Keep</button><button class="light" id="addCancel">Cancel</button></div>
 </div>
@@ -332,7 +452,7 @@ body.viewing{overflow:hidden}
     <li>On the Mac: <b>Sync</b> in Needed Tools. Each lands in its project, once.</li>
   </ol>
   <div class="line"><span>Your Mac</span><span id="mMac"></span></div>
-  <div class="line"><span>New projects from the Mac</span><span>Needed Tools › Your phone — scan again, or type one here</span></div>
+  <div class="line"><span>Your projects from the Mac</span><span><button id="mPair">Pair · scan the code</button></span></div>
   <div class="line"><span>Can’t find something on the Mac?</span><span><button id="mResync">Sync the last week again</button></span></div>
   <div class="line"><span>Room on this phone</span><span><span id="mSent" style="color:inherit"></span> · <button id="mClear">Clear</button></span></div>
   <div class="line" id="mHomeRow"><span>Make it an app</span><span><button id="mHome">Show me how</button></span></div>
