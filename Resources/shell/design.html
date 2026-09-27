@@ -1055,6 +1055,7 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
     fade: '<svg viewBox="0 0 16 16"><rect x="2" y="2" width="12" height="12" rx="2"/><path d="M2 10h12M2 12h12M2 8h12" opacity=".5"/></svg>',
     layout: '<svg viewBox="0 0 16 16"><rect x="2" y="3" width="12" height="10" rx="1.5"/><path d="M8 3v10M8 8h6"/></svg>',
     photos: '<svg viewBox="0 0 16 16"><rect x="1.5" y="3" width="13" height="10" rx="2"/><path d="M1.5 11l3.5-3.5 3 3 2-2 4.5 4.5"/></svg>',
+    page: '<svg viewBox="0 0 16 16"><rect x="2.5" y="3" width="11" height="10" rx="1.5"/><path d="M8 5.8v4.4M5.8 8h4.4"/></svg>',
     dup: '<svg viewBox="0 0 16 16"><rect x="5" y="5" width="9" height="9" rx="1.5"/><path d="M11 5V3.5A1.5 1.5 0 0 0 9.5 2h-6A1.5 1.5 0 0 0 2 3.5v6A1.5 1.5 0 0 0 3.5 11H5"/></svg>',
     undo: '<svg viewBox="0 0 16 16"><path d="M5 4L2 7l3 3"/><path d="M2 7h7.5a4 4 0 0 1 0 8H7"/></svg>',
     redo: '<svg viewBox="0 0 16 16"><path d="M11 4l3 3-3 3"/><path d="M14 7H6.5a4 4 0 0 0 0 8H9"/></svg>',
@@ -1095,6 +1096,7 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
         + B('free', 'free', short ? '' : 'Free', 'Free: move and size the pictures by hand', free)
         + (short ? '' : B('fade', 'fade', 'Fade', 'Fade the pictures on this page — drag it on a Free page, R turns it', fade) + B('layout', 'layout', '', 'Next layout — L', false)))
       + (short ? '' : B('photos', 'photos', '', 'Add photos from your Mac', false)) + '<i class="qsep"></i>'
+      + B('page', 'page', short ? '' : 'Page', mood ? 'A new page after this one' : 'A new page after this one — blank, or a designed page', false)
       + (short ? '' : B('dup', 'dup', '', 'Duplicate this page — ⌘D', false)) + B('undo', 'undo', '', 'Undo — ⌘Z', false) + (short ? '' : B('redo', 'redo', '', 'Redo — ⇧⌘Z', false) + B('play', 'play', '', 'Play — Space', false))
       + `<button type="button" data-q="qsize" class="qcaret" title="${short ? 'Show every tool' : 'Make this bar shorter'}" aria-label="${short ? 'Longer' : 'Shorter'}">${short ? '›' : '‹'}</button>`;
     q.hidden = false;
@@ -1141,6 +1143,11 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
     if (q === 'fade') { change(() => { p.fade = Object.assign({ strength: 0.6, to: 'black' }, p.fade || {}, { on: !(p.fade && p.fade.on) }); }); return toast(page().fade.on ? 'Fade on — the Colour tab has its strength and direction' : 'Fade off'); }
     if (q === 'layout') return cycleLayout();
     if (q === 'photos') return bringPhotos();
+    if (q === 'page') {
+      if (doc.mode === 'mood') return addBlankPage(false);
+      const m = $('pagemenu'); if (m && !m.hidden) { m.hidden = true; return; }
+      return openPageMenu(b);
+    }
     if (q === 'dup') return dupPage();
     if (q === 'undo') return undoIt(true);
     if (q === 'redo') return undoIt(false);
@@ -2157,7 +2164,7 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
     if (r.bottom + 100 > innerHeight) m.style.top = Math.round(r.top - 86) + 'px';
     m.hidden = false; m.dataset.end = btn.id === 'addPage2' ? '1' : '';
   }
-  document.addEventListener('mousedown', e => { const m = $('pagemenu'); if (m && !m.hidden && !e.target.closest('#pagemenu') && !e.target.closest('#addPage, #addPage2')) m.hidden = true; }, true);
+  document.addEventListener('mousedown', e => { const m = $('pagemenu'); if (m && !m.hidden && !e.target.closest('#pagemenu') && !e.target.closest('#addPage, #addPage2, [data-q="page"]')) m.hidden = true; }, true);
   function addBlankPage(atEnd) {
     change(() => {
       const np = newPage(doc.mode === 'mood' ? 'rows' : 'left');
