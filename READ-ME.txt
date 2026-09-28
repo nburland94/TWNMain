@@ -1243,3 +1243,23 @@ ROUND 45 — CLAUDE IN ONE CLICK, AND IT FIXES ITSELF
     stills and designs live in your vault folder, not in the app, so deleting
     an old app deletes none of your work. Keep Resources/bin (Sort's ffprobe)
     to copy into each new kit.
+
+ROUND 46 — SIGN IN WITH GOOGLE OR APPLE; YOUR EMAIL SENDS YOUR INVOICES
+  • The sign-in screen now has "Continue with Apple" and "Continue with
+    Google". The Mac's own secure sign-in window opens their page — Needed
+    Tools never sees a password. Once signed in you stay signed in (offline
+    too); the account panel (logo, top left) shows "Signed in · with Google ·
+    you@…" and Sign out.
+  • Your sign-in email becomes the address Pay sends invoices from (and fills
+    your details if they're empty) — unless you've already set one, or you
+    change it in Pay › Settings. Gmail, iCloud and Outlook addresses pick the
+    right mail server by themselves.
+  • Apple's "Hide my email" gives an address you can't send from, so it's
+    never used for sending — the account panel says so and asks for yours.
+  • Send in Pay: with the app password saved, Send goes in one press as
+    before. Without it, "Open in Mail" makes a new message in Mail with the
+    PDF attached, filled in — so sending works from day one.
+  • TO TURN IT ON: follow SETUP-SIGN-IN.md (Supabase, Google, Apple — about
+    45 minutes, once), put the two values in Resources/account.json, build
+    again. Until then the app opens straight in, as before.
+  • Next: tying the licence (Lemon Squeezy) to the account.

@@ -485,6 +485,13 @@ html[data-theme=dark] body .aioffer span{color:#a9b8cb}
       <div class="sec"><span class="cap">Your details</span>
         <div class="grid2">${PF.map(([k, ph]) => k === 'address' ? `<label class="wide">Address<textarea data-pf="address" placeholder="Street, city, postcode">${esc(p.address || '')}</textarea></label>` : `<label>${esc(ph.split(' —')[0])}<input data-pf="${k}" value="${esc(p[k] || '')}" placeholder="${esc(ph)}" spellcheck="false"></label>`).join('')}</div>
         <span style="font-size:11.5px;color:#7a5a48">Pay puts these on your invoices; Design uses your name in the page headers. It saves as you type.</span></div>
+      ${(() => { const a = acct.account || {};              // Round 46: who you signed in as
+        if (!a.configured && !a.signedIn) return '';
+        const by = a.provider === 'apple' ? 'Apple' : a.provider === 'google' ? 'Google' : '';
+        return `<div class="sec"><span class="cap">Signed in</span>
+        <div class="line"><span>${by ? 'With ' + by : 'Account'}</span><span>${a.signedIn ? esc(a.email || a.name || 'Signed in') : 'Not signed in'}</span></div>
+        ${a.signedIn && a.hiddenEmail ? '<span style="font-size:11.5px;color:#7a5a48">Apple is hiding your email, so invoices can\u2019t send from it — add the address you send from in Your details, or in Pay › Settings.</span>'
+          : a.signedIn ? '<span style="font-size:11.5px;color:#7a5a48">Pay sends invoices from this address unless you set another in Pay › Settings.</span>' : ''}</div>`; })()}
       <div class="sec"><span class="cap">Licence</span>
         <div class="line"><span>Status</span><span>${l.unlicensed_build ? 'This build needs no key' : l.licensed ? `Active${l.key ? ' · ' + esc(l.key) : ''}${since ? ' · since ' + esc(since) : ''}` : 'Not activated'}</span></div>
         ${l.customer ? `<div class="line"><span>Registered to</span><span>${esc(l.customer)}</span></div>` : ''}

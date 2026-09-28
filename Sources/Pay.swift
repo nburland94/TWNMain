@@ -820,6 +820,17 @@ extension PayHost {
         case "addressResolve":
             addressFinder.resolve((body["index"] as? NSNumber)?.intValue ?? -1, reply)
 
+        case "emailInvoice":
+            // No mail set up (or you'd rather): a new message in your Mail app, filled in, the PDF attached.
+            guard let svc = NSSharingService(named: .composeEmail) else { return reply(["ok": false, "error": "No mail app is set up on this Mac."], nil) }
+            if let to = body["to"] as? String, !to.isEmpty { svc.recipients = [to] }
+            svc.subject = (body["subject"] as? String) ?? "Invoice"
+            var items: [Any] = [(body["body"] as? String) ?? ""]
+            if let p = body["path"] as? String, fm.fileExists(atPath: p) { items.append(URL(fileURLWithPath: p)) }
+            guard svc.canPerform(withItems: items) else { return reply(["ok": false, "error": "No mail app is set up on this Mac."], nil) }
+            svc.perform(withItems: items)
+            reply(["ok": true], nil)
+
         case "mailPassword":
             // The app password lives in the Mac's Keychain, never in the app's files or the page.
             let account = (body["email"] as? String) ?? ""

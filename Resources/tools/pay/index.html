@@ -359,6 +359,7 @@ html[data-theme=dark] .toggle .sw::after{background:#eaf0f7}
 .sendcard h3{margin:0;font-weight:300;font-size:22px}
 .sendcard .copy{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--mid)}
 .sendcard .copy input{accent-color:#F05A22}
+.sendcard .row .pill{flex:0 0 auto;width:auto;white-space:nowrap;display:inline-block;margin-top:0}
 
 /* ---- the quieter dashboard: a list, and small widgets beside it ---- */
 .quiet{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:24px;margin-top:1.2rem;align-items:start}
@@ -651,8 +652,9 @@ html[data-theme=dark] .toggle .sw::after{background:#eaf0f7}
     <label class="f"><span class="label">Subject</span><input class="in" id="sSubject" spellcheck="false"></label>
     <label class="f"><span class="label">Message</span><textarea class="ta" id="sBody" rows="6"></textarea></label>
     <label class="copy"><input type="checkbox" id="sCopy" checked> Send me a copy</label>
-    <div class="row" style="justify-content:flex-end"><span class="note" id="sState" style="margin:0 auto 0 0"></span>
-      <button class="pill quiet" id="sCancel">Cancel</button><button class="pill solid" id="sGo">Send</button></div>
+    <span class="note" id="sState" style="margin:0"></span>
+    <div class="row" style="justify-content:flex-end;flex-wrap:nowrap">
+      <button class="pill quiet" id="sCancel">Cancel</button><button class="pill" id="sMail">Open in Mail</button><button class="pill solid" id="sGo">Send</button></div>
   </div>
 </div>
 
@@ -1371,6 +1373,18 @@ html[data-theme=dark] .toggle .sw::after{background:#eaf0f7}
   const PROVIDERS = { gmail: ['smtp.gmail.com', 465], outlook: ['smtp.office365.com', 587], icloud: ['smtp.mail.me.com', 587] };
   const mail = () => L.mail || (L.mail = { provider: 'gmail', from: '', host: '', port: 465 });
   const server = () => { const m = mail(); return m.provider === 'other' ? [m.host, +m.port || 465] : PROVIDERS[m.provider]; };
+  // The email you signed in with is where invoices send from — until you set another in Settings.
+  // (Apple's "Hide my email" address can't send, so it's never used.)
+  function defaultSender() {
+    const m = mail(), e = (L.me.email || '').trim().toLowerCase();
+    if (m.from || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(e) || /privaterelay\.appleid\.com$/.test(e)) return;
+    m.from = e;
+    const d = e.split('@')[1];
+    m.provider = /^(gmail|googlemail)\.com$/.test(d) ? 'gmail'
+      : /^(icloud|me|mac)\.com$/.test(d) ? 'icloud'
+      : /^(outlook|hotmail|live|msn)\.[a-z.]+$/.test(d) ? 'outlook' : 'other';          // your own domain: add its server in Settings
+    save();
+  }
   async function paintMail() {
     const m = mail();
     $('mProvider').value = m.provider; $('mFrom').value = m.from || ''; $('mHost').value = m.host || ''; $('mPort').value = m.port || '';
@@ -1405,18 +1419,32 @@ html[data-theme=dark] .toggle .sw::after{background:#eaf0f7}
     if (!cur || busy) return;
     if (!bridge) return toast('Sending happens in the Needed Pay app');
     const m = mail();
-    if (!m.from) { toast('Connect your email in Settings first'); showTab('settings'); return; }
     if (!cur.pdf || cur.status === 'draft') { await doExport(); if (!cur.pdf) return; }
+    // One press sends it when your email is connected; otherwise it opens in Mail, the PDF attached.
+    const r = m.from ? await call('mailPassword', { email: m.from }).catch(() => null) : null;
+    sendReady = !!(r && r.saved && server() && server()[0]);
+    $('sGo').hidden = $('sCopy').parentNode.hidden = !sendReady;
+    $('sMail').className = sendReady ? 'pill' : 'pill solid';
     const who = (L.me.name || '').trim();
     $('sTitle').textContent = `Send invoice ${cur.number}`;
     $('sTo').value = (cur.client.email || '').trim();
     $('sSubject').value = `Invoice ${cur.number}${cur.job ? ' · ' + cur.job : ''}${who ? ' — ' + who : ''}`;
     $('sBody').value = `Hi${cur.client.contact ? ' ' + cur.client.contact.split(' ')[0] : ''},\n\nPlease find invoice ${cur.number} attached — ${money(total(cur), cur.currency)}, due ${longDate(cur.due, cur.currency)}.\n\nThank you,\n${who}`;
-    $('sState').textContent = cur.emailedTo ? `Sent to ${cur.emailedTo} on ${longDate(cur.emailedAt, cur.currency)}` : '';
+    $('sState').textContent = cur.emailedTo ? `Sent to ${cur.emailedTo} on ${longDate(cur.emailedAt, cur.currency)}`
+      : sendReady ? `From ${m.from}` : m.from ? `To send from ${m.from} in one press, add its app password in Settings.` : '';
     $('sendVeil').hidden = false;
     setTimeout(() => $('sTo').focus(), 30);
   });
+  let sendReady = false;
   const closeSend = () => { $('sendVeil').hidden = true; };
+  $('sMail').addEventListener('click', async () => {
+    const to = $('sTo').value.trim();
+    const r = await call('emailInvoice', { to, subject: $('sSubject').value, body: $('sBody').value, path: cur.pdf }).catch(() => null);
+    if (r && r.ok) {
+      if (to && !cur.client.email) { cur.client.email = to; save(); }
+      closeSend(); toast('Opened in Mail — the PDF is attached');
+    } else $('sState').textContent = (r && r.error) || 'Mail didn\u2019t open.';
+  });
   $('sCancel').addEventListener('click', closeSend);
   $('sendVeil').addEventListener('mousedown', e => { if (e.target === $('sendVeil')) closeSend(); });
   $('sGo').addEventListener('click', async () => {
@@ -1506,6 +1534,7 @@ html[data-theme=dark] .toggle .sw::after{background:#eaf0f7}
     L.me = Object.assign(fresh().me, L.me || {});
     // Your account's details (the logo, top left) fill in whatever Pay doesn't have yet.
     if (bridge) { try { const pr = await call('profile'); if (pr) for (const k of ['name', 'address', 'phone', 'email']) if (!(L.me[k] || '').trim() && pr[k]) L.me[k] = pr[k]; } catch (e) { /* fine */ } }
+    defaultSender();
     // clean out empty drafts left from last time
     L.invoices = L.invoices.filter(i => !(i.status === 'draft' && !i.client.name && !total(i)));
     if (bridge) {

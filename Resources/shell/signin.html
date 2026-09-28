@@ -15,30 +15,55 @@ form{margin-top:40px;width:300px;border-radius:16px;padding:12px;display:flex;fl
   background:rgba(255,255,255,0.36);border:1px solid rgba(255,255,255,0.8);
   box-shadow:0 18px 50px rgba(160,70,20,0.07),inset 0 1px 0 rgba(255,255,255,0.95);
   -webkit-backdrop-filter:blur(20px) saturate(1.4);backdrop-filter:blur(20px) saturate(1.4)}
-label{display:block}
-input{display:block;width:100%;background:rgba(255,255,255,0.72);border:1px solid rgba(28,28,28,0.06);border-radius:10px;padding:11px 13px;
-  font-size:13.5px;outline:none;transition:border-color .2s var(--ease-out)}
-input::placeholder{color:#9a8f89}
-html[data-theme=dark] body .title{color:#c4d2e3}
-html[data-theme=dark] body input::placeholder{color:#a9b8cb}
-input:focus{border-color:var(--accent)}
+/* Round 46: sign in with Apple or Google */
+.btn{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;border-radius:10px;padding:11px 14px;font-size:14px;cursor:pointer;
+  transition:transform .15s var(--ease-out),box-shadow .2s var(--ease-out),opacity .2s}
+.btn:active{transform:scale(0.98)}.btn[disabled]{opacity:0.55;cursor:default}
+.apple{border:none;background:#111;color:#fff}
+.google{border:1px solid rgba(28,28,28,0.12);background:rgba(255,255,255,0.92);color:#1f1f1f}
 .go{margin-top:2px;width:100%;border:none;background:var(--accent);color:#fff;border-radius:10px;padding:11px;font-size:13.5px;letter-spacing:0.05em;transition:background .2s var(--ease-out)}
-@media (hover:hover) and (pointer:fine){.go:hover{background:var(--accent-ink)}}
+@media (hover:hover) and (pointer:fine){.go:hover{background:var(--accent-ink)}.google:hover{box-shadow:0 2px 10px rgba(0,0,0,0.08)}}
+.msg{min-height:18px;font-size:12.5px;color:#7a5a48;text-align:center;margin-top:2px}
+.msg.warn{color:#b3261e}
+.note{margin-top:22px;max-width:300px;font-size:11.5px;line-height:1.55;color:#8a7a70;text-align:center;animation:rise .7s var(--ease-out) 1.2s both}
+html[data-theme=dark] body .google{background:#f2f2f2;color:#1f1f1f;border-color:transparent}
+html[data-theme=dark] body .apple{background:#000;color:#fff;box-shadow:inset 0 0 0 1px rgba(255,255,255,0.22)}
+html[data-theme=dark] body .msg,html[data-theme=dark] body .note{color:#a9b8cb}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
 </style></head>
 <body>
 <img class="mark" src="mark.png" alt="This Was Needed">
 <div class="title">NEEDED TOOLS</div>
-<form id="f">
-  <label><span class="sr">Email</span><input type="email" placeholder="Email" autocomplete="email"></label>
-  <label><span class="sr">Licence key</span><input type="text" placeholder="Licence key" spellcheck="false"></label>
-  <button class="go" type="submit">Sign in</button>
+<form id="f" aria-label="Sign in">
+  <button class="btn apple" type="button" data-p="apple" hidden><svg width="15" height="18" viewBox="0 0 17 20" fill="#fff" aria-hidden="true"><path d="M14.2 10.6c0-2.6 2.1-3.8 2.2-3.9-1.2-1.8-3.1-2-3.8-2-1.6-.2-3.1.9-3.9.9-.8 0-2-.9-3.4-.9C3.6 4.8 2 5.8 1.1 7.4c-1.8 3.2-.5 7.9 1.3 10.5.9 1.3 1.9 2.7 3.2 2.6 1.3-.1 1.8-.8 3.3-.8 1.6 0 2 .8 3.4.8 1.4 0 2.3-1.3 3.1-2.6 1-1.5 1.4-2.9 1.4-3-.1 0-2.6-1-2.6-4.3zM11.7 3c.7-.9 1.2-2 1-3.2-1 0-2.3.7-3 1.6-.7.8-1.3 2-1.1 3.1 1.2.1 2.3-.6 3.1-1.5z"/></svg>Continue with Apple</button>
+  <button class="btn google" type="button" data-p="google" hidden><svg width="17" height="17" viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.8 2.4 30.3 0 24 0 14.6 0 6.6 5.4 2.7 13.3l7.9 6.1C12.5 13.6 17.8 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.6 3-2.3 5.5-4.8 7.2l7.7 6c4.5-4.2 6.9-10.3 6.9-17.7z"/><path fill="#FBBC05" d="M10.6 28.6c-.5-1.4-.8-3-.8-4.6s.3-3.2.8-4.6l-7.9-6.1C1 16.6 0 20.2 0 24s1 7.4 2.7 10.7l7.9-6.1z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.7-6c-2.1 1.4-4.9 2.3-8.2 2.3-6.2 0-11.5-4.1-13.4-9.9l-7.9 6.1C6.6 42.6 14.6 48 24 48z"/></svg>Continue with Google</button>
+  <button class="go" type="button" id="plain" hidden>Continue</button>
+  <div class="msg" id="msg" role="status" aria-live="polite"></div>
 </form>
+<p class="note" id="note">Your projects stay on your Mac. Signing in tells Needed Tools who you are — and your email becomes the address your invoices are sent from (you can change it in Pay).</p>
 <script>
-  // Placeholder: nothing is checked yet — Sign in opens the app.
-  document.getElementById('f').addEventListener('submit', e => {
-    e.preventDefault();
-    window.webkit.messageHandlers.shell.postMessage({ action: 'signIn' });
-  });
+  // Round 46: Apple or Google, in the Mac's secure sign-in window. The app never sees a password.
+  const $ = id => document.getElementById(id);
+  const ask = (action, extra) => window.webkit.messageHandlers.shell.postMessage(Object.assign({ action }, extra || {}));
+  const say = (t, warn) => { $('msg').textContent = t || ''; $('msg').className = 'msg' + (warn ? ' warn' : ''); };
+  let busy = false;
+  (async () => {
+    let s = null; try { s = await ask('accountStatus'); } catch (e) {}
+    if (!s || !s.configured) {                     // this build has no sign-in set up: just come in
+      $('plain').hidden = false; $('note').textContent = 'Your projects stay on your Mac.'; return;
+    }
+    (s.providers || ['google', 'apple']).forEach(p => { const b = document.querySelector(`[data-p="${p}"]`); if (b) b.hidden = false; });
+  })();
+  document.querySelectorAll('[data-p]').forEach(b => b.addEventListener('click', async () => {
+    if (busy) return; busy = true;
+    document.querySelectorAll('.btn').forEach(x => x.disabled = true);
+    say(b.dataset.p === 'apple' ? 'Opening Apple sign-in…' : 'Opening Google sign-in…');
+    let r = null; try { r = await ask('accountSignIn', { provider: b.dataset.p }); } catch (e) {}
+    busy = false; document.querySelectorAll('.btn').forEach(x => x.disabled = false);
+    if (r && r.ok) return say('Signed in — welcome' + (r.account && r.account.name ? ', ' + r.account.name.split(' ')[0] : '') + '.');
+    if (r && r.cancelled) return say('');
+    say((r && r.error) || 'Sign-in didn\u2019t finish — try again.', true);
+  }));
+  $('plain').addEventListener('click', () => ask('signIn'));
 </script>
 </body></html>

@@ -419,8 +419,14 @@ final class Shell: NSObject, NSApplicationDelegate, NSWindowDelegate, WKScriptMe
         place(vaultHost.webView)
         vaultHost.webView.isHidden = true
 
-        // The way in. For now it's a placeholder: Sign in simply opens the app.
-        showSignIn()
+        // The way in (round 46): sign in with Google or Apple. Signed in already — straight in (the session is freshened
+        // in the background; offline is fine). A build without sign-in set up (account.json empty) opens straight in too.
+        Account.shared.window = window
+        if Account.shared.configured && !Account.shared.signedIn { showSignIn() }
+        else {
+            DispatchQueue.main.async { self.enterApp() }
+            Account.shared.refresh { ok in if !ok && Account.shared.configured { self.showSignIn() } else if ok { Account.shared.applyProfile() } }
+        }
 
         NotificationCenter.default.addObserver(forName: .neededShared, object: nil, queue: .main) { [weak self] _ in
             self?.broadcast()
@@ -1193,6 +1199,7 @@ final class Shell: NSObject, NSApplicationDelegate, NSWindowDelegate, WKScriptMe
             replyHandler(["ok": true], nil)
 
         case "signOut":
+            Account.shared.signOut()
             showSignIn()
             replyHandler(["ok": true], nil)
 
@@ -1498,19 +1505,19 @@ final class Shell: NSObject, NSApplicationDelegate, NSWindowDelegate, WKScriptMe
             replyHandler(["ok": true], nil)
 
         case "signIn":
-            // Placeholder: no account or key is checked yet.
-            if let s = signin {
-                NSAnimationContext.runAnimationGroup({ ctx in
-                    ctx.duration = 0.35
-                    s.animator().alphaValue = 0
-                }, completionHandler: {
-                    s.removeFromSuperview()
-                    self.signin = nil
-                    self.show("home")
-                    if !UserDefaults.standard.bool(forKey: "welcomeHidden") { self.showWelcome("welcome") }
-                })
-            }
+            // "Continue" on a build without sign-in set up; a signed-in account goes the same way.
+            guard !Account.shared.configured || Account.shared.signedIn else { return replyHandler(["ok": false, "error": "Sign in first"], nil) }
+            leaveSignIn()
             replyHandler(["ok": true], nil)
+
+        case "accountStatus":
+            replyHandler(Account.shared.status(), nil)
+
+        case "accountSignIn":                             // round 46: Google or Apple, in the Mac's secure sign-in window
+            Account.shared.signIn(provider: (body["provider"] as? String) ?? "google") { r in
+                if (r["ok"] as? Bool) == true { self.leaveSignIn() }
+                replyHandler(r, nil)
+            }
 
         default:
             let a = (body["action"] as? String) ?? ""
@@ -1519,6 +1526,24 @@ final class Shell: NSObject, NSApplicationDelegate, NSWindowDelegate, WKScriptMe
     }
 
     private func reply(_ r: @escaping (Any?, String?) -> Void) { r(state(), nil) }
+
+    /// Into the app: Home, and the welcome unless it's been put away.
+    private func enterApp() {
+        show("home")
+        if !UserDefaults.standard.bool(forKey: "welcomeHidden") { showWelcome("welcome") }
+    }
+    /// The sign-in screen fades away and the app opens.
+    private func leaveSignIn() {
+        guard let s = signin else { return }
+        NSAnimationContext.runAnimationGroup({ ctx in
+            ctx.duration = 0.35
+            s.animator().alphaValue = 0
+        }, completionHandler: {
+            s.removeFromSuperview()
+            self.signin = nil
+            self.enterApp()
+        })
+    }
 
     /// The sign-in screen, over everything — at launch, and after signing out or deactivating.
     func showSignIn() {
@@ -1542,7 +1567,7 @@ final class Shell: NSObject, NSApplicationDelegate, NSWindowDelegate, WKScriptMe
         let b = Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? ""
         return ["profile": Shell.profile, "licence": accountLicence.status(), "vault": Shared.vault?.path ?? "",
                 "version": b.isEmpty || b == v ? v : "\(v) (\(b))", "theme": Shared.theme, "phone": PhoneServer.shared.on,
-                "notify": !UserDefaults.standard.bool(forKey: "quiet"), "claude": ClaudeLink.shared.status()]
+                "notify": !UserDefaults.standard.bool(forKey: "quiet"), "claude": ClaudeLink.shared.status(), "account": Account.shared.status()]
     }
 
     static func clean(_ raw: String) -> String {

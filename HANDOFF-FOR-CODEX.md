@@ -28,6 +28,13 @@ Build on **this** version — not an older folder — so nothing gets undone.
 
 ## Please keep (decisions the owner made)
 
+- **Sign-in (round 46, built by Claude — the owner chose to keep this with Claude):** Supabase + PKCE through
+  `ASWebAuthenticationSession` (`Sources/Account.swift`, callback `neededtools://auth-callback`). Settings in
+  `Resources/account.json` (URL + anon/publishable key only — never a secret key); empty = no sign-in screen.
+  The session lives in `~/Library/Application Support/NeededTools/account.json` (0600), **not** the Keychain (no prompts).
+  The sign-in email fills `profile` and becomes Pay's default sender (`defaultSender()`), never an Apple
+  `privaterelay.appleid.com` address. Pay's "Open in Mail" (`emailInvoice`, NSSharingService) works with no mail setup.
+  Sign-in stays separate from the licence; linking them is the next job. Setup steps: `SETUP-SIGN-IN.md`.
 - **Nothing on the phone is deleted on its own.** The feed builds up; only grabs not yet on the Mac are sent.
   (The website version keeps a 1600px copy a day after Sync and lets the full file go; the Mac-served version keeps originals.)
 - **Direct Wi-Fi counts a grab as sent only when the Mac confirms it saved it** (your receipts — keep them).

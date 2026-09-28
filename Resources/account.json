@@ -1,0 +1,6 @@
+{
+  "_help": "Sign in with Google and Apple (round 46). Fill in your Supabase project's URL and anon (public) key — see SETUP-SIGN-IN.md. Leave empty and the app opens without a sign-in screen. Never put a service_role or secret key here.",
+  "supabaseUrl": "",
+  "supabaseAnonKey": "",
+  "providers": ["apple", "google"]
+}

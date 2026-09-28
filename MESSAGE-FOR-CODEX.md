@@ -4,14 +4,14 @@ Hi Codex. The owner (Nathan) has kept building Needed Tools with Claude while yo
 
 ## Where the latest code is
 
-- GitHub: `nburland94/TWNMain`, branch **`codex-updates`** (the same as `claude/continue-previous-task-q6ja0t`). Latest: **Round 43** ("Connect to Codex (OpenAI) on this Mac…") and this message.
-- Or the zip Nathan gives you: `NeededTools-for-Codex-round43.zip` — same files.
+- GitHub: `nburland94/TWNMain`, branch **`codex-updates`** (the same as `claude/continue-previous-task-q6ja0t`). Latest: **Round 46** (sign in with Google and Apple) and this message.
+- Or the zip Nathan gives you: `NeededTools-for-Codex-round46.zip` — same files.
 - Your last work that came into this code was the upload merged at `079639d` ("Bring in the Codex update"). Everything since then is new to you.
 
 ## How to bring your work across (please follow this order)
 
 1. **Finish your current task** where you are, and note which files you changed (`git diff --stat` against where you started, or list them).
-2. **Start from the latest code**: `git fetch origin codex-updates` and make a new branch from it, e.g. `codex/<your-task-name>`. (Working from the zip: unzip `NeededTools-for-Codex-round43.zip` and work in that folder.)
+2. **Start from the latest code**: `git fetch origin codex-updates` and make a new branch from it, e.g. `codex/<your-task-name>`. (Working from the zip: unzip `NeededTools-for-Codex-round46.zip` and work in that folder.)
 3. **Re-apply your changes onto it** — merge or cherry-pick your commits, or port them by hand file by file. Do **not** overwrite whole files with your older copies: most files below changed a lot since your base. Where you and the newer work both touched the same lines, **keep both behaviours**; if they truly conflict, keep the newer behaviour and write down what you'd change (see "When unsure").
 4. **Check it**:
    - JavaScript/HTML: open the pages, no console errors. The owner's Playwright habit: load `Resources/shell/design.html`, `home.html`, `chrome.html` and each `Resources/tools/*/index.html` with a stubbed `window.webkit.messageHandlers` bridge.
@@ -32,6 +32,8 @@ Hi Codex. The owner (Nathan) has kept building Needed Tools with Claude while yo
 | 40–41 | **Crop in Design**: `pic.trim`, `aspOf()`, `imgStyle()`, the crop window (`openCrop`); double-click a picture opens Crop; Reframe stays on the bar/panel/right-click | `design.html` |
 | 42 | **Claude (MCP)**: `MCP/needed-mcp.swift` (stdio MCP server, built into `Contents/MacOS/needed-mcp`), `Sources/ClaudeLink.swift` (loopback link + tools), Design hooks `__designBuild`/`__designWrite`/`__designTemplates`, account panel "Claude · Codex"; section names come from `C_SPEC` (Story is 12th); top-bar Phone is a small orange round button left of Sync | `MCP/`, `Sources/ClaudeLink.swift`, `Sources/Shell.swift`, `design.html`, `home.html`, `chrome.html`, `Build-Needed-Tools.command` |
 | 43 | **Connect to Codex**: adds `[mcp_servers.needed-tools]` to `~/.codex/config.toml` (backup kept); "Copy its settings" for other MCP apps | `Sources/ClaudeLink.swift`, `Sources/Shell.swift`, `home.html` |
+| 44–45 | No Keychain prompts (`PayKeychain.has`); one-click Claude connect that repairs itself | `Sources/Pay.swift`, `Sources/ClaudeLink.swift`, `home.html` |
+| 46 | **Sign in with Google/Apple** (Supabase); sign-in email = Pay's default sender; Pay "Open in Mail" | `Sources/Account.swift`, `Sources/Shell.swift`, `signin.html`, `home.html`, `Resources/tools/pay/index.html`, `Sources/Pay.swift` |
 
 Files most likely to clash with your work: `Resources/shell/design.html`, `home.html`, `chrome.html`, `Sources/Shell.swift`, `Sources/Licence.swift`, and the six `Resources/tools/*/index.html`. Take extra care in those.
 
@@ -40,7 +42,7 @@ Files most likely to clash with your work: `Resources/shell/design.html`, `home.
 - Plain, friendly wording in the UI. Never mention Keynote. No personal email addresses in the product.
 - The orange lens and glass look, light and dark. Orange is `#F05A22`.
 - Nothing on the phone or in the vault is deleted on its own; the MCP tools never delete.
-- The sign-in page (`signin.html`) is Nathan's current job with you — keep sign-in (who they are) separate from the licence (whether they've paid). When sign-in succeeds, save the email to `UserDefaults "profile"["email"]` so the Lemon Squeezy checkout is pre-filled.
+- Sign-in is **done** (round 46, by Claude): Google and Apple through Supabase — `Sources/Account.swift`, `signin.html`, `Resources/account.json`, `SETUP-SIGN-IN.md`. Please don't rebuild it; if your task touched `signin.html`, keep round 46's version. Sign-in stays separate from the licence.
 - Don't put any secret API key in the app (Lemon Squeezy, OpenAI, Anthropic).
 
 ## When unsure
