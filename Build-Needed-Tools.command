@@ -69,12 +69,26 @@ else
   say "Intel build failed — shipping Apple Silicon only."
 fi
 
+# Round 42: the Claude helper (an MCP server the Claude app starts). If it doesn't build, the app still does.
+say "Building the Claude helper…"
+HELPER=""
+if xcrun --sdk macosx swiftc -sdk "$SDK" -O -target arm64-apple-macos11.3 -o "$WORK/mcp-arm64" MCP/needed-mcp.swift 2>"$WORK/mcp.log"; then
+  if xcrun --sdk macosx swiftc -sdk "$SDK" -O -target x86_64-apple-macos11.3 -o "$WORK/mcp-x64" MCP/needed-mcp.swift 2>>"$WORK/mcp.log"; then
+    lipo -create -output "$WORK/needed-mcp" "$WORK/mcp-arm64" "$WORK/mcp-x64"
+  else cp "$WORK/mcp-arm64" "$WORK/needed-mcp"; fi
+  HELPER="$WORK/needed-mcp"
+else
+  cp "$WORK/mcp.log" "build-errors-claude.txt"
+  say "The Claude helper didn't build — the app is fine without it. Details: build-errors-claude.txt"
+fi
+
 APP="Needed Tools.app"
 rm -rf "$APP"
 mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
 cp Info.plist "$APP/Contents/Info.plist"
 cp "$WORK/Needed Tools" "$APP/Contents/MacOS/Needed Tools"
 chmod +x "$APP/Contents/MacOS/Needed Tools"
+[ -n "$HELPER" ] && cp "$HELPER" "$APP/Contents/MacOS/needed-mcp" && chmod +x "$APP/Contents/MacOS/needed-mcp"
 cp -R Resources/. "$APP/Contents/Resources/"
 
 MODE="$(/usr/bin/plutil -extract provider raw -o - Resources/licence.json 2>/dev/null || echo unknown)"
@@ -99,9 +113,11 @@ xattr -cr "$APP" 2>/dev/null || true
 for tool in "$APP/Contents/Resources/bin/"ffprobe-*; do
   [ -f "$tool" ] && chmod +x "$tool" && codesign --force --sign - "$tool" >/dev/null 2>&1
 done
+[ -f "$APP/Contents/MacOS/needed-mcp" ] && codesign --force --sign - "$APP/Contents/MacOS/needed-mcp" >/dev/null 2>&1
 codesign --force --deep --sign - "$APP" >/dev/null 2>&1 \
   && say "Signed (ad-hoc)." || say "Signing failed — the app may not open on Apple Silicon."
 
+[ -n "$HELPER" ] && rm -f build-errors-claude.txt
 rm -f build-errors.txt "Needed Tools.zip"
 ditto -c -k --keepParent "$APP" "Needed Tools.zip"
 say "Zipped for the site: Needed Tools.zip"

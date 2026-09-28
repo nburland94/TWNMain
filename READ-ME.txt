@@ -1165,3 +1165,37 @@ ROUND 41 — DOUBLE-CLICK TO CROP
   • Double-clicking a picture on the page opens its crop window. Reframe
     (moving it inside its frame) is on the small bar above the picture, in the
     Picture panel and in the right-click menu.
+
+ROUND 42 — NEEDED TOOLS × CLAUDE, AND THE PHONE BUTTON
+  • The top bar's Phone is now a small orange button to the left of Sync
+    (a green dot when your phone is switched on). Home's quick actions still
+    have "Your phone" beside Paste a link, Shot list and the rest.
+  • Claude, on this Mac. Needed Tools now includes a helper the Claude app
+    can use (an "MCP server"). Once connected, you can ask Claude things like:
+      – "Go through the Nike Breath project and tag everything."
+      – "Find night exteriors with orange light in Lexus."
+      – "Read my voice, then build a Noir treatment for Lexus from this
+         brief — Look & Feel from the blue and green stills, Casting from
+         #close-up."
+      – "Make the director's note on page 2 shorter."
+    Claude asks before it tags or builds anything; builds open in Design and
+    ⌘Z undoes a rewrite. Nothing is ever deleted through Claude, and your
+    vault isn't uploaded — only what you ask about goes to Claude.
+  • SET IT UP (once)
+      1. Install the Claude app (claude.ai/download) and sign in.
+      2. Needed Tools › Home › click the logo (your account) › Claude ›
+         Connect to Claude.
+      3. Quit the Claude app completely (⌘Q) and open it again. "needed-tools"
+         appears in its tools (the slider icon in the message box).
+      4. Your voice: in the same place, Choose a folder — the one with your
+         treatments, pitches and director's notes (your Obsidian folder is
+         perfect). A note called "My Voice" is read first — ask Claude to
+         write one for you from your treatments.
+      5. "Let Claude make changes" switches tagging and building off or on.
+    If you move Needed Tools.app, press Connect again. Needed Tools opens by
+    itself when Claude needs it.
+  • Tools Claude has: list_projects, project_summary, search_stills (words,
+    tags, colours, untagged), view_stills (it looks at the pictures),
+    tag_stills, list_templates, build_treatment (template, A/B/C, words and
+    stills per section, or a pool by tags/colours), list_designs,
+    read_design, write_page, get_my_voice.

@@ -2070,7 +2070,8 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
   const pad2 = n => String(n).padStart(2, '0');
   // The sample pictures a template opens with: bundled with the app, marked SAMPLE in the editor, swapped for yours in a click.
   const sampleRaw = s => ({ id: 'sample-' + s.id, file: s.id + '.jpg', thumb: 't/' + s.id + '.jpg', a: s.a, palette: s.palette, title: 'Sample', project: '', sample: true, pref: s.group === (window.NeededTemplates || {}).samplePick });
-  const sampleStills = () => (((window.NeededTemplates || {}).samples) || []).map(sampleRaw);
+  let buildPool = null;                          // Claude's build: the template deals from these stills instead of the samples
+  const sampleStills = () => buildPool || (((window.NeededTemplates || {}).samples) || []).map(sampleRaw);
   const sampleCount = pages => (pages || (doc ? doc.pages : [])).reduce((a, p) => a + (p.pics || []).filter(x => x.sample).length, 0);
   let vaultStills = null;                         // every still in the vault, for "Use my stills"
   async function loadVaultStills() {
@@ -2469,7 +2470,7 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
     if (!pp.t) pp.t = (doc.tpl && tplById(doc.tpl.id)) ? doc.tpl.id : tplBases()[0].id;
     if (!doc.tpl) pp.look = 'own';
     const t = tplOf(pp.t, pp.v), c = (doc.tpl && doc.tpl.ctx) || tplCtx(), pick = stillPicker(sampleStills(), t.want);
-    const names = ['Cover', 'Director’s note', 'The idea', 'Story', 'Look & feel', 'Cinematography', 'Light & colour', 'Casting', 'Wardrobe & styling', 'Locations & design', 'Edit & pace', 'Sound & music', 'References', 'Production', 'Thank you'];
+    const names = C_SPEC.map(x => x[2] === 'cover' ? 'Cover' : x[2] === 'close' ? 'Thank you' : x[2]);   // the templates' own order (Story comes after the craft)
     const pages = t.order.map((o, i) => { const pg = pp.v === 'c' ? cMakePage(pp.t, i, c, pick) : tplMakePage(pp.t, pp.v, i, c, pick); paintPage(pg, pp.look === 'deck' && doc.tpl ? doc.tpl.pal : t.pal, pp.look === 'deck' && doc.tpl ? doc.bg : t.pal.bg); return pg; });
     const d = { size: '16:9', pages, bg: pages[0].bg, types: doc.types, runner: null, mark: false, mode: 'treatment' };
     openSheet('pagepick', `
@@ -4194,6 +4195,85 @@ ${slides}
     loadStills().then(() => { const ids = items.map(i => i.id); if (doc) placeMany(ids); else makeNew('mood', ids); });
   };
   window.__designDrag = on => $('dropveil').classList.toggle('on', !!on);
+
+  /* ---------------------------------------------------------------- Claude (round 42): build and write designs from a plan */
+  // Claude sends a plan (template, and per section: words and stills); the same engine you use builds it, with your stills.
+  // The 15 sections in the templates' order (C_SPEC mirrors A and B).
+  const SECTIONS = C_SPEC.map(x => x[2] === 'cover' ? 'Cover' : x[2] === 'close' ? 'Thank you' : x[2]);
+  const secKey = x => String(x || '').toLowerCase().replace(/[’']/g, '').replace(/&/g, 'and').replace(/[^a-z0-9 ]/g, ' ').replace(/\s+/g, ' ').trim();
+  function secIndex(x) {
+    if (typeof x === 'number' || /^\d+$/.test(String(x || ''))) return +x - 1;
+    const k = secKey(x); if (!k) return -1;
+    let i = SECTIONS.findIndex(n => secKey(n) === k);
+    if (i < 0) i = SECTIONS.findIndex(n => secKey(n).includes(k) || k.includes(secKey(n)));
+    return i;
+  }
+  function setWords(pg, w) {
+    const boxes = (pg.boxes || []).filter(b => !b.shape && !b.sw && !b.hexOf);
+    const role = r => boxes.find(b => b.role === r);
+    const big = boxes.slice().sort((a, b) => (b.size || 0) - (a.size || 0));
+    const head = role('head') || big[0];
+    const set = (b, t) => { if (!b || t == null) return; b.text = String(t); if (b.fit) fitBox(b); };
+    if (w.heading != null) set(head, w.heading);
+    if (w.body != null) set(role('body') || role('idea') || boxes.filter(b => b !== head).sort((a, b) => (b.text || '').length - (a.text || '').length)[0], w.body);
+    if (w.kicker != null) set(role('kick'), w.kicker);
+    if (w.signoff != null) set(role('sign'), w.signoff);
+  }
+  function putStills(pg, rows) {
+    if (!rows.length) return;
+    const arranged = pg.tpl && (pg.tpl.v === 'c' || pg.tpl.arr);
+    const slots = pg.pics.map((x, k) => (x.slot ? k : -1)).filter(k => k >= 0);
+    if (!arranged && slots.length) slots.forEach((k, j) => { if (j < rows.length) pg.pics[k] = keepFx(picFromRaw(rows[j]), pg.pics[k]); });
+    else pg.pics = rows.map(st => picFromRaw(st));
+  }
+  const vaultRows = async () => { const r = await call('designStills', { scope: 'vault' }).catch(() => null); return (r && r.stills) || []; };
+  window.__designTemplates = () => tplBases().map(t => ({ id: t.id, name: t.name, feel: t.feel || '' }));
+  window.__designBuild = async spec => {
+    spec = spec || {};
+    // The Mac switched to the plan's project a moment ago: wait until this page has caught up.
+    for (let i = 0; spec.project && project !== spec.project && i < 60; i++) await new Promise(r => setTimeout(r, 150));
+    navGen++; await flushSave();
+    const all = await vaultRows(), byId = new Map(all.map(x => [x.id, x]));
+    const want = String(spec.template || '').toLowerCase();
+    const base = tplBases().find(t => t.id === want || t.name.toLowerCase() === want) || tplBases().find(t => t.id === 'noir') || tplBases()[0];
+    if (!base) return { ok: false, error: 'No templates' };
+    const v = ['a', 'b', 'c'].includes(spec.variant) ? spec.variant : 'a';
+    let pool = (spec.pool || []).map(id => byId.get(id)).filter(Boolean);
+    if (!pool.length) pool = all.filter(x => x.project === project);
+    const info = await call('designProject').catch(() => ({})) || {};
+    const t = v === 'b' ? (tplById(base.id + '-b') || base) : base;
+    const pal = palFor(base, tplChoice, pool.length ? pool : projStills);
+    buildPool = pool.length ? pool : null;
+    try { doc = normalise(v === 'c' ? cDoc(base, pal, info) : tplDoc(t, pal, info)); } finally { buildPool = null; }
+    if (spec.name) doc.name = String(spec.name).slice(0, 80);
+    rel = null; cur = 0; sel.clear(); bsel = null; editing = null; reframe = null; undo = []; redo = [];
+    const missing = [];
+    (spec.pages || []).forEach(ps => {
+      const i = secIndex(ps.section != null ? ps.section : ps.page), pg = doc.pages[i];
+      if (!pg) { missing.push(String(ps.section != null ? ps.section : ps.page)); return; }
+      putStills(pg, (ps.stills || []).map(id => byId.get(id)).filter(Boolean));
+      setWords(pg, ps);
+    });
+    closeSheet(); draw();
+    const r = await call('designSave', { rel: null, doc }).catch(() => null);
+    if (r && r.ok) { rel = r.rel; lastSaved = JSON.stringify(doc); }
+    const samples = sampleCount();
+    toast(`Built with Claude: ${doc.pages.length} pages${samples ? ' — ' + samples + ' sample picture' + (samples === 1 ? '' : 's') + ' to swap' : ''}`);
+    return { ok: !!(r && r.ok), design: rel, name: doc.name, template: base.name, variant: v, pages: doc.pages.length, samples, sections: SECTIONS, missing };
+  };
+  window.__designWrite = async o => {
+    o = o || {};
+    if (o.design && o.design !== rel) { await flushSave(); await openDesign(o.design); if (rel !== o.design) return { ok: false, error: 'Couldn’t open that design' }; }
+    if (!doc) return { ok: false, error: 'No design is open' };
+    const i = (o.page | 0) - 1, pg = doc.pages[i];
+    if (!pg) return { ok: false, error: `That design has ${doc.pages.length} pages` };
+    let byId = null;
+    if (o.stills && o.stills.length) byId = new Map((await vaultRows()).map(x => [x.id, x]));
+    change(() => { if (byId) putStills(pg, o.stills.map(id => byId.get(id)).filter(Boolean)); setWords(pg, o); });
+    cur = i; draw(); await flushSave();
+    toast(`Page ${i + 1} — changed by Claude; ⌘Z to undo`);
+    return { ok: true, design: rel, page: i + 1 };
+  };
   window.addEventListener('resize', () => { sizeTray(); if (doc) drawStage(); });
   call('designFonts').then(r => { fonts = (r && r.fonts) || []; }).catch(() => {});
   loadLooks();

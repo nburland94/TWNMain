@@ -435,6 +435,9 @@ final class Shell: NSObject, NSApplicationDelegate, NSWindowDelegate, WKScriptMe
         }
         // Needed Vault on the phone, over Wi-Fi: what it adds shows up in every tool, and says so.
         PhoneServer.shared.startIfOn()
+        // Round 42: the Claude app on this Mac can work with the vault and Design (this Mac only).
+        ClaudeLink.shared.shell = self
+        ClaudeLink.shared.start()
         NotificationCenter.default.addObserver(forName: .neededPhoneAdded, object: nil, queue: .main) { [weak self] n in
             guard let self = self else { return }
             if n.userInfo?["state"] != nil {
@@ -1193,6 +1196,31 @@ final class Shell: NSObject, NSApplicationDelegate, NSWindowDelegate, WKScriptMe
             showSignIn()
             replyHandler(["ok": true], nil)
 
+        case "claudeStatus":
+            replyHandler(ClaudeLink.shared.status(), nil)
+
+        case "claudeConnect":
+            var r = ClaudeLink.shared.connect()
+            r["status"] = ClaudeLink.shared.status()
+            replyHandler(r, nil)
+
+        case "claudeDisconnect":
+            _ = ClaudeLink.shared.disconnect()
+            replyHandler(ClaudeLink.shared.status(), nil)
+
+        case "claudeVoice":
+            ClaudeLink.shared.chooseVoice { replyHandler($0, nil) }
+
+        case "claudeChanges":
+            ClaudeLink.shared.allowChanges = (body["on"] as? Bool) ?? true
+            replyHandler(ClaudeLink.shared.status(), nil)
+
+        case "openClaude":                                // the Claude app — it reads its settings when it starts
+            let fm = FileManager.default
+            let app = ["/Applications/Claude.app", fm.homeDirectoryForCurrentUser.appendingPathComponent("Applications/Claude.app").path].first { fm.fileExists(atPath: $0) }
+            if let a = app { NSWorkspace.shared.open(URL(fileURLWithPath: a)) } else { NSWorkspace.shared.open(URL(string: "https://claude.ai/download")!) }
+            replyHandler(["ok": true, "installed": app != nil], nil)
+
         case "manageSubscription":                        // Lemon Squeezy's page: card, plan, cancel
             accountLicence.openManage()
             replyHandler(["ok": true], nil)
@@ -1496,7 +1524,7 @@ final class Shell: NSObject, NSApplicationDelegate, NSWindowDelegate, WKScriptMe
         let b = Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? ""
         return ["profile": Shell.profile, "licence": accountLicence.status(), "vault": Shared.vault?.path ?? "",
                 "version": b.isEmpty || b == v ? v : "\(v) (\(b))", "theme": Shared.theme, "phone": PhoneServer.shared.on,
-                "notify": !UserDefaults.standard.bool(forKey: "quiet")]
+                "notify": !UserDefaults.standard.bool(forKey: "quiet"), "claude": ClaudeLink.shared.status()]
     }
 
     static func clean(_ raw: String) -> String {

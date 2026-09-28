@@ -46,6 +46,15 @@ Build on **this** version — not an older folder — so nothing gets undone.
 - **The Mac's root page (`Resources/mobile/index.html`) only redirects to `/capture/`** — there is one phone app.
 - **Home:** the colour dots and the quick actions share one line (`.line2`) under the filters.
 - **Start again** (Vault, Grab, Sort) is a small orange pill under the tagline in `.brand`.
+- **Claude / MCP (round 42).** `MCP/needed-mcp.swift` is a stdio MCP server (JSON-RPC, one message per line) built by the build script into
+  `Contents/MacOS/needed-mcp` (a failed helper build doesn't stop the app). It forwards `tools/call` to the app's `Sources/ClaudeLink.swift`
+  — `POST http://127.0.0.1:<port>/tool` with `Authorization: Bearer <token>`; port/token in `~/Library/Application Support/NeededTools/claude-link.json`
+  (0600); loopback only; it opens the app if needed. Connect writes `mcpServers["needed-tools"] = {command: helper}` into
+  `~/Library/Application Support/Claude/claude_desktop_config.json` (keeps a backup). Design work goes through the page's own engine:
+  `window.__designBuild(spec)`, `__designWrite(o)`, `__designTemplates()` via `callAsyncJavaScript`; while building, `buildPool` makes the
+  template deal from the user's stills instead of samples. Section names come from `C_SPEC` (the templates' real order — Story is 12th).
+  Changes (tag_stills, build_treatment, write_page) respect `claudeChanges`. Voice = a chosen folder of .md/.txt, "voice" notes first, 60k chars.
+- **Top bar phone (round 42):** a small orange round button left of Sync (`#phoneBtn.phone`), green dot when on.
 - **Crop in Design (round 40):** `pic.trim = {l,t,r,b}` (fractions of the picture kept). `aspOf(p)` is the picture's shape everywhere
   (layouts use it); `imgStyle(p, r)` draws a cropped picture in its frame, with Reframe (`pic.crop` x/y/z) inside the crop.
   The crop window is `openCrop(k)` (C, the Picture panel, the arrange bar, right-click). The vault file is never changed.
