@@ -537,7 +537,8 @@ main{position:relative;height:100vh;display:grid;grid-template-columns:minmax(0,
       ${on ? `<div class="qrrow">${qr ? `<img class="qr" src="${qr}" alt="QR code for Needed Mobile Vault">` : ''}<ol>
         <li><b>Scan this with your iPhone camera</b> and open it in Safari.</li>
         <li>Tap <b>Share › Add to Home Screen</b>, so it opens like an app.</li>
-        <li>Grab into a project, then tap <b>Send to Mac</b>. Each one counts as sent when this Mac says it's saved it.</li></ol></div>
+        <li>Grab into a project, then tap <b>Send to Mac</b>. Each one counts as sent when this Mac says it's saved it.</li>
+        <li>Got the <b>Mobile Vault</b> iPhone app? Scan this from inside it instead — then grab anywhere, even with no signal, and it all comes here by itself when you're home.</li></ol></div>
       <div class="facts"><div><span>Connection</span><span>${s.problem ? esc(s.problem) : s.running ? 'Ready on this network' : 'Starting…'}</span></div>
       <div><span>Address</span><span class="mono">${esc((url || '').replace(/#k=.*/, ''))}</span></div>
       <div><span>Not connecting?</span><span>${s.ipQR ? `<button id="phoneAlt">${phoneAlt ? 'Use the Mac’s name' : 'Use the Mac’s number instead'}</button>` : 'Check your Wi-Fi connection'}</span></div>

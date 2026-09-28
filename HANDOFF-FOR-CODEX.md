@@ -46,6 +46,12 @@ Build on **this** version — not an older folder — so nothing gets undone.
 - **The Mac's root page (`Resources/mobile/index.html`) only redirects to `/capture/`** — there is one phone app.
 - **Home:** the colour dots and the quick actions share one line (`.line2`) under the filters.
 - **Start again** (Vault, Grab, Sort) is a small orange pill under the tagline in `.brand`.
+- **iPhone app (round 38, `iPhone/NeededVault`)** is the approved phone design in SwiftUI (iOS 17). It keeps grabs on the phone
+  (`Shared/Library.swift`: App Group `Grabs/` + `grabs.json`) and sends them to the Mac over Wi-Fi with the same API as `/capture/`
+  (`Shared/MacLink.swift`: `GET /api/state`, `POST /api/upload?p&name&tags&phoneId` with `X-Key`; sent only on `{ok:true}`;
+  `phoneId` = grab id so retries don't duplicate). Pairing reads the Mac's QR (`PairedMac.from`). Wi-Fi only (`allowsCellularAccess=false`),
+  `NSAllowsLocalNetworking`, a background app-refresh send. It was written without a compiler in the cloud — build it in Xcode and fix
+  anything it flags before changing behaviour.
 - **Use my stills is per page** (`useMyStills()`; `useMyStills(true)` only from Export).
 - **Glass** matches the website nav, in light and dark. Every sliding switch (`.seg`, `.seg2`, `.abseg`) gets the lens:
   **solid orange, white words, inside the pill with a 2px gap, no overshoot** — light and dark. The phone tab bar matches.

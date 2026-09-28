@@ -1,76 +1,71 @@
-// Needed Vault for iPhone — pictures: small ones for the grid, big ones for the view,
-// GIFs that play, a frame from each clip. Files are read while the folder is open.
+// Needed Mobile Vault for iPhone — pictures: the small preview for the feed, the full
+// picture for the view, GIFs that play, clips that play.
 
 import SwiftUI
-import AVFoundation
+import AVKit
 import ImageIO
 
 enum Pictures {
     static let cache = NSCache<NSString, UIImage>()
 
-    /// The picture at this size — from the cache, or read from the vault folder.
-    static func image(_ item: VaultItem, max: Int) async -> UIImage? {
-        let key = "\(item.id)@\(max)" as NSString
+    /// The feed's preview (made when the grab was kept).
+    static func thumb(_ g: Grab) async -> UIImage? {
+        let key = "t:\(g.id)" as NSString
         if let hit = cache.object(forKey: key) { return hit }
+        let url = Library.shared.thumbURL(g)
         let img = await Task.detached(priority: .userInitiated) { () -> UIImage? in
-            VaultFolder.shared.open { _ -> UIImage? in
-                if item.kind == .clip {
-                    let gen = AVAssetImageGenerator(asset: AVURLAsset(url: item.url))
-                    gen.appliesPreferredTrackTransform = true
-                    gen.maximumSize = CGSize(width: max, height: max)
-                    let cg = try? gen.copyCGImage(at: CMTime(seconds: 0.5, preferredTimescale: 600), actualTime: nil)
-                    return cg.map { UIImage(cgImage: $0) }
-                }
-                return VaultFolder.thumbnail(item.url, max: max).map { UIImage(cgImage: $0) }
-            }.flatMap { $0 }
+            if let d = try? Data(contentsOf: url), let i = UIImage(data: d) { return i }
+            // No preview yet (an older grab): make one now.
+            let (d, _) = Library.preview(of: Library.shared.fileURL(g), kind: g.kind, max: 900)
+            if let d { try? d.write(to: url, options: .atomic) }
+            return d.flatMap { UIImage(data: $0) }
         }.value
         if let i = img { cache.setObject(i, forKey: key) }
         return img
     }
 
-    /// A GIF's frames, to play.
-    static func animated(_ item: VaultItem, max: Int) async -> UIImage? {
-        await Task.detached(priority: .userInitiated) { () -> UIImage? in
-            VaultFolder.shared.open { _ -> UIImage? in
-                var out: UIImage?
-                var err: NSError?
-                NSFileCoordinator().coordinate(readingItemAt: item.url, options: [], error: &err) { u in
-                    guard let src = CGImageSourceCreateWithURL(u as CFURL, nil) else { return }
-                    let n = min(CGImageSourceGetCount(src), 180)
-                    var frames: [UIImage] = [], total = 0.0
-                    let o: [CFString: Any] = [kCGImageSourceCreateThumbnailFromImageAlways: true, kCGImageSourceThumbnailMaxPixelSize: max,
-                                              kCGImageSourceCreateThumbnailWithTransform: true]
-                    for i in 0..<n {
-                        guard let cg = CGImageSourceCreateThumbnailAtIndex(src, i, o as CFDictionary) else { continue }
-                        frames.append(UIImage(cgImage: cg))
-                        let props = CGImageSourceCopyPropertiesAtIndex(src, i, nil) as? [CFString: Any]
-                        let gif = props?[kCGImagePropertyGIFDictionary] as? [CFString: Any]
-                        let d = (gif?[kCGImagePropertyGIFUnclampedDelayTime] as? Double) ?? (gif?[kCGImagePropertyGIFDelayTime] as? Double) ?? 0.1
-                        total += d < 0.02 ? 0.1 : d
-                    }
-                    out = frames.count > 1 ? UIImage.animatedImage(with: frames, duration: total) : frames.first
-                }
-                return out
-            }.flatMap { $0 }
+    /// The whole picture, big — a GIF comes back animated.
+    static func full(_ g: Grab, max: Int = 2400) async -> UIImage? {
+        let url = Library.shared.fileURL(g)
+        return await Task.detached(priority: .userInitiated) { () -> UIImage? in
+            guard let src = CGImageSourceCreateWithURL(url as CFURL, nil) else { return nil }
+            let o: [CFString: Any] = [kCGImageSourceCreateThumbnailFromImageAlways: true, kCGImageSourceThumbnailMaxPixelSize: max,
+                                      kCGImageSourceCreateThumbnailWithTransform: true]
+            let n = min(CGImageSourceGetCount(src), 180)
+            guard g.kind == .gif, n > 1 else {
+                return CGImageSourceCreateThumbnailAtIndex(src, 0, o as CFDictionary).map { UIImage(cgImage: $0) }
+            }
+            var frames: [UIImage] = [], total = 0.0
+            let small: [CFString: Any] = [kCGImageSourceCreateThumbnailFromImageAlways: true, kCGImageSourceThumbnailMaxPixelSize: 900,
+                                          kCGImageSourceCreateThumbnailWithTransform: true]
+            for i in 0..<n {
+                guard let cg = CGImageSourceCreateThumbnailAtIndex(src, i, small as CFDictionary) else { continue }
+                frames.append(UIImage(cgImage: cg))
+                let props = CGImageSourceCopyPropertiesAtIndex(src, i, nil) as? [CFString: Any]
+                let gif = props?[kCGImagePropertyGIFDictionary] as? [CFString: Any]
+                let d = (gif?[kCGImagePropertyGIFUnclampedDelayTime] as? Double) ?? (gif?[kCGImagePropertyGIFDelayTime] as? Double) ?? 0.1
+                total += d < 0.02 ? 0.1 : d
+            }
+            return frames.count > 1 ? UIImage.animatedImage(with: frames, duration: total) : frames.first
         }.value
     }
 }
 
-/// A picture that fills its frame: the Mac's tiny preview first, then the real one.
+/// A grab's preview, filling its frame.
 struct Thumb: View {
-    let item: VaultItem
-    var max = 420
+    let grab: Grab
     @State private var img: UIImage?
     var body: some View {
-        ZStack {
-            LinearGradient(colors: [Color(hex: item.palette.first ?? "#d9cfc4"), Color(hex: item.palette.dropFirst().first ?? item.palette.first ?? "#b8a898")],
-                           startPoint: .topLeading, endPoint: .bottomTrailing)
-            if let i = img ?? item.tiny.flatMap({ UIImage(data: $0) }) {
-                Image(uiImage: i).resizable().scaledToFill()
+        // The picture is an overlay, so it fills and crops to the frame without ever changing its size.
+        Color(hex: "#efe4db")
+            .overlay {
+                if let i = img { Image(uiImage: i).resizable().scaledToFill().transition(.opacity) }
             }
+            .clipped()
+        .task(id: grab.id) {
+            let i = await Pictures.thumb(grab)
+            withAnimation(.easeOut(duration: 0.2)) { img = i }
         }
-        .clipped()
-        .task(id: item.id) { img = await Pictures.image(item, max: max) }
     }
 }
 
@@ -87,5 +82,25 @@ struct Playing: UIViewRepresentable {
     func updateUIView(_ v: UIImageView, context: Context) {
         v.image = image
         if image.images != nil { v.startAnimating() }
+    }
+}
+
+/// A clip, playing on a loop with no sound until you ask.
+struct ClipPlayer: View {
+    let url: URL
+    @State private var player: AVPlayer?
+    var body: some View {
+        VideoPlayer(player: player)
+            .onAppear {
+                let p = AVPlayer(url: url)
+                p.isMuted = true
+                p.actionAtItemEnd = .none
+                NotificationCenter.default.addObserver(forName: .AVPlayerItemDidPlayToEndTime, object: p.currentItem, queue: .main) { _ in
+                    p.seek(to: .zero); p.play()
+                }
+                player = p
+                p.play()
+            }
+            .onDisappear { player?.pause() }
     }
 }

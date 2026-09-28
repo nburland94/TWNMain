@@ -25,13 +25,19 @@ targets:
     info:
       path: App/Info.plist
       properties:
-        CFBundleDisplayName: Needed Vault
+        CFBundleDisplayName: Mobile Vault
         CFBundleShortVersionString: $(MARKETING_VERSION)
         CFBundleVersion: $(CURRENT_PROJECT_VERSION)
         UILaunchScreen: {}
         UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait]
         UIAppFonts: [raleway-latin-200-normal.ttf, raleway-latin-300-normal.ttf, raleway-latin-400-normal.ttf, raleway-latin-500-normal.ttf, oswald-latin-400-normal.ttf, courier-prime-latin-400-normal.ttf]
-        NSPhotoLibraryUsageDescription: Needed Vault saves your latest screenshot into a project when you ask it to.
+        NSPhotoLibraryUsageDescription: Needed Mobile Vault keeps your latest screenshot for a project when you ask it to.
+        NSCameraUsageDescription: Take photos and clips for your projects, and read the pairing code on your Mac.
+        NSLocalNetworkUsageDescription: Needed Mobile Vault sends what you grab straight to Needed Tools on your Mac, over your own Wi-Fi.
+        NSAppTransportSecurity:
+          NSAllowsLocalNetworking: true
+        UIBackgroundModes: [fetch]
+        BGTaskSchedulerPermittedIdentifiers: [com.thiswasneeded.neededvault.send]
         ITSAppUsesNonExemptEncryption: false
     entitlements:
       path: App/NeededVault.entitlements
@@ -41,7 +47,7 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.thiswasneeded.neededvault
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
-        INFOPLIST_KEY_CFBundleDisplayName: Needed Vault
+        INFOPLIST_KEY_CFBundleDisplayName: Mobile Vault
     dependencies:
       - target: NeededVaultShare
   NeededVaultShare:
@@ -53,10 +59,13 @@ targets:
     info:
       path: Share/Info.plist
       properties:
-        CFBundleDisplayName: Needed Vault
+        CFBundleDisplayName: Mobile Vault
         CFBundleShortVersionString: $(MARKETING_VERSION)
         CFBundleVersion: $(CURRENT_PROJECT_VERSION)
         UIAppFonts: [raleway-latin-200-normal.ttf, raleway-latin-300-normal.ttf, raleway-latin-400-normal.ttf, raleway-latin-500-normal.ttf, oswald-latin-400-normal.ttf, courier-prime-latin-400-normal.ttf]
+        NSLocalNetworkUsageDescription: Needed Mobile Vault sends what you share straight to Needed Tools on your Mac, over your own Wi-Fi.
+        NSAppTransportSecurity:
+          NSAllowsLocalNetworking: true
         NSExtension:
           NSExtensionPointIdentifier: com.apple.share-services
           NSExtensionPrincipalClass: $(PRODUCT_MODULE_NAME).ShareViewController

@@ -74,6 +74,30 @@ struct GlassBackground: ViewModifier {
 }
 extension View {
     func glass(_ radius: CGFloat = 22) -> some View { modifier(GlassBackground(radius: radius)) }
+    /// The website nav's glass: almost clear, blurred, a fine white edge, a bright line along the top, a soft sheen.
+    func navGlass<S: Shape>(_ shape: S) -> some View {
+        background(
+            ZStack {
+                shape.fill(.ultraThinMaterial)
+                shape.fill(LinearGradient(colors: [.white.opacity(0.30), .white.opacity(0.10), .white.opacity(0.08)], startPoint: .top, endPoint: .bottom))
+                shape.fill(EllipticalGradient(colors: [.white.opacity(0.62), .white.opacity(0)], center: .top, startRadiusFraction: 0, endRadiusFraction: 0.55))
+                shape.stroke(.white.opacity(0.42), lineWidth: 1)
+            }
+            .shadow(color: .black.opacity(0.08), radius: 16, y: 8)
+        )
+    }
+}
+
+/// The orange action: "Send to Mac", "Keep", the Grab button.
+struct OrangePill: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .font(NVFont.raleway(14.5, 500)).foregroundColor(.white)
+            .padding(.vertical, 11).padding(.horizontal, 16)
+            .background(Capsule().fill(Color.nvOrange))
+            .shadow(color: Color.nvOrange.opacity(0.35), radius: 9, y: 6)
+            .scaleEffect(configuration.isPressed ? 0.96 : 1)
+    }
 }
 
 struct DarkPill: ButtonStyle {

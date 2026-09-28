@@ -1091,3 +1091,22 @@ ROUND 37 — ONE PHONE APP, TIDIER HEADERS, ARRANGE ANY PAGE
     panel, so nothing shows through them.
   • Home: the colours and the quick actions share one line under the
     filters — no empty band above the pictures.
+
+ROUND 38 — THE IPHONE APP, REBUILT (NEEDED MOBILE VAULT)
+  • iPhone/NeededVault is the approved phone design as a real iPhone app: the
+    project on the left, the mark in the middle, ＋ on the right; Home, Projects
+    and each project's page; Grab & Go in the middle of the glass tab bar with
+    the orange lens sliding between Home and Projects.
+  • It does what the web page can't: grab with no signal at all — everything is
+    kept on the phone — and it sends to this Mac by itself whenever the phone is
+    on the same Wi-Fi (Needed Tools open, Home › Your phone switched on). It
+    tries when you open it, when you come back onto Wi-Fi, and now and then in
+    the background. Wi-Fi only, never mobile data.
+  • Pair once: in the app, point at the code in Home › Your phone. Each grab
+    counts as sent only when this Mac says it saved it; nothing lands twice.
+  • The Share Sheet ("Mobile Vault" in every app), the side button / Back Tap /
+    Siri shortcuts, and "Save my latest screenshot" all come with it.
+  • To put it on your iPhone: iPhone/NeededVault/READ-ME.txt (Xcode + your Apple
+    Developer account; double-click Make-Needed-Vault-iPhone.command).
+  • The old app's iCloud folder is no longer used by the app; Sync on the Mac
+    still reads anything left in it.
