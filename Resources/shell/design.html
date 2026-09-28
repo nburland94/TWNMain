@@ -150,6 +150,15 @@ select.sel{appearance:none;-webkit-appearance:none;border:1px solid rgba(28,28,2
 .qbar button svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
 .qbar .qcaret{min-width:20px;padding:0 4px;color:#8a8580;font-size:11px}
 .shapemenu[hidden]{display:none}
+.arrmenu{position:fixed;z-index:95;padding:10px;border-radius:16px;display:flex;flex-direction:column;gap:8px}
+body .arrmenu.g{background:rgba(252,246,241,0.94)}
+html[data-theme=dark] body .arrmenu.g{background:rgba(22,34,52,0.94)!important}
+.arrmenu[hidden]{display:none}
+.arrgrid{display:grid;grid-template-columns:repeat(4,76px);gap:6px}
+.arrgrid button{border:none;background:transparent;border-radius:10px;padding:5px;display:flex;flex-direction:column;align-items:stretch;gap:4px;font-size:11px;color:#4a4945;cursor:pointer}
+.arrgrid button .lay{display:block;height:38px}
+.arrgrid button.on .lay{border-color:#F05A22;background:#fff}
+@media (hover:hover) and (pointer:fine){.arrgrid button:hover{background:rgba(240,90,34,0.10)}}
 .shapemenu{position:fixed;z-index:95;display:flex;flex-direction:column;gap:2px;padding:6px;border-radius:14px;min-width:190px}
 .shapemenu button{border:none;background:transparent;border-radius:9px;height:32px;padding:0 10px;display:flex;align-items:center;gap:10px;font-size:13px;color:#141414;text-align:left}
 .shapemenu button.on{background:rgba(240,90,34,0.14)}
@@ -1132,6 +1141,7 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
   }
   /* ---------------------------------------------------------------- the quick-action bar, on the slide — drag it wherever suits */
   const QI = {
+    arrange: '<svg viewBox="0 0 16 16"><rect x="1.5" y="2" width="7" height="12" rx="1"/><rect x="10" y="2" width="4.5" height="5.2" rx="1"/><rect x="10" y="8.8" width="4.5" height="5.2" rx="1"/></svg>',
     text: '<svg viewBox="0 0 16 16"><path d="M3 3.5h10M8 3.5v9.5M6 13h4"/></svg>',
     free: '<svg viewBox="0 0 16 16"><path d="M8 1.5v13M1.5 8h13M8 1.5l-2 2M8 1.5l2 2M8 14.5l-2-2M8 14.5l2-2M1.5 8l2-2M1.5 8l2 2M14.5 8l-2-2M14.5 8l-2 2"/></svg>',
     fade: '<svg viewBox="0 0 16 16"><rect x="2" y="2" width="12" height="12" rx="2"/><path d="M2 10h12M2 12h12M2 8h12" opacity=".5"/></svg>',
@@ -1165,6 +1175,37 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
     qShape = b.dataset.shapepick; setPref('qShape', qShape); $('shapemenu').hidden = true; drawQbar();
     addShape(qShape);
   });
+  // Arrange: the eight arrangements, for any page — A, B, C or your own.
+  function openArrangeMenu(btn) {
+    let m = $('arrmenu');
+    if (!m) { m = document.createElement('div'); m.id = 'arrmenu'; m.className = 'arrmenu g'; document.body.appendChild(m); }
+    const cur0 = page().layout;
+    m.innerHTML = `<span class="cap">Arrange this page</span><div class="arrgrid">${C_LAYS.map(([k, n], i) => `<button type="button" data-arrpick="${k}" class="${cur0 === k ? 'on' : ''}" title="${esc(n)}"><span class="lay">${layIcon(k)}</span><span>${C_NAMES[i]}</span></button>`).join('')}</div>`;
+    const r = btn.getBoundingClientRect();
+    m.hidden = false;
+    const mw = m.offsetWidth, mh = m.offsetHeight;
+    Object.assign(m.style, { left: Math.round(clamp(r.left + r.width / 2 - mw / 2, 8, innerWidth - mw - 8)) + 'px', top: Math.round(r.bottom + mh + 12 > innerHeight ? r.top - mh - 8 : r.bottom + 8) + 'px' });
+  }
+  document.addEventListener('mousedown', e => { const m = $('arrmenu'); if (m && !m.hidden && !e.target.closest('#arrmenu') && !e.target.closest('[data-q="arrange"]')) m.hidden = true; }, true);
+  document.addEventListener('click', e => { const b = e.target.closest('[data-arrpick]'); if (!b) return; $('arrmenu').hidden = true; arrangePage(b.dataset.arrpick); });
+  function arrangePage(k) {
+    const p = page(); if (!p || doc.mode === 'mood') return;
+    const designed = p.tpl && p.tpl.v !== 'c';
+    change(() => {
+      if (designed || p.layout === 'free') {
+        // A designed page becomes an arranged one: its pictures reflow, its words go into the space for words,
+        // its drawn shapes and swatches (made for the old places) step aside. The section stays, so A/B/C still switch it.
+        p.pics.forEach(x => { delete x.box; delete x.slot; delete x.z; });
+        if (designed) {
+          p.boxes = p.boxes.filter(b => !b.shape && !b.sw && !b.hexOf && (b.text || '').trim());
+          p.boxes.forEach(b => { b.auto = true; delete b.z; b.fit = undefined; if (b.size > 80) b.size = 64; });
+          p.tpl.v = 'c'; delete p.bgr;
+        }
+      }
+      p.layout = k;
+    });
+    toast(`${C_NAMES[C_LAYS.findIndex(l => l[0] === k)]} — slide for more pictures or fewer; ⌘Z to undo`);
+  }
   let qpos = (() => { try { return JSON.parse(localStorage.getItem('design.qbar') || 'null'); } catch (e) { return null; } })();
   function drawQbar() {
     const q = $('qbar'); if (!doc) { q.hidden = true; return; }
@@ -1177,6 +1218,7 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
         + (short ? '' : B('shape', SHAPE_Q[qShape] ? 'shp_' + qShape : 'shape', '', 'Add a shape — pick which', false) + '<button type="button" data-q="shapemenu" class="qcaret" title="Which shape" aria-label="Which shape">▾</button>')
         + B('free', 'free', short ? '' : 'Free', 'Free: move and size the pictures by hand', free)
         + (short ? '' : B('fade', 'fade', 'Fade', 'Fade the pictures on this page — drag it on a Free page, R turns it', fade) + B('layout', 'layout', '', 'Next layout — L', false)))
+      + (mood ? '' : B('arrange', 'arrange', short ? '' : 'Arrange', 'Arrange the pictures on this page — Mosaic, Feature, Stagger, Strip, Contact, Hero, Pair, Column', C_LAYOUTS[p.layout] != null))
       + (short ? '' : B('photos', 'photos', '', 'Add photos from your Mac', false)) + '<i class="qsep"></i>'
       + B('page', 'page', short ? '' : 'Page', mood ? 'A new page after this one' : 'A new page after this one — blank, or a designed page', false)
       + (short ? '' : B('dup', 'dup', '', 'Duplicate this page — ⌘D', false)) + B('undo', 'undo', '', 'Undo — ⌘Z', false) + (short ? '' : B('redo', 'redo', '', 'Redo — ⇧⌘Z', false) + B('play', 'play', '', 'Play — Space', false))
@@ -1224,6 +1266,7 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
     }
     if (q === 'fade') { change(() => { p.fade = Object.assign({ strength: 0.6, to: 'black' }, p.fade || {}, { on: !(p.fade && p.fade.on) }); }); return toast(page().fade.on ? 'Fade on — the Colour tab has its strength and direction' : 'Fade off'); }
     if (q === 'layout') return cycleLayout();
+    if (q === 'arrange') { const m = $('arrmenu'); if (m && !m.hidden) { m.hidden = true; return; } return openArrangeMenu(b); }
     if (q === 'photos') return bringPhotos();
     if (q === 'page') {
       if (doc.mode === 'mood') return addBlankPage(false);
