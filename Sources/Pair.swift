@@ -61,11 +61,27 @@ enum PairRelay {
         var projects = Shared.projects().filter { $0 != "Unsorted" }
         if let i = projects.firstIndex(of: Shared.project) { projects.remove(at: i); projects.insert(Shared.project, at: 0) }
         let mac = Host.current().localizedName ?? "your Mac"
-        let sig = projects.joined(separator: "|") + "@" + mac
+        // Only acknowledge files in the saved vault index that still exist on disk.
+        // Bound the receipt window to stay within the relay's 64 KB encrypted record.
+        var received: [String] = []
+        if let base = Shared.vault,
+           let data = try? Data(contentsOf: base.appendingPathComponent(".vault/index.json")),
+           let items = try? JSONSerialization.jsonObject(with: data) as? [[String: Any]] {
+            var unique = Set<String>()
+            for item in items.sorted(by: { ($0["created"] as? String ?? "") > ($1["created"] as? String ?? "") }) {
+                guard let id = item["phoneId"] as? String, !id.isEmpty, id.count <= 24,
+                      let path = item["file"] as? String,
+                      FileManager.default.fileExists(atPath: base.appendingPathComponent(path).path),
+                      unique.insert(id).inserted else { continue }
+                received.append(id)
+                if received.count == 1000 { break }
+            }
+        }
+        let sig = projects.joined(separator: "|") + "@" + mac + "#" + received.sorted().joined(separator: ",")
         let last = d.string(forKey: "pairSent") ?? "", lastAt = d.double(forKey: "pairSentAt")
         if !force && sig == last && Date().timeIntervalSince1970 - lastAt < 86400 { return }
         guard let url = endpoint, let keyData = fromB64url(key), keyData.count == 32 else { return }
-        let payload: [String: Any] = ["v": 1, "projects": projects, "mac": mac, "at": Int(Date().timeIntervalSince1970 * 1000)]
+        let payload: [String: Any] = ["v": 2, "projects": projects, "received": received, "mac": mac, "at": Int(Date().timeIntervalSince1970 * 1000)]
         guard let plain = try? JSONSerialization.data(withJSONObject: payload),
               let sealed = try? AES.GCM.seal(plain, using: SymmetricKey(data: keyData)), let box = sealed.combined,
               let body = try? JSONSerialization.data(withJSONObject: ["box": b64url(box), "w": write]) else { return }

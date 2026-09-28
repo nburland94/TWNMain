@@ -1,0 +1,9 @@
+Dark-mode readability update
+
+Install: Quit Needed Tools. Unzip this package and replace your existing app with Needed Tools.app. Reopen it and switch to dark mode. Existing vault files remain in their current folder.
+
+The shared dark theme now gives secondary labels and captions explicit light colours across Home, Vault, Design, Shots, Sort, Grab, Credit, Pay and project/settings UI. Literal grey foreground text is also brightened separately from surfaces. Placeholders no longer have a second opacity reduction. Grab & Go, selected segmented filters and GIF badges have explicit foreground/background pairs. Disabled text controls retain a visible disabled distinction with less fading.
+
+Light mode rules are unchanged. Existing treatment canvas and media/swatch exclusions are retained. Direct Wi-Fi transfer and the prior app fixes are included; see Direct WiFi Setup.md.
+
+Checks: shared text-token pairs measured at least 4.92:1 against the three sampled dark surfaces; tests passed for literal greys, translucent text, selected buttons, badges, disabled versus hidden controls, and treatment exclusions. Previous dark-mode regression checks passed. App signature verified. A full visual review of every screen in the running Mac app has not been performed.

@@ -89,7 +89,7 @@ final class VaultStore {
         var item: [String: Any] = ["id": id, "kind": kind, "file": rel, "thumb": thumbRel, "project": project]
         item["bytes"] = fileSize(file)
         item["created"] = ISO8601DateFormatter().string(from: Date())
-        for key in ["source", "at", "end", "crop", "tags", "note", "w", "h", "palette", "boards", "title", "text", "origin"] {
+        for key in ["phoneId", "source", "at", "end", "crop", "tags", "note", "w", "h", "palette", "boards", "title", "text", "origin"] {
             if let v = meta?[key] { item[key] = v }
         }
         if kind != "idea", (item["palette"] as? [String])?.isEmpty ?? true, let p = colours(of: base.appendingPathComponent(thumbRel), kind: kind) {

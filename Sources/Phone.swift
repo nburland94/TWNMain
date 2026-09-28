@@ -105,9 +105,9 @@ final class PhoneServer {
         }
         return found
     }
-    var url: String { "http://\(hostName):\(PhoneServer.port)/#k=\(key)" }
-    var localURL: String { "http://localhost:\(PhoneServer.port)/#k=\(key)" }
-    var ipURL: String? { ipAddress.map { "http://\($0):\(PhoneServer.port)/#k=\(key)" } }
+    var url: String { "http://\(hostName):\(PhoneServer.port)/capture/#k=\(key)" }
+    var localURL: String { "http://localhost:\(PhoneServer.port)/capture/#k=\(key)" }
+    var ipURL: String? { ipAddress.map { "http://\($0):\(PhoneServer.port)/capture/#k=\(key)" } }
 
     static func qr(_ text: String) -> String? {
         guard let f = CIFilter(name: "CIQRCodeGenerator") else { return nil }
@@ -161,6 +161,7 @@ final class PhoneServer {
     static var logURL: URL { FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent("Library/Logs/Needed Tools/Phone.log") }
 
     fileprivate func answer(_ r: HTTPConn.Request, body: URL?, conn: HTTPConn) {
+        defer { if let body = body { try? FileManager.default.removeItem(at: body) } }
         let path = r.path
         log("\(r.method) \(path) \(r.header("user-agent")?.contains("iPhone") == true ? "iPhone" : "")")
         if !path.hasPrefix("/api/") { return serveStatic(path, conn: conn) }
@@ -183,7 +184,7 @@ final class PhoneServer {
             guard let tmp = body else { return conn.send(status: 400, type: "application/json", body: json(["error": "Nothing came"])) }
             let p = r.query["p"] ?? "", name = r.query["name"] ?? "Photo.jpg"
             let tags = (r.query["tags"] ?? "").split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces).lowercased() }.filter { !$0.isEmpty }
-            let out = onMain { self.upload(tmp, project: p, name: name, tags: tags) }
+            let out = onMain { self.upload(tmp, project: p, name: name, tags: tags, phoneId: r.query["phoneId"] ?? "") }
             try? FileManager.default.removeItem(at: tmp)
             conn.send(status: (out["ok"] as? Bool) == true ? 200 : 400, type: "application/json", body: json(out))
         default:
@@ -193,7 +194,7 @@ final class PhoneServer {
 
     private func serveStatic(_ path: String, conn: HTTPConn) {
         guard let root = Bundle.main.resourceURL?.appendingPathComponent("mobile", isDirectory: true) else { return conn.send(status: 404, type: "text/plain", body: Data()) }
-        var rel = path == "/" ? "index.html" : String(path.dropFirst())
+        var rel = path == "/" ? "index.html" : path == "/capture/" || path == "/capture" ? "capture/index.html" : String(path.dropFirst())
         rel = rel.removingPercentEncoding ?? rel
         guard !rel.contains(".."), !rel.hasPrefix("/") else { return conn.send(status: 404, type: "text/plain", body: Data()) }
         let u = root.appendingPathComponent(rel)
@@ -264,8 +265,19 @@ final class PhoneServer {
         return FileManager.default.fileExists(atPath: u.path) ? u : nil
     }
 
-    private func upload(_ tmp: URL, project raw: String, name: String, tags: [String]) -> [String: Any] {
+    private func upload(_ tmp: URL, project raw: String, name: String, tags: [String], phoneId: String = "") -> [String: Any] {
         guard let base = Shared.vault else { return ["ok": false, "error": "Choose your vault on the Mac first"] }
+        guard phoneId.isEmpty || (phoneId.count >= 6 && phoneId.count <= 64 && phoneId.allSatisfy({ $0.isASCII && ($0.isLetter || $0.isNumber || $0 == "-") })) else {
+            return ["ok": false, "error": "Invalid transfer ID"]
+        }
+        VaultStore.shared.load()
+        // A lost reply must not create another copy when the phone retries.
+        if !phoneId.isEmpty, let prior = VaultStore.shared.items.first(where: { ($0["phoneId"] as? String) == phoneId }),
+           let rel = prior["file"] as? String, FileManager.default.fileExists(atPath: base.appendingPathComponent(rel).path) {
+            VaultStore.shared.save()
+            guard persisted(prior, base: base) else { return ["ok": false, "error": "The Mac could not save the vault index. Keep this item queued and retry."] }
+            return ["ok": true, "id": prior["id"] as? String ?? "", "phoneId": phoneId, "duplicate": true, "project": prior["project"] as? String ?? ""]
+        }
         let project = Shell.clean(raw).isEmpty ? Shared.project : Shell.clean(raw)
         var clean = (name as NSString).lastPathComponent.replacingOccurrences(of: "/", with: "-").replacingOccurrences(of: ":", with: "-")
         if clean.hasPrefix(".") || clean.isEmpty { clean = "Photo.jpg" }
@@ -286,10 +298,23 @@ final class PhoneServer {
         }
         var meta: [String: Any] = ["origin": "reference", "source": ["type": "phone", "title": (clean as NSString).deletingPathExtension]]
         if !tags.isEmpty { meta["tags"] = tags }
+        if !phoneId.isEmpty { meta["phoneId"] = phoneId }
         let item = VaultStore.shared.register(kind: kind, file: dst, meta: meta, project: project)
+        guard persisted(item, base: base) else { return ["ok": false, "error": "The file arrived but the vault index could not be saved. Keep it queued and retry."] }
+        if !phoneId.isEmpty {
+            var seen = PhoneDrops.loadSeen(base)
+            seen[phoneId] = dst.path.replacingOccurrences(of: base.path + "/", with: "")
+            PhoneDrops.saveSeen(seen, base)
+        }
         Shared.notify()
         NotificationCenter.default.post(name: .neededPhoneAdded, object: nil, userInfo: ["project": project])
-        return ["ok": true, "id": item["id"] as? String ?? "", "project": project, "kind": kind]
+        return ["ok": true, "id": item["id"] as? String ?? "", "phoneId": phoneId, "project": project, "kind": kind]
+    }
+    private func persisted(_ item: [String: Any], base: URL) -> Bool {
+        guard let id = item["id"] as? String, !id.isEmpty,
+              let data = try? Data(contentsOf: base.appendingPathComponent(".vault/index.json")),
+              let rows = try? JSONSerialization.jsonObject(with: data) as? [[String: Any]] else { return false }
+        return rows.contains { ($0["id"] as? String) == id && ($0["file"] as? String) == (item["file"] as? String) }
     }
 }
 
@@ -341,7 +366,7 @@ final class HTTPConn {
             guard let self = self else { return }
             if let d = data, !d.isEmpty { self.take(d) }
             if err != nil { return self.close() }
-            if done && self.req == nil { return self.close() }
+            if done && (self.req == nil || self.bodyLeft > 0) { return self.close() }
             if !self.closed && (self.req == nil || self.bodyLeft > 0) { self.read() }
         }
     }
@@ -377,12 +402,18 @@ final class HTTPConn {
                 r.headers[l[..<i].trimmingCharacters(in: .whitespaces).lowercased()] = l[l.index(after: i)...].trimmingCharacters(in: .whitespaces)
             }
             req = r
+            // Refuse unauthenticated uploads before accepting their body.
+            if r.method == "POST", r.path == "/api/upload",
+               r.header("x-key") != server?.key && r.query["k"] != server?.key {
+                return send(status: 401, type: "application/json", body: Data("{\"ok\":false,\"error\":\"Scan the Mac QR code again\"}".utf8))
+            }
             let len = Int(r.header("content-length") ?? "") ?? 0
             if r.method == "POST", len > 0 {
                 guard len < 2_000_000_000 else { return send(status: 413, type: "text/plain", body: Data()) }
                 let f = FileManager.default.temporaryDirectory.appendingPathComponent("needed-upload-\(UUID().uuidString)")
                 FileManager.default.createFile(atPath: f.path, contents: nil)
                 bodyFile = f; bodyHandle = try? FileHandle(forWritingTo: f); bodyLeft = len
+                guard bodyHandle != nil else { bodyLeft = 0; return send(status: 500, type: "text/plain", body: Data("Could not open upload storage".utf8)) }
                 if !rest.isEmpty { writeBody(Data(rest)) }
             } else {
                 server?.answer(r, body: nil, conn: self)
@@ -393,7 +424,8 @@ final class HTTPConn {
     }
     private func writeBody(_ d: Data) {
         let chunk = d.prefix(bodyLeft)
-        bodyHandle?.write(chunk)
+        do { try bodyHandle?.write(contentsOf: chunk) }
+        catch { bodyLeft = 0; return send(status: 500, type: "text/plain", body: Data("Could not save upload".utf8)) }
         bodyLeft -= chunk.count
         if bodyLeft <= 0, let r = req {
             try? bodyHandle?.close(); bodyHandle = nil

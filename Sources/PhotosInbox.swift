@@ -67,13 +67,11 @@ enum PhotosInbox {
     static func collect(base: URL, fallback: String, existing: [String], progress: ((Double) -> Void)?) -> ([PhoneDrops.Drop], Int, String?) {
         guard on else { return ([], 0, nil) }
         guard allowed() else { return ([], 0, "Photos is off for Needed Tools — System Settings › Privacy & Security › Photos") }
-        let key = "photosScan:" + base.path
-        // Since the last look (with a few days' grace for iCloud), or the last 60 days the first time.
-        let since = (UserDefaults.standard.object(forKey: key) as? Date)?.addingTimeInterval(-3 * 86400) ?? Date().addingTimeInterval(-60 * 86400)
-        let started = Date()
+        // Capture/modification dates are not arrival dates. An old reference can arrive
+        // from iCloud today; inspect library metadata and skip already imported assets.
         let opts = PHFetchOptions()
-        opts.predicate = NSPredicate(format: "(creationDate > %@ OR modificationDate > %@) AND (mediaType == %d OR mediaType == %d)",
-                                     since as NSDate, since as NSDate, PHAssetMediaType.image.rawValue, PHAssetMediaType.video.rawValue)
+        opts.predicate = NSPredicate(format: "mediaType == %d OR mediaType == %d",
+                                     PHAssetMediaType.image.rawValue, PHAssetMediaType.video.rawValue)
         let assets = PHAsset.fetchAssets(with: opts)
         var looked = loadAssets(base)
         var seen = PhoneDrops.loadSeen(base)
@@ -126,22 +124,20 @@ enum PhotosInbox {
         PhoneDrops.saveSeen(seen, base)
         saveAssets(looked, base)
         if albums { saveAlbumed(albumed, base) }
-        if failed == 0 { UserDefaults.standard.set(started, forKey: key) }
         if albums { sort(sortInto) }
-        let note: String? = failed > 0 ? "\(failed) still coming down from iCloud — Sync again in a bit" : nil
+        let note: String? = failed > 0
+            ? "\(failed) Photos originals could not be imported — check iCloud Photos and try Sync again"
+            : found.isEmpty ? "No new Needed Vault files found in Photos. If images are missing, check Mac Photos first; if they are there, share the originals again by AirDrop and press Sync" : nil
         return (out, twice, note)
     }
 
-    /// Any phone grabs in Photos not filed yet? A quick look at what's come in lately — for filing them as they arrive.
+    /// Check unfiled phone assets regardless of their original capture date.
     static func hasNew(base: URL) -> Bool {
         guard on, status == "allowed" else { return false }
         let looked = loadAssets(base)
-        let since = Date().addingTimeInterval(-3 * 86400) as NSDate
         let opts = PHFetchOptions()
-        opts.predicate = NSPredicate(format: "(creationDate > %@ OR modificationDate > %@) AND (mediaType == %d OR mediaType == %d)",
-                                     since, since, PHAssetMediaType.image.rawValue, PHAssetMediaType.video.rawValue)
-        opts.sortDescriptors = [NSSortDescriptor(key: "modificationDate", ascending: false)]
-        opts.fetchLimit = 400
+        opts.predicate = NSPredicate(format: "mediaType == %d OR mediaType == %d",
+                                     PHAssetMediaType.image.rawValue, PHAssetMediaType.video.rawValue)
         var hit = false
         PHAsset.fetchAssets(with: opts).enumerateObjects { a, _, stop in
             if looked.contains(a.localIdentifier) { return }
