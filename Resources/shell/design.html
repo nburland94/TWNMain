@@ -457,7 +457,7 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
   <header class="bar" id="bar"></header>
   <div class="strip" id="strip"></div>
   <div class="work" id="work">
-    <div class="stage" id="stage"><div class="scroller" id="scroller"><div class="pagewrap" id="pagewrap"></div><div class="boxsel" id="boxsel" hidden><i class="h" data-h="l"></i><i class="h" data-h="r"></i><i class="h" data-h="br"></i><i class="h" data-h="b"></i></div><div class="fadesel" id="fadesel" hidden><i class="fh" data-fh="tl"></i><i class="fh" data-fh="tr"></i><i class="fh" data-fh="bl"></i><i class="fh" data-fh="br"></i><span class="fadelbl">Fade — drag to move · corners to size · R rotates · Esc done</span></div><div class="arrbar g" id="arrbar" hidden><button type="button" data-z="front" title="To the front">⤒ Front</button><button type="button" data-z="forward" title="Forward one">↑</button><button type="button" data-z="backward" title="Back one">↓</button><button type="button" data-z="back" title="To the back">⤓ Back</button><button type="button" data-arr="crop" class="arrpic" title="Crop — C">Crop</button><button type="button" data-arr="reframe" class="arrpic" title="Reframe — or double-click">Reframe</button></div><div class="splitbar" id="splitbar" hidden title="Drag: more or less room for the pictures"></div><div class="guide v" id="guideX" hidden></div><div class="guide hz" id="guideY" hidden></div></div><div class="swapbar g" id="swapbar" hidden></div><div class="stagehint" id="stagehint"></div>
+    <div class="stage" id="stage"><div class="scroller" id="scroller"><div class="pagewrap" id="pagewrap"></div><div class="boxsel" id="boxsel" hidden><i class="h" data-h="l"></i><i class="h" data-h="r"></i><i class="h" data-h="br"></i><i class="h" data-h="b"></i></div><div class="fadesel" id="fadesel" hidden><i class="fh" data-fh="tl"></i><i class="fh" data-fh="tr"></i><i class="fh" data-fh="bl"></i><i class="fh" data-fh="br"></i><span class="fadelbl">Fade — drag to move · corners to size · R rotates · Esc done</span></div><div class="arrbar g" id="arrbar" hidden><button type="button" data-z="front" title="To the front">⤒ Front</button><button type="button" data-z="forward" title="Forward one">↑</button><button type="button" data-z="backward" title="Back one">↓</button><button type="button" data-z="back" title="To the back">⤓ Back</button><button type="button" data-arr="crop" class="arrpic" title="Crop — double-click the picture, or C">Crop</button><button type="button" data-arr="reframe" class="arrpic" title="Reframe — move it inside its frame, scroll to zoom">Reframe</button></div><div class="splitbar" id="splitbar" hidden title="Drag: more or less room for the pictures"></div><div class="guide v" id="guideX" hidden></div><div class="guide hz" id="guideY" hidden></div></div><div class="swapbar g" id="swapbar" hidden></div><div class="stagehint" id="stagehint"></div>
       <div class="qbar g" id="qbar" role="toolbar" aria-label="Quick actions" hidden></div>
       <div class="zoombar g" id="zoombar" role="group" aria-label="Zoom"><button type="button" data-zoom="out" aria-label="Zoom out — ⌘−">−</button><button type="button" id="zoomPct" data-zoom="fit" title="Fit the page — ⌘0">100%</button><button type="button" data-zoom="in" aria-label="Zoom in — ⌘+">+</button><button type="button" data-zoom="fit" class="zfit" title="⌘0">Fit</button></div></div>
   </div>
@@ -1591,7 +1591,7 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
         <button class="light small" id="reframeBtn">${reframe != null ? 'Done reframing' : 'Reframe'}</button>
         ${one && one.crop && (one.crop.z !== 1 || one.crop.x !== 50 || one.crop.y !== 50) ? '<button class="light small" id="reframeReset">Centre it</button>' : ''}</div>
         ${one && one.trim ? '<button class="light small" id="cropReset" style="align-self:flex-start">Uncrop</button>' : ''}
-        <span class="empty">Crop trims it to a new shape. Reframe — or double-click — moves it inside its frame; scroll to zoom.</span></div>` : ''}
+        <span class="empty">Double-click the picture to crop it. Reframe moves it inside its frame; scroll to zoom.</span></div>` : ''}
       <div class="psec"><div style="display:flex;gap:6px;flex-wrap:wrap">
         ${one && ks[0] > 0 && !free ? '<button class="light small" id="breakBtn" title="This picture and the ones after it go onto a new page">New page from here</button>' : ''}
         <button class="light small" id="removePics">Take ${ks.length > 1 ? 'them' : 'it'} off · ⌫</button></div></div>`;
@@ -2747,7 +2747,7 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
     Object.assign(el.style, box); Object.assign($('cropVeil').style, box);   // the dimming is clipped to the picture; the handles aren't
     el.classList.toggle('fixed', cropR !== 'free');
     const a = cropA * (t.r - t.l) / Math.max(0.001, t.b - t.t);
-    $('cropDim').textContent = (a >= 1 ? a.toFixed(2) + ' : 1' : '1 : ' + (1 / a).toFixed(2)) + ' · keeps ' + Math.round((t.r - t.l) * (t.b - t.t) * 100) + '%';
+    $('cropDim').textContent = (a >= 0.995 ? a.toFixed(2) + ' : 1' : '1 : ' + (1 / a).toFixed(2)) + ' · keeps ' + Math.round((t.r - t.l) * (t.b - t.t) * 100) + '%';
     $('cropRatios').querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.cropr === cropR));
   }
   /** A shape: the biggest frame of it that fits, centred where the frame is now. */
@@ -3284,7 +3284,7 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
     drawStage(); drawPanel();
     const m = $('ctxmenu'); ctxIds = []; ctxHi = 0;
     const items = [['z:front', 'Bring to front', ''], ['z:forward', 'Bring forward', ''], ['z:backward', 'Send backward', ''], ['z:back', 'Send to back', ''], null]
-      .concat(pic ? [['obj:crop', 'Crop', 'C'], ['obj:reframe', 'Reframe', 'double-click']] : [['obj:type', 'Type in it', 'Return']]).concat([['obj:cut', 'Cut', '⌘X'], ['obj:copy', 'Copy', '⌘C'], ['obj:paste', 'Paste', '⌘V'], ['obj:dup', 'Duplicate', '⌘D'], ['obj:del', tb ? 'Delete' : 'Take off the page', '⌫']]);
+      .concat(pic ? [['obj:crop', 'Crop', 'double-click'], ['obj:reframe', 'Reframe', '']] : [['obj:type', 'Type in it', 'Return']]).concat([['obj:cut', 'Cut', '⌘X'], ['obj:copy', 'Copy', '⌘C'], ['obj:paste', 'Paste', '⌘V'], ['obj:dup', 'Duplicate', '⌘D'], ['obj:del', tb ? 'Delete' : 'Take off the page', '⌫']]);
     m.innerHTML = items.map(it => it ? `<button role="menuitem" data-ctx="${it[0]}"><span>${esc(it[1])}</span><small>${it[2]}</small></button>` : '<hr>').join('');
     m.hidden = false;
     const r = m.getBoundingClientRect();
@@ -3462,7 +3462,8 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
     if (fadeEdit) { fadeEdit = false; drawPanel(); }
     if (swap) swapEnd(true);
     // Double-clicks are read here: the first click redraws the page, so the browser's own double-click never comes.
-    if (e.detail === 2 && pic && !swap) { const k = +pic.dataset.k; sel = new Set([k]); reframe = reframe === k ? null : k; drawStage(); drawPanel(); return; }
+    // Round 41: double-clicking a picture on the page opens its crop; Reframe is on the bar above it, the panel and right-click.
+    if (e.detail === 2 && pic && !swap) { const k = +pic.dataset.k; sel = new Set([k]); reframe = null; drawStage(); drawPanel(); openCrop(k); return; }
     if (e.detail === 2 && !pic && doc.mode !== 'mood' && e.target.closest('#pagewrap')) {       // the page: a text box, right there
       const w = $('pagewrap').getBoundingClientRect();
       e.preventDefault();
@@ -3912,7 +3913,7 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
   }
   function openKeys() {
     const k = [['↑ ↓', 'Swap the picked picture through your stills — Return keeps, Esc puts it back'], ['← →', 'Move it along the page (nothing picked: the page before or after)'], ['⌘← ⌘→', 'Move it to the page before or after'],
-      ['F', 'Feature it — the hero of its row'], ['⌫', 'Take it off the page'], ['Double-click', 'A picture: reframe it (drag inside, scroll to zoom) · the page: a text box there'],
+      ['F', 'Feature it — the hero of its row'], ['⌫', 'Take it off the page'], ['Double-click', 'A picture: crop it (C too) · the page: a text box there'],
       ['T', 'A new text box'], ['Text box', 'Drag it anywhere · handles for width, the corner for size · click again, or Return, to type · arrows nudge · ⌘ while dragging stops the snapping'],
       ['Right-click', 'Picked stills in the tray: add them here, to a new page, or across new pages · a picture or words on the page: front, back, duplicate, delete'],
       ['R  ⇧R', 'Turn the fade round (when the fade is on)'],

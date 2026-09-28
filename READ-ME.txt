@@ -1148,7 +1148,7 @@ ROUND 39 — SUBSCRIPTIONS (LEMON SQUEEZY): FREE MONTH, CODES, PLANS
          …/buy/…?checkout[discount_code]=FOUNDERS
 
 ROUND 40 — CROP IN DESIGN
-  • Pick a picture and press C — or Crop in the Picture panel, on the little
+  • Double-click a picture on the page (round 41), or press C — or Crop in the Picture panel, on the little
     bar above the picture, or in the right-click menu.
   • The whole picture opens with a frame on it: drag inside to move it, the
     handles to size it. Shapes: Free, Original, 1:1, 4:5, 3:2, 16:9 and
@@ -1160,3 +1160,8 @@ ROUND 40 — CROP IN DESIGN
     it exports the same. Reframe still moves and zooms it inside the crop;
     Uncrop (Picture panel) brings the whole picture back.
   • Only the design changes — the still in your vault is never touched.
+
+ROUND 41 — DOUBLE-CLICK TO CROP
+  • Double-clicking a picture on the page opens its crop window. Reframe
+    (moving it inside its frame) is on the small bar above the picture, in the
+    Picture panel and in the right-click menu.
