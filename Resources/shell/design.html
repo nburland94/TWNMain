@@ -422,6 +422,30 @@ body.resizing,body.resizing *{cursor:ns-resize!important;user-select:none}
 .toast{position:fixed;left:50%;bottom:24px;transform:translate(-50%,10px);z-index:90;background:#141414;color:#fff;border-radius:100px;padding:10px 18px;font-size:13px;opacity:0;pointer-events:none;transition:opacity .25s var(--ease-out),transform .25s var(--ease-out)}
 .toast.show{opacity:1;transform:translate(-50%,0)}
 @media (max-width:1200px){#app{grid-template-columns:minmax(0,1fr) 270px}.name{width:150px}.bar .hidenarrow{display:none}}
+
+/* ---- Crop (round 40) ---- */
+.cropper{position:fixed;inset:0;z-index:9000;background:rgba(18,14,12,0.62);display:flex;align-items:center;justify-content:center;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+.cropper[hidden]{display:none}
+.cropwin{border-radius:22px;padding:16px 18px 14px;display:flex;flex-direction:column;gap:12px;max-width:calc(100vw - 60px)}
+.crophead{display:flex;align-items:baseline;justify-content:space-between;gap:12px}
+.cropdim{font-family:'Courier Prime',monospace;font-size:11px;letter-spacing:.08em;color:#6b6964}
+.cropstage{display:flex;align-items:center;justify-content:center}
+.cropwrap{position:relative;background:#111;user-select:none;margin:8px}
+.cropclip{position:absolute;inset:0;overflow:hidden;pointer-events:none}
+.cropveil{position:absolute;box-shadow:0 0 0 9999px rgba(10,8,6,0.62)}
+.cropwrap img{display:block;width:100%;height:100%;pointer-events:none}
+.cropsel{position:absolute;outline:1.5px solid #fff;cursor:move;z-index:2}
+.cropsel .g3{position:absolute;background:rgba(255,255,255,0.35);pointer-events:none}
+.cropsel .v1,.cropsel .v2{top:0;bottom:0;width:1px}.cropsel .v1{left:33.33%}.cropsel .v2{left:66.66%}
+.cropsel .h1,.cropsel .h2{left:0;right:0;height:1px}.cropsel .h1{top:33.33%}.cropsel .h2{top:66.66%}
+.cropsel b{position:absolute;width:14px;height:14px;background:#fff;border:2px solid #F05A22;border-radius:3px;box-sizing:border-box}
+.cropsel b[data-ch=nw]{left:-7px;top:-7px;cursor:nwse-resize}.cropsel b[data-ch=ne]{right:-7px;top:-7px;cursor:nesw-resize}
+.cropsel b[data-ch=se]{right:-7px;bottom:-7px;cursor:nwse-resize}.cropsel b[data-ch=sw]{left:-7px;bottom:-7px;cursor:nesw-resize}
+.cropsel b[data-ch=n]{left:calc(50% - 7px);top:-7px;cursor:ns-resize}.cropsel b[data-ch=s]{left:calc(50% - 7px);bottom:-7px;cursor:ns-resize}
+.cropsel b[data-ch=e]{right:-7px;top:calc(50% - 7px);cursor:ew-resize}.cropsel b[data-ch=w]{left:-7px;top:calc(50% - 7px);cursor:ew-resize}
+.cropsel.fixed b[data-ch=n],.cropsel.fixed b[data-ch=s],.cropsel.fixed b[data-ch=e],.cropsel.fixed b[data-ch=w]{display:none}
+.croprow{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+html[data-theme=dark] body .cropdim{color:#a9b8cb}
 </style></head>
 <body>
 <script>
@@ -433,7 +457,7 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
   <header class="bar" id="bar"></header>
   <div class="strip" id="strip"></div>
   <div class="work" id="work">
-    <div class="stage" id="stage"><div class="scroller" id="scroller"><div class="pagewrap" id="pagewrap"></div><div class="boxsel" id="boxsel" hidden><i class="h" data-h="l"></i><i class="h" data-h="r"></i><i class="h" data-h="br"></i><i class="h" data-h="b"></i></div><div class="fadesel" id="fadesel" hidden><i class="fh" data-fh="tl"></i><i class="fh" data-fh="tr"></i><i class="fh" data-fh="bl"></i><i class="fh" data-fh="br"></i><span class="fadelbl">Fade — drag to move · corners to size · R rotates · Esc done</span></div><div class="arrbar g" id="arrbar" hidden><button type="button" data-z="front" title="To the front">⤒ Front</button><button type="button" data-z="forward" title="Forward one">↑</button><button type="button" data-z="backward" title="Back one">↓</button><button type="button" data-z="back" title="To the back">⤓ Back</button><button type="button" data-arr="reframe" class="arrpic" title="Reframe — or double-click">Reframe</button></div><div class="splitbar" id="splitbar" hidden title="Drag: more or less room for the pictures"></div><div class="guide v" id="guideX" hidden></div><div class="guide hz" id="guideY" hidden></div></div><div class="swapbar g" id="swapbar" hidden></div><div class="stagehint" id="stagehint"></div>
+    <div class="stage" id="stage"><div class="scroller" id="scroller"><div class="pagewrap" id="pagewrap"></div><div class="boxsel" id="boxsel" hidden><i class="h" data-h="l"></i><i class="h" data-h="r"></i><i class="h" data-h="br"></i><i class="h" data-h="b"></i></div><div class="fadesel" id="fadesel" hidden><i class="fh" data-fh="tl"></i><i class="fh" data-fh="tr"></i><i class="fh" data-fh="bl"></i><i class="fh" data-fh="br"></i><span class="fadelbl">Fade — drag to move · corners to size · R rotates · Esc done</span></div><div class="arrbar g" id="arrbar" hidden><button type="button" data-z="front" title="To the front">⤒ Front</button><button type="button" data-z="forward" title="Forward one">↑</button><button type="button" data-z="backward" title="Back one">↓</button><button type="button" data-z="back" title="To the back">⤓ Back</button><button type="button" data-arr="crop" class="arrpic" title="Crop — C">Crop</button><button type="button" data-arr="reframe" class="arrpic" title="Reframe — or double-click">Reframe</button></div><div class="splitbar" id="splitbar" hidden title="Drag: more or less room for the pictures"></div><div class="guide v" id="guideX" hidden></div><div class="guide hz" id="guideY" hidden></div></div><div class="swapbar g" id="swapbar" hidden></div><div class="stagehint" id="stagehint"></div>
       <div class="qbar g" id="qbar" role="toolbar" aria-label="Quick actions" hidden></div>
       <div class="zoombar g" id="zoombar" role="group" aria-label="Zoom"><button type="button" data-zoom="out" aria-label="Zoom out — ⌘−">−</button><button type="button" id="zoomPct" data-zoom="fit" title="Fit the page — ⌘0">100%</button><button type="button" data-zoom="in" aria-label="Zoom in — ⌘+">+</button><button type="button" data-zoom="fit" class="zfit" title="⌘0">Fit</button></div></div>
   </div>
@@ -446,6 +470,17 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
   <div class="start" id="start" hidden></div>
 </div>
 <div class="veil" id="veil"><section class="sheet" id="sheet" role="dialog" aria-modal="true"></section></div>
+<!-- Crop (round 40): the whole picture, a frame to drag, and the shapes directors use. -->
+<div class="cropper" id="cropper" hidden role="dialog" aria-modal="true" aria-label="Crop">
+  <div class="cropwin g">
+    <div class="crophead"><span class="cap">Crop</span><span class="cropdim" id="cropDim"></span></div>
+    <div class="cropstage" id="cropStage"><div class="cropwrap" id="cropWrap"><img id="cropImg" alt="" draggable="false"><div class="cropclip"><div class="cropveil" id="cropVeil"></div></div>
+      <div class="cropsel" id="cropSel"><i class="g3 v1"></i><i class="g3 v2"></i><i class="g3 h1"></i><i class="g3 h2"></i>
+        <b data-ch="nw"></b><b data-ch="n"></b><b data-ch="ne"></b><b data-ch="e"></b><b data-ch="se"></b><b data-ch="s"></b><b data-ch="sw"></b><b data-ch="w"></b></div></div></div>
+    <div class="croprow"><span class="seg cropratios" id="cropRatios"></span><span style="flex-grow:1"></span>
+      <button class="light small" id="cropWhole">Whole picture</button><button class="light small" id="cropCancel">Cancel</button><button class="dark small" id="cropDone">Crop</button></div>
+  </div>
+</div>
 <div class="play" id="play"></div>
 <div class="dropveil" id="dropveil">Drop photos or folders — as many as you like</div>
 <div class="toast" id="toast"></div>
@@ -600,7 +635,7 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
     const top = mood && (doc.title || '').trim() ? Math.round(96 * u * Math.max(f, 0.5)) : m;
     const bottom = doc.mark ? Math.round(56 * u * f) : m;
     const lay = layoutOf(doc, page);
-    const aspects = page.pics.map(p => (p.featured ? 1.9 : 1) * (p.a || 1.5));
+    const aspects = page.pics.map(p => (p.featured ? 1.9 : 1) * aspOf(p));
     let rects = [], text = null, hole = null, divider = null;
     if (lay === 'bleed') {
       if (page.pics.length) rects = [{ x: 0, y: 0, w: W, h: H }];
@@ -716,7 +751,7 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
   };
   // Where a picture lands on a Free page when it has no place yet: 40% wide, a little down and right of the one before.
   function defaultBox(G, p, k) {
-    const w = 0.4, h = Math.min(0.8, w * G.W / (p.a || 1.5) / G.H);
+    const w = 0.4, h = Math.min(0.8, w * G.W / aspOf(p) / G.H);
     return { x: G.m / G.W + 0.04 * (k % 8), y: G.m / G.H + 0.05 * (k % 8), w, h };
   }
 
@@ -731,6 +766,23 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
   const fontStack = f => /^helvetica/i.test(f || HELV) ? HELV_STACK : `'${String(f).replace(/'/g, '')}', ${/courier|mono/i.test(f) ? 'monospace' : /garamond|serif|baskerville|didot|bodoni|times|georgia|italiana|merriweather/i.test(f) ? 'Georgia, serif' : HELV_STACK}`;
 
   /* ---------------------------------------------------------------- one page, as markup */
+  // Crop (round 40): p.trim = {l, t, r, b} — the part of the picture kept, as fractions of it. Its shape is the picture's
+  // shape everywhere (layouts, arrangements); Reframe (p.crop: x, y %, zoom z) then moves within what's kept.
+  const aspOf = p => { const a = p.a || 1.5, t = p.trim; return t ? a * (t.r - t.l) / Math.max(0.01, t.b - t.t) : a; };
+  function imgStyle(p, r) {
+    const c = p.crop || { x: 50, y: 50, z: 1 };
+    const flt = [p.mono ? 'grayscale(1) contrast(1.12)' : '', p.dim ? `brightness(${(1 - p.dim).toFixed(2)})` : ''].filter(Boolean).join(' ');
+    const f = flt ? ';filter:' + flt : '';
+    const t = p.trim;
+    if (!t || !r) return `object-position:${c.x}% ${c.y}%;transform:scale(${c.z});transform-origin:${c.x}% ${c.y}%${f}`;
+    // The kept part fills the frame (like "cover"); the whole picture is drawn bigger and slid so only that part shows.
+    const a = p.a || 1.5, kw = Math.max(0.01, t.r - t.l), kh = Math.max(0.01, t.b - t.t);
+    let W, H;
+    if (a * kw / kh > r.w / r.h) { H = r.h / kh; W = H * a; } else { W = r.w / kw; H = W / a; }
+    const left = -t.l * W - (kw * W - r.w) * c.x / 100, top = -t.t * H - (kh * H - r.h) * c.y / 100;
+    const ox = -left + r.w * c.x / 100, oy = -top + r.h * c.y / 100;
+    return `position:absolute;max-width:none;max-height:none;object-fit:fill;width:${W.toFixed(1)}px;height:${H.toFixed(1)}px;left:${left.toFixed(1)}px;top:${top.toFixed(1)}px;transform:scale(${c.z});transform-origin:${ox.toFixed(1)}px ${oy.toFixed(1)}px${f}`;
+  }
   function pageHTML(doc, page, opt) {
     opt = opt || {};
     const L = layout(doc, page), { W, H, u, m } = L.G;
@@ -748,7 +800,7 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
       const deco = (p.border ? `;border:${(p.border.w || 2) * u}px solid ${esc(p.border.c || '#ffffff')}` : '') + (p.shadow ? `;box-shadow:0 ${14 * u}px ${44 * u}px rgba(0,0,0,0.38)` : '') + (p.radius ? `;border-radius:${p.radius * u}px` : '') + (p.round ? ';border-radius:50%' : '');
       const flt = [p.mono ? 'grayscale(1) contrast(1.12)' : '', p.dim ? `brightness(${(1 - p.dim).toFixed(2)})` : ''].filter(Boolean).join(' ');
       h += `<div class="${cls}" data-k="${k}" style="left:${r.x.toFixed(1)}px;top:${r.y.toFixed(1)}px;width:${r.w.toFixed(1)}px;height:${r.h.toFixed(1)}px;opacity:${p.opacity == null ? 1 : p.opacity};z-index:${zOf(p, k, 'pic')}${deco}${opt.edit ? `;outline-width:${Math.max(2, 3 / (opt.scale || 1))}px` : ''}">`
-        + `<img alt="" draggable="false" src="${esc(src)}" style="object-position:${c.x}% ${c.y}%;transform:scale(${c.z});transform-origin:${c.x}% ${c.y}%${flt ? ';filter:' + flt : ''}">`
+        + `<img alt="" draggable="false" src="${esc(src)}" style="${imgStyle(p, r)}">`
         + (opt.edit && p.sample ? `<span class="sdot" style="font-size:${(10 / (opt.scale || 1)).toFixed(1)}px">SAMPLE</span>` : '') + '</div>';
     });
     // The fade: from the side the words are on, to black or to the page colour.
@@ -1535,9 +1587,11 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
         <div class="hintk"><kbd>↑</kbd> <kbd>↓</kbd> swap it through your stills — <kbd>Return</kbd> keeps it</div>
         ${one && !free ? `<div class="prow"><label>Feature it — the hero of its row</label><span style="flex-grow:1"></span><button class="tog${one.featured ? ' on' : ''}" id="featTog" aria-pressed="${!!one.featured}" title="F"></button></div>` : ''}</div>
       ${one || preview ? `<div class="psec"><span class="klabel">Frame</span><div style="display:flex;gap:6px">
+        <button class="light small" id="cropBtn" title="Trim the picture to a new shape — C">Crop</button>
         <button class="light small" id="reframeBtn">${reframe != null ? 'Done reframing' : 'Reframe'}</button>
         ${one && one.crop && (one.crop.z !== 1 || one.crop.x !== 50 || one.crop.y !== 50) ? '<button class="light small" id="reframeReset">Centre it</button>' : ''}</div>
-        <span class="empty">Or double-click the picture: drag inside it, scroll to zoom.</span></div>` : ''}
+        ${one && one.trim ? '<button class="light small" id="cropReset" style="align-self:flex-start">Uncrop</button>' : ''}
+        <span class="empty">Crop trims it to a new shape. Reframe — or double-click — moves it inside its frame; scroll to zoom.</span></div>` : ''}
       <div class="psec"><div style="display:flex;gap:6px;flex-wrap:wrap">
         ${one && ks[0] > 0 && !free ? '<button class="light small" id="breakBtn" title="This picture and the ones after it go onto a new page">New page from here</button>' : ''}
         <button class="light small" id="removePics">Take ${ks.length > 1 ? 'them' : 'it'} off · ⌫</button></div></div>`;
@@ -2665,6 +2719,105 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
       p.layout = lay;
     });
   }
+  /* ---------------------------------------------------------------- crop (round 40) */
+  // The whole picture with a frame on it: drag inside to move, the handles to size; the shapes keep their proportions.
+  const CROPS = [['free', 'Free'], ['orig', 'Original'], ['1:1', '1:1'], ['4:5', '4:5'], ['3:2', '3:2'], ['16:9', '16:9'], ['2.39', '2.39:1']];
+  const CROP_MIN = 0.04;
+  let cropK = null, cropT = null, cropR = 'free', cropA = 1.5, cropBox = null, cropDrag = null;
+  const cropRatio = id => id === 'orig' ? cropA : id === '1:1' ? 1 : id === '4:5' ? 0.8 : id === '3:2' ? 1.5 : id === '16:9' ? 16 / 9 : id === '2.39' ? 2.39 : 0;
+  function openCrop(k) {
+    const p = doc && page() && page().pics[k]; if (!p) return;
+    reframe = null;
+    cropK = k; cropA = p.a || 1.5; cropR = 'free';
+    cropT = Object.assign({ l: 0, t: 0, r: 1, b: 1 }, p.trim || {});
+    $('cropImg').src = p.sample ? 'samples/' + p.file : 'vault/' + encodeURI(p.file);
+    const maxW = Math.min(innerWidth - 120, 1100), maxH = Math.max(200, innerHeight - 230);
+    let w = maxW, h = w / cropA; if (h > maxH) { h = maxH; w = h * cropA; }
+    cropBox = { w: Math.round(w), h: Math.round(h) };
+    Object.assign($('cropWrap').style, { width: cropBox.w + 'px', height: cropBox.h + 'px' });
+    $('cropRatios').innerHTML = CROPS.map(([id, n]) => `<button type="button" data-cropr="${id}" class="${id === cropR ? 'on' : ''}">${n}</button>`).join('');
+    $('cropper').hidden = false;
+    cropPaint();
+  }
+  function closeCrop() { $('cropper').hidden = true; cropK = null; cropDrag = null; }
+  function cropPaint() {
+    if (!cropT) return;
+    const t = cropT, el = $('cropSel');
+    const box = { left: t.l * cropBox.w + 'px', top: t.t * cropBox.h + 'px', width: (t.r - t.l) * cropBox.w + 'px', height: (t.b - t.t) * cropBox.h + 'px' };
+    Object.assign(el.style, box); Object.assign($('cropVeil').style, box);   // the dimming is clipped to the picture; the handles aren't
+    el.classList.toggle('fixed', cropR !== 'free');
+    const a = cropA * (t.r - t.l) / Math.max(0.001, t.b - t.t);
+    $('cropDim').textContent = (a >= 1 ? a.toFixed(2) + ' : 1' : '1 : ' + (1 / a).toFixed(2)) + ' · keeps ' + Math.round((t.r - t.l) * (t.b - t.t) * 100) + '%';
+    $('cropRatios').querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.cropr === cropR));
+  }
+  /** A shape: the biggest frame of it that fits, centred where the frame is now. */
+  function cropShape(id) {
+    cropR = id;
+    const ra = cropRatio(id);
+    if (ra) {
+      let w = Math.min(1, ra / cropA), h = cropA * w / ra;
+      if (h > 1) { h = 1; w = h * ra / cropA; }
+      const cx = (cropT.l + cropT.r) / 2, cy = (cropT.t + cropT.b) / 2;
+      const l = clamp(cx - w / 2, 0, 1 - w), t = clamp(cy - h / 2, 0, 1 - h);
+      cropT = { l, t, r: l + w, b: t + h };
+    }
+    cropPaint();
+  }
+  function cropMove(e) {
+    if (!cropDrag) return;
+    const d = cropDrag, T = d.T, dx = (e.clientX - d.x) / cropBox.w, dy = (e.clientY - d.y) / cropBox.h;
+    let { l, t, r, b } = T;
+    if (d.h === 'move') {
+      const w = r - l, h = b - t;
+      l = clamp(T.l + dx, 0, 1 - w); t = clamp(T.t + dy, 0, 1 - h); r = l + w; b = t + h;
+    } else {
+      const ch = d.h, ra = cropRatio(cropR);
+      if (ch.includes('w')) l = clamp(T.l + dx, 0, T.r - CROP_MIN);
+      if (ch.includes('e')) r = clamp(T.r + dx, T.l + CROP_MIN, 1);
+      if (ch.includes('n')) t = clamp(T.t + dy, 0, T.b - CROP_MIN);
+      if (ch.includes('s')) b = clamp(T.b + dy, T.t + CROP_MIN, 1);
+      if (ra) {
+        // A fixed shape: the width leads, the height follows from the other corner; shrink if it runs off the picture.
+        let w = r - l, h = cropA * w / ra;
+        const top = ch.includes('n');
+        if (top ? T.b - h < 0 : T.t + h > 1) { h = top ? T.b : 1 - T.t; w = h * ra / cropA; }
+        if (ch.includes('w')) l = T.r - w; else r = T.l + w;
+        if (top) { b = T.b; t = b - h; } else { t = T.t; b = t + h; }
+      }
+    }
+    cropT = { l, t, r, b };
+    cropPaint();
+  }
+  $('cropSel').addEventListener('mousedown', e => {
+    e.preventDefault(); e.stopPropagation();
+    cropDrag = { h: e.target.dataset.ch || 'move', x: e.clientX, y: e.clientY, T: Object.assign({}, cropT) };
+  });
+  document.addEventListener('mousemove', e => { if (cropDrag) { e.preventDefault(); cropMove(e); } });
+  document.addEventListener('mouseup', () => { cropDrag = null; });
+  $('cropRatios').addEventListener('click', e => { const b = e.target.closest('[data-cropr]'); if (b) { e.stopPropagation(); cropShape(b.dataset.cropr); } });
+  $('cropWhole').addEventListener('click', e => { e.stopPropagation(); cropR = 'free'; cropT = { l: 0, t: 0, r: 1, b: 1 }; cropPaint(); });
+  $('cropCancel').addEventListener('click', e => { e.stopPropagation(); closeCrop(); });
+  function cropApply() {
+    const k = cropK, T = cropT; if (k == null || !T) return closeCrop();
+    const whole = T.l < 0.002 && T.t < 0.002 && T.r > 0.998 && T.b > 0.998;
+    const r4 = v => Math.round(v * 10000) / 10000;
+    change(() => {
+      const p = page().pics[k]; if (!p) return;
+      if (whole) delete p.trim; else p.trim = { l: r4(T.l), t: r4(T.t), r: r4(T.r), b: r4(T.b) };
+      p.crop = { x: 50, y: 50, z: 1 };                      // reframing starts again inside the new crop
+    });
+    closeCrop();
+    toast(whole ? 'The whole picture' : 'Cropped — the layout uses its new shape; ⌘Z to undo');
+  }
+  $('cropDone').addEventListener('click', e => { e.stopPropagation(); cropApply(); });
+  $('cropper').addEventListener('mousedown', e => { if (e.target === $('cropper')) closeCrop(); });
+  document.addEventListener('keydown', e => {
+    if (cropK == null) return;
+    if (e.key === 'Escape') { e.preventDefault(); e.stopImmediatePropagation(); closeCrop(); }
+    else if (e.key === 'Enter') { e.preventDefault(); e.stopImmediatePropagation(); cropApply(); }
+    else e.stopImmediatePropagation();                        // nothing else on the page reacts while cropping
+  }, true);
+
   const editPics = fn => { if (sel.size) change(() => [...sel].forEach(k => { const x = page().pics[k]; if (x) fn(x); })); };
   function ensureBox(k) { const p = page(), x = p.pics[k]; if (x && !x.box) x.box = defaultBox(geometry(doc), x, k); return x && x.box; }
   // Front and back across pictures and words together.
@@ -2999,6 +3152,8 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
     }
     if (t.id === 'unOff') { change(() => { doc.off = []; }); return toast('They can be added again'); }
     if (t.id === 'featTog') return toggleFeature();
+    if (t.id === 'cropBtn') { const k = [...sel][0]; if (k != null) openCrop(k); return; }
+    if (t.id === 'cropReset') { const k = [...sel][0]; change(() => { delete page().pics[k].trim; page().pics[k].crop = { x: 50, y: 50, z: 1 }; }); toast('The whole picture again'); return; }
     if (t.id === 'reframeBtn') { reframe = reframe == null ? [...sel][0] : null; drawStage(); return drawPanel(); }
     if (t.id === 'reframeReset') { const k = [...sel][0]; change(() => { page().pics[k].crop = { x: 50, y: 50, z: 1 }; }); return; }
     if (t.id === 'removePics') return removePics([...sel]);
@@ -3026,6 +3181,7 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
     if (t.id === 'pBorderTog') return editPics(x => { x.border = x.border ? null : { c: '#ffffff', w: 2 }; });
     if (t.id === 'pShadowTog') { const on = !(page().pics[[...sel][0]] || {}).shadow; return editPics(x => { x.shadow = on; }); }
     if (d.z) return arrangeZ(d.z);
+    if (d.arr === 'crop') { const k = [...sel][0]; if (k != null) openCrop(k); return; }
     if (d.arr === 'reframe') { const k = [...sel][0]; if (k != null) { reframe = reframe === k ? null : k; drawStage(); drawPanel(); } return; }
     if (d.al) return alignTo(d.al);
     if (t.id === 'aDup') return bsel ? dupBox(bsel) : dupPic();
@@ -3084,6 +3240,7 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
   async function runCtx(what) {
     const ids = ctxIds.slice(); closeCtx();
     if (what.startsWith('z:')) return arrangeZ(what.slice(2));
+    if (what === 'obj:crop') { const k = [...sel][0]; if (k != null) openCrop(k); return; }
     if (what === 'obj:reframe') { const k = [...sel][0]; reframe = k; drawStage(); return drawPanel(); }
     if (what === 'obj:type') return bsel && startEditing(bsel);
     if (what === 'obj:dup') return bsel ? dupBox(bsel) : dupPic();
@@ -3127,7 +3284,7 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
     drawStage(); drawPanel();
     const m = $('ctxmenu'); ctxIds = []; ctxHi = 0;
     const items = [['z:front', 'Bring to front', ''], ['z:forward', 'Bring forward', ''], ['z:backward', 'Send backward', ''], ['z:back', 'Send to back', ''], null]
-      .concat(pic ? [['obj:reframe', 'Reframe', 'double-click']] : [['obj:type', 'Type in it', 'Return']]).concat([['obj:cut', 'Cut', '⌘X'], ['obj:copy', 'Copy', '⌘C'], ['obj:paste', 'Paste', '⌘V'], ['obj:dup', 'Duplicate', '⌘D'], ['obj:del', tb ? 'Delete' : 'Take off the page', '⌫']]);
+      .concat(pic ? [['obj:crop', 'Crop', 'C'], ['obj:reframe', 'Reframe', 'double-click']] : [['obj:type', 'Type in it', 'Return']]).concat([['obj:cut', 'Cut', '⌘X'], ['obj:copy', 'Copy', '⌘C'], ['obj:paste', 'Paste', '⌘V'], ['obj:dup', 'Duplicate', '⌘D'], ['obj:del', tb ? 'Delete' : 'Take off the page', '⌫']]);
     m.innerHTML = items.map(it => it ? `<button role="menuitem" data-ctx="${it[0]}"><span>${esc(it[1])}</span><small>${it[2]}</small></button>` : '<hr>').join('');
     m.hidden = false;
     const r = m.getBoundingClientRect();
@@ -3343,7 +3500,7 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
       const dx = (e.clientX - drag.x) / scale, dy = (e.clientY - drag.y) / scale;
       pic.crop = { x: clamp(drag.crop.x - dx / r.w * 100 / Math.max(0.2, z - 1 + 0.6), 0, 100), y: clamp(drag.crop.y - dy / r.h * 100 / Math.max(0.2, z - 1 + 0.6), 0, 100), z };
       const img = $('pagewrap').querySelector(`.pic[data-k="${drag.k}"] img`);
-      if (img) { img.style.objectPosition = `${pic.crop.x}% ${pic.crop.y}%`; img.style.transformOrigin = `${pic.crop.x}% ${pic.crop.y}%`; }
+      if (img) img.setAttribute('style', imgStyle(pic, r));
       return;
     }
     if (!marquee) return;
@@ -3440,7 +3597,8 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
     const was = JSON.stringify(doc);
     c.z = clamp(c.z * (1 - e.deltaY * 0.0022), 1, 4);
     pic.crop = c;
-    const img = $('pagewrap').querySelector(`.pic[data-k="${reframe}"] img`); if (img) img.style.transform = `scale(${c.z})`;
+    const img = $('pagewrap').querySelector(`.pic[data-k="${reframe}"] img`);
+    if (img) img.setAttribute('style', imgStyle(pic, layout(doc, page()).rects[reframe]));
     clearTimeout(zoomT); if (!zoomT) undo.push(was); zoomT = setTimeout(() => { zoomT = null; persist(); drawStrip(); }, 400);
   }, { passive: false });
   let zoomT = null;
@@ -3534,7 +3692,7 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
       change(() => {
         const pics = takePics(), p = page();
         pics.forEach((x, i) => {
-          const bw = pics.length > 1 ? 0.3 : 0.42, bh = Math.min(0.85, bw * G.W / (x.a || 1.5) / G.H);
+          const bw = pics.length > 1 ? 0.3 : 0.42, bh = Math.min(0.85, bw * G.W / aspOf(x) / G.H);
           x.box = { x: clamp(px / G.W - bw / 2 + i * 0.03, 0, 1 - bw), y: clamp(py / G.H - bh / 2 + i * 0.04, 0, 1 - bh), w: bw, h: bh };
           p.pics.push(x);
         });
@@ -3670,6 +3828,7 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
       if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') { e.preventDefault(); const d = e.key === 'ArrowRight' ? 1 : -1; return cmd ? toPage(ks, d) : sel.size === 1 ? movePics(ks, d) : null; }
       if (e.key === 'Backspace' || e.key === 'Delete') { e.preventDefault(); return removePics(ks); }
       if (e.key.toLowerCase() === 'f' && !cmd) { e.preventDefault(); return toggleFeature(); }
+      if (e.key.toLowerCase() === 'c' && !cmd && sel.size === 1) { e.preventDefault(); return openCrop(ks[0]); }
     } else {
       if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') { e.preventDefault(); cur = clamp(cur + (e.key === 'ArrowRight' ? 1 : -1), 0, doc.pages.length - 1); return draw(); }
     }

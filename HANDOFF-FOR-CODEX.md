@@ -46,6 +46,9 @@ Build on **this** version — not an older folder — so nothing gets undone.
 - **The Mac's root page (`Resources/mobile/index.html`) only redirects to `/capture/`** — there is one phone app.
 - **Home:** the colour dots and the quick actions share one line (`.line2`) under the filters.
 - **Start again** (Vault, Grab, Sort) is a small orange pill under the tagline in `.brand`.
+- **Crop in Design (round 40):** `pic.trim = {l,t,r,b}` (fractions of the picture kept). `aspOf(p)` is the picture's shape everywhere
+  (layouts use it); `imgStyle(p, r)` draws a cropped picture in its frame, with Reframe (`pic.crop` x/y/z) inside the crop.
+  The crop window is `openCrop(k)` (C, the Picture panel, the arrange bar, right-click). The vault file is never changed.
 - **Licence = a Lemon Squeezy subscription (round 39, `Sources/Licence.swift`).** The owner builds the sign-in (Google / Apple /
   Microsoft) with you — keep it separate from the licence: sign-in says who they are, the licence says whether they've paid.
   - `Licence.status(tool:)` → `licensed`, `reason` ("none" | "expired" | "offline" | "tier"), `canBuy`, `subscription`, `plan`, `renews`.
