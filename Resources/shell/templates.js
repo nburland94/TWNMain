@@ -453,8 +453,8 @@
       T('Thank you.\n' + c.director + '\nname@yourstudio.com', 1290, 570, 520, { font: 'Courier Prime', size: 18, leading: 1.7, c: 'ink' })] }),
   });
 
-  /* ------------------------------------------------------------------ 9 Vogue: fashion forward, editorial, sharp */
-  const vogue = both({ id: 'vogue', name: 'Vogue', after: 'Cover story', feel: 'Fashion forward and sharp: a razor serif at magazine sizes, pictures edge to edge, black, white and one red.',
+  /* ------------------------------------------------------------------ 9 Editorial: fashion forward, sharp (id 'vogue' kept so earlier decks still open) */
+  const vogue = both({ id: 'vogue', name: 'Editorial', after: 'Cover story', feel: 'Fashion forward and sharp: a razor serif at magazine sizes, pictures edge to edge, black, white and one red.',
     pal: { bg: '#fbfaf8', ink: '#0b0b0b', accent: '#d7001f', tint: '#efece6' }, dark: false,
     want: { lum: 0.55, sat: 0.35, hues: ['red', 'pink', 'white', 'grey', 'black'] },
     M: 80, top: 150, bottom: 80, gut: 0, frame: false, dim: 0, rules: false, bFill: 'ink', bNum: 360,

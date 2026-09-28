@@ -934,7 +934,12 @@ final class Shell: NSObject, NSApplicationDelegate, NSWindowDelegate, WKScriptMe
     // MARK: The welcome: full glass over whatever's behind it
 
     func showWelcome(_ tool: String, only: Bool = false) {
-        let welcomePage = "welcome.html?tool=\(tool)" + (only ? "&only=1" : "")
+        showGlassPage("welcome.html?tool=\(tool)" + (only ? "&only=1" : ""))
+    }
+    /// The open-source parts and their licences (Needed Tools › Acknowledgements, or from the welcome).
+    @objc func showAcknowledgements(_ sender: Any?) { showGlassPage("acknowledgements.html") }
+    /// A page over the app on full glass — the welcome, the acknowledgements.
+    func showGlassPage(_ welcomePage: String) {
         if let open = welcome {                                    // already open: jump to that tool's page
             let (fx, web) = open
             web.load(URLRequest(url: URL(string: "\(toolsScheme)://app/\(welcomePage)")!))
@@ -1539,6 +1544,8 @@ final class Shell: NSObject, NSApplicationDelegate, NSWindowDelegate, WKScriptMe
         let appItem = NSMenuItem(); bar.addItem(appItem)
         let appMenu = NSMenu()
         appMenu.addItem(withTitle: "About Needed Tools", action: #selector(NSApplication.orderFrontStandardAboutPanel(_:)), keyEquivalent: "")
+        let ack = appMenu.addItem(withTitle: "Acknowledgements", action: #selector(showAcknowledgements(_:)), keyEquivalent: "")
+        ack.target = self
         appMenu.addItem(.separator())
         appMenu.addItem(withTitle: "Hide Needed Tools", action: #selector(NSApplication.hide(_:)), keyEquivalent: "h")
         let others = appMenu.addItem(withTitle: "Hide Others", action: #selector(NSApplication.hideOtherApplications(_:)), keyEquivalent: "h")

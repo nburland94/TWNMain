@@ -1,5 +1,5 @@
 .DS_Store
-# Sort's ffprobe binaries — too large for the repo; keep your own copy in Resources/bin
+# Sort's ffprobe binaries (FFmpeg 4.4.1, default LGPL build) — too large for the repo; keep your own copy in Resources/bin
 Resources/bin/
 # Build outputs
 Needed Tools.app/

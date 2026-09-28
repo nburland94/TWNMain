@@ -92,7 +92,9 @@ if [ "$MODE" = "test" ]; then
 fi
 
 # Ad-hoc signature. Free and local — Apple Silicon won't run unsigned code at all.
-# Sort's ffprobe: clear the download quarantine and sign it, or macOS won't run it.
+# Sort's ffprobe: FFmpeg 4.4.1, the default build (LGPL 2.1+, no GPL or non-free parts) — see Acknowledgements.
+# If you swap it, keep it an LGPL build (no --enable-gpl / --enable-nonfree) and update acknowledgements.html.
+# Clear the download quarantine and sign it, or macOS won't run it.
 xattr -cr "$APP" 2>/dev/null || true
 for tool in "$APP/Contents/Resources/bin/"ffprobe-*; do
   [ -f "$tool" ] && chmod +x "$tool" && codesign --force --sign - "$tool" >/dev/null 2>&1

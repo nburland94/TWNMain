@@ -1057,3 +1057,18 @@ ROUND 35 — ORANGE LENS, C LIKE A AND B, ARRANGE, WI-FI ONLY
     the phone until they're sent. From Photos is off unless you turn it on.
     (A real iPhone app, for grabbing away from home, comes later.)
   • The welcome and sign-in screens are readable in dark mode.
+
+ROUND 36 — READY FOR SALE: NAMES AND LICENCES
+  • The Vogue template is now called Editorial (Vogue is a magazine's
+    trademark). Decks you already made from it still open as before.
+  • Acknowledgements — Needed Tools menu › Acknowledgements, or the link at
+    the bottom of the welcome. It lists every open-source part and its licence,
+    with the full text: FFmpeg's ffprobe 4.4.1 (LGPL 2.1, the default build,
+    with the link to its source code), yt-dlp (public domain), jsQR (Apache
+    2.0) and the fourteen typefaces (SIL Open Font License). The licence files
+    are in Resources/shell/licences and Resources/shell/fonts/licences.
+  • If you ever change Sort's ffprobe, keep an LGPL build (no --enable-gpl)
+    and update Resources/shell/acknowledgements.html.
+  • Still to do before selling: your own sample pictures, terms of use and a
+    privacy policy, a trademark search, the Apple Developer account (signing
+    and notarising), and turning on the store (Lemon Squeezy or Gumroad).

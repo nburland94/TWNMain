@@ -29,6 +29,8 @@ li span{font-size:14.5px;line-height:1.5;color:var(--ink)}
 label{display:flex;align-items:center;gap:8px;font-size:13px;color:#6b5a52;cursor:pointer}
 label input{accent-color:#F05A22;width:15px;height:15px}
 .spacer{flex:1}
+.ack{font-size:12.5px;color:#8a6a58;text-decoration:underline;text-underline-offset:3px}
+html[data-theme=dark] body .ack{color:#c4d2e3}
 .mark{width:44px;margin-right:8px}
 .back{border:1px solid rgba(28,28,28,0.1);background:rgba(255,255,255,0.5);border-radius:100px;padding:12px 24px;font-size:13.5px;color:var(--ink)}
 .next{border:none;background:var(--ink);border-radius:100px;padding:12px 30px;color:#fff;font-size:13.5px}
@@ -55,6 +57,7 @@ html[data-theme=dark] body .next{background:#f1f5fa;color:#141414}
   <div class="slide" id="slide"></div>
   <div class="foot">
     <label><input type="checkbox" id="hide"> Don't show this again</label>
+    <a class="ack" href="acknowledgements.html?from=welcome">Acknowledgements</a>
     <div class="spacer"></div>
     <img class="mark" src="mark.png" alt="This Was Needed">
     <button class="back" id="back">Back</button>

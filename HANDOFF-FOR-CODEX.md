@@ -1,6 +1,6 @@
 # Needed Tools — handoff for Codex
 
-This is the current state of the project after Claude merged your last update (now round 35).
+This is the current state of the project after Claude merged your last update (now round 36).
 Build on **this** version — not an older folder — so nothing gets undone.
 
 ## Where to work, and how to send it back
@@ -45,6 +45,9 @@ Build on **this** version — not an older folder — so nothing gets undone.
   **solid orange, white words, inside the pill with a 2px gap, no overshoot** — light and dark. The phone tab bar matches.
 - Plain, friendly wording in the UI. Never mention Keynote. No personal email addresses in the product.
 - Bundled sample pictures (`Resources/shell/samples`) are placeholders from other people's work — to be replaced before selling.
+- The ninth template is shown as **Editorial** (its id stays `vogue` so older decks open). Don't use other companies' trademarks as names.
+- **Licences:** `Resources/shell/acknowledgements.html` lists every third-party part (menu: Needed Tools › Acknowledgements).
+  Add anything new you bundle there with its licence. Sort's ffprobe must stay an **LGPL** FFmpeg build (no `--enable-gpl`/`--enable-nonfree`).
 
 ## Testing that helps
 
