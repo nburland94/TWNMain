@@ -36,6 +36,7 @@ ${PANELS}{background:${SHEEN},linear-gradient(160deg,rgba(255,255,255,0.54),rgba
 @keyframes nsq1{0%{transform:scale(1,1)}35%{transform:scale(1.16,0.9)}70%{transform:scale(0.98,1.02)}100%{transform:scale(1,1)}}
 @keyframes nsq2{0%{transform:scale(1,1)}35%{transform:scale(1.16,0.9)}70%{transform:scale(0.98,1.02)}100%{transform:scale(1,1)}}
 .nglass>button{position:relative;z-index:1}
+.abseg.nglass>.nlens{border-radius:7px}
 .nglass.lensed>button.on{background:transparent!important;box-shadow:none!important;color:#ffffff!important;border-color:transparent!important}
 @media (prefers-reduced-motion:reduce){.nglass>.nlens{transition:opacity .2s}.nglass>.nlens.nsq1,.nglass>.nlens.nsq2{animation:none}}
 
@@ -56,7 +57,7 @@ html[data-theme=dark] body .nglass.lensed>button.on{color:#ffffff!important}
   (document.head || document.documentElement).appendChild(style);
 
   /* ---------------------------------------------------------------- the sliding lens */
-  const SEGS = '.seg, .seg2';
+  const SEGS = '.seg, .seg2, .abseg';
   const last = new Map();
   function lensOf(seg) {
     let l = seg.querySelector(':scope > .nlens');

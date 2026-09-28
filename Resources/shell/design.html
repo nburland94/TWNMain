@@ -252,7 +252,9 @@ body.dragging,body.dragging *{cursor:grabbing!important;user-select:none}
 .prow select,.prow input[type=text],.prow input[type=number]{border:1px solid rgba(28,28,28,0.12);border-radius:8px;padding:5px 7px;font-size:12.5px;background:#fff;min-width:0}
 .prow input[type=color]{width:34px;height:26px;border:1px solid rgba(28,28,28,0.12);border-radius:6px;padding:1px;background:#fff}
 .lays{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
-.lays.four,.laynames.four{grid-template-columns:repeat(4,1fr)}
+.arrs{display:grid;grid-template-columns:repeat(4,1fr);gap:6px 4px}
+.arr{display:flex;flex-direction:column;gap:3px;min-width:0}
+.arr span{font-size:10px;color:#6b6964;text-align:center;line-height:1.2}
 .lay{border:1.5px solid rgba(28,28,28,0.1);border-radius:8px;background:rgba(255,255,255,0.6);padding:6px;height:38px;position:relative;min-width:0}
 .lay.on{border-color:#F05A22;background:#fff}
 .lay i{position:absolute;background:#8a7a72;border-radius:1px}
@@ -973,7 +975,7 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
       <input class="name" id="docName" value="${esc(doc.name)}" placeholder="Name it" spellcheck="false" aria-label="Name">
       <div class="seg" role="group" aria-label="Mood or treatment"><button data-mode="mood" class="${mood ? 'on' : ''}" title="Just pictures">Mood</button><button data-mode="treatment" class="${mood ? '' : 'on'}" title="Pictures and words">Treatment</button></div>
       <span class="sp"></span>
-      ${doc.pages.some(p => p.pics.length) ? '<button class="tbtn samplebtn" id="useMine" title="Swap the sample pictures for your selected images, or this project’s — it asks first before replacing pictures you placed">Use my stills</button>' : ''}
+      ${doc.pages.some(p => p.pics.length) ? '<button class="tbtn samplebtn" id="useMine" title="This page: swap its sample pictures for your selected images, or this project’s — it asks first before replacing pictures you placed">Use my stills</button>' : ''}
       <button class="tbtn" id="addPage" title="A new page after this one">+ Page</button>
       ${mood ? '' : '<button class="tbtn" id="textBtn" title="A text box — or press T, or double-click the page"><b style="font-family:Georgia,serif;font-size:15px;line-height:1">T</b> Text</button>'}
       <button class="tbtn" id="photosBtn" title="Photos, or whole folders of them, from your Mac">+ Photos</button>
@@ -1605,15 +1607,15 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
     const dot = k => (k === 'picture' && picked && tab !== 'picture') || (k === 'text' && b && tab !== 'text');
     const scope = (what, tip) => `<div class="pscope"><b>${what}</b>${tip ? `<span>${tip}</span>` : ''}</div>`;
     let h = `<div class="ptabs" role="tablist">${tabs.map(([k, n]) => `<button data-ptab="${k}" class="${k === tab ? 'on' : ''}" role="tab" aria-selected="${k === tab}">${n}${dot(k) ? '<i class="pdot"></i>' : ''}</button>`).join('')}</div>
-      <div class="phead pfree"><span class="pnum">Page ${cur + 1} <small>of ${doc.pages.length}</small></span><span style="flex-grow:1"></span>${mood || p.tpl ? '' : `<label class="freesw" title="Free: move and size the pictures by hand. Off: they lay themselves out again."><span>Free</span><button class="tog${p.layout === 'free' ? ' on' : ''}" id="freeTog" aria-pressed="${p.layout === 'free'}"></button></label>`}</div>`;
+      <div class="phead pfree"><span class="pnum">Page ${cur + 1} <small>of ${doc.pages.length}</small></span><span style="flex-grow:1"></span>${mood || (p.tpl && p.tpl.v !== 'c') ? '' : `<label class="freesw" title="Free: move and size the pictures by hand. Off: they lay themselves out again."><span>Free</span><button class="tog${p.layout === 'free' ? ' on' : ''}" id="freeTog" aria-pressed="${p.layout === 'free'}"></button></label>`}</div>`;
     if (tab === 'layout' && !mood && p.tpl && tplOf(p.tpl.t, p.tpl.v)) {
       const v = p.tpl.v, n = sampleCount();
       h += `
         <div class="psec"><span class="cap">Designed page — ${esc((tplById(p.tpl.t) || {}).name || '')}</span>
-          <div class="prow"><label>This page</label><span style="flex-grow:1"></span><span class="abseg"><button data-tplab="pa" class="${v === 'a' ? 'on' : ''}" title="A — calm grids and splits">A</button><button data-tplab="pb" class="${v === 'b' ? 'on' : ''}" title="B — led by the design">B</button></span></div>
-          ${doc.tpl && doc.tpl.v !== 'c' ? `<div class="prow"><label>Every designed page</label><span style="flex-grow:1"></span><span class="abseg"><button data-tplab="da" class="${doc.tpl.v !== 'b' ? 'on' : ''}">A</button><button data-tplab="db" class="${doc.tpl.v === 'b' ? 'on' : ''}">B</button></span></div>` : ''}
+          <div class="prow"><label>This page</label><span style="flex-grow:1"></span><span class="abseg"><button data-tplab="pa" class="${v === 'a' ? 'on' : ''}" title="A — calm grids and splits">A</button><button data-tplab="pb" class="${v === 'b' ? 'on' : ''}" title="B — led by the design">B</button><button data-tplab="pc" class="${v === 'c' ? 'on' : ''}" title="C — arranges your pictures for you; the slider works">C</button></span></div>
+          ${doc.tpl ? `<div class="prow"><label>Every designed page</label><span style="flex-grow:1"></span><span class="abseg"><button data-tplab="da" class="${doc.tpl.v !== 'b' && doc.tpl.v !== 'c' ? 'on' : ''}">A</button><button data-tplab="db" class="${doc.tpl.v === 'b' ? 'on' : ''}">B</button><button data-tplab="dc" class="${doc.tpl.v === 'c' ? 'on' : ''}">C</button></span></div>` : ''}
           <span class="empty">Your words and pictures come with you when you switch.</span>
-          ${`<button class="light small" data-usemine="1" style="align-self:flex-start">Use my stills${n ? ` · ${n} samples left` : ''}</button>`}</div>`;
+          ${`<button class="light small" data-usemine="1" style="align-self:flex-start">Use my stills on this page${sampleCount([p]) ? ` · ${sampleCount([p])} sample${sampleCount([p]) === 1 ? '' : 's'}` : ''}</button>`}</div>`;
     }
     if (tab === 'layout') {
       h += mood ? `
@@ -1621,11 +1623,10 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
           <button class="tbtn" id="bleedAll" style="align-self:flex-start;padding-left:0">${p.bleed ? 'Run off on every page' : 'Keep the margin on every page'}</button></div>
         <div class="psec">${spaceRow(p)}</div>
         <div class="psec"><span class="cap">Title — top left of every page</span><div class="prow"><input type="text" id="moodTitle" value="${esc(doc.title || '')}" placeholder="Optional" style="flex-grow:1"></div></div>`
-      : p.tpl ? '' : `
+      : p.tpl && p.tpl.v !== 'c' ? '' : `
         <div class="psec"><span class="cap">Where the pictures go</span><div class="lays">${LAYOUTS.map(([k, n]) => `<button class="lay${p.layout === k ? ' on' : ''}" data-lay="${k}" title="${esc(n)}" aria-label="${esc(n)}">${layIcon(k)}</button>`).join('')}</div>
           <div class="laynames">${LAYNAMES.map(n => `<span>${n}</span>`).join('')}</div>
-          <span class="cap" style="margin-top:4px">Arrangements</span><div class="lays four">${C_LAYS.map(([k, n]) => `<button class="lay${p.layout === k ? ' on' : ''}" data-lay="${k}" title="${esc(n)}" aria-label="${esc(n)}">${layIcon(k)}</button>`).join('')}</div>
-          <div class="laynames four">${C_NAMES.map(n => `<span>${n}</span>`).join('')}</div>
+          <span class="cap" style="margin-top:4px">Arrangements</span><div class="arrs">${C_LAYS.map(([k, n], i) => `<div class="arr"><button class="lay${p.layout === k ? ' on' : ''}" data-lay="${k}" title="${esc(n)}" aria-label="${esc(n)}">${layIcon(k)}</button><span>${C_NAMES[i]}</span></div>`).join('')}</div>
           ${p.layout === 'free' ? '<span class="empty">This page is Free — switch Free off at the top to lay the pictures out again.</span>' : ''}
           ${['left', 'right', 'top', 'bottom'].includes(p.layout) ? '<span class="empty">Drag the divider on the page to give the pictures more or less room.</span>' : ''}
           ${!['free', 'bleed', 'text'].includes(p.layout) ? `<div class="prow"><label>Run off the page edge</label><span style="flex-grow:1"></span><button class="tog${p.bleed ? ' on' : ''}" id="bleedTog" aria-pressed="${!!p.bleed}"></button></div>` : ''}
@@ -2149,14 +2150,19 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
     const ctx = (doc.tpl && doc.tpl.ctx) || tplCtx();
     const skip = doc.pages.flatMap(p => p.pics.filter(x => x.sample).map(x => x.id));
     const t = tplOf(tag.t, v); if (!t) return pg;
-    const np = tplMakePage(tag.t, v, tag.i, ctx, stillPicker(sampleStills(), t.want, skip), doc.pages.indexOf(pg) + 1); if (!np) return pg;
-    const mine = pg.pics.filter(x => x.slot && !x.sample), extra = pg.pics.filter(x => !x.slot);
-    np.pics = np.pics.map((x, k) => mine[k] ? keepFx(Object.assign({}, mine[k]), x) : x).concat(extra);
+    const pick = stillPicker(sampleStills(), t.want, skip), n = doc.pages.indexOf(pg) + 1;
+    const np = v === 'c' ? cMakePage(tag.t, tag.i, ctx, pick, n) : tplMakePage(tag.t, v, tag.i, ctx, pick, n); if (!np) return pg;
+    const fromC = tag.v === 'c', mine = pg.pics.filter(x => (x.slot || fromC) && !x.sample), extra = fromC ? [] : pg.pics.filter(x => !x.slot);
+    if (v === 'c') {
+      // C arranges pictures itself: all of yours come along (the slider shows them), samples only if you had none.
+      const own = mine.concat(extra).map(x => { const y = Object.assign({}, x); delete y.box; delete y.slot; delete y.z; return y; });
+      if (own.length) np.pics = own;
+    } else np.pics = np.pics.map((x, k) => mine[k] ? keepFx(Object.assign({}, mine[k]), x) : x).concat(extra);
     ['head', 'idea', 'body', 'sign', 'kick'].forEach(r => {
       const olds = pg.boxes.filter(b => b.role === r), news = np.boxes.filter(b => b.role === r);
       olds.forEach((o, k) => { if (o.text !== o.orig && news[k]) { news[k].text = o.text; if (news[k].fit) fitBox(news[k]); } });
     });
-    np.boxes.push(...pg.boxes.filter(b => !b.role && !b.cr && !b.fr && !b.sw && !b.hexOf));     // what you added yourself comes along
+    np.boxes.push(...pg.boxes.filter(b => !b.role && !b.cr && !b.fr && !b.sw && !b.hexOf && !b.auto));     // what you added yourself comes along
     if (pg.pal) np.pal = pg.pal;
     np.id = pg.id; if (pg.logoHide) np.logoHide = pg.logoHide;
     refreshSwatches(np);
@@ -2171,6 +2177,7 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
       sel.clear(); bsel = null; editing = null;
     });
     toast(n ? (all ? `Every designed page is now ${v.toUpperCase()} — your words and pictures came with them` : `This page is now ${v.toUpperCase()}`) : `Already ${v.toUpperCase()}`);
+    if (n) { persist(); draw(); }
   }
   // Headings shrink as you type so the longest word always fits the width.
   let fitCtx = null;
@@ -2186,8 +2193,10 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
   }
   // Sample pictures → your selected images, or this project's (Codex's sources). Pictures you placed: only after you say yes.
   let replacingStills = false;
-  async function useMyStills() {
+  // This page only (the top bar and the panel); the whole design only when Export asks for it.
+  async function useMyStills(whole) {
     if (!doc || replacingStills) return;
+    const pages = whole ? doc.pages : [page()];
     const target = doc, targetProject = project, ids = [...trayPick];
     replacingStills = true;
     try {
@@ -2201,15 +2210,16 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
       if (doc !== target || project !== targetProject) return;
       all = all.filter(s => !s.sample);
       if (!all.length) return toast(ids.length ? 'Those images are no longer available — select them again' : 'No images in this project yet — add some, then try again');
-      if (!doc.pages.some(pg => pg.pics.length)) return toast('Add a picture layout first');
+      if (!pages.some(pg => pg.pics.length)) return toast(whole ? 'Add a picture layout first' : 'No pictures on this page to replace');
       // Sample pictures first. The pictures you placed yourself are only replaced when you say so.
-      const samples = sampleCount(), placed = doc.pages.reduce((s, pg) => s + pg.pics.filter(x => !x.sample).length, 0);
-      if (!samples && !confirm(`Replace all ${placed} picture${placed === 1 ? '' : 's'} you placed with ${ids.length ? 'your selected images' : 'this project’s images'}? ⌘Z brings them back.`)) return;
-      const G = geometry(doc), taken = new Set(samples ? doc.pages.flatMap(pg => pg.pics.filter(x => !x.sample).map(x => x.id)) : []);
+      const samples = sampleCount(pages), placed = pages.reduce((s, pg) => s + pg.pics.filter(x => !x.sample).length, 0);
+      if (!samples && !confirm(`Replace ${whole ? 'all ' : ''}${placed} picture${placed === 1 ? '' : 's'} ${whole ? 'you placed' : 'on this page'} with ${ids.length ? 'your selected images' : 'this project’s images'}? ⌘Z brings them back.`)) return;
+      // Stills already used elsewhere in the design are left for later, so pages don't repeat each other.
+      const G = geometry(doc), taken = new Set(doc.pages.flatMap(pg => pages.includes(pg) && !samples ? [] : pg.pics.filter(x => !x.sample).map(x => x.id)));
       // One picker per template (so each page gets stills that suit its look), shared across the design so nothing repeats before the pool is used.
       const pickers = {};
       let n = 0;
-      change(() => doc.pages.forEach(pg => {
+      change(() => pages.forEach(pg => {
         const t = pg.tpl ? tplOf(pg.tpl.t, pg.tpl.v) : doc.tpl ? tplOf(doc.tpl.id, doc.tpl.v) : null, key = t ? t.id : '-';
         const pick = pickers[key] || (pickers[key] = stillPicker(all, t ? t.want : { lum: 0.4 }, taken));
         pg.pics = pg.pics.map(x => {
@@ -2223,7 +2233,7 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
         refreshSwatches(pg);
         if (pg.tpl || doc.tpl) paintPage(pg, pg.pal || (doc.tpl && doc.tpl.pal) || {}, doc.bg);
       }));
-      toast(`${n} picture${n === 1 ? '' : 's'} replaced with ${ids.length ? 'your selected images' : 'this project’s images'}${n > all.length ? ' — images reused to fill every slot' : ''}`);
+      toast(`${n} picture${n === 1 ? '' : 's'} ${whole ? '' : 'on this page '}replaced with ${ids.length ? 'your selected images' : 'this project’s images'}${n > all.length ? ' — images reused to fill every slot' : ''}`);
     } catch (e) {
       toast('Could not load your images — please try again');
     } finally {
@@ -2232,45 +2242,57 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
   }
 
   // C: a template's look on ordinary treatment pages. The pictures arrange themselves (the stills slider still works,
-  // stills drag on and off), sample words sit in the space for words, and Story comes after everything you'll see.
-  const C_ORDER = [['bleed', 1, 'cover'], ['right', 2, 'Director’s note'], ['mosaic', 6, 'Look & feel'], ['feature', 5, 'Cinematography'], ['strip', 5, 'Light & colour'],
-    ['contact', 8, 'Casting'], ['hero', 4, 'Locations'], ['pair', 3, 'Wardrobe'], ['column', 5, 'Edit & pace'], ['text', 0, 'The story'], ['bleed', 1, 'close']];
+  // stills drag on and off), sample words sit in the space for words. The same 15 sections as A and B, in the same
+  // order — so a deck, or any one page, flips between A, B and C.
+  const C_SPEC = [['bleed', 1, 'cover'], ['right', 2, 'Director’s note'], ['text', 0, 'The idea'], ['mosaic', 6, 'Look & feel'], ['feature', 5, 'Cinematography'],
+    ['strip', 5, 'Light & colour'], ['contact', 8, 'Casting'], ['pair', 3, 'Wardrobe & styling'], ['hero', 4, 'Locations & design'], ['column', 5, 'Edit & pace'],
+    ['stagger', 4, 'Sound & music'], ['text', 0, 'Story'], ['contact', 6, 'References'], ['text', 0, 'Production'], ['bleed', 1, 'close']];
+  const C_LOREM = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aenean lacinia bibendum nulla sed consectetur. Maecenas sed diam eget risus varius blandit.';
+  // Section i of a template, as C: tagged like an A or B page, its words in the template's type.
+  function cMakePage(base, i, ctx, pick, n) {
+    const t = tplOf(base, 'a'), sp = C_SPEC[i]; if (!t || !sp) return null;
+    const [lay, count, label] = sp, ty = t.type, c = ctx || tplCtx(), num = pad2(n || i + 1);
+    const pg = newPage(lay);
+    pg.tpl = { t: tplBase(base), v: 'c', i };
+    const word = (role, st, text, o) => {
+      const src = role === 'kick' ? ty.kick : role === 'body' || role === 'sign' ? ty.body : role === 'idea' ? (ty.idea || ty.head) : ty.head;
+      return Object.assign({ id: uid(), auto: true, x: 0, y: 0, w: 0.3, text, orig: text, role, st, opacity: 1, align: 'left', para: 0, hyph: false, wrap: '', cols: 1, smallcaps: false, nums: '',
+        font: src.font, weight: +src.weight || 400, italic: !!src.italic, upper: !!src.upper, tracking: src.tracking || 0, stretch: src.stretch || 100, size: 15, leading: 1.3 }, o || {});
+    };
+    for (let j = 0; j < count; j++) { const st = pick && pick(lay === 'bleed' || (lay === 'hero' && !j) ? 1.78 : lay === 'column' || (lay === 'feature' && !j) ? 0.9 : 1.5); if (st) pg.pics.push(picFromRaw(st)); }
+    if (label === 'cover') {
+      pg.fade = { on: true, strength: 0.75, to: 'black' }; pg.rc = '#ffffff';
+      pg.boxes = [word('kick', 'caption', `${c.client}  ·  A treatment`, { auto: false, x: 0.042, y: 0.6, w: 0.6, size: 11, colour: '#ffffff', tracking: ty.kick.tracking || 0.16 }),
+        word('head', 'title', c.title, { auto: false, x: 0.04, y: 0.64, w: 0.9, size: 110, leading: 0.95, colour: '#ffffff' }),
+        word('sign', 'body', `Directed by ${c.director}`, { auto: false, x: 0.042, y: 0.9, w: 0.6, size: 14, colour: '#ffffff' })];
+    } else if (label === 'close') {
+      pg.fade = { on: true, strength: 0.8, to: 'black' }; pg.rc = '#ffffff';
+      pg.boxes = [word('head', 'title', 'Thank you', { auto: false, x: 0.04, y: 0.7, w: 0.9, size: 110, leading: 0.95, colour: '#ffffff' }),
+        word('sign', 'body', c.director, { auto: false, x: 0.042, y: 0.9, w: 0.6, size: 13, colour: '#ffffff' })];
+    } else if (lay === 'text') {
+      pg.boxes = [word('kick', 'caption', `${num}  ${label.toUpperCase()}`, { size: 10, leading: 1.4, cr: 'accent', tracking: ty.kick.tracking || 0.16 }),
+        label === 'Production' ? word('head', 'heading', label, { size: 44, leading: 1.02, cr: 'ink' }) : word('idea', 'title', label === 'Story' ? 'A quiet portrait — told in the moments before everything changes.' : 'One idea, in a sentence or two: what we’re making, and why it matters.', { size: 64, leading: 1.05, cr: 'ink' })];
+      if (label === 'Production') pg.boxes.push(word('body', 'body', 'Shoot days · locations · crew · schedule. ' + C_LOREM, { size: 12.5, leading: 1.6, opacity: 0.88, cr: 'ink' }));
+    } else {
+      pg.boxes = [word('kick', 'caption', `${num}  ${label.toUpperCase()}`, { size: 10, leading: 1.4, cr: 'accent', tracking: ty.kick.tracking || 0.16 }),
+        word('head', 'heading', label, { size: lay === 'column' ? 64 : 44, leading: 1.02, cr: 'ink' })];
+      if (lay !== 'contact') pg.boxes.push(word('body', 'body', lay === 'right' || lay === 'column' ? C_LOREM + ' ' + C_LOREM : C_LOREM, { size: 12.5, leading: 1.6, opacity: 0.88, cr: 'ink' }));
+    }
+    if (lay === 'hero') pg.rc = '#ffffff';
+    return pg;
+  }
   function cDoc(t, pal, info) {
     const c = tplCtx(info), base = tplBase(t.id), ty = t.type;
-    const d = newDoc('treatment', `${c.title} — ${t.name} C`);
+    const d = newDoc('treatment', `${c.title} — ${t.name}`);
     d.mark = false; d.size = '16:9'; d.tpl = { id: base, v: 'c', pal: {}, ctx: c };
-    // The deck's type styles take the template's type, so every new page's sample words match.
+    // The deck's type styles take the template's type, so a new page's sample words match.
     const st = (k, o) => Object.assign(d.types[k], { font: o.font, weight: +o.weight || 400, italic: !!o.italic, upper: !!o.upper, tracking: o.tracking || 0 });
     st('title', ty.head); st('heading', ty.head); st('body', ty.body); st('caption', ty.kick);
     Object.assign(d.types.caption, { size: 10, tracking: ty.kick.tracking || 0.16 });
     d.runner = { on: true, name: c.director, title: c.title, num: true, style: (t.runner && t.runner.style) || 'pad', size: t.runner ? Math.round(t.runner.size / 1.2 * 10) / 10 : 8.5,
       font: (t.runner && t.runner.font) || HELV, upper: true, inset: 40, top: 5 };
     const pick = stillPicker(sampleStills(), t.want);
-    const word = (k, text, o) => Object.assign({ id: uid(), auto: true, x: 0, y: 0, w: 0.3, text, opacity: 1, align: 'left', para: 0, hyph: false, wrap: '', cols: 1, smallcaps: false, nums: '' },
-      typeOfBox(d.types[k]), { st: k }, o || {});
-    const L = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aenean lacinia bibendum nulla sed consectetur. Maecenas sed diam eget risus varius blandit.';
-    d.pages = C_ORDER.map(([lay, n, label], i) => {
-      const pg = newPage(lay), num = pad2(i + 1);
-      for (let j = 0; j < n; j++) { const stl = pick(lay === 'bleed' || lay === 'hero' && !j ? 1.78 : lay === 'column' || lay === 'feature' && !j ? 0.9 : 1.5); if (stl) pg.pics.push(picFromRaw(stl)); }
-      if (label === 'cover') {
-        pg.fade = { on: true, strength: 0.75, to: 'black' }; pg.rc = '#ffffff';
-        pg.boxes = [word('caption', `${c.client}  ·  A treatment`, { auto: false, x: 0.042, y: 0.6, w: 0.6, size: 11, colour: '#ffffff' }),
-          word('title', c.title, { auto: false, x: 0.04, y: 0.64, w: 0.9, size: 110, leading: 0.95, colour: '#ffffff' }),
-          word('body', `Directed by ${c.director}`, { auto: false, x: 0.042, y: 0.9, w: 0.6, size: 14, colour: '#ffffff' })];
-      } else if (label === 'close') {
-        pg.fade = { on: true, strength: 0.8, to: 'black' }; pg.rc = '#ffffff';
-        pg.boxes = [word('title', 'Thank you', { auto: false, x: 0.04, y: 0.7, w: 0.9, size: 110, leading: 0.95, colour: '#ffffff' }),
-          word('body', c.director, { auto: false, x: 0.042, y: 0.9, w: 0.6, size: 13, colour: '#ffffff' })];
-      } else if (lay === 'text') {
-        pg.boxes = [word('caption', `${num}  ${label.toUpperCase()}`, { cr: 'accent', leading: 1.4 }),
-          word('title', 'A quiet portrait — told in the moments before everything changes.', Object.assign({ size: 64, leading: 1.05, cr: 'ink' }, ty.idea ? { font: ty.idea.font, weight: +ty.idea.weight || 400, italic: !!ty.idea.italic } : {}))];
-      } else {
-        pg.boxes = [word('caption', `${num}  ${label.toUpperCase()}`, { cr: 'accent', leading: 1.4 }), word('heading', label, { size: lay === 'column' ? 64 : 44, leading: 1.02, cr: 'ink' })];
-        if (lay !== 'contact') pg.boxes.push(word('body', lay === 'right' || lay === 'column' ? L + ' ' + L : L, { size: 12.5, leading: 1.6, opacity: 0.88, cr: 'ink' }));
-      }
-      if (lay === 'hero') pg.rc = '#ffffff';
-      return pg;
-    });
+    d.pages = C_SPEC.map((sp, i) => cMakePage(base, i, c, pick));
     paintRoles(d, pal);
     return d;
   }
@@ -2292,7 +2314,7 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
     const sw = cs => `<i>${cs.map(c => `<b style="background:${esc(c)}"></b>`).join('')}</i>`;
     const projP = projectPalette(projStills);
     openSheet('templates', `
-      <div class="shead"><div class="grow"><h2>From a template</h2><span class="empty">Nine treatments. A is calm, B is led by the design — 15 designed pages each. C puts the look on treatment pages that arrange your pictures for you (11 pages). They open with sample pictures — swap in yours with one click.</span></div>${closeX}</div>
+      <div class="shead"><div class="grow"><h2>From a template</h2><span class="empty">Nine treatments. A is calm, B is led by the design — 15 designed pages each. C puts the look on pages that arrange your pictures for you. 15 pages each — switch any page, or all of them, between A, B and C. They open with sample pictures — swap in yours with one click.</span></div>${closeX}</div>
       <div style="display:flex;flex-direction:column;gap:8px"><span class="cap">Colours</span><div class="tplpals">
         <button class="tplpal${tplChoice === 'own' ? ' on' : ''}" data-tplpal="own">Each template's own</button>
         ${projP ? `<button class="tplpal${tplChoice === 'project' ? ' on' : ''}" data-tplpal="project">${sw([projP.dark, projP.light, projP.accent, projP.tint])}From this project</button>` : ''}
@@ -2345,13 +2367,13 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
     if (!doc.tpl) pp.look = 'own';
     const t = tplOf(pp.t, pp.v), c = (doc.tpl && doc.tpl.ctx) || tplCtx(), pick = stillPicker(sampleStills(), t.want);
     const names = ['Cover', 'Director’s note', 'The idea', 'Story', 'Look & feel', 'Cinematography', 'Light & colour', 'Casting', 'Wardrobe & styling', 'Locations & design', 'Edit & pace', 'Sound & music', 'References', 'Production', 'Thank you'];
-    const pages = t.order.map((o, i) => { const pg = tplMakePage(pp.t, pp.v, i, c, pick); paintPage(pg, pp.look === 'deck' && doc.tpl ? doc.tpl.pal : t.pal, pp.look === 'deck' && doc.tpl ? doc.bg : t.pal.bg); return pg; });
+    const pages = t.order.map((o, i) => { const pg = pp.v === 'c' ? cMakePage(pp.t, i, c, pick) : tplMakePage(pp.t, pp.v, i, c, pick); paintPage(pg, pp.look === 'deck' && doc.tpl ? doc.tpl.pal : t.pal, pp.look === 'deck' && doc.tpl ? doc.bg : t.pal.bg); return pg; });
     const d = { size: '16:9', pages, bg: pages[0].bg, types: doc.types, runner: null, mark: false, mode: 'treatment' };
     openSheet('pagepick', `
       <div class="shead"><div class="grow"><h2>A designed page</h2><span class="empty">Pick one to add after page ${pp.end ? doc.pages.length : cur + 1}. It comes with sample pictures and words; everything on it moves freely.</span></div>${closeX}</div>
       <div class="tplpals">${tplBases().map(b => `<button class="tplpal${b.id === pp.t ? ' on' : ''}" data-pptpl="${esc(b.id)}">${esc(b.name)}</button>`).join('')}</div>
       <div style="display:flex;gap:18px;align-items:center;flex-wrap:wrap">
-        <span class="abseg" role="group" aria-label="Version"><button data-ppv="a" class="${pp.v === 'a' ? 'on' : ''}">A</button><button data-ppv="b" class="${pp.v === 'b' ? 'on' : ''}">B</button></span>
+        <span class="abseg" role="group" aria-label="Version"><button data-ppv="a" class="${pp.v === 'a' ? 'on' : ''}">A</button><button data-ppv="b" class="${pp.v === 'b' ? 'on' : ''}">B</button><button data-ppv="c" class="${pp.v === 'c' ? 'on' : ''}">C</button></span>
         ${doc.tpl ? `<div class="pills"><button data-pplook="deck" class="${pp.look === 'deck' ? 'on' : ''}">This deck's look</button><button data-pplook="own" class="${pp.look === 'own' ? 'on' : ''}">Keep its own look</button></div>` : ''}</div>
       <div class="ppgrid">${pages.map((pg, i) => `<button class="ppcard" data-ppadd="${i}"><div class="ppv">${pageHTML(d, pg, { thumbs: true, mark: false })}</div><span>${pad2(i + 1)} · ${esc(names[i] || '')}</span></button>`).join('')}</div>`);
     $('sheet').classList.add('wide');
@@ -2370,7 +2392,8 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
   function addDesignedPage(i) {
     const skip = doc.pages.flatMap(p => p.pics.filter(x => x.sample).map(x => x.id)), t = tplOf(pp.t, pp.v);
     const at = pp.end ? doc.pages.length : cur + 1, own = pp.look === 'own' || !doc.tpl;
-    const pg = tplMakePage(pp.t, pp.v, i, (doc.tpl && doc.tpl.ctx) || tplCtx(), stillPicker(sampleStills(), t.want, skip), at + 1);
+    const ctx = (doc.tpl && doc.tpl.ctx) || tplCtx(), pk = stillPicker(sampleStills(), t.want, skip);
+    const pg = pp.v === 'c' ? cMakePage(pp.t, i, ctx, pk, at + 1) : tplMakePage(pp.t, pp.v, i, ctx, pk, at + 1);
     if (!pg) return;
     if (own && (!doc.tpl || tplBase(pp.t) !== doc.tpl.id)) pg.pal = Object.assign({}, t.pal);
     else if (tplBase(pp.t) !== (doc.tpl && doc.tpl.id)) restyle(pg);
@@ -3861,7 +3884,7 @@ ${slides}
     if (d.ppv) { pp.v = d.ppv; return openPagePicker(pp.end); }
     if (d.pplook) { pp.look = d.pplook; return openPagePicker(pp.end); }
     if (d.ppadd != null) return addDesignedPage(+d.ppadd);
-    if (t.id === 'exMine') { await useMyStills(); return openExport(); }
+    if (t.id === 'exMine') { await useMyStills(true); return openExport(); }
     if (t.id === 'lookSaveGo') {
       const name = ($('lookName').value || '').trim(); if (!name) return $('lookName').focus();
       const r = await call('designLookSave', { look: lookFrom(doc, name) }).catch(() => null);
