@@ -824,7 +824,7 @@ extension PayHost {
             // The app password lives in the Mac's Keychain, never in the app's files or the page.
             let account = (body["email"] as? String) ?? ""
             if let pw = body["password"] as? String { reply(["ok": PayKeychain.save(account, pw)], nil) }
-            else { reply(["ok": true, "saved": PayKeychain.read(account) != nil], nil) }
+            else { reply(["ok": true, "saved": PayKeychain.has(account)], nil) }
 
         case "sendMail":
             sendMail(body, reply)
@@ -1133,6 +1133,15 @@ enum PayKeychain {
         var add = q; add[kSecValueData as String] = Data(password.utf8)
         return SecItemAdd(add as CFDictionary, nil) == errSecSuccess
     }
+    /// Is there a password saved? Asks for its name only — not the secret — so macOS never has to ask you (round 44).
+    static func has(_ account: String) -> Bool {
+        guard !account.isEmpty else { return false }
+        let q: [String: Any] = [kSecClass as String: kSecClassGenericPassword, kSecAttrService as String: service, kSecAttrAccount as String: account,
+                                kSecReturnAttributes as String: true, kSecMatchLimit as String: kSecMatchLimitOne]
+        var out: CFTypeRef?
+        return SecItemCopyMatching(q as CFDictionary, &out) == errSecSuccess
+    }
+    /// The password itself — only when an email is actually being sent.
     static func read(_ account: String) -> String? {
         let q: [String: Any] = [kSecClass as String: kSecClassGenericPassword, kSecAttrService as String: service, kSecAttrAccount as String: account,
                                 kSecReturnData as String: true, kSecMatchLimit as String: kSecMatchLimitOne]

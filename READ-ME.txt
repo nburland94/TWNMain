@@ -1214,3 +1214,14 @@ ROUND 43 — CONNECT TO CODEX (OPENAI), STILL ON THIS MAC
     Needed Tools out again.
   • Another AI app that takes MCP servers? "Copy its settings" puts the
     snippet on your clipboard to paste into it.
+
+ROUND 44 — NO MORE KEYCHAIN POP-UPS
+  • The "Needed Tools wants to use your confidential information stored in
+    'Needed Pay — email'" prompt kept appearing because the app read your
+    email app password every time a page refreshed, just to show "email is
+    set up". It now only checks that a password is saved (which never asks),
+    and reads the password itself only when you actually send an email.
+  • After a new build, macOS may ask once when you first send an email —
+    click "Always Allow". (Each home-made build counts as a new app to macOS.
+    Once the app is signed with your Apple Developer ID, "Always Allow" lasts
+    across updates.)

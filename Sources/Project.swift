@@ -1226,7 +1226,7 @@ extension Shell {
             out["finalFilm"] = film
         } else { out.removeValue(forKey: "finalFilm") }
         out["contacts"] = Contacts.all()
-        if let a = Mailer.account() { out["mail"] = ["from": a.from, "name": a.name, "ready": PayKeychain.read(a.from) != nil] }
+        if let a = Mailer.account() { out["mail"] = ["from": a.from, "name": a.name, "ready": PayKeychain.has(a.from)] }
         else { out["mail"] = ["ready": false] }
         out["today"] = BriefReader.day.string(from: Date())
         // Pay's invoices for this project: the timeline ends on Paid.
