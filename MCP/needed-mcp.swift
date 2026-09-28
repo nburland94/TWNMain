@@ -157,6 +157,11 @@ while let line = readLine(strippingNewline: true) {
     let params = msg["params"] as? [String: Any] ?? [:]
     switch method {
     case "initialize":
+        // Round 45: tell Needed Tools which app started us ("Claude is using Needed Tools") — quietly, only if it's open.
+        let client = ((params["clientInfo"] as? [String: Any])?["name"] as? String) ?? "an AI app"
+        DispatchQueue.global().async {
+            if let l = readLink(), let b = try? JSONSerialization.data(withJSONObject: ["name": "_hello", "arguments": ["client": client]]) { _ = post(l, b, timeout: 3) }
+        }
         result(id, ["protocolVersion": (params["protocolVersion"] as? String) ?? "2025-06-18",
                     "capabilities": ["tools": ["listChanged": false]],
                     "serverInfo": ["name": "needed-tools", "title": "Needed Tools", "version": serverVersion],

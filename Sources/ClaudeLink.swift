@@ -58,7 +58,70 @@ final class ClaudeLink {
     func start() {
         guard listener == nil else { return }
         if !listen(port: ClaudeLink.preferredPort) { listen(port: 0) }
+        repairIfMoved()
     }
+
+    // MARK: Round 45 — it fixes itself, restarts Claude for you, and knows when Claude is using it
+
+    /// Set when this launch pointed Claude or Codex at this copy (a new build, or the app was moved). Home says so once.
+    private(set) var claudeRepaired = false
+    private(set) var codexRepaired = false
+    /// Where Needed Tools was already connected to another copy of its helper, point it at this one. Never adds a connection
+    /// you didn't make; leaves anything that isn't a Needed Tools helper alone.
+    @discardableResult
+    func repairIfMoved() -> Bool {
+        let me = ClaudeLink.helperURL.path
+        guard FileManager.default.isExecutableFile(atPath: me) else { return false }
+        let ours = { (c: String) in c != me && c.hasSuffix("/Contents/MacOS/needed-mcp") }
+        if let c = ((readClaudeConfig()["mcpServers"] as? [String: Any])?["needed-tools"] as? [String: Any])?["command"] as? String, ours(c),
+           (connect()["ok"] as? Bool) == true { claudeRepaired = true }
+        if let c = codexCommand(), ours(c), (connectCodex()["ok"] as? Bool) == true { codexRepaired = true }
+        return claudeRepaired || codexRepaired
+    }
+    /// Home asks once after launch: did this launch fix anything?
+    func takeRepaired() -> [String: Bool] {
+        defer { claudeRepaired = false; codexRepaired = false }
+        return ["claude": claudeRepaired, "codex": codexRepaired]
+    }
+
+    static let claudeBundleIDs: Set<String> = ["com.anthropic.claudefordesktop", "com.anthropic.claude", "com.anthropic.Claude"]
+    static var claudeAppURL: URL? {
+        if let u = NSWorkspace.shared.urlForApplication(withBundleIdentifier: "com.anthropic.claudefordesktop") { return u }
+        let fm = FileManager.default
+        return ["/Applications/Claude.app", fm.homeDirectoryForCurrentUser.appendingPathComponent("Applications/Claude.app").path]
+            .first { fm.fileExists(atPath: $0) }.map { URL(fileURLWithPath: $0) }
+    }
+    /// Quits the Claude app and opens it again, so it reads its settings — the step people forget.
+    func restartClaude(done: @escaping ([String: Any]) -> Void) {
+        guard let app = ClaudeLink.claudeAppURL else {
+            NSWorkspace.shared.open(URL(string: "https://claude.ai/download")!)
+            return done(["ok": false, "error": "The Claude app isn't on this Mac — its download page is open."])
+        }
+        let running = NSWorkspace.shared.runningApplications.filter { a in
+            (a.bundleIdentifier.map { ClaudeLink.claudeBundleIDs.contains($0) } ?? false) || a.bundleURL?.standardizedFileURL == app.standardizedFileURL
+        }
+        running.forEach { $0.terminate() }
+        func reopen(_ tries: Int) {
+            if tries > 0 && !running.allSatisfy({ $0.isTerminated }) {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) { reopen(tries - 1) }
+                return
+            }
+            NSWorkspace.shared.openApplication(at: app, configuration: NSWorkspace.OpenConfiguration()) { _, _ in
+                DispatchQueue.main.async { done(["ok": true, "status": self.status()]) }
+            }
+        }
+        reopen(30)
+    }
+
+    /// The helper says hello when an AI app starts it — so Needed Tools can say "Claude is using Needed Tools".
+    private func seen(_ client: String) {
+        var all = (UserDefaults.standard.dictionary(forKey: "aiSeen") as? [String: String]) ?? [:]
+        let who = client.lowercased().contains("codex") ? "codex" : client.lowercased().contains("claude") ? "claude" : "other"
+        all[who] = ISO8601DateFormatter().string(from: Date())
+        UserDefaults.standard.set(all, forKey: "aiSeen")
+        DispatchQueue.main.async { Shared.notify() }
+    }
+    private var seenDates: [String: String] { (UserDefaults.standard.dictionary(forKey: "aiSeen") as? [String: String]) ?? [:] }
     @discardableResult
     private func listen(port p: UInt16) -> Bool {
         let params = NWParameters.tcp
@@ -116,7 +179,9 @@ final class ClaudeLink {
                 "running": listener != nil && port != 0, "changes": allowChanges, "voice": voiceFolder?.path ?? "",
                 "voiceNotes": voiceFiles().count,
                 "codexInstalled": codexInstalled, "codexConnected": codexCommand() == ClaudeLink.helperURL.path,
-                "codexElsewhere": { let c = codexCommand() ?? ""; return !c.isEmpty && c != ClaudeLink.helperURL.path }()]
+                "codexElsewhere": { let c = codexCommand() ?? ""; return !c.isEmpty && c != ClaudeLink.helperURL.path }(),
+                "claudeSeen": seenDates["claude"] ?? "", "codexSeen": seenDates["codex"] ?? "", "otherSeen": seenDates["other"] ?? "",
+                "claudeRunning": NSWorkspace.shared.runningApplications.contains { ($0.bundleIdentifier.map { ClaudeLink.claudeBundleIDs.contains($0) } ?? false) }]
     }
     private func readClaudeConfig() -> [String: Any] {
         guard let d = try? Data(contentsOf: ClaudeLink.claudeConfigURL),
@@ -261,6 +326,7 @@ final class ClaudeLink {
 
     /// On the main thread, where the vault list and the pages live.
     func call(_ name: String, _ a: [String: Any], reply: @escaping Reply) {
+        if name == "_hello" { seen(str(a["client"]) ?? ""); return reply(["content": [[String: Any]]()]) }
         guard Shared.vault != nil else { return reply(fail("No vault is chosen in Needed Tools yet — open Needed Tools and choose your vault folder.")) }
         if changeTools.contains(name) && !allowChanges {
             return reply(fail("Changes from Claude are switched off in Needed Tools (Home › your account › Claude › Let Claude make changes)."))

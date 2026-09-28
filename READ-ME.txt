@@ -1225,3 +1225,21 @@ ROUND 44 — NO MORE KEYCHAIN POP-UPS
     click "Always Allow". (Each home-made build counts as a new app to macOS.
     Once the app is signed with your Apple Developer ID, "Always Allow" lasts
     across updates.)
+
+ROUND 45 — CLAUDE IN ONE CLICK, AND IT FIXES ITSELF
+  • Home shows a small card once: "Use Needed Tools with Claude — Connect".
+    One click adds Needed Tools to Claude, then offers to restart Claude for
+    you (it has to restart to see it). "Not now" hides the card; it's always
+    in the logo › Claude · Codex.
+  • You'll know it worked: Claude · Codex shows "✓ Claude is using Needed
+    Tools · just now" the moment Claude starts it (Codex too).
+  • Restart Claude is a button there — no ⌘Q, no Terminal.
+  • New build or moved the app? When Needed Tools opens, it points Claude and
+    Codex at this copy by itself (only where you'd already connected) and
+    says so — then restart Claude from that button.
+  • KEEPING ONE COPY: build into the same folder each time (e.g.
+    ~/NeededBuild/NeededTools), and delete old copies such as
+    ~/Downloads/NeededTools 7 and 8 once the new one opens. Your projects,
+    stills and designs live in your vault folder, not in the app, so deleting
+    an old app deletes none of your work. Keep Resources/bin (Sort's ffprobe)
+    to copy into each new kit.

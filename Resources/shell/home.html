@@ -88,6 +88,14 @@ main{position:relative;height:100vh;display:grid;grid-template-columns:minmax(0,
 .line{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:nowrap;flex-shrink:0;min-width:0}
 .quick{display:flex;gap:6px;flex-wrap:nowrap;justify-content:flex-end;min-width:0;margin-left:auto}
 .line2{min-height:36px}
+.aioffer{display:flex;align-items:center;gap:14px;border-radius:18px;padding:12px 14px 12px 12px;flex-shrink:0}
+.aioffer[hidden]{display:none}
+.aioffer .aispark{width:34px;height:34px;border-radius:10px;background:#d97757;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.aioffer div{display:flex;flex-direction:column;gap:2px;flex:1;min-width:0}
+.aioffer b{font-weight:500;font-size:14px}.aioffer span{font-size:12.5px;color:#6b6964}
+.aioffer .aigo{border:none;border-radius:100px;padding:8px 16px;background:#F05A22;color:#fff;font-size:13px;box-shadow:0 4px 12px rgba(240,90,34,0.3)}
+.aioffer .aino{border:none;background:none;color:#6b6964;font-size:12.5px;padding:6px}
+html[data-theme=dark] body .aioffer span{color:#a9b8cb}
 .quick.compact .qa span{display:none}
 .line.wrap{flex-wrap:wrap;row-gap:8px}.line.wrap .quick{margin-left:auto}
 .quick.compact .qa{padding:9px}
@@ -338,6 +346,11 @@ main{position:relative;height:100vh;display:grid;grid-template-columns:minmax(0,
       <button class="g qa" data-q="phone" data-tip="Your phone|Needed Mobile Vault, on your iPhone — capture anywhere, even offline; Sync on the phone, then Sync here, and it's all filed into your projects." aria-label="Your phone"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1c1c1c" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="7" y="2.5" width="10" height="19" rx="2.2"/><path d="M11 18.5h2"/></svg><span>Your phone</span></button>
       </div>
     </div>
+    <div class="aioffer g" id="aiOffer" hidden role="region" aria-label="Use Needed Tools with Claude">
+      <span class="aispark" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="#fff"><path d="M12 2l1.6 6.1L20 6.4l-4.5 4.5L22 12l-6.5 1.1L20 17.6l-6.4-1.7L12 22l-1.6-6.1L4 17.6l4.5-4.5L2 12l6.5-1.1L4 6.4l6.4 1.7z"/></svg></span>
+      <div><b>Use Needed Tools with Claude</b><span>Tag your projects, find stills and draft treatments in your voice — all on this Mac. One click; Claude restarts to pick it up.</span></div>
+      <button class="aigo" id="aiOfferGo">Connect</button><button class="aino" id="aiOfferNo">Not now</button>
+    </div>
     <div class="wall" id="wall"></div>
   </div>
   <div class="right">
@@ -481,13 +494,14 @@ main{position:relative;height:100vh;display:grid;grid-template-columns:minmax(0,
         <div class="line"><span>Moving to another Mac?</span><span><button id="acctDeactivate" class="danger">Deactivate this Mac</button></span></div>
         <div class="line"><span>Leaving it for now</span><span><button id="acctSignOut">Sign out</button></span></div></div>
       ${(() => { const c = acct.claude || {};                // Round 42: Claude, on this Mac
-        const st = !c.helper ? 'Not in this build — build again to add it' : c.connected ? (c.running ? 'Connected — the Claude app can use your vault and Design' : 'Connected — starting…')
+        const ago = iso => { const m = Math.round((Date.now() - new Date(iso)) / 60000); return m < 1 ? 'just now' : m < 60 ? m + ' min ago' : m < 1440 ? Math.round(m / 60) + ' h ago' : Math.round(m / 1440) + ' d ago'; };
+        const st = !c.helper ? 'Not in this build — build again to add it' : c.connected ? (c.claudeSeen ? '✓ Claude is using Needed Tools · ' + ago(c.claudeSeen) : 'Connected — restart Claude to start using it')
           : c.connectedElsewhere ? 'Connected to another copy of Needed Tools' : !c.claudeInstalled ? 'The Claude app isn\u2019t on this Mac yet' : 'Not connected';
-        const cx = !c.helper ? 'Not in this build' : c.codexConnected ? 'Connected — reopen Codex to see it' : c.codexElsewhere ? 'Connected to another copy' : !c.codexInstalled ? 'Codex isn\u2019t on this Mac' : 'Not connected';
+        const cx = !c.helper ? 'Not in this build' : c.codexConnected ? (c.codexSeen ? '✓ in use · ' + ago(c.codexSeen) : 'Connected — restart Codex to use it') : c.codexElsewhere ? 'Connected to another copy' : !c.codexInstalled ? 'Codex isn\u2019t on this Mac' : 'Not connected';
         return `<div class="sec"><span class="cap">Claude · Codex</span>
         <div class="line"><span>Status</span><span>${esc(st)}</span></div>
-        <div class="line"><span>${c.connected ? 'After connecting, reopen the Claude app' : 'Work with Claude on this Mac'}</span><span>${c.connected
-          ? '<button id="acctClaudeOpen">Open Claude</button> · <button id="acctClaudeOff">Disconnect</button>'
+        <div class="line"><span>${c.connected ? 'The Claude app' : 'Work with Claude on this Mac'}</span><span>${c.connected
+          ? '<button id="acctClaudeRestart">Restart Claude</button> · <button id="acctClaudeOff">Disconnect</button>'
           : c.claudeInstalled ? '<button id="acctClaude">Connect to Claude</button>' : '<button id="acctClaudeOpen">Get the Claude app</button>'}</span></div>
         <div class="line"><span>Codex (OpenAI) · ${esc(cx)}</span><span>${c.codexConnected ? '<button id="acctCodexOff">Disconnect</button>' : '<button id="acctCodex">Connect to Codex</button>'}</span></div>
         <div class="line"><span>Another AI app</span><span><button id="acctAiCopy">Copy its settings</button></span></div>
@@ -512,6 +526,39 @@ main{position:relative;height:100vh;display:grid;grid-template-columns:minmax(0,
     acct.profile = acct.profile || {}; acct.profile[f.dataset.pf] = f.value;
     clearTimeout(pfT); pfT = setTimeout(() => call('profileSave', { profile: acct.profile }).catch(() => {}), 400);
   });
+  // Round 45: after connecting, Claude has to restart to see Needed Tools — so Needed Tools restarts it.
+  async function aiRestart(first) {
+    const s = await call('claudeStatus').catch(() => ({})) || {};
+    if (s.claudeRunning && !confirm(`${first ? first + '. ' : ''}Restart the Claude app now so it can use Needed Tools?`)) {
+      toast('Restart Claude when you\u2019re ready — then ask it about your vault'); return window.__openAccount && $('acct').classList.contains('on') ? window.__openAccount() : null;
+    }
+    toast(s.claudeRunning ? 'Restarting Claude…' : 'Opening Claude…');
+    const r = await call('claudeRestart').catch(() => null);
+    toast(r && r.ok ? 'Claude is open — ask it “list my Needed Tools projects”' : ((r && r.error) || 'Open Claude to start'));
+    if ($('acct').classList.contains('on')) window.__openAccount();
+    setTimeout(aiCard, 8000);
+  }
+  // Home offers the connection once, when the Claude app is on this Mac and Needed Tools isn't in it yet.
+  async function aiCard() {
+    const s = await call('claudeStatus').catch(() => null); if (!s) return;
+    const box = $('aiOffer'); if (!box) return;
+    let dismissed = false; try { dismissed = localStorage.getItem('aiOfferDismissed') === '1'; } catch (e) {}
+    const show = s.helper && s.claudeInstalled && !s.connected && !dismissed;
+    box.hidden = !show;
+  }
+  $('aiOffer').addEventListener('click', async e => {
+    const b = e.target.closest('button'); if (!b) return;
+    if (b.id === 'aiOfferNo') { try { localStorage.setItem('aiOfferDismissed', '1'); } catch (x) {} $('aiOffer').hidden = true; return toast('Any time: click the logo › Claude · Codex'); }
+    if (b.id === 'aiOfferGo') {
+      const v = await call('claudeConnect').catch(() => null);
+      if (!v || !v.ok) return toast((v && v.error) || "Couldn't connect to Claude");
+      $('aiOffer').hidden = true; return aiRestart('Connected');
+    }
+  });
+  // A new build, or the app moved: Claude / Codex now point at this copy.
+  call('aiRepaired').then(r => { if (r && (r.claude || r.codex)) toast(`${r.claude ? 'Claude' : 'Codex'}${r.claude && r.codex ? ' and Codex' : ''} now use${r.claude && r.codex ? '' : 's'} this copy of Needed Tools — restart ${r.claude ? 'Claude' : 'Codex'} to pick it up`); }).catch(() => {});
+  setTimeout(aiCard, 1500);
+
   $('acct').addEventListener('click', async e => {
     if (e.target === $('acct')) return $('acct').classList.remove('on');
     const t = e.target.closest('button'); if (!t) return;
@@ -529,7 +576,7 @@ main{position:relative;height:100vh;display:grid;grid-template-columns:minmax(0,
     if (t.id === 'acctClaude') {
       const v = await call('claudeConnect').catch(() => null);
       if (!v || !v.ok) return toast((v && v.error) || "Couldn't connect to Claude");
-      toast('Connected — quit and reopen the Claude app, then ask it about your vault'); return window.__openAccount();
+      return aiRestart('Connected');
     }
     if (t.id === 'acctCodex') {
       const v = await call('codexConnect').catch(() => null);
@@ -540,6 +587,7 @@ main{position:relative;height:100vh;display:grid;grid-template-columns:minmax(0,
     if (t.id === 'acctAiCopy') { const v = await call('aiCopySettings').catch(() => null); return toast(v && v.ok ? 'Copied — paste it into the other app\u2019s MCP settings' : "Couldn't copy"); }
     if (t.id === 'acctClaudeOff') { await call('claudeDisconnect').catch(() => {}); toast('Disconnected from Claude'); return window.__openAccount(); }
     if (t.id === 'acctClaudeOpen') return call('openClaude');
+    if (t.id === 'acctClaudeRestart') return aiRestart('');
     if (t.id === 'acctVoice') { await call('claudeVoice').catch(() => {}); return window.__openAccount(); }
     if (t.id === 'acctClaudeChanges') { await call('claudeChanges', { on: (acct.claude || {}).changes === false }).catch(() => {}); return window.__openAccount(); }
     if (t.id === 'acctBuy') return call('startSubscription');

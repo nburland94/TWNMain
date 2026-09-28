@@ -1208,6 +1208,12 @@ final class Shell: NSObject, NSApplicationDelegate, NSWindowDelegate, WKScriptMe
             _ = ClaudeLink.shared.disconnect()
             replyHandler(ClaudeLink.shared.status(), nil)
 
+        case "claudeRestart":                             // round 45: quit and reopen Claude so it picks up Needed Tools
+            ClaudeLink.shared.restartClaude { replyHandler($0, nil) }
+
+        case "aiRepaired":                                // did this launch point Claude / Codex at this copy?
+            replyHandler(ClaudeLink.shared.takeRepaired(), nil)
+
         case "codexConnect":                              // round 43: OpenAI's Codex on this Mac — stays local
             var r = ClaudeLink.shared.connectCodex()
             r["status"] = ClaudeLink.shared.status()
