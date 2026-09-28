@@ -357,9 +357,9 @@ final class Shell: NSObject, NSApplicationDelegate, NSWindowDelegate, WKScriptMe
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         Shell.shared = self
-        // Once the window's up: your projects to the phone, and phone grabs filed as Photos gets them.
+        // Once the window's up: phone grabs filed as Photos gets them — only if you've switched "From Photos" on
+        // (Round 35: the phone sends straight over Wi-Fi, so it's off unless you choose it; the website relay isn't used).
         DispatchQueue.main.asyncAfter(deadline: .now() + 4) { [weak self] in
-            PairRelay.start()
             PhotosWatcher.shared.start { self?.autoSyncFromPhotos() }
         }
         buildMenu()
@@ -835,7 +835,6 @@ final class Shell: NSObject, NSApplicationDelegate, NSWindowDelegate, WKScriptMe
             let waiting = self.syncWaiting; self.syncWaiting = []
             for r in waiting { r(result, nil) }
             PhotosWatcher.shared.start { [weak self] in self?.autoSyncFromPhotos() }   // Photos may have just been allowed
-            PairRelay.push()
         })
     }
 

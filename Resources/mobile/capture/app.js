@@ -271,7 +271,7 @@
   // The glass lens slides to the tab you pick — it stretches on the way, overshoots a touch and settles.
   var lensAt = null, lensFlip = false;
   function placeLens() {
-    var home = S.tab === 'home' && !S.only, x = home ? 4 : 204, l = $('lens');
+    var home = S.tab === 'home' && !S.only, x = home ? 5 : 203, l = $('lens');
     $('tabHome').classList.toggle('on', home); $('tabProj').classList.toggle('on', !home);
     if (lensAt === x) return;
     if (lensAt != null) { l.classList.remove('sq1', 'sq2'); void l.offsetWidth; l.classList.add(lensFlip ? 'sq1' : 'sq2'); lensFlip = !lensFlip; }

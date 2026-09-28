@@ -514,7 +514,7 @@ main{position:relative;height:100vh;display:grid;grid-template-columns:minmax(0,
   document.addEventListener('keydown', e => { if (e.key === 'Escape' && $('acct').classList.contains('on')) $('acct').classList.remove('on'); });
 
   /* ---------------- Needed Vault on your phone ---------------- */
-  let phoneState = {}, phoneAlt = false, phoneBrowse = false;
+  let phoneState = {}, phoneAlt = false;
   async function openPhone() {
     phoneState = await call('phoneStatus').catch(() => ({})) || {};
     drawPhone();
@@ -523,38 +523,23 @@ main{position:relative;height:100vh;display:grid;grid-template-columns:minmax(0,
   window.__neededPhone = async () => { if ($('phone').classList.contains('on')) { phoneState = await call('phoneStatus').catch(() => phoneState) || phoneState; drawPhone(); } };
   function drawPhone() {
     const s = phoneState, on = !!s.on;
-    // Send page or the whole vault; by the Mac's name, or its number when the name won't resolve.
-    const qr = phoneBrowse ? (phoneAlt && s.browseIpQR ? s.browseIpQR : s.browseQR) : (phoneAlt && s.ipQR ? s.ipQR : s.qr);
-    const url = phoneBrowse ? (s.browseURL || '') : (phoneAlt && s.ipURL ? s.ipURL : s.url);
+    // One code: your phone sends straight to this Mac over your Wi-Fi. By the Mac's name, or its number if the name won't resolve.
+    const qr = phoneAlt && s.ipQR ? s.ipQR : s.qr, url = phoneAlt && s.ipURL ? s.ipURL : s.url;
     $('phoneBox').innerHTML = `
       <span class="cap">Needed Mobile Vault</span>
-      <h3>Your vault, on your phone — anywhere</h3>
-      <div class="qrrow">${s.vaultQR ? `<img class="qr" src="${s.vaultQR}" alt="QR code for Needed Mobile Vault">` : ''}
-        <ol>
-          <li><b>Point your iPhone's camera here</b> and open the link.</li>
-          <li>It shows you how to put it on your <b>Home Screen</b> — then it's an app, and works with no signal at all.</li>
-          <li>Capture anywhere. Tap <b>Sync</b> on the phone — it saves to Photos, and iCloud brings it here. While Needed Tools is open, each is filed into its project by itself, tagged, once. <b>Sync</b> here is the backup.</li>
-        </ol></div>
-      <div class="facts">
-        <div><span>Where it lives</span><span class="mono">${esc((s.vaultURL || '').replace(/^https:\/\//, ''))}</span></div>
-        <div><span>New projects?</span><span>They reach your phone by themselves — scan once, from the Home Screen app</span></div>
-        <div><span>Bring them in from Photos</span><span>${s.photosAccess === 'denied' && s.photos ? '<button id="photosInbox">Allow in System Settings</button>' : `<button class="tog${s.photos ? ' on' : ''}" id="photosInbox" role="switch" aria-checked="${!!s.photos}" aria-label="Bring them in from Photos"></button>`}</span></div>
-        <div><span>Sort Photos into Needed Vault › project albums</span><span><button class="tog${s.albums ? ' on' : ''}" id="photosAlbums" role="switch" aria-checked="${!!s.albums}" aria-label="Sort into albums"></button></span></div>
-      </div>
-      <div class="top" style="margin-top:6px"><div><b>At home: straight to this Mac over Wi-Fi</b><span>Send pictures straight in, or browse the whole vault, while your phone's on the same Wi-Fi and Needed Tools is open. Photos and iCloud aren't needed — nothing goes through anyone else.</span></div>
-        <button class="tog${on ? ' on' : ''}" id="phoneOn" role="switch" aria-checked="${on}" aria-label="Straight to this Mac over Wi-Fi"></button></div>
-      ${on ? `<div class="seg2" style="align-self:flex-start"><button id="phoneSendQ" class="${phoneBrowse ? '' : 'on'}">Send to Mac</button><button id="phoneBrowseQ" class="${phoneBrowse ? 'on' : ''}">Browse the vault</button></div>
-      <div class="qrrow">${qr ? `<img class="qr" src="${qr}" alt="${phoneBrowse ? 'QR code for browsing the vault' : 'QR code for sending to this Mac'}">` : ''}<ol>
-        ${phoneBrowse ? `<li><b>Scan this one at home</b> to see everything in your vault.</li><li>It works while you're on this Wi-Fi.</li>`
-          : `<li>Scan this code with your iPhone camera and open it in <b>Safari</b>.</li>
-        <li>Choose a project, add images or clips, then tap <b>Send to Mac</b>.</li>
-        <li>Keep Safari open until it says <b>received by Mac</b>. Interrupted items stay queued for retry.</li>`}</ol></div>
+      <h3>Straight to this Mac, over your Wi-Fi</h3>
+      <div class="top"><div><b>Send from your phone</b><span>Grab on your phone, then send straight into the right project here while you're both on the same Wi-Fi and Needed Tools is open. Nothing goes through anyone else.</span></div>
+        <button class="tog${on ? ' on' : ''}" id="phoneOn" role="switch" aria-checked="${on}" aria-label="Send from your phone over Wi-Fi"></button></div>
+      ${on ? `<div class="qrrow">${qr ? `<img class="qr" src="${qr}" alt="QR code for Needed Mobile Vault">` : ''}<ol>
+        <li><b>Scan this with your iPhone camera</b> and open it in Safari.</li>
+        <li>Tap <b>Share › Add to Home Screen</b>, so it opens like an app.</li>
+        <li>Grab into a project, then tap <b>Send to Mac</b>. Each one counts as sent when this Mac says it's saved it.</li></ol></div>
       <div class="facts"><div><span>Connection</span><span>${s.problem ? esc(s.problem) : s.running ? 'Ready on this network' : 'Starting…'}</span></div>
       <div><span>Address</span><span class="mono">${esc((url || '').replace(/#k=.*/, ''))}</span></div>
       <div><span>Not connecting?</span><span>${s.ipQR ? `<button id="phoneAlt">${phoneAlt ? 'Use the Mac’s name' : 'Use the Mac’s number instead'}</button>` : 'Check your Wi-Fi connection'}</span></div>
       <div><span>Only your phones</span><span><button id="phoneKey">New key</button></span></div>
       <div><span>Check it here</span><span><button id="phoneTest">Open it on this Mac</button> · <button id="phoneLogBtn">Connection log</button></span></div></div>
-      <p>Allow incoming connections or local network access if macOS asks. Bookmark the Safari page, and keep using the same address — its queue lives with that address. A new key means phones scan again. Grabs kept in the Home Screen app reach the Mac by its Sync.</p>` : ''}
+      <p>It opens while your phone is on the same Wi-Fi as this Mac. Grabs you keep stay on the phone until they're sent — if the Wi-Fi drops, tap Retry when you're back. macOS may ask to allow incoming connections the first time — say Allow. A new key means phones scan again.</p>` : '<p>Turn it on to show the code for your phone.</p>'}
       <div class="row3"><button class="save" id="phoneDone">Done</button></div>`;
   }
   $('phone').addEventListener('click', async e => {
@@ -569,7 +554,6 @@ main{position:relative;height:100vh;display:grid;grid-template-columns:minmax(0,
       return;
     }
     if (t.id === 'phoneAlt') { phoneAlt = !phoneAlt; return drawPhone(); }
-    if (t.id === 'phoneSendQ' || t.id === 'phoneBrowseQ') { phoneBrowse = t.id === 'phoneBrowseQ'; return drawPhone(); }
     if (t.id === 'phoneTest') return call('phoneTest');
     if (t.id === 'phoneWeb') return call('phoneWeb');
     if (t.id === 'photosInbox') { const r = await call('photosSet', { inbox: phoneState.photosAccess === 'denied' ? true : !phoneState.photos }).catch(() => null); if (r) { phoneState = r; drawPhone(); } return; }

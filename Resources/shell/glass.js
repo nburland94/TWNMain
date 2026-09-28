@@ -1,9 +1,9 @@
 /* Needed Tools — liquid glass, the same as the website's nav bar, on every page and tool.
    1. The glass itself: almost clear, blurred and saturated, a fine white edge, a bright line
       along the top and a soft sheen in the top centre — by day and by night.
-   2. Every switch with a selected option (.seg, .seg2) gets a glass lens that slides to the
-      option you pick: it stretches like a drop of water on the way, overshoots a touch and
-      settles (~0.6s). Keyboard, clicks and code that sets .on all move it the same way.
+   2. Every switch with a selected option (.seg, .seg2) gets an orange lens (white words on it) that
+      slides to the option you pick: it stretches like a drop of water on the way and lands inside
+      the pill (~0.55s), in light and dark. Keyboard, clicks and code that sets .on all move it the same way.
    Loaded with theme.js (Shell.swift), before it, so dark mode sees these rules too. */
 (function () {
   if (window.__neededGlass) return;
@@ -16,7 +16,8 @@
   const BARS = '.toast, .needed-load, .qbar';
   // Panels and notes hold reading text, so they keep a little more white behind the words.
   const PANELS = '.g, .nt-tip, .qtip';
-  const SPRING = 'cubic-bezier(0.34, 1.45, 0.52, 1)';
+  // A glide that lands exactly (no overshoot past the pill); the stretch happens mid-way.
+  const GLIDE = 'cubic-bezier(0.22, 1, 0.36, 1)';
 
   const css = `
 ${BARS}{background:${SHEEN},linear-gradient(180deg,rgba(255,255,255,0.30),rgba(255,255,255,0.10) 42%,rgba(255,255,255,0.08));
@@ -25,19 +26,17 @@ ${BARS}{background:${SHEEN},linear-gradient(180deg,rgba(255,255,255,0.30),rgba(2
 ${PANELS}{background:${SHEEN},linear-gradient(160deg,rgba(255,255,255,0.54),rgba(255,255,255,0.30) 55%,rgba(255,255,255,0.38));
   border:1px solid rgba(255,255,255,0.42);-webkit-backdrop-filter:${FILTER};backdrop-filter:${FILTER}}
 
-/* the lens */
-.nglass{position:relative;isolation:isolate}
-.nglass>.nlens{position:absolute;left:0;top:0;width:0;height:0;z-index:0;box-sizing:border-box;border-radius:100px;pointer-events:none;opacity:0;
-  background:${SHEEN},rgba(255,255,255,0.72);border:1px solid rgba(255,255,255,0.95);
-  box-shadow:inset 0 1.5px 0 #fff,inset 0 -2px 6px rgba(0,0,0,0.05),0 3px 12px rgba(20,20,20,0.13),0 0 0 0.5px rgba(20,20,20,0.07);
-  -webkit-backdrop-filter:blur(6px) saturate(160%) brightness(1.08);backdrop-filter:blur(6px) saturate(160%) brightness(1.08);
-  transition:left .62s ${SPRING},top .62s ${SPRING},width .5s ${SPRING},height .5s ${SPRING},opacity .2s ease-out}
-.nglass>.nlens.nsq1{animation:nsq1 .62s ease-out}
-.nglass>.nlens.nsq2{animation:nsq2 .62s ease-out}
-@keyframes nsq1{0%{transform:scale(1,1)}30%{transform:scale(1.22,0.86)}62%{transform:scale(0.95,1.05)}82%{transform:scale(1.02,0.99)}100%{transform:scale(1,1)}}
-@keyframes nsq2{0%{transform:scale(1,1)}30%{transform:scale(1.22,0.86)}62%{transform:scale(0.95,1.05)}82%{transform:scale(1.02,0.99)}100%{transform:scale(1,1)}}
+/* the lens: solid orange, inside its pill with an even gap, no outline of its own */
+.nglass{position:relative;isolation:isolate;overflow:hidden}
+.nglass>.nlens{position:absolute;left:0;top:0;width:0;height:0;z-index:0;box-sizing:border-box;border-radius:999px;pointer-events:none;opacity:0;
+  background:linear-gradient(180deg,#f46a33,#F05A22);border:none;box-shadow:inset 0 1px 0 rgba(255,255,255,0.28),0 1px 3px rgba(160,50,10,0.22);
+  transition:left .55s ${GLIDE},top .55s ${GLIDE},width .45s ${GLIDE},height .45s ${GLIDE},opacity .2s ease-out}
+.nglass>.nlens.nsq1{animation:nsq1 .55s ease-out}
+.nglass>.nlens.nsq2{animation:nsq2 .55s ease-out}
+@keyframes nsq1{0%{transform:scale(1,1)}35%{transform:scale(1.16,0.9)}70%{transform:scale(0.98,1.02)}100%{transform:scale(1,1)}}
+@keyframes nsq2{0%{transform:scale(1,1)}35%{transform:scale(1.16,0.9)}70%{transform:scale(0.98,1.02)}100%{transform:scale(1,1)}}
 .nglass>button{position:relative;z-index:1}
-.nglass.lensed>button.on{background:transparent!important;box-shadow:none!important;color:#141414!important}
+.nglass.lensed>button.on{background:transparent!important;box-shadow:none!important;color:#ffffff!important;border-color:transparent!important}
 @media (prefers-reduced-motion:reduce){.nglass>.nlens{transition:opacity .2s}.nglass>.nlens.nsq1,.nglass>.nlens.nsq2{animation:none}}
 
 /* by night: the same glass, dark — never an opaque navy tile */
@@ -48,9 +47,8 @@ html[data-theme=dark] body ${BARS.split(', ').join(`,html[data-theme=dark] body 
 html[data-theme=dark] body ${PANELS.split(', ').join(`,html[data-theme=dark] body `)}{
   background:${SHEEN_NIGHT},linear-gradient(160deg,rgba(40,58,86,0.62),rgba(22,34,52,0.46) 55%,rgba(28,42,64,0.52))!important;
   border-color:rgba(255,255,255,0.14)!important}
-html[data-theme=dark] body .nglass>.nlens{background:${SHEEN_NIGHT},rgba(255,255,255,0.15)!important;border-color:rgba(255,255,255,0.30)!important;
-  box-shadow:inset 0 1.5px 0 rgba(255,255,255,0.38),inset 0 -2px 6px rgba(0,0,0,0.20),0 4px 14px rgba(0,0,0,0.38)!important}
-html[data-theme=dark] body .nglass.lensed>button.on{color:#f4f7fb!important}
+html[data-theme=dark] body .nglass>.nlens{background:linear-gradient(180deg,#f46a33,#F05A22)!important;border:none!important;box-shadow:inset 0 1px 0 rgba(255,255,255,0.22),0 1px 4px rgba(0,0,0,0.35)!important}
+html[data-theme=dark] body .nglass.lensed>button.on{color:#ffffff!important}
 `;
   const style = document.createElement('style');
   style.id = 'neededGlass';
@@ -76,7 +74,8 @@ html[data-theme=dark] body .nglass.lensed>button.on{color:#f4f7fb!important}
     // Only a selected button gets the lens; a selected dropdown keeps its own look.
     const on = seg.querySelector(':scope > button.on');
     if (!on || !on.offsetWidth) { l.style.opacity = '0'; seg.classList.remove('lensed'); l._x = null; return; }
-    const x = on.offsetLeft, y = on.offsetTop, w = on.offsetWidth, h = on.offsetHeight;
+    // An even gap all round, so the lens sits inside the pill instead of on its edge.
+    const gap = 2, x = on.offsetLeft + gap, y = on.offsetTop + gap, w = Math.max(0, on.offsetWidth - 2 * gap), h = Math.max(0, on.offsetHeight - 2 * gap);
     if (l._x === x && l._y === y && l._w === w && l._h === h) return;
     // A page that redraws its switch (Design does, on every click) keeps the lens's last place, so it still slides.
     const words = s => [...s.children].filter(b => b.tagName === 'BUTTON').map(b => b.textContent.trim()).join('|');
@@ -104,8 +103,6 @@ html[data-theme=dark] body .nglass.lensed>button.on{color:#f4f7fb!important}
       Object.assign(l.style, { left: x + 'px', top: y + 'px', width: w + 'px', height: h + 'px', opacity: '1' });
       if (moved) { l.classList.remove('nsq1', 'nsq2'); l.classList.add(l._f ? 'nsq1' : 'nsq2'); l._f = !l._f; }
     }
-    // Radius follows the button, so a square switch gets a square lens.
-    l.style.borderRadius = getComputedStyle(on).borderRadius || '100px';
     seg.classList.add('lensed');
     l._x = x; l._y = y; l._w = w; l._h = h;
   }

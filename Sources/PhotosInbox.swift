@@ -11,9 +11,9 @@ import Foundation
 import Photos
 
 enum PhotosInbox {
-    /// Home › Your phone › "From Photos" — on unless you switch it off.
+    /// "From Photos" — off unless you switch it on (Round 35: the phone sends straight over Wi-Fi instead).
     static var on: Bool {
-        get { UserDefaults.standard.object(forKey: "photosInbox") as? Bool ?? true }
+        get { UserDefaults.standard.object(forKey: "photosInbox") as? Bool ?? false }
         set { UserDefaults.standard.set(newValue, forKey: "photosInbox") }
     }
     static var albums: Bool {
