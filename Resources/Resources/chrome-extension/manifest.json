@@ -1,0 +1,11 @@
+{
+  "manifest_version": 3,
+  "name": "Needed Vault",
+  "version": "1.0",
+  "description": "Right-click any image → Save to Needed Vault. Goes straight into the project you have open.",
+  "permissions": ["contextMenus", "activeTab", "scripting"],
+  "host_permissions": ["http://127.0.0.1:47631/*"],
+  "background": { "service_worker": "background.js" },
+  "action": { "default_title": "Needed Vault" },
+  "icons": { "16": "icon16.png", "48": "icon48.png", "128": "icon128.png" }
+}
