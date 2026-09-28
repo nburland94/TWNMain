@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en"><head>
 <meta charset="utf-8">
-<base href="/capture/">
+<script>document.write('<base href="' + (/^\/capture(\/|$)/.test(location.pathname) ? '/capture/' : '/vault/') + '">');</script>
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="robots" content="noindex">
 <meta name="apple-mobile-web-app-title" content="Mobile Vault">
@@ -10,10 +10,10 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="description" content="Needed Mobile Vault — catch photos and clips anywhere, then send them to Needed Tools on your Mac.">
-
+<link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon-180.png">
 <link rel="icon" href="icon-192.png">
-<title>Needed Direct Vault</title>
+<title>Needed Mobile Vault</title>
 <style>
 @font-face{font-family:'Raleway';font-weight:200;font-display:swap;src:url('fonts/raleway-latin-200-normal.woff2') format('woff2')}
 @font-face{font-family:'Raleway';font-weight:300;font-display:swap;src:url('fonts/raleway-latin-300-normal.woff2') format('woff2')}
@@ -294,17 +294,93 @@ body.capturing .sendbar{bottom:calc(env(safe-area-inset-bottom) + 18px)}
 .plist2 div b{font-weight:400;font-family:'Courier Prime',monospace;font-size:10px;letter-spacing:.14em;color:#fff;background:var(--o);padding:2px 6px}
 .pdone .dark{margin-top:auto}
 #addGo{background:var(--o);box-shadow:0 8px 22px rgba(240,90,34,.3)}
+
+/* Round 34: logo in the centre, project on the left, the glass tab bar — pictures first */
+:root{--gl:rgba(255,255,255,0.08);--gle:rgba(255,255,255,0.42)}
+.glass{background:radial-gradient(ellipse 55% 30% at 50% 0%,rgba(255,255,255,.62) 0%,rgba(255,255,255,0) 100%),linear-gradient(180deg,rgba(255,255,255,.34),rgba(255,255,255,.12) 42%,rgba(255,255,255,.10));
+  border:1px solid rgba(255,255,255,.42);-webkit-backdrop-filter:blur(40px) saturate(240%) brightness(1.04);backdrop-filter:blur(40px) saturate(240%) brightness(1.04);
+  box-shadow:0 8px 32px rgba(0,0,0,.08),0 2px 8px rgba(0,0,0,.04),inset 0 1.5px 0 rgba(255,255,255,.82),inset 0 -1px 0 rgba(0,0,0,.03)}
+header.top3{position:sticky;top:0;z-index:8;display:flex;align-items:center;justify-content:space-between;padding:calc(env(safe-area-inset-top) + 6px) 12px 6px;min-height:40px;background:linear-gradient(to bottom,rgba(252,242,236,.94) 65%,rgba(252,242,236,0))}
+.plabel{border:none;background:none;padding:6px 0;display:flex;align-items:center;gap:5px;font-size:15px;max-width:34vw;color:var(--ink)}
+.plabel span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+header.top3 .markbtn{position:absolute;left:50%;transform:translateX(-50%);bottom:4px;border:none;background:none;padding:0}
+header.top3 .markbtn img{width:36px;display:block}
+.round.add{width:32px;height:32px;border-radius:50%;border:1px solid rgba(28,28,28,.1);background:rgba(255,255,255,.8);display:flex;align-items:center;justify-content:center;padding:0;color:var(--ink)}
+.addmenu{position:absolute;right:12px;top:calc(env(safe-area-inset-top) + 46px);border-radius:18px;padding:6px;display:flex;flex-direction:column;min-width:170px;z-index:9}
+.addmenu button{border:none;background:none;text-align:left;padding:11px 14px;font-size:15px;border-radius:12px}
+.addmenu button:active{background:rgba(255,255,255,.6)}
+main{padding:0 0 calc(env(safe-area-inset-bottom) + 170px)}
+#home>.hi,#home>.phead,#daysBox>.chips,#daysBox>.search,#projBox>.ptitle,#capture{padding-left:12px;padding-right:12px}
+.hi{display:flex;align-items:baseline;justify-content:space-between;margin:2px 0 12px}
+.hello{font-size:19px;font-weight:300}
+.hero{position:relative;display:block;width:100%;height:min(62vh,420px);border:none;padding:0;overflow:hidden;background:#d9cfc4;margin-bottom:18px;text-align:left}
+.hero img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
+.hero .shade{position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.55),rgba(0,0,0,0) 45%)}
+.hero .htxt{position:absolute;left:16px;right:60px;bottom:14px;color:#fff;display:flex;flex-direction:column;gap:3px}
+.hero .hn{font-size:30px;font-weight:300;line-height:1}
+.hero .hm{font-size:12.5px;opacity:.88}
+.hero .harrow{position:absolute;right:16px;bottom:16px;width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.45);color:#fff;display:flex;align-items:center;justify-content:center;font-size:20px;line-height:1}
+.phead{display:flex;align-items:baseline;gap:10px;margin:2px 0 12px}
+.phead .backall{padding:0}
+.phead .pn{font-size:22px;font-weight:300;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.feed{margin:6px 0 0;gap:26px}
+.day h2{margin:0 12px 8px;font-size:22px}
+.runh{margin:0 12px 2px}
+.cols{gap:3px}.col{gap:3px}.run{gap:3px}
+.ptitle{display:flex;align-items:baseline;justify-content:space-between;margin:2px 0 10px}
+.ptitle>span:first-child{font-size:19px;font-weight:300}
+.pairline{margin:0;font-size:9.5px}
+.pairline button{margin-left:8px;padding:0;font-size:12.5px}
+.pgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px 3px;padding:0 12px}
+.pcard{border:none;background:none;padding:0;text-align:left;display:flex;flex-direction:column;gap:5px;min-width:0}
+.pcard .pc{position:relative;width:100%;aspect-ratio:4/5;background:#e3d7cc;overflow:hidden}
+.pcard .pc img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.pcard .pc .none{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:'Courier Prime',monospace;font-size:10px;letter-spacing:.14em;color:#8a7a70}
+.pcard .pl{display:flex;align-items:baseline;justify-content:space-between;gap:6px;padding:0 2px}
+.pcard .pl b{font-weight:400;font-size:13.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pcard .pl small{font-family:'Courier Prime',monospace;font-size:9.5px;color:var(--soft);letter-spacing:.06em;white-space:nowrap}
+.pcard .pl small.wait{color:var(--oi)}
+.pcard .tag{position:absolute;top:7px;left:7px;font-family:Oswald,sans-serif;font-size:9px;letter-spacing:.12em;background:var(--o);color:#fff;padding:3px 6px}
+.pcard .tag.gg{left:auto;right:7px;background:#fff;color:var(--oi)}
+/* the tab bar: glass, a lens that slides, Grab & Go in the middle */
+.tabbar{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom) + 18px);transform:translateX(-50%);z-index:12;width:304px;height:64px;border-radius:100px;display:flex;align-items:center;justify-content:space-between;padding:0 4px;box-sizing:border-box;
+  background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.42);-webkit-backdrop-filter:blur(40px) saturate(240%) brightness(1.04);backdrop-filter:blur(40px) saturate(240%) brightness(1.04);
+  box-shadow:0 8px 32px rgba(0,0,0,.10),0 2px 8px rgba(0,0,0,.05),inset 0 1.5px 0 rgba(255,255,255,.82),inset 0 -1px 0 rgba(0,0,0,.03)}
+.tabbar .sheen{position:absolute;inset:0;border-radius:100px;pointer-events:none;background:radial-gradient(ellipse 55% 30% at 50% 0%,rgba(255,255,255,.72) 0%,rgba(255,255,255,0) 100%),linear-gradient(180deg,rgba(255,255,255,.18) 0%,rgba(255,255,255,0) 38%)}
+.tabbar .lens{position:absolute;top:4px;left:4px;width:96px;height:56px;border-radius:100px;pointer-events:none;
+  background:rgba(255,255,255,.26);border:1px solid rgba(255,255,255,.72);-webkit-backdrop-filter:blur(6px) saturate(160%) brightness(1.08);backdrop-filter:blur(6px) saturate(160%) brightness(1.08);
+  box-shadow:inset 0 1.5px 0 rgba(255,255,255,.95),inset 0 -2px 6px rgba(0,0,0,.05),0 4px 14px rgba(0,0,0,.08);transition:left .62s cubic-bezier(.34,1.45,.52,1),opacity .2s}
+.tabbar .lens.sq1{animation:sq1 .62s ease-out}.tabbar .lens.sq2{animation:sq2 .62s ease-out}
+@keyframes sq1{0%{transform:scale(1,1)}30%{transform:scale(1.42,.84)}62%{transform:scale(.93,1.06)}82%{transform:scale(1.03,.98)}100%{transform:scale(1,1)}}
+@keyframes sq2{0%{transform:scale(1,1)}30%{transform:scale(1.42,.84)}62%{transform:scale(.93,1.06)}82%{transform:scale(1.03,.98)}100%{transform:scale(1,1)}}
+.tabbar .tab{position:relative;z-index:2;width:96px;height:56px;border:none;background:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:10.5px;font-weight:500;letter-spacing:.02em;color:#F05A22;padding:0}
+.tabbar .tab.on{color:#c23d0c}
+.tabbar .ggbtn{position:relative;z-index:3;width:60px;height:60px;margin-top:-2px;border-radius:50%;border:none;background:var(--o);color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;padding:0;box-shadow:0 8px 20px rgba(240,90,34,.4);transition:box-shadow .3s}
+.tabbar .ggbtn span{font-family:Oswald,sans-serif;font-size:7.5px;letter-spacing:.12em}
+.tabbar .ggbtn.on{box-shadow:0 0 0 3px #fff,0 0 0 6px rgba(240,90,34,.55),0 10px 26px rgba(240,90,34,.5)}
+.gnote{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom) + 94px);z-index:11;border-radius:100px;padding:9px 16px;display:flex;align-items:center;gap:8px;font-size:13px;white-space:nowrap;max-width:92vw}
+.gnote i{width:8px;height:8px;border-radius:50%;background:var(--o);box-shadow:0 0 0 4px rgba(240,90,34,.2);flex-shrink:0}
+.gnote span{overflow:hidden;text-overflow:ellipsis}.gnote b{font-weight:500}
+.sendbar{bottom:calc(env(safe-area-inset-bottom) + 94px)}
+body.ggon .sendbar{bottom:calc(env(safe-area-inset-bottom) + 140px)}
+.toast{bottom:calc(env(safe-area-inset-bottom) + 176px)}
+body.ggon .toast,body.capturing .toast{bottom:calc(env(safe-area-inset-bottom) + 222px)}
+body.capturing .sendbar{bottom:calc(env(safe-area-inset-bottom) + 140px)}
+#capture{min-height:calc(100vh - 170px)}
+.caprecent{padding-bottom:20px}
+body.viewing .tabbar,body.viewing .gnote{opacity:0;pointer-events:none}
+@media (prefers-reduced-motion:reduce){.tabbar .lens{transition:opacity .2s}.tabbar .lens.sq1,.tabbar .lens.sq2{animation:none}}
 </style></head>
 <body>
 <div class="glow"></div>
 <div class="prog" id="prog"><i id="progBar"></i></div>
 
 <!-- The first time, in Safari: make it an app -->
-<section class="install off" id="install">
+<section class="install" id="install">
   <img class="icon" src="icon-180.png" alt="">
   <span class="cap">Needed Mobile Vault · This Was Needed</span>
   <h1>Put Needed Mobile Vault on your Home Screen</h1>
-  <p class="lead">Open this direct page in Safari while your Mac is reachable. Bookmark the address for next time.</p>
+  <p class="lead">Then it opens like an app — full screen, and it works with no signal at all. Takes ten seconds.</p>
   <span class="mac" id="instMac"></span>
   <div class="steps2" id="instIOS">
     <div class="g step"><span class="n">1</span><div>Tap <b>Share</b><small>At the bottom of Safari (top on iPad). On iOS 26, tap ⋯ first.</small></div><span class="sym"><svg width="20" height="22" viewBox="0 0 20 24" fill="none" stroke="#0a84ff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 15V2M5.5 6.5L10 2l4.5 4.5"/><path d="M6 10H3.5v12h13V10H14"/></svg></span></div>
@@ -320,22 +396,25 @@ body.capturing .sendbar{bottom:calc(env(safe-area-inset-bottom) + 18px)}
     <div class="g step"><span class="n">2</span><div>Tap <b>Add to Home Screen</b> or <b>Install app</b></div></div>
     <button class="dark off" id="instBtn">Install Needed Mobile Vault</button>
   </div>
-  <div class="g why"><b>Where do my photos go?</b> Tap Send to Mac to transfer directly over your trusted Wi-Fi. Originals stay here until you remove them.</div>
+  <div class="g why"><b>Where do my photos go?</b> They stay on this phone until you tap Sync — then into your Photos, and iCloud takes them to your Mac. Nothing goes up to the website.</div>
   <button class="skip" id="instSkip">Use it in Safari for now</button>
 </section>
 
 <div id="app" class="off">
-<header>
+<header class="top3">
+  <button class="plabel" id="pill" aria-haspopup="dialog"><span id="pillName">Projects</span><svg width="10" height="7" viewBox="0 0 10 7" aria-hidden="true"><path d="M1 1l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.6"/></svg></button>
   <button class="markbtn" id="mark" aria-label="Needed Mobile Vault — how it works"><img src="mark.png" alt="This Was Needed"></button>
-  <button class="pill" id="pill" aria-haspopup="dialog"><span id="pillName">Projects</span> <svg width="10" height="7" viewBox="0 0 10 7" aria-hidden="true"><path d="M1 1l4 4 4-4" fill="none" stroke="#fff" stroke-width="1.5"/></svg></button>
-  <span style="flex-grow:1"></span>
-  <span class="gg" id="ggWrap">Grab &amp; Go <button class="tog" id="gg" aria-label="Grab and Go" aria-pressed="false"></button></span>
+  <button class="round add" id="addBtn" aria-label="Add photos or clips" aria-haspopup="menu"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2v12M2 8h12" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg></button>
+  <div class="addmenu glass off" id="addMenu" role="menu"><button role="menuitem" id="camera">Camera</button><button role="menuitem" id="photos">From Photos</button></div>
 </header>
+<span class="off" id="ggWrap"></span>
 
 <main>
   <section id="home">
-    <p class="cap">Direct Wi-Fi · Keep your Mac awake</p><div class="titlerow"><h1 id="title">Your grabs</h1><div class="seg" id="viewSeg" role="group" aria-label="View"><button data-v="days">Days</button><button data-v="projects">Projects</button></div></div>
-    <button class="backall off" id="onlyBack">‹ All projects</button>
+    <div class="hi" id="hiRow"><span class="hello" id="hello"></span><span class="cap" id="today"></span></div>
+    <button class="hero off" id="hero" aria-label="Open this project"><img alt="" id="heroImg"><span class="shade"></span>
+      <span class="htxt"><span class="hn" id="heroName"></span><span class="hm" id="heroMeta"></span></span><span class="harrow" aria-hidden="true">›</span></button>
+    <div class="phead off" id="pHead"><button class="backall" id="onlyBack">‹ Projects</button><span class="pn" id="title"></span><span class="cap" id="pCount"></span></div>
     <div id="daysBox">
       <div class="chips" id="chips">
         <button class="chip on" data-k="all">All</button><button class="chip" data-k="still">Stills</button><button class="chip" data-k="clip">Clips</button><button class="chip" data-k="gif">GIFs</button>
@@ -345,30 +424,33 @@ body.capturing .sendbar{bottom:calc(env(safe-area-inset-bottom) + 18px)}
       <div class="search" id="search"><input id="q" type="search" placeholder="Search — projects, tags, names" autocomplete="off" autocapitalize="off"></div>
       <div class="feed" id="feed"></div>
     </div>
-    <div id="projBox" class="off"><div class="pairline" id="pairLine"></div><div class="prows" id="prows"></div></div>
+    <div id="projBox" class="off"><div class="ptitle"><span>Projects</span><span class="pairline" id="pairLine"></span></div><div class="pgrid" id="prows"></div></div>
   </section>
   <section id="capture" class="off">
-    <span class="cap">Grabbing into</span>
+    <span class="cap">Grab &amp; Go · straight into</span>
     <div class="capname" id="capName"></div>
     <div class="capchips" id="capChips"></div>
     <div class="capmid">
       <button class="bigshot" id="bigShot" aria-label="Camera"><svg width="46" height="46" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.5" aria-hidden="true"><rect x="3" y="6" width="18" height="13" rx="3"/><circle cx="12" cy="12.5" r="3.4"/><path d="M8.5 6l1.5-2h4l1.5 2"/></svg></button>
       <button class="light" id="capPhotos">From Photos</button>
-      <span class="capnote">Straight in — no questions. Tags later, on the Mac.</span>
+      <span class="capnote">Straight in — no questions. Tap the orange button again to stop.</span>
     </div>
     <div class="caprecent off" id="capRecent"><div class="caprh"><span class="cap">Just now</span><span class="cap wait" id="capWait"></span></div><div class="capstrip" id="capStrip"></div></div>
   </section>
 </main>
 
-<div class="g sendbar off" id="sendBar">
+<div class="glass sendbar off" id="sendBar">
   <div><b id="sendN"></b><span id="sendWhere"></span></div>
-  <button class="q" id="sendHow" aria-label="How direct transfer works">?</button>
-  <button class="dark" id="sendGo">Send to Mac</button>
+  <button class="q" id="sendHow" aria-label="How Sync works">?</button>
+  <button class="dark" id="sendGo">Sync</button>
 </div>
-<div class="bottom" id="bottom">
-  <button class="dark" id="photos"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="M3 15l5-5 4 4 3-3 6 6"/></svg>Photos</button>
-  <button class="light" id="camera"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#141414" stroke-width="1.6" aria-hidden="true"><rect x="3" y="6" width="18" height="13" rx="3"/><circle cx="12" cy="12.5" r="3.2"/><path d="M8.5 6l1.5-2h4l1.5 2"/></svg>Camera</button>
-</div>
+<div class="gnote glass off" id="ggNote"><i></i><span>Grab &amp; Go on — every photo goes to <b id="ggNoteP"></b></span></div>
+<nav class="tabbar" id="tabbar" aria-label="Sections">
+  <span class="sheen" aria-hidden="true"></span><i class="lens" id="lens" aria-hidden="true"></i>
+  <button class="tab" data-tab="home" id="tabHome"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" aria-hidden="true"><path d="M4 11l8-6 8 6v8a1 1 0 0 1-1 1h-4v-5h-6v5H5a1 1 0 0 1-1-1z"/></svg><span>Home</span></button>
+  <button class="ggbtn" id="gg" aria-label="Grab and Go" aria-pressed="false"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.7" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h3l2-2h6l2 2h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg><span id="ggLbl">GRAB</span></button>
+  <button class="tab" data-tab="projects" id="tabProj"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="4" y="4" width="7" height="7"/><rect x="13" y="4" width="7" height="7"/><rect x="4" y="13" width="7" height="7"/><rect x="13" y="13" width="7" height="7"/></svg><span>Projects</span></button>
+</nav>
 <input type="file" id="pick" accept="image/*,video/*" multiple hidden>
 <input type="file" id="shoot" accept="image/*,video/*" capture="environment" hidden>
 </div>
@@ -399,7 +481,7 @@ body.capturing .sendbar{bottom:calc(env(safe-area-inset-bottom) + 18px)}
   <div class="pscan" id="pairScan">
     <span class="cap">Pair with your Mac</span>
     <h2>Point at the code on your Mac</h2>
-    <p>Needed Tools › Home › Your phone. Use the Direct Wi-Fi QR code to connect this page to your Mac.</p>
+    <p>Needed Tools › Home › Your phone. Only your project names come across — your pictures never go anywhere but your own Photos and your Mac.</p>
     <div class="finder"><video id="pairVid" playsinline muted autoplay></video><i class="c tl"></i><i class="c tr"></i><i class="c bl"></i><i class="c br"></i><span class="fstat" id="pairStat">Looking for the code…</span></div>
     <button class="light" id="pairType">Type a project instead</button>
   </div>
@@ -428,28 +510,33 @@ body.capturing .sendbar{bottom:calc(env(safe-area-inset-bottom) + 18px)}
   <input class="tagin" id="addTags" placeholder="Tags, if you like — night, car" autocomplete="off" autocapitalize="off">
   <div class="steps"><button class="dark" id="addGo">Keep</button><button class="light" id="addCancel">Cancel</button></div>
 </div>
-<div class="g sheet sendSheet" id="sendSheet" role="dialog" aria-label="Direct transfer help">
-<span class="cap">Direct Wi-Fi</span><h2>Straight into your Mac’s Vault</h2>
-<ol class="how"><li>Keep your phone and Mac on the same trusted Wi-Fi. Keep Needed Tools open and the Mac awake.</li><li>Choose a project and add photos or clips. Tap <b>Send to Mac</b>.</li><li>Keep this Safari page open until each item says <b>received by Mac</b>. It is then in your project, with its tags.</li></ol>
-<p>If interrupted, originals stay queued in this browser. Reopen this same address while connected and tap Retry. Bookmark the Safari page; do not clear website data while transfers are pending. This local page needs your Mac to load and is separate from the website Vault.</p>
-<div class="steps"><button class="dark" id="sendOk">Got it</button></div></div>
-<div class="g sheet sendSheet" id="nudgeSheet" role="dialog" aria-label="Shared — awaiting Mac">
-  <span class="cap">Shared — awaiting Mac</span><h2>Shared — waiting for your Mac</h2>
+<div class="g sheet sendSheet" id="sendSheet" role="dialog" aria-label="How Sync works">
+  <span class="cap">Sync</span><h2>How it gets to your Mac</h2>
+  <ol class="how">
+    <li>Tap <b>Sync</b>, then <b>Save Images</b> (or Save Video). They go into this phone’s Photos.</li>
+    <li>iCloud Photos takes them to your Mac — anywhere you’ve got signal.</li>
+    <li>On the Mac, press <b>Sync</b> in Needed Tools. Each goes into its project’s vault, with its tags, and into <b>Needed Vault › its project</b> in Photos.</li>
+  </ol>
+  <p>Next to your Mac? You can pick it under <b>AirDrop</b> instead. Either way, nothing lands in the vault twice.</p>
+  <div class="steps"><button class="dark" id="sendOk">Got it</button></div>
+</div>
+<div class="g sheet sendSheet" id="nudgeSheet" role="dialog" aria-label="Synced">
+  <span class="cap">Synced</span><h2>Now let iCloud take them</h2>
   <p id="nudgeN" style="color:var(--oi)"></p>
-  <p>The Mac confirms each saved item directly. Keep this page open while sending.</p>
-  <div class="steps"><button class="dark" id="nudgePhotos">Done</button><button class="light" id="nudgeDone">Done</button></div>
+  <p>Opening Photos gives iCloud a nudge to send them up now. Then press <b>Sync</b> in Needed Tools on your Mac.</p>
+  <div class="steps"><button class="dark" id="nudgePhotos">Open Photos</button><button class="light" id="nudgeDone">Done</button></div>
 </div>
 <div class="g sheet menu" id="menuSheet" role="dialog" aria-label="Needed Mobile Vault">
   <span class="cap">Needed Mobile Vault</span><h2>How it works</h2>
   <ol class="how">
-    <li>Add photos and clips to a project on this direct page while your Mac is reachable.</li>
-    <li>Tap <b>Send to Mac</b> to transfer over your Wi-Fi. Keep this page open until the Mac confirms receipt.</li>
-    <li>The Mac files each item into its project automatically. No Photos permission or Sync button is needed.</li>
+    <li>Add photos and clips to a project — anywhere, with or without signal.</li>
+    <li>They wait on this phone until you tap <b>Sync</b> — it saves them to Photos, and iCloud takes them to your Mac.</li>
+    <li>On the Mac: <b>Sync</b> in Needed Tools. Each lands in its project, once.</li>
   </ol>
   <div class="line"><span>Your Mac</span><span id="mMac"></span></div>
   <div class="line"><span>Your projects from the Mac</span><span><button id="mPair">Pair · scan the code</button></span></div>
-  <div class="line"><span>Can’t find something on the Mac?</span><span><button id="mResync">Retry transfers</button></span></div>
-  <div class="line"><span>Room on this phone</span><span><span id="mSent" style="color:inherit"></span> · <button id="mClear">Clear confirmed</button></span></div>
+  <div class="line"><span>Can’t find something on the Mac?</span><span><button id="mResync">Sync the last week again</button></span></div>
+  <div class="line"><span>Room on this phone</span><span><span id="mSent" style="color:inherit"></span> · <button id="mClear">Clear</button></span></div>
   <div class="line" id="mHomeRow"><span>Make it an app</span><span><button id="mHome">Show me how</button></span></div>
   <div class="steps" style="margin-top:14px"><button class="dark" id="mDone">Done</button></div>
 </div>
@@ -460,12 +547,12 @@ body.capturing .sendbar{bottom:calc(env(safe-area-inset-bottom) + 18px)}
 (function () {
   function fail(why) {
     var el = document.getElementById('nvFail'); if (!el || window.__nvReady) return;
-    el.innerHTML = '<b>Mobile Vault didn\u2019t finish opening.</b> Check you\u2019ve got signal, then pull down to refresh. If it keeps happening, scan the Direct Wi-Fi code in Needed Tools on your Mac again.<br><span style="font-family:Courier Prime,monospace;font-size:11px;opacity:.7">' + String(why || '').replace(/[<>&]/g, '') + '</span>';
+    el.innerHTML = '<b>Mobile Vault didn\u2019t finish opening.</b> Check you\u2019ve got signal, then pull down to refresh. If it keeps happening, open thiswasneeded.info/vault/ in Safari.<br><span style="font-family:Courier Prime,monospace;font-size:11px;opacity:.7">' + String(why || '').replace(/[<>&]/g, '') + '</span>';
     el.classList.remove('off');
   }
   window.addEventListener('error', function (e) { fail(e.message || 'script error'); });
   setTimeout(function () { fail('app.js did not start'); }, 6000);
 })();
 </script>
-<script src="/capture/app.js"></script>
+<script src="app.js"></script>
 </body></html>
