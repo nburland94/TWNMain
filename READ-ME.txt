@@ -1072,3 +1072,22 @@ ROUND 36 — READY FOR SALE: NAMES AND LICENCES
   • Still to do before selling: your own sample pictures, terms of use and a
     privacy policy, a trademark search, the Apple Developer account (signing
     and notarising), and turning on the store (Lemon Squeezy or Gumroad).
+
+ROUND 37 — ONE PHONE APP, TIDIER HEADERS, ARRANGE ANY PAGE
+  • The Mac's old phone page is gone. Any old bookmark or Home Screen icon
+    now opens the current Needed Mobile Vault (the approved design), key kept.
+    Build the new kit, then scan the Send to Mac code again to be sure.
+  • Vault, Grab and Sort: Start again is a small orange pill under the
+    tagline, on the right — no longer floating beside the title.
+  • Design: A and B pages now have Where the pictures go and Arrangements,
+    the same as C. Pick one and the page's pictures lay themselves out; the
+    page keeps its letter, and tapping that letter again brings the designed
+    page back. (⌘Z works too.)
+  • Design: a selected picture keeps Back · Front · Backward · Forward on a
+    page that lays itself out. There they move the picture through the
+    arrangement — Back to the first place, Front to the last, one step each
+    way. On a Free page they still stack it in front or behind.
+  • Design: the Layout · Picture · Text tabs stay solid when you scroll the
+    panel, so nothing shows through them.
+  • Home: the colours and the quick actions share one line under the
+    filters — no empty band above the pictures.

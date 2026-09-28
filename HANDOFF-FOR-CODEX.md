@@ -40,6 +40,12 @@ Build on **this** version — not an older folder — so nothing gets undone.
   `pg.tpl = {t, v, i}`; `tplSwitch()` flips a page between a/b/c; `cMakePage()` builds a C page. The eight arrangements
   are `C_LAYOUTS` in `layout()`, and the quick bar's **Arrange** applies them to any page (`arrangePage()`).
   Cinematography uses `feature` (the approved Option A).
+  Round 37: A and B pages get the same place/arrangement controls. Arranging an A/B page sets `pg.tpl.arr = true`
+  and keeps its letter (`isDesigned(p)` = A/B and not arranged); tapping the same letter rebuilds the designed page.
+  On a laid-out (non-Free) page, Back/Front/Backward/Forward reorder `p.pics` (its place in the arrangement), not z.
+- **The Mac's root page (`Resources/mobile/index.html`) only redirects to `/capture/`** — there is one phone app.
+- **Home:** the colour dots and the quick actions share one line (`.line2`) under the filters.
+- **Start again** (Vault, Grab, Sort) is a small orange pill under the tagline in `.brand`.
 - **Use my stills is per page** (`useMyStills()`; `useMyStills(true)` only from Export).
 - **Glass** matches the website nav, in light and dark. Every sliding switch (`.seg`, `.seg2`, `.abseg`) gets the lens:
   **solid orange, white words, inside the pill with a 2px gap, no overshoot** — light and dark. The phone tab bar matches.

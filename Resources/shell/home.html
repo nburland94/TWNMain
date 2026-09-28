@@ -86,7 +86,8 @@ main{position:relative;height:100vh;display:grid;grid-template-columns:minmax(0,
 
 /* ---- one line: what the wall shows on the left, quick actions on the right ---- */
 .line{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:nowrap;flex-shrink:0;min-width:0}
-.quick{display:flex;gap:6px;flex-wrap:nowrap;justify-content:flex-end;min-width:0}
+.quick{display:flex;gap:6px;flex-wrap:nowrap;justify-content:flex-end;min-width:0;margin-left:auto}
+.line2{min-height:36px}
 .quick.compact .qa span{display:none}
 .line.wrap{flex-wrap:wrap;row-gap:8px}.line.wrap .quick{margin-left:auto}
 .quick.compact .qa{padding:9px}
@@ -112,7 +113,7 @@ main{position:relative;height:100vh;display:grid;grid-template-columns:minmax(0,
 .drop.big small{font-size:14px;color:#8a6a58}
 
 /* ---- what the wall shows ---- */
-.filters{display:flex;gap:8px;align-items:center;flex-shrink:0}
+.filters{display:flex;gap:8px;align-items:center;flex:1 1 auto;flex-wrap:wrap;min-width:0}
 .seg2{display:flex;padding:3px;border-radius:100px;gap:2px}
 .seg2 button{border:none;background:transparent;border-radius:100px;padding:6px 11px;font-size:12px;white-space:nowrap;color:#6d4e3d;transition:background .2s var(--ease-out),color .2s}
 .seg2 button.on{background:var(--ink);color:#fff}
@@ -324,6 +325,10 @@ main{position:relative;height:100vh;display:grid;grid-template-columns:minmax(0,
           <input id="q" placeholder="Search — tags, boards, labels, red…" spellcheck="false" aria-label="Search your vault"></label>
         <button class="g shuffle" id="shuffle" title="Shuffle the wall — every press is a new mix"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6d4e3d" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 3h5v5M4 20L21 3M21 16v5h-5M15 15l6 6M4 4l5 5"/></svg><span id="shuffleLabel">Shuffle</span><span class="unshuffle" id="unshuffle" role="button" aria-label="Back to your own order" title="Back to your own order">×</span></button>
       </div>
+    </div>
+    <!-- Round 37: the colours and the quick actions share one line, so there's no empty band above the wall -->
+    <div class="line line2">
+      <div class="colours" id="colourRow" role="group" aria-label="Colour"></div>
       <div class="quick" id="quick">
       <button class="g qa" data-q="link" data-tip="Paste a link|Opens the Vault ready for a YouTube, Vimeo or Instagram link — grab stills, GIFs and clips from it." aria-label="Paste a link"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1c1c1c" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg><span>Paste a link</span></button>
       <button class="g qa" data-q="list" data-tip="Shot list|Opens Shots with a new list for this project — paste your beats and each becomes a shot." aria-label="Shot list"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1c1c1c" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01"/></svg><span>Shot list</span></button>
@@ -333,7 +338,6 @@ main{position:relative;height:100vh;display:grid;grid-template-columns:minmax(0,
       <button class="g qa" data-q="phone" data-tip="Your phone|Needed Mobile Vault, on your iPhone — capture anywhere, even offline; Sync on the phone, then Sync here, and it's all filed into your projects." aria-label="Your phone"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1c1c1c" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="7" y="2.5" width="10" height="19" rx="2.2"/><path d="M11 18.5h2"/></svg><span>Your phone</span></button>
       </div>
     </div>
-    <div class="colours" id="colourRow" role="group" aria-label="Colour"></div>
     <div class="wall" id="wall"></div>
   </div>
   <div class="right">
@@ -450,7 +454,7 @@ main{position:relative;height:100vh;display:grid;grid-template-columns:minmax(0,
     if (over()) q.classList.add('compact');
     if (over()) line.classList.add('wrap');          // still too narrow: the quick actions go under the filters
   }
-  new ResizeObserver(fitLine).observe(document.querySelector('.line'));
+  new ResizeObserver(fitLine).observe(document.querySelector('.line2'));
   $('quick').addEventListener('click', e => { const b = e.target.closest('[data-q]'); if (!b) return; if (b.dataset.q === 'phone') return openPhone(); call('quick', { what: b.dataset.q }); });
 
   /* ---------------- Your account (the logo, top left) ---------------- */
@@ -680,6 +684,7 @@ main{position:relative;height:100vh;display:grid;grid-template-columns:minmax(0,
     $('colourRow').innerHTML = names.length ? '<span class="lab">Colour</span>' + names.map(n =>
       `<button class="${n === colour ? 'on' : ''}" data-colour="${n}" style="background:${SWATCH[n]}" title="${n} · ${counts[n]}" aria-label="${n}, ${counts[n]}" aria-pressed="${n === colour}"></button>`).join('') +
       (colour ? '<button class="clear" data-colour="">All colours</button>' : '') : '';
+    fitLine();                                    // the colours share a line with the quick actions
   }
   $('colourRow').addEventListener('click', e => {
     const b = e.target.closest('[data-colour]'); if (!b) return;

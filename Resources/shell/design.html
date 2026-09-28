@@ -205,7 +205,8 @@ body.dragging,body.dragging *{cursor:grabbing!important;user-select:none}
 .panel{border-left:1px solid rgba(28,28,28,0.05);overflow-y:auto;padding:14px 16px 20px;display:flex;flex-direction:column;gap:16px;min-width:0}
 .panel .phead{display:flex;align-items:baseline;justify-content:space-between;gap:8px}
 .idle-inspector{border:0;padding:0;margin:0;min-width:0;display:flex;flex-direction:column;gap:14px;opacity:.55;pointer-events:none}
-.ptabs{display:grid;grid-template-columns:repeat(auto-fit,minmax(0,1fr));gap:2px;padding:3px;border-radius:12px;background:rgba(28,28,28,0.05);position:sticky;top:-14px;z-index:5;margin:-2px 0 -6px}
+.ptabs{display:grid;grid-template-columns:repeat(auto-fit,minmax(0,1fr));gap:2px;padding:3px;border-radius:12px;background:#f1ebe6;position:sticky;top:-14px;z-index:5;margin:-2px 0 -6px;box-shadow:0 6px 10px -6px rgba(80,30,10,0.12)}
+html[data-theme=dark] body .ptabs{background:#1b2a40;box-shadow:0 6px 12px -6px rgba(0,0,0,0.5)}
 .ptabs button{border:none;background:transparent;border-radius:9px;padding:7px 0;font-size:12px;color:#5a5854;position:relative;white-space:nowrap}
 .ptabs button.on{background:#fff;color:#141414;box-shadow:0 1px 3px rgba(80,30,10,0.12)}
 .ptabs .pdot{position:absolute;top:4px;right:5px;width:6px;height:6px;border-radius:50%;background:#F05A22}
@@ -1188,23 +1189,27 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
   }
   document.addEventListener('mousedown', e => { const m = $('arrmenu'); if (m && !m.hidden && !e.target.closest('#arrmenu') && !e.target.closest('[data-q="arrange"]')) m.hidden = true; }, true);
   document.addEventListener('click', e => { const b = e.target.closest('[data-arrpick]'); if (!b) return; $('arrmenu').hidden = true; arrangePage(b.dataset.arrpick); });
+  // An A or B page still in its designed form (not yet arranged): its pictures have their own places.
+  const isDesigned = p => !!(p && p.tpl && p.tpl.v !== 'c' && !p.tpl.arr);
   function arrangePage(k) {
     const p = page(); if (!p || doc.mode === 'mood') return;
-    const designed = p.tpl && p.tpl.v !== 'c';
+    const designed = isDesigned(p);
     change(() => {
       if (designed || p.layout === 'free') {
         // A designed page becomes an arranged one: its pictures reflow, its words go into the space for words,
-        // its drawn shapes and swatches (made for the old places) step aside. The section stays, so A/B/C still switch it.
+        // its drawn shapes and swatches (made for the old places) step aside. The page keeps its letter (A or B),
+        // and tapping that letter again brings the designed page back.
         p.pics.forEach(x => { delete x.box; delete x.slot; delete x.z; });
         if (designed) {
           p.boxes = p.boxes.filter(b => !b.shape && !b.sw && !b.hexOf && (b.text || '').trim());
           p.boxes.forEach(b => { b.auto = true; delete b.z; b.fit = undefined; if (b.size > 80) b.size = 64; });
-          p.tpl.v = 'c'; delete p.bgr;
+          p.tpl.arr = true; delete p.bgr;
         }
       }
       p.layout = k;
     });
-    toast(`${C_NAMES[C_LAYS.findIndex(l => l[0] === k)]} — slide for more pictures or fewer; ⌘Z to undo`);
+    const ci = C_LAYS.findIndex(l => l[0] === k), li = LAYOUTS.findIndex(l => l[0] === k);
+    toast(`${ci >= 0 ? C_NAMES[ci] : li >= 0 ? LAYOUTS[li][1] : 'Arranged'} — ${designed ? `tap ${p.tpl.v.toUpperCase()} to get the designed page back` : 'slide for more pictures or fewer'}; ⌘Z to undo`);
   }
   let qpos = (() => { try { return JSON.parse(localStorage.getItem('design.qbar') || 'null'); } catch (e) { return null; } })();
   function drawQbar() {
@@ -1447,7 +1452,8 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
     const ks = preview ? [] : [...sel], one = ctx === 'pic' && ks.length === 1 ? p.pics[ks[0]] : null, free = layoutOf(doc, p) === 'free';
     if (tab === 'arrange') {
       const t = preview ? { kind: ctx === 'text' ? 'box' : 'pic', o: b || { box: { x: 0, y: 0, w: 0.5, h: 0.5 } }, k: 0 } : (ctx === 'text' ? (b ? { kind: 'box', o: b } : null) : (!bsel ? arrangeTarget() : null));
-      if (!t) return ks.length > 1 ? '' : `<div class="psec"><span class="empty">Pictures on this page lay themselves out. To place them by hand, make the page Free.</span>
+      if (!t) return ks.length > 1 ? '' : `<div class="kgrid4">${[['back', 'Back'], ['front', 'Front'], ['backward', 'Backward'], ['forward', 'Forward']].map(([k, n]) => `<button class="kbtn" data-z="${k}" title="Moves this picture through the arrangement"><span>${n}</span></button>`).join('')}</div>
+        <div class="psec"><span class="empty">Pictures on this page lay themselves out: Back and Front move this one through the arrangement. To place them by hand, make the page Free.</span>
         <button class="light small" id="makeFree" style="align-self:flex-start">Make this page Free</button></div>
         <div class="hintk"><kbd>←</kbd> <kbd>→</kbd> move it along the row<br><kbd>⌘</kbd><kbd>←</kbd> <kbd>→</kbd> to the page before or after</div>`;
       const o = t.o, r = t.kind === 'box' ? { x: o.x, y: o.y, w: o.w, h: null } : (o.box || defaultBox(G, o, t.k));
@@ -1650,7 +1656,7 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
     const dot = k => (k === 'picture' && picked && tab !== 'picture') || (k === 'text' && b && tab !== 'text');
     const scope = (what, tip) => `<div class="pscope"><b>${what}</b>${tip ? `<span>${tip}</span>` : ''}</div>`;
     let h = `<div class="ptabs" role="tablist">${tabs.map(([k, n]) => `<button data-ptab="${k}" class="${k === tab ? 'on' : ''}" role="tab" aria-selected="${k === tab}">${n}${dot(k) ? '<i class="pdot"></i>' : ''}</button>`).join('')}</div>
-      <div class="phead pfree"><span class="pnum">Page ${cur + 1} <small>of ${doc.pages.length}</small></span><span style="flex-grow:1"></span>${mood || (p.tpl && p.tpl.v !== 'c') ? '' : `<label class="freesw" title="Free: move and size the pictures by hand. Off: they lay themselves out again."><span>Free</span><button class="tog${p.layout === 'free' ? ' on' : ''}" id="freeTog" aria-pressed="${p.layout === 'free'}"></button></label>`}</div>`;
+      <div class="phead pfree"><span class="pnum">Page ${cur + 1} <small>of ${doc.pages.length}</small></span><span style="flex-grow:1"></span>${mood || isDesigned(p) ? '' : `<label class="freesw" title="Free: move and size the pictures by hand. Off: they lay themselves out again."><span>Free</span><button class="tog${p.layout === 'free' ? ' on' : ''}" id="freeTog" aria-pressed="${p.layout === 'free'}"></button></label>`}</div>`;
     if (tab === 'layout' && !mood && p.tpl && tplOf(p.tpl.t, p.tpl.v)) {
       const v = p.tpl.v, n = sampleCount();
       h += `
@@ -1666,10 +1672,10 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
           <button class="tbtn" id="bleedAll" style="align-self:flex-start;padding-left:0">${p.bleed ? 'Run off on every page' : 'Keep the margin on every page'}</button></div>
         <div class="psec">${spaceRow(p)}</div>
         <div class="psec"><span class="cap">Title — top left of every page</span><div class="prow"><input type="text" id="moodTitle" value="${esc(doc.title || '')}" placeholder="Optional" style="flex-grow:1"></div></div>`
-      : p.tpl && p.tpl.v !== 'c' ? '' : `
-        <div class="psec"><span class="cap">Where the pictures go</span><div class="lays">${LAYOUTS.map(([k, n]) => `<button class="lay${p.layout === k ? ' on' : ''}" data-lay="${k}" title="${esc(n)}" aria-label="${esc(n)}">${layIcon(k)}</button>`).join('')}</div>
+      : `
+        <div class="psec"><span class="cap">Where the pictures go</span>${isDesigned(p) ? `<span class="empty">This page is ${p.tpl.v.toUpperCase()}'s design. Pick a place or an arrangement to lay its pictures out again — tap ${p.tpl.v.toUpperCase()} above to get the design back.</span>` : ''}<div class="lays">${LAYOUTS.map(([k, n]) => `<button class="lay${p.layout === k && !isDesigned(p) ? ' on' : ''}" data-lay="${k}" title="${esc(n)}" aria-label="${esc(n)}">${layIcon(k)}</button>`).join('')}</div>
           <div class="laynames">${LAYNAMES.map(n => `<span>${n}</span>`).join('')}</div>
-          <span class="cap" style="margin-top:4px">Arrangements</span><div class="arrs">${C_LAYS.map(([k, n], i) => `<div class="arr"><button class="lay${p.layout === k ? ' on' : ''}" data-lay="${k}" title="${esc(n)}" aria-label="${esc(n)}">${layIcon(k)}</button><span>${C_NAMES[i]}</span></div>`).join('')}</div>
+          <span class="cap" style="margin-top:4px">Arrangements</span><div class="arrs">${C_LAYS.map(([k, n], i) => `<div class="arr"><button class="lay${p.layout === k && !isDesigned(p) ? ' on' : ''}" data-lay="${k}" title="${esc(n)}" aria-label="${esc(n)}">${layIcon(k)}</button><span>${C_NAMES[i]}</span></div>`).join('')}</div>
           ${p.layout === 'free' ? '<span class="empty">This page is Free — switch Free off at the top to lay the pictures out again.</span>' : ''}
           ${['left', 'right', 'top', 'bottom'].includes(p.layout) ? '<span class="empty">Drag the divider on the page to give the pictures more or less room.</span>' : ''}
           ${!['free', 'bleed', 'text'].includes(p.layout) ? `<div class="prow"><label>Run off the page edge</label><span style="flex-grow:1"></span><button class="tog${p.bleed ? ' on' : ''}" id="bleedTog" aria-pressed="${!!p.bleed}"></button></div>` : ''}
@@ -2189,13 +2195,13 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
   const keepFx = (x, slot) => Object.assign(x, { box: slot.box, z: slot.z, opacity: slot.opacity, mono: slot.mono, dim: slot.dim, round: slot.round, radius: slot.radius, border: slot.border, shadow: slot.shadow, slot: slot.slot, featured: slot.featured, crop: { x: 50, y: 50, z: 1 } });
   // A or B for a page: your words go where the same kind of words are; your pictures into its picture places.
   function tplSwitch(pg, v) {
-    const tag = pg.tpl; if (!tag || tag.v === v) return pg;
+    const tag = pg.tpl; if (!tag || (tag.v === v && !tag.arr)) return pg;     // an arranged A/B page can go back to its design
     const ctx = (doc.tpl && doc.tpl.ctx) || tplCtx();
     const skip = doc.pages.flatMap(p => p.pics.filter(x => x.sample).map(x => x.id));
     const t = tplOf(tag.t, v); if (!t) return pg;
     const pick = stillPicker(sampleStills(), t.want, skip), n = doc.pages.indexOf(pg) + 1;
     const np = v === 'c' ? cMakePage(tag.t, tag.i, ctx, pick, n) : tplMakePage(tag.t, v, tag.i, ctx, pick, n); if (!np) return pg;
-    const fromC = tag.v === 'c', mine = pg.pics.filter(x => (x.slot || fromC) && !x.sample), extra = fromC ? [] : pg.pics.filter(x => !x.slot);
+    const fromC = tag.v === 'c' || !!tag.arr, mine = pg.pics.filter(x => (x.slot || fromC) && !x.sample), extra = fromC ? [] : pg.pics.filter(x => !x.slot);
     if (v === 'c') {
       // C arranges pictures itself: all of yours come along (the slider shows them), samples only if you had none.
       const own = mine.concat(extra).map(x => { const y = Object.assign({}, x); delete y.box; delete y.slot; delete y.z; return y; });
@@ -2215,7 +2221,7 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
   function tplSwitchPages(v, all) {
     let n = 0;
     change(() => {
-      doc.pages = doc.pages.map((pg, i) => (all || i === cur) && pg.tpl && pg.tpl.v !== v ? (n++, tplSwitch(pg, v)) : pg);
+      doc.pages = doc.pages.map((pg, i) => (all || i === cur) && pg.tpl && (pg.tpl.v !== v || pg.tpl.arr) ? (n++, tplSwitch(pg, v)) : pg);
       if (all && doc.tpl) doc.tpl.v = v;
       sel.clear(); bsel = null; editing = null;
     });
@@ -2649,6 +2655,7 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
   // Going Free keeps every picture exactly where it was; after that they're yours to move.
   function setLayout(lay) {
     const p = page(); if (!p || doc.mode === 'mood') return;
+    if (isDesigned(p) && lay !== 'free') return arrangePage(lay);     // A and B get the same places and arrangements as C
     change(() => {
       if (lay === 'free' && p.layout !== 'free') {
         const L = layout(doc, p), G = L.G;
@@ -2664,6 +2671,14 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
   function arrangeZ(dir) {
     const t = stackTarget(); if (!t) return;
     const p = page();
+    // On a page that lays itself out, a picture's order is its place: Back = first, Front = last, one step either way.
+    if (t.kind === 'pic' && layoutOf(doc, p) !== 'free') {
+      const k = t.k, last = p.pics.length - 1, to = dir === 'back' ? 0 : dir === 'front' ? last : clamp(k + (dir === 'forward' ? 1 : -1), 0, last);
+      if (to === k) return toast(dir === 'back' || dir === 'backward' ? 'Already first in the arrangement' : 'Already last in the arrangement');
+      change(() => { const [x] = p.pics.splice(k, 1); p.pics.splice(to, 0, x); });
+      sel = new Set([to]); drawStage(); drawPanel();
+      return toast({ front: 'Moved to the end of the arrangement', back: 'Moved to the start of the arrangement', forward: 'One place on', backward: 'One place back' }[dir]);
+    }
     const fz = p.fade && p.fade.on ? [{ o: p.fade, z: p.fade.z != null ? p.fade.z : 500 }] : [];       // the fade has its place in the stack too
     const all = p.pics.map((o, i) => ({ o, z: zOf(o, i, 'pic') })).concat((p.boxes || []).map((o, i) => ({ o, z: zOf(o, i, 'box') }))).concat(fz).sort((a, b) => a.z - b.z);
     const i = all.findIndex(x => x.o === t.o);
