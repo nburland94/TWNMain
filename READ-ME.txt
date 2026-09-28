@@ -1199,3 +1199,18 @@ ROUND 42 — NEEDED TOOLS × CLAUDE, AND THE PHONE BUTTON
     tag_stills, list_templates, build_treatment (template, A/B/C, words and
     stills per section, or a pool by tags/colours), list_designs,
     read_design, write_page, get_my_voice.
+
+ROUND 43 — CONNECT TO CODEX (OPENAI), STILL ON THIS MAC
+  • Home › your account (click the logo) › Claude · Codex › Connect to Codex.
+    Codex on this Mac (its app, the command line, or inside your editor)
+    then has the same tools as Claude: search and look at stills, tag,
+    build treatments in Design, rewrite pages, read your voice.
+  • It stays local: Codex starts the same helper inside Needed Tools, which
+    talks only to Needed Tools on this Mac. Codex in the cloud and ChatGPT's
+    ordinary chat can't reach your Mac, so they don't get these tools.
+  • Restart Codex after connecting. Your Codex settings file
+    (~/.codex/config.toml) keeps everything else; a copy of the old one is
+    kept beside it as config.before-needed-tools.toml. Disconnect takes
+    Needed Tools out again.
+  • Another AI app that takes MCP servers? "Copy its settings" puts the
+    snippet on your clipboard to paste into it.

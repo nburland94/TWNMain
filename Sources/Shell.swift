@@ -1208,6 +1208,18 @@ final class Shell: NSObject, NSApplicationDelegate, NSWindowDelegate, WKScriptMe
             _ = ClaudeLink.shared.disconnect()
             replyHandler(ClaudeLink.shared.status(), nil)
 
+        case "codexConnect":                              // round 43: OpenAI's Codex on this Mac — stays local
+            var r = ClaudeLink.shared.connectCodex()
+            r["status"] = ClaudeLink.shared.status()
+            replyHandler(r, nil)
+
+        case "codexDisconnect":
+            _ = ClaudeLink.shared.disconnectCodex()
+            replyHandler(ClaudeLink.shared.status(), nil)
+
+        case "aiCopySettings":                            // for any other app that takes MCP servers
+            replyHandler(ClaudeLink.shared.copySettings(), nil)
+
         case "claudeVoice":
             ClaudeLink.shared.chooseVoice { replyHandler($0, nil) }
 

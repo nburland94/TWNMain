@@ -483,14 +483,17 @@ main{position:relative;height:100vh;display:grid;grid-template-columns:minmax(0,
       ${(() => { const c = acct.claude || {};                // Round 42: Claude, on this Mac
         const st = !c.helper ? 'Not in this build — build again to add it' : c.connected ? (c.running ? 'Connected — the Claude app can use your vault and Design' : 'Connected — starting…')
           : c.connectedElsewhere ? 'Connected to another copy of Needed Tools' : !c.claudeInstalled ? 'The Claude app isn\u2019t on this Mac yet' : 'Not connected';
-        return `<div class="sec"><span class="cap">Claude</span>
+        const cx = !c.helper ? 'Not in this build' : c.codexConnected ? 'Connected — reopen Codex to see it' : c.codexElsewhere ? 'Connected to another copy' : !c.codexInstalled ? 'Codex isn\u2019t on this Mac' : 'Not connected';
+        return `<div class="sec"><span class="cap">Claude · Codex</span>
         <div class="line"><span>Status</span><span>${esc(st)}</span></div>
         <div class="line"><span>${c.connected ? 'After connecting, reopen the Claude app' : 'Work with Claude on this Mac'}</span><span>${c.connected
           ? '<button id="acctClaudeOpen">Open Claude</button> · <button id="acctClaudeOff">Disconnect</button>'
           : c.claudeInstalled ? '<button id="acctClaude">Connect to Claude</button>' : '<button id="acctClaudeOpen">Get the Claude app</button>'}</span></div>
+        <div class="line"><span>Codex (OpenAI) · ${esc(cx)}</span><span>${c.codexConnected ? '<button id="acctCodexOff">Disconnect</button>' : '<button id="acctCodex">Connect to Codex</button>'}</span></div>
+        <div class="line"><span>Another AI app</span><span><button id="acctAiCopy">Copy its settings</button></span></div>
         <div class="line"><span>Your voice${c.voice ? ' · ' + (c.voiceNotes || 0) + ' notes' : ''}</span><span style="max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;direction:rtl;text-align:left" title="${esc(c.voice || '')}"><button id="acctVoice"><bdi>${c.voice ? esc(c.voice.split('/').slice(-2).join('/')) : 'Choose a folder'}</bdi></button></span></div>
         <div class="line"><span>Let Claude make changes</span><span><button id="acctClaudeChanges">${c.changes === false ? 'Off — turn on' : 'On — turn off'}</button></span></div>
-        <span style="font-size:11.5px;color:#7a5a48">Claude asks before it tags or builds anything. It stays on this Mac — your vault isn't uploaded. Your voice: a folder of your treatments and notes (e.g. in Obsidian); a note called “My Voice” is read first.</span></div>`; })()}
+        <span style="font-size:11.5px;color:#7a5a48">Claude and Codex ask before they tag or build anything. It all stays on this Mac — your vault isn't uploaded. Your voice: a folder of your treatments and notes (e.g. in Obsidian); a note called “My Voice” is read first.</span></div>`; })()}
       <div class="sec"><span class="cap">This Mac</span>
         <div class="line"><span>Vault</span><span style="max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;direction:rtl;text-align:left" title="${esc(acct.vault || '')}"><bdi>${esc(acct.vault || 'Not chosen')}</bdi></span></div>
         <div class="line"><span></span><span><button id="acctVault">Change vault</button> · <button id="acctBackups">Show backups</button></span></div>
@@ -528,6 +531,13 @@ main{position:relative;height:100vh;display:grid;grid-template-columns:minmax(0,
       if (!v || !v.ok) return toast((v && v.error) || "Couldn't connect to Claude");
       toast('Connected — quit and reopen the Claude app, then ask it about your vault'); return window.__openAccount();
     }
+    if (t.id === 'acctCodex') {
+      const v = await call('codexConnect').catch(() => null);
+      if (!v || !v.ok) return toast((v && v.error) || "Couldn't connect to Codex");
+      toast('Connected — restart Codex, then ask it about your vault'); return window.__openAccount();
+    }
+    if (t.id === 'acctCodexOff') { await call('codexDisconnect').catch(() => {}); toast('Disconnected from Codex'); return window.__openAccount(); }
+    if (t.id === 'acctAiCopy') { const v = await call('aiCopySettings').catch(() => null); return toast(v && v.ok ? 'Copied — paste it into the other app\u2019s MCP settings' : "Couldn't copy"); }
     if (t.id === 'acctClaudeOff') { await call('claudeDisconnect').catch(() => {}); toast('Disconnected from Claude'); return window.__openAccount(); }
     if (t.id === 'acctClaudeOpen') return call('openClaude');
     if (t.id === 'acctVoice') { await call('claudeVoice').catch(() => {}); return window.__openAccount(); }

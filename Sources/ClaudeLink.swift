@@ -114,7 +114,9 @@ final class ClaudeLink {
         return ["connected": !cmd.isEmpty && cmd == ClaudeLink.helperURL.path, "connectedElsewhere": !cmd.isEmpty && cmd != ClaudeLink.helperURL.path,
                 "claudeInstalled": claudeApp, "helper": FileManager.default.isExecutableFile(atPath: ClaudeLink.helperURL.path),
                 "running": listener != nil && port != 0, "changes": allowChanges, "voice": voiceFolder?.path ?? "",
-                "voiceNotes": voiceFiles().count]
+                "voiceNotes": voiceFiles().count,
+                "codexInstalled": codexInstalled, "codexConnected": codexCommand() == ClaudeLink.helperURL.path,
+                "codexElsewhere": { let c = codexCommand() ?? ""; return !c.isEmpty && c != ClaudeLink.helperURL.path }()]
     }
     private func readClaudeConfig() -> [String: Any] {
         guard let d = try? Data(contentsOf: ClaudeLink.claudeConfigURL),
@@ -151,6 +153,90 @@ final class ClaudeLink {
         if let d = try? JSONSerialization.data(withJSONObject: cfg, options: [.prettyPrinted, .sortedKeys]) { try? d.write(to: ClaudeLink.claudeConfigURL, options: .atomic) }
         return ["ok": true]
     }
+    // MARK: Connect to Codex (round 43) — OpenAI's Codex on this Mac starts the same helper; it stays local.
+    // Codex reads ~/.codex/config.toml: a [mcp_servers.needed-tools] section with the helper's path.
+
+    static var codexConfigURL: URL { FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent(".codex/config.toml") }
+    private static let codexHeader = "[mcp_servers.needed-tools"
+    private static let codexNote = "# Needed Tools — your vault and Design, on this Mac (added by Needed Tools)"
+
+    var codexInstalled: Bool {
+        let fm = FileManager.default, home = fm.homeDirectoryForCurrentUser.path
+        return ["\(home)/.codex", "/Applications/Codex.app", "\(home)/Applications/Codex.app", "/opt/homebrew/bin/codex", "/usr/local/bin/codex"]
+            .contains { fm.fileExists(atPath: $0) }
+    }
+    /// The helper path in Codex's settings, if Needed Tools is there.
+    private func codexCommand() -> String? {
+        guard let t = try? String(contentsOf: ClaudeLink.codexConfigURL, encoding: .utf8) else { return nil }
+        var inside = false
+        for raw in t.components(separatedBy: .newlines) {
+            let line = raw.trimmingCharacters(in: .whitespaces)
+            if line.hasPrefix("[") { inside = line == "[mcp_servers.needed-tools]" || line == "[mcp_servers.\"needed-tools\"]"; continue }
+            if inside, line.hasPrefix("command"), let eq = line.firstIndex(of: "=") {
+                var v = line[line.index(after: eq)...].trimmingCharacters(in: .whitespaces)
+                if v.hasPrefix("\""), v.hasSuffix("\""), v.count >= 2 { v = String(v.dropFirst().dropLast()) }
+                return v.replacingOccurrences(of: "\\\"", with: "\"").replacingOccurrences(of: "\\\\", with: "\\")
+            }
+        }
+        return nil
+    }
+    /// Codex's settings without our section (and its sub-sections, and our note).
+    private func codexWithout(_ t: String) -> String {
+        var out: [String] = [], skipping = false
+        for raw in t.components(separatedBy: "\n") {
+            let line = raw.trimmingCharacters(in: .whitespaces)
+            if line == ClaudeLink.codexNote { continue }
+            if line.hasPrefix("[") {
+                skipping = line.hasPrefix(ClaudeLink.codexHeader + "]") || line.hasPrefix(ClaudeLink.codexHeader + ".") || line.hasPrefix("[mcp_servers.\"needed-tools\"")
+                if skipping { continue }
+            }
+            if !skipping { out.append(raw) }
+        }
+        while let last = out.last, last.trimmingCharacters(in: .whitespaces).isEmpty { out.removeLast() }
+        return out.joined(separator: "\n")
+    }
+    func connectCodex() -> [String: Any] {
+        guard FileManager.default.isExecutableFile(atPath: ClaudeLink.helperURL.path) else {
+            return ["ok": false, "error": "This copy of Needed Tools was built without the helper — build it again with Build-Needed-Tools.command."]
+        }
+        let u = ClaudeLink.codexConfigURL
+        let old = (try? String(contentsOf: u, encoding: .utf8)) ?? ""
+        if !old.isEmpty { try? old.write(to: u.deletingLastPathComponent().appendingPathComponent("config.before-needed-tools.toml"), atomically: true, encoding: .utf8) }
+        let path = ClaudeLink.helperURL.path.replacingOccurrences(of: "\\", with: "\\\\").replacingOccurrences(of: "\"", with: "\\\"")
+        let kept = codexWithout(old)
+        let block = """
+        \(ClaudeLink.codexNote)
+        [mcp_servers.needed-tools]
+        command = "\(path)"
+        args = []
+        startup_timeout_sec = 30
+        tool_timeout_sec = 300
+
+        """
+        let text = (kept.isEmpty ? "" : kept + "\n\n") + block
+        do {
+            try FileManager.default.createDirectory(at: u.deletingLastPathComponent(), withIntermediateDirectories: true)
+            try text.write(to: u, atomically: true, encoding: .utf8)
+        } catch { return ["ok": false, "error": "Couldn't write Codex's settings (~/.codex/config.toml)."] }
+        start()
+        return ["ok": true]
+    }
+    func disconnectCodex() -> [String: Any] {
+        let u = ClaudeLink.codexConfigURL
+        guard let old = try? String(contentsOf: u, encoding: .utf8) else { return ["ok": true] }
+        let kept = codexWithout(old)
+        try? (kept.isEmpty ? "" : kept + "\n").write(to: u, atomically: true, encoding: .utf8)
+        return ["ok": true]
+    }
+    /// For any other app that takes MCP servers: the usual settings snippet, on the clipboard.
+    func copySettings() -> [String: Any] {
+        let cfg: [String: Any] = ["mcpServers": ["needed-tools": ["command": ClaudeLink.helperURL.path, "args": [String]()]]]
+        guard let d = try? JSONSerialization.data(withJSONObject: cfg, options: [.prettyPrinted, .sortedKeys]) else { return ["ok": false] }
+        NSPasteboard.general.clearContents()
+        NSPasteboard.general.setString(String(decoding: d, as: UTF8.self), forType: .string)
+        return ["ok": true]
+    }
+
     func chooseVoice(done: @escaping ([String: Any]) -> Void) {
         let p = NSOpenPanel()
         p.canChooseDirectories = true; p.canChooseFiles = false; p.allowsMultipleSelection = false

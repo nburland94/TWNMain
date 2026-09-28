@@ -54,6 +54,10 @@ Build on **this** version — not an older folder — so nothing gets undone.
   `window.__designBuild(spec)`, `__designWrite(o)`, `__designTemplates()` via `callAsyncJavaScript`; while building, `buildPool` makes the
   template deal from the user's stills instead of samples. Section names come from `C_SPEC` (the templates' real order — Story is 12th).
   Changes (tag_stills, build_treatment, write_page) respect `claudeChanges`. Voice = a chosen folder of .md/.txt, "voice" notes first, 60k chars.
+- **Codex (round 43):** `ClaudeLink.connectCodex()` writes `[mcp_servers.needed-tools]` (command = the helper, args = [], startup_timeout_sec = 30,
+  tool_timeout_sec = 300) into `~/.codex/config.toml`, removing any older copy of that section (and its sub-tables) first and keeping a backup;
+  `disconnectCodex()` removes it. Status: `codexInstalled`, `codexConnected`, `codexElsewhere`. `copySettings()` puts an `mcpServers` JSON snippet
+  on the clipboard for other MCP apps.
 - **Top bar phone (round 42):** a small orange round button left of Sync (`#phoneBtn.phone`), green dot when on.
 - **Crop in Design (round 40):** `pic.trim = {l,t,r,b}` (fractions of the picture kept). `aspOf(p)` is the picture's shape everywhere
   (layouts use it); `imgStyle(p, r)` draws a cropped picture in its frame, with Reframe (`pic.crop` x/y/z) inside the crop.
