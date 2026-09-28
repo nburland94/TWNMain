@@ -284,7 +284,7 @@
       ['palette', 'Light & colour'], ['cast', 'Casting'], [s.lay.ward || 'splitR', 'Wardrobe & styling'], ['places', 'Locations & design'], ['full', 'Edit & pace'],
       [s.lay.sound || 'wide', 'Sound & music'], ['beats', 'Story'], ['refs', 'References'], ['table', 'Production'], ['close']];
     return { id: s.id, name: s.name, after: s.after, feel: s.feel, pal: s.pal, dark, want: s.want, order, D,
-      runner: { font: s.kick.font, size: s.kick.size, style: s.runStyle || 'pad', inset: M, top: Math.round(s.top / 2 - s.kick.size), upper: true },
+      runner: { font: s.kick.font, size: s.kick.size, style: s.runStyle || 'pad', inset: 48, top: 6, upper: true },   // just touching the top edge, on every template
       // Its type, by what the words are — so a page from another template can take this one's look.
       type: { head: { font: s.head.font, weight: s.head.weight || 400, italic: !!s.head.italic, upper: !!s.head.upper, tracking: s.head.tracking || 0, stretch: s.head.stretch || 100 },
         idea: { font: s.idea.font || s.head.font, weight: s.idea.weight || s.head.weight || 400, italic: !!s.idea.italic, upper: s.idea.upper !== false && !!s.head.upper, tracking: s.idea.tracking || 0 },

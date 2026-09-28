@@ -252,6 +252,7 @@ body.dragging,body.dragging *{cursor:grabbing!important;user-select:none}
 .prow select,.prow input[type=text],.prow input[type=number]{border:1px solid rgba(28,28,28,0.12);border-radius:8px;padding:5px 7px;font-size:12.5px;background:#fff;min-width:0}
 .prow input[type=color]{width:34px;height:26px;border:1px solid rgba(28,28,28,0.12);border-radius:6px;padding:1px;background:#fff}
 .lays{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.lays.four,.laynames.four{grid-template-columns:repeat(4,1fr)}
 .lay{border:1.5px solid rgba(28,28,28,0.1);border-radius:8px;background:rgba(255,255,255,0.6);padding:6px;height:38px;position:relative;min-width:0}
 .lay.on{border-color:#F05A22;background:#fff}
 .lay i{position:absolute;background:#8a7a72;border-radius:1px}
@@ -458,6 +459,11 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
   // Title: one picture over the whole page, words on it. Full: pictures in rows, filling the page.
   const LAYOUTS = [['bleed', 'Title — one picture, words on it'], ['rows', 'Full — pictures fill the page'], ['left', 'Pictures left, words right'], ['right', 'Words left, pictures right'], ['top', 'Pictures on top, words below'], ['bottom', 'Words on top, pictures below'], ['text', 'Words only']];
   const LAYNAMES = ['Title', 'Full', 'Left', 'Right', 'Top', 'Bottom', 'None'];
+  // Arrangements (Templates C): each reflows for any number of pictures, so the stills slider still adds and takes away.
+  const C_LAYS = [['mosaic', 'Mosaic — one big, the rest in a grid beside it'], ['feature', 'Feature — one runs off the right, the rest step beside the words'],
+    ['stagger', 'Stagger — side by side, every other one a step down'], ['strip', 'Strip — a band of film, edge to edge'], ['contact', 'Contact sheet — every frame the same'],
+    ['hero', 'Hero — one wide across the top, a strip beneath'], ['pair', 'Pair — one big, words and the rest beside it'], ['column', 'Column — a tall stack beside the words']];
+  const C_NAMES = ['Mosaic', 'Feature', 'Stagger', 'Strip', 'Contact', 'Hero', 'Pair', 'Column'];
   // Spacing, per page: 0 Closed (nothing between anything) · 12 Hairline · 30 Tight · 50 Medium (as it was) · 100 Wide.
   const SPACE_STOPS = [[0, 'Closed'], [12, 'Hairline'], [30, 'Tight'], [50, 'Medium'], [100, 'Wide']];
   // The slider's stops sit evenly along it: position 0 · 25 · 50 · 75 · 100.
@@ -609,6 +615,10 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
       if (!page.pics.length) hole = { x: m, y: py, w: W - 2 * m, h: ph };
       text = { x: m, y: ty, w: Math.round((W - 2 * m) * 0.62), h: ch - ph - m };
       divider = { axis: 'y', at: lay === 'top' ? top + ph + m / 2 : H - bottom - ph - m / 2 };
+    } else if (C_LAYOUTS[lay]) {
+      const r = C_LAYOUTS[lay](page.pics.length, { W, H, m, g, top, bottom, u }, aspects);
+      rects = r.rects; text = r.text;
+      if (!page.pics.length) hole = r.hole || { x: m, y: top, w: W - 2 * m, h: H - top - bottom };
     } else if (lay === 'free') {
       // Free: every picture where you put it — x, y, w, h as fractions of the page.
       rects = page.pics.map((p, k) => { const b = p.box || defaultBox(G, p, k); return { x: b.x * W, y: b.y * H, w: b.w * W, h: b.h * H }; });
@@ -623,6 +633,75 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
     return { G, lay, rects, text, hole, top, bottom, divider };
   }
 
+  // The arrangements. Measured on a 1920 × 1080 page and scaled by u, so every page size keeps its proportions.
+  const gridIn = (n, x, y, w, h, gap, cols) => {
+    if (n <= 0) return [];
+    cols = Math.max(1, Math.min(n, cols || Math.ceil(Math.sqrt(n * w / h / 1.5))));
+    const rows = Math.ceil(n / cols), ch = (h - gap * (rows - 1)) / rows, out = [];
+    for (let r = 0; r < rows; r++) {
+      const inRow = Math.min(cols, n - r * cols), cw = (w - gap * (inRow - 1)) / inRow;
+      for (let c = 0; c < inRow; c++) out.push({ x: x + c * (cw + gap), y: y + r * (ch + gap), w: cw, h: ch });
+    }
+    return out;
+  };
+  const C_LAYOUTS = {
+    // One big, the rest a grid beside it. Words in a column on the left.
+    mosaic: (n, G) => {
+      const k = G.u / 1.2, tw = 470 * k, tx = G.m, x = tx + tw + G.m, w = G.W - G.m - x, y = G.top + 60 * k, h = G.H - y - G.bottom, text = { x: tx, y, w: tw, h };
+      if (n <= 1) return { rects: n ? [{ x, y, w, h }] : [], text, hole: { x, y, w, h } };
+      const bw = Math.round(w * (n <= 3 ? 0.62 : 0.5));
+      return { rects: [{ x, y, w: bw, h }].concat(gridIn(n - 1, x + bw + G.g, y, w - bw - G.g, h, G.g, n - 1 <= 3 ? 1 : 2)), text };
+    },
+    // Cinematography: the first picture runs off the top, bottom and right; the rest step along above the words.
+    feature: (n, G) => {
+      const k = G.u / 1.2, fx = Math.round(G.W * 0.52), out = n ? [{ x: fx, y: 0, w: G.W - fx, h: G.H }] : [];
+      const c = n - 1, x = G.m, w = fx - 2 * G.m, y = G.top + 40 * k, drop = 70 * k;
+      const cw = c > 0 ? (w - G.g * (c - 1)) / c : 0, ch = Math.min(360 * k, cw * 1.35);
+      for (let i = 0; i < c; i++) out.push({ x: x + i * (cw + G.g), y: y + (i % 2 ? drop : 0), w: cw, h: ch });
+      const ty = c > 0 ? y + ch + drop + 50 * k : G.top + 60 * k;
+      return { rects: out, text: { x: G.m, y: ty, w: Math.min(w, 720 * k), h: G.H - ty - G.bottom }, hole: { x: fx, y: 0, w: G.W - fx, h: G.H } };
+    },
+    // Side by side on one grid, every other one a step down — never overlapping. Words underneath.
+    stagger: (n, G) => {
+      const k = G.u / 1.2, x = G.m, w = G.W - 2 * G.m, y = G.top + 40 * k, drop = 110 * k, n1 = Math.max(1, n);
+      const cw = (w - G.g * (n1 - 1)) / n1, ch = Math.max(60 * k, Math.min(G.H - y - 250 * k - drop, cw * 1.35)), out = [];
+      for (let i = 0; i < n; i++) out.push({ x: x + i * (cw + G.g), y: y + (i % 2 ? drop : 0), w: cw, h: ch });
+      const ty = y + ch + drop + 40 * k;
+      return { rects: out, text: { x: G.m, y: ty, w: 1000 * k, h: G.H - ty - G.bottom } };
+    },
+    // A band of film across the middle, edge to edge; words above it.
+    strip: (n, G, a) => {
+      const k = G.u / 1.2, bh = 420 * k, y = Math.round((G.H - bh) / 2) + 40 * k, gap = G.g, out = [];
+      const cl = r => Math.min(2.2, Math.max(0.6, r || 1.5)), tot = a.reduce((t, r) => t + cl(r), 0) || 1, f = (G.W - gap * Math.max(0, n - 1)) / tot;
+      let x = 0; a.forEach(r => { const w = cl(r) * f; out.push({ x, y, w, h: bh }); x += w + gap; });
+      return { rects: out, text: { x: G.m, y: G.top + 20 * k, w: 1100 * k, h: y - G.top - 40 * k }, hole: { x: 0, y, w: G.W, h: bh } };
+    },
+    // An even contact sheet: every frame the same, words across the top.
+    contact: (n, G) => {
+      const k = G.u / 1.2, y = G.top + 190 * k, h = G.H - y - G.bottom;
+      return { rects: gridIn(n, G.m, y, G.W - 2 * G.m, h, G.g, n <= 4 ? n : Math.ceil(n / 2)), text: { x: G.m, y: G.top + 20 * k, w: 1100 * k, h: 150 * k }, hole: { x: G.m, y, w: G.W - 2 * G.m, h } };
+    },
+    // One wide across the top (off the edges), the rest in a strip beneath; words bottom left.
+    hero: (n, G) => {
+      const k = G.u / 1.2, hh = Math.round((G.H - G.top - G.bottom) * 0.64), big = { x: 0, y: 0, w: G.W, h: hh + G.top };
+      if (n <= 1) return { rects: n ? [big] : [], text: { x: G.m, y: hh + G.top + 40 * k, w: 800 * k, h: 260 * k }, hole: big };
+      const sy = hh + G.top + G.g, sx = 880 * k, sh = G.H - sy - G.bottom;
+      return { rects: [big].concat(gridIn(n - 1, sx, sy, G.W - G.m - sx, sh, G.g, n - 1)), text: { x: G.m, y: sy + 20 * k, w: 760 * k, h: sh } };
+    },
+    // One big picture holds the left half; words top right, the rest in a row along the bottom, on its base line.
+    pair: (n, G) => {
+      const k = G.u / 1.2, y = G.top + 20 * k, h = G.H - y - G.bottom - 20 * k, bw = Math.round((G.W - 2 * G.m - G.g * 2) * 0.54);
+      const rx = G.m + bw + G.g * 2, rw = G.W - G.m - rx, sh = Math.round(h * 0.5), out = [];
+      if (n) out.push({ x: G.m, y, w: bw, h });
+      gridIn(n - 1, rx, y + h - sh, rw, sh, G.g, Math.max(1, n - 1)).forEach(r => out.push(r));
+      return { rects: out, text: { x: rx, y, w: rw, h: n > 1 ? h - sh - 40 * k : h }, hole: { x: G.m, y, w: bw, h } };
+    },
+    // A tall column of pictures on the right, top to bottom; big words on the left.
+    column: (n, G) => {
+      const k = G.u / 1.2, w = 560 * k, x = G.W - G.m - w;
+      return { rects: gridIn(n, x, 0, w, G.H, G.g, n > 3 ? 2 : 1), text: { x: G.m, y: G.top + 60 * k, w: x - 2 * G.m, h: G.H - G.top - G.bottom - 60 * k }, hole: { x, y: 0, w, h: G.H } };
+    },
+  };
   // Where a picture lands on a Free page when it has no place yet: 40% wide, a little down and right of the one before.
   function defaultBox(G, p, k) {
     const w = 0.4, h = Math.min(0.8, w * G.W / (p.a || 1.5) / G.H);
@@ -678,7 +757,7 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
     // The running header: your name and the project top left, the page number top right. Off on a page if you took it off.
     const rn = doc.runner, hide = page.runnerHide || {};
     if (rn && rn.on) {
-      const pos = doc.pages.indexOf(page), n = pos + 1, rs = (rn.size || 11) * u, ry = rn.top != null ? Math.round(rn.top * u) : Math.round(Math.max(8 * u, (m - rs * 1.25) / 2)), rx = rn.inset != null ? Math.round(rn.inset * u) : m;
+      const pos = doc.pages.indexOf(page), n = pos + 1, rs = (rn.size || 11) * u, ry = rn.top != null ? Math.round(rn.top * u) : Math.round(5 * u), rx = rn.inset != null ? Math.round(rn.inset * u) : m;
       const rc = page.rc || rn.colour || onDark('#141414', dark), font = esc(fontStack(rn.font || HELV));   // a page over a picture can ask for white
       const base = `position:absolute;top:${ry}px;font-family:${font};font-size:${rs.toFixed(1)}px;line-height:1.25;color:${esc(rc)};white-space:nowrap;letter-spacing:${rn.upper === false ? 0 : 0.04}em;text-transform:${rn.upper === false ? 'none' : 'uppercase'};z-index:5000`;
       const cls = k => `runner${opt.edit ? ' redit' : ''}${opt.rsel === k ? ' rsel' : ''}`;
@@ -1267,6 +1346,14 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
     right: '<i style="right:6px;top:6px;width:52%;bottom:6px"></i><b style="left:6px;top:10px;width:28%"></b><b style="left:6px;top:16px;width:22%"></b><b style="left:6px;top:22px;width:26%"></b>',
     bleed: '<i style="inset:3px;background:#6b5d55"></i><b style="left:9px;bottom:10px;width:40%;background:#fff"></b><b style="left:9px;bottom:6px;width:26%;background:#fff"></b>',
     text: '<b style="left:8px;top:9px;width:50%"></b><b style="left:8px;top:15px;width:62%"></b><b style="left:8px;top:21px;width:44%"></b><b style="left:8px;top:27px;width:56%"></b>',
+    mosaic: '<b style="left:5px;top:9px;width:22%"></b><b style="left:5px;top:14px;width:16%"></b><i style="left:34%;top:5px;width:34%;bottom:5px"></i><i style="right:5px;top:5px;width:22%;height:11px"></i><i style="right:5px;bottom:5px;width:22%;height:11px"></i>',
+    feature: '<i style="right:0;top:0;width:48%;bottom:0;background:#6b5d55"></i><i style="left:5px;top:5px;width:12%;height:11px"></i><i style="left:20%;top:8px;width:12%;height:11px"></i><i style="left:35%;top:5px;width:12%;height:11px"></i><b style="left:5px;bottom:8px;width:34%"></b>',
+    stagger: '<i style="left:5px;top:5px;width:18%;height:14px"></i><i style="left:29%;top:10px;width:18%;height:14px"></i><i style="left:53%;top:5px;width:18%;height:14px"></i><i style="right:5px;top:10px;width:18%;height:14px"></i><b style="left:5px;bottom:5px;width:40%"></b>',
+    strip: '<b style="left:5px;top:6px;width:40%"></b><i style="left:0;right:0;top:13px;height:14px"></i>',
+    contact: '<b style="left:5px;top:5px;width:40%"></b><i style="left:5px;top:11px;width:20%;height:9px"></i><i style="left:29%;top:11px;width:20%;height:9px"></i><i style="left:53%;top:11px;width:20%;height:9px"></i><i style="right:5px;top:11px;width:20%;height:9px"></i><i style="left:5px;top:22px;width:20%;height:9px"></i><i style="left:29%;top:22px;width:20%;height:9px"></i><i style="left:53%;top:22px;width:20%;height:9px"></i><i style="right:5px;top:22px;width:20%;height:9px"></i>',
+    hero: '<i style="left:0;right:0;top:0;height:20px;background:#6b5d55"></i><b style="left:5px;bottom:8px;width:30%"></b><i style="right:5px;bottom:4px;width:22%;height:8px"></i><i style="right:30%;bottom:4px;width:22%;height:8px"></i>',
+    pair: '<i style="left:5px;top:5px;width:48%;bottom:5px"></i><b style="right:5px;top:8px;width:30%"></b><i style="right:5px;bottom:5px;width:19%;height:12px"></i><i style="right:24%;bottom:5px;width:19%;height:12px"></i>',
+    column: '<b style="left:5px;top:9px;width:40%"></b><b style="left:5px;top:15px;width:30%"></b><i style="right:6px;top:0;width:28%;height:11px"></i><i style="right:6px;top:13px;width:28%;height:11px"></i><i style="right:6px;bottom:0;width:28%;height:10px"></i>',
     free: '<i style="left:5px;top:5px;width:40%;height:15px;transform:rotate(-4deg)"></i><i style="right:6px;top:11px;width:34%;height:12px"></i><i style="left:30%;bottom:5px;width:38%;height:11px;background:#6b5d55"></i>',
   }[k]);
   // Small drawn icons for the panel.
@@ -1524,7 +1611,7 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
       h += `
         <div class="psec"><span class="cap">Designed page — ${esc((tplById(p.tpl.t) || {}).name || '')}</span>
           <div class="prow"><label>This page</label><span style="flex-grow:1"></span><span class="abseg"><button data-tplab="pa" class="${v === 'a' ? 'on' : ''}" title="A — calm grids and splits">A</button><button data-tplab="pb" class="${v === 'b' ? 'on' : ''}" title="B — led by the design">B</button></span></div>
-          ${doc.tpl ? `<div class="prow"><label>Every designed page</label><span style="flex-grow:1"></span><span class="abseg"><button data-tplab="da" class="${doc.tpl.v !== 'b' ? 'on' : ''}">A</button><button data-tplab="db" class="${doc.tpl.v === 'b' ? 'on' : ''}">B</button></span></div>` : ''}
+          ${doc.tpl && doc.tpl.v !== 'c' ? `<div class="prow"><label>Every designed page</label><span style="flex-grow:1"></span><span class="abseg"><button data-tplab="da" class="${doc.tpl.v !== 'b' ? 'on' : ''}">A</button><button data-tplab="db" class="${doc.tpl.v === 'b' ? 'on' : ''}">B</button></span></div>` : ''}
           <span class="empty">Your words and pictures come with you when you switch.</span>
           ${`<button class="light small" data-usemine="1" style="align-self:flex-start">Use my stills${n ? ` · ${n} samples left` : ''}</button>`}</div>`;
     }
@@ -1537,6 +1624,8 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
       : p.tpl ? '' : `
         <div class="psec"><span class="cap">Where the pictures go</span><div class="lays">${LAYOUTS.map(([k, n]) => `<button class="lay${p.layout === k ? ' on' : ''}" data-lay="${k}" title="${esc(n)}" aria-label="${esc(n)}">${layIcon(k)}</button>`).join('')}</div>
           <div class="laynames">${LAYNAMES.map(n => `<span>${n}</span>`).join('')}</div>
+          <span class="cap" style="margin-top:4px">Arrangements</span><div class="lays four">${C_LAYS.map(([k, n]) => `<button class="lay${p.layout === k ? ' on' : ''}" data-lay="${k}" title="${esc(n)}" aria-label="${esc(n)}">${layIcon(k)}</button>`).join('')}</div>
+          <div class="laynames four">${C_NAMES.map(n => `<span>${n}</span>`).join('')}</div>
           ${p.layout === 'free' ? '<span class="empty">This page is Free — switch Free off at the top to lay the pictures out again.</span>' : ''}
           ${['left', 'right', 'top', 'bottom'].includes(p.layout) ? '<span class="empty">Drag the divider on the page to give the pictures more or less room.</span>' : ''}
           ${!['free', 'bleed', 'text'].includes(p.layout) ? `<div class="prow"><label>Run off the page edge</label><span style="flex-grow:1"></span><button class="tog${p.bleed ? ' on' : ''}" id="bleedTog" aria-pressed="${!!p.bleed}"></button></div>` : ''}
@@ -1676,7 +1765,7 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
       <div class="choices">
         <button class="g choice" data-new="mood"><div class="pv">${miniPreview('mood')}</div><b>Mood board</b><span>Just pictures, in tight rows. Up to 12 a page — slide to fill each page from the project. Saves as a mood board.</span></button>
         <button class="g choice" data-new="treatment"><div class="pv">${miniPreview('treatment')}</div><b>Treatment</b><span>Pictures laid out for you, text boxes you drag anywhere. Saves as a treatment.</span></button>
-        <button class="g choice" data-tpl="open"><div class="pv">${miniPreview('template')}</div><b>From a template</b><span>Nine designed treatments, 15 pages each, in an A and a B. They open with sample pictures — swap in your stills in one click.</span></button>
+        <button class="g choice" data-tpl="open"><div class="pv">${miniPreview('template')}</div><b>From a template</b><span>Nine designed treatments in an A, a B and a C. They open with sample pictures — swap in your stills in one click.</span></button>
       </div>
       ${recent.length ? `<span class="cap">Carry on with</span><div class="recent">${recent.map(d => `<button class="rec g" data-open="${esc(d.rel)}">${d.cover ? `<img alt="" loading="lazy" src="${esc(coverSrc(d))}">` : '<div class="ph"></div>'}<b>${esc(d.name)}</b><small>${d.mode === 'mood' ? 'Mood' : 'Treatment'} · ${d.pages} page${d.pages === 1 ? '' : 's'}</small></button>`).join('')}</div>` : ''}`;
   }
@@ -2142,15 +2231,59 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
     }
   }
 
+  // C: a template's look on ordinary treatment pages. The pictures arrange themselves (the stills slider still works,
+  // stills drag on and off), sample words sit in the space for words, and Story comes after everything you'll see.
+  const C_ORDER = [['bleed', 1, 'cover'], ['right', 2, 'Director’s note'], ['mosaic', 6, 'Look & feel'], ['feature', 5, 'Cinematography'], ['strip', 5, 'Light & colour'],
+    ['contact', 8, 'Casting'], ['hero', 4, 'Locations'], ['pair', 3, 'Wardrobe'], ['column', 5, 'Edit & pace'], ['text', 0, 'The story'], ['bleed', 1, 'close']];
+  function cDoc(t, pal, info) {
+    const c = tplCtx(info), base = tplBase(t.id), ty = t.type;
+    const d = newDoc('treatment', `${c.title} — ${t.name} C`);
+    d.mark = false; d.size = '16:9'; d.tpl = { id: base, v: 'c', pal: {}, ctx: c };
+    // The deck's type styles take the template's type, so every new page's sample words match.
+    const st = (k, o) => Object.assign(d.types[k], { font: o.font, weight: +o.weight || 400, italic: !!o.italic, upper: !!o.upper, tracking: o.tracking || 0 });
+    st('title', ty.head); st('heading', ty.head); st('body', ty.body); st('caption', ty.kick);
+    Object.assign(d.types.caption, { size: 10, tracking: ty.kick.tracking || 0.16 });
+    d.runner = { on: true, name: c.director, title: c.title, num: true, style: (t.runner && t.runner.style) || 'pad', size: t.runner ? Math.round(t.runner.size / 1.2 * 10) / 10 : 8.5,
+      font: (t.runner && t.runner.font) || HELV, upper: true, inset: 40, top: 5 };
+    const pick = stillPicker(sampleStills(), t.want);
+    const word = (k, text, o) => Object.assign({ id: uid(), auto: true, x: 0, y: 0, w: 0.3, text, opacity: 1, align: 'left', para: 0, hyph: false, wrap: '', cols: 1, smallcaps: false, nums: '' },
+      typeOfBox(d.types[k]), { st: k }, o || {});
+    const L = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aenean lacinia bibendum nulla sed consectetur. Maecenas sed diam eget risus varius blandit.';
+    d.pages = C_ORDER.map(([lay, n, label], i) => {
+      const pg = newPage(lay), num = pad2(i + 1);
+      for (let j = 0; j < n; j++) { const stl = pick(lay === 'bleed' || lay === 'hero' && !j ? 1.78 : lay === 'column' || lay === 'feature' && !j ? 0.9 : 1.5); if (stl) pg.pics.push(picFromRaw(stl)); }
+      if (label === 'cover') {
+        pg.fade = { on: true, strength: 0.75, to: 'black' }; pg.rc = '#ffffff';
+        pg.boxes = [word('caption', `${c.client}  ·  A treatment`, { auto: false, x: 0.042, y: 0.6, w: 0.6, size: 11, colour: '#ffffff' }),
+          word('title', c.title, { auto: false, x: 0.04, y: 0.64, w: 0.9, size: 110, leading: 0.95, colour: '#ffffff' }),
+          word('body', `Directed by ${c.director}`, { auto: false, x: 0.042, y: 0.9, w: 0.6, size: 14, colour: '#ffffff' })];
+      } else if (label === 'close') {
+        pg.fade = { on: true, strength: 0.8, to: 'black' }; pg.rc = '#ffffff';
+        pg.boxes = [word('title', 'Thank you', { auto: false, x: 0.04, y: 0.7, w: 0.9, size: 110, leading: 0.95, colour: '#ffffff' }),
+          word('body', c.director, { auto: false, x: 0.042, y: 0.9, w: 0.6, size: 13, colour: '#ffffff' })];
+      } else if (lay === 'text') {
+        pg.boxes = [word('caption', `${num}  ${label.toUpperCase()}`, { cr: 'accent', leading: 1.4 }),
+          word('title', 'A quiet portrait — told in the moments before everything changes.', Object.assign({ size: 64, leading: 1.05, cr: 'ink' }, ty.idea ? { font: ty.idea.font, weight: +ty.idea.weight || 400, italic: !!ty.idea.italic } : {}))];
+      } else {
+        pg.boxes = [word('caption', `${num}  ${label.toUpperCase()}`, { cr: 'accent', leading: 1.4 }), word('heading', label, { size: lay === 'column' ? 64 : 44, leading: 1.02, cr: 'ink' })];
+        if (lay !== 'contact') pg.boxes.push(word('body', lay === 'right' || lay === 'column' ? L + ' ' + L : L, { size: 12.5, leading: 1.6, opacity: 0.88, cr: 'ink' }));
+      }
+      if (lay === 'hero') pg.rc = '#ffffff';
+      return pg;
+    });
+    paintRoles(d, pal);
+    return d;
+  }
+
   // The chooser: nine templates, A or B, pictured as they open. Nothing is built until you pick one.
   let tplChoice = pref('tplPal', 'own');
   const tplV = {};
   function tplCard(t, i) {
-    const v = tplV[t.id] || 'a', id = v === 'b' ? t.id + '-b' : t.id;
+    const v = tplV[t.id] || 'a', id = v === 'b' ? t.id + '-b' : v === 'c' ? t.id + '-c' : t.id;
     return `<div class="tplcard" data-card="${esc(t.id)}" data-n="${i}">
       <button class="tplpv" data-tpl="${esc(id)}" aria-label="Use ${esc(t.name)} ${v.toUpperCase()}"><img alt="" src="templates/${esc(t.id)}-${v}0.jpg"><img alt="" src="templates/${esc(t.id)}-${v}1.jpg"></button>
       <div class="tplrow"><span class="n">${pad2(i + 1)}</span><b>${esc(t.name)}</b><span class="abseg" role="group" aria-label="Version">
-        <button data-tplv="${esc(t.id)}:a" class="${v === 'a' ? 'on' : ''}" title="A — calm grids and splits">A</button><button data-tplv="${esc(t.id)}:b" class="${v === 'b' ? 'on' : ''}" title="B — led by the design: mosaics, insets, chapter numbers">B</button></span></div>
+        <button data-tplv="${esc(t.id)}:a" class="${v === 'a' ? 'on' : ''}" title="A — calm grids and splits">A</button><button data-tplv="${esc(t.id)}:b" class="${v === 'b' ? 'on' : ''}" title="B — led by the design: mosaics, insets, chapter numbers">B</button><button data-tplv="${esc(t.id)}:c" class="${v === 'c' ? 'on' : ''}" title="C — its look on treatment pages: the pictures arrange themselves, the slider still works">C</button></span></div>
       <small>${esc(t.feel)}</small></div>`;
   }
   async function openTemplates() {
@@ -2159,7 +2292,7 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
     const sw = cs => `<i>${cs.map(c => `<b style="background:${esc(c)}"></b>`).join('')}</i>`;
     const projP = projectPalette(projStills);
     openSheet('templates', `
-      <div class="shead"><div class="grow"><h2>From a template</h2><span class="empty">Nine treatments, 15 pages each. A is calm, B is led by the design. They open with sample pictures — swap in yours with one click.</span></div>${closeX}</div>
+      <div class="shead"><div class="grow"><h2>From a template</h2><span class="empty">Nine treatments. A is calm, B is led by the design — 15 designed pages each. C puts the look on treatment pages that arrange your pictures for you (11 pages). They open with sample pictures — swap in yours with one click.</span></div>${closeX}</div>
       <div style="display:flex;flex-direction:column;gap:8px"><span class="cap">Colours</span><div class="tplpals">
         <button class="tplpal${tplChoice === 'own' ? ' on' : ''}" data-tplpal="own">Each template's own</button>
         ${projP ? `<button class="tplpal${tplChoice === 'project' ? ' on' : ''}" data-tplpal="project">${sw([projP.dark, projP.light, projP.accent, projP.tint])}From this project</button>` : ''}
@@ -2173,14 +2306,16 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
     if (card && t) card.outerHTML = tplCard(t, +card.dataset.n);
   }
   async function makeFromTemplate(id) {
-    const t = tplById(id); if (!t) return;
+    const isC = /-c$/.test(id), t = tplById(isC ? id.replace(/-c$/, '') : id); if (!t) return;
     if (!projStills.length) await loadProjStills().catch(() => {});
     const info = await call('designProject').catch(() => ({})) || {};
     if (doc) await flushSave();
-    doc = normalise(tplDoc(t, palFor(tplById(tplBase(id)) || t, tplChoice, projStills), info));
+    const pal = palFor(tplById(tplBase(t.id)) || t, tplChoice, projStills);
+    doc = normalise(isC ? cDoc(t, pal, info) : tplDoc(t, pal, info));
     rel = null; cur = 0; sel.clear(); bsel = null; editing = null; reframe = null; undo = []; redo = [];
     closeSheet(); persist(); draw();
-    toast(`${t.name}: ${doc.pages.length} pages with sample pictures — drag a still onto one to swap it, or Use my stills`);
+    toast(isC ? `${t.name} C: ${doc.pages.length} pages — slide for more pictures or fewer, drag stills on and off, or Use my stills`
+      : `${t.name}: ${doc.pages.length} pages with sample pictures — drag a still onto one to swap it, or Use my stills`);
   }
 
   // + Page: a blank page of your own (the slider, your words), or a designed page from any template.
@@ -3368,8 +3503,8 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
   function dupPage() { change(() => { const c = clone(page()); c.id = uid(); doc.pages.splice(cur + 1, 0, c); cur += 1; sel.clear(); }); toast('A copy of the page, to try something'); }
   function cycleLayout() {
     if (doc.mode === 'mood') return;
-    const i = LAYOUTS.findIndex(l => l[0] === page().layout);
-    const next = LAYOUTS[(i + 1) % LAYOUTS.length];
+    const all = LAYOUTS.concat(C_LAYS), i = all.findIndex(l => l[0] === page().layout);
+    const next = all[(i + 1) % all.length];
     setLayout(next[0]);
     toast(next[1]);
   }
