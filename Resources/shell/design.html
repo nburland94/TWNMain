@@ -195,6 +195,7 @@ body.dragging,body.dragging *{cursor:grabbing!important;user-select:none}
 .swapbar .k{font-size:11.5px;color:#6b6964;padding:0 8px;white-space:nowrap}
 .panel{border-left:1px solid rgba(28,28,28,0.05);overflow-y:auto;padding:14px 16px 20px;display:flex;flex-direction:column;gap:16px;min-width:0}
 .panel .phead{display:flex;align-items:baseline;justify-content:space-between;gap:8px}
+.idle-inspector{border:0;padding:0;margin:0;min-width:0;display:flex;flex-direction:column;gap:14px;opacity:.55;pointer-events:none}
 .ptabs{display:grid;grid-template-columns:repeat(auto-fit,minmax(0,1fr));gap:2px;padding:3px;border-radius:12px;background:rgba(28,28,28,0.05);position:sticky;top:-14px;z-index:5;margin:-2px 0 -6px}
 .ptabs button{border:none;background:transparent;border-radius:9px;padding:7px 0;font-size:12px;color:#5a5854;position:relative;white-space:nowrap}
 .ptabs button.on{background:#fff;color:#141414;box-shadow:0 1px 3px rgba(80,30,10,0.12)}
@@ -893,7 +894,7 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
       <input class="name" id="docName" value="${esc(doc.name)}" placeholder="Name it" spellcheck="false" aria-label="Name">
       <div class="seg" role="group" aria-label="Mood or treatment"><button data-mode="mood" class="${mood ? 'on' : ''}" title="Just pictures">Mood</button><button data-mode="treatment" class="${mood ? '' : 'on'}" title="Pictures and words">Treatment</button></div>
       <span class="sp"></span>
-      ${sampleCount() ? '<button class="tbtn samplebtn" id="useMine" title="Swap every sample picture for the stills in your vault that suit this template">Use my stills</button>' : ''}
+      ${doc.pages.some(p => p.pics.length) ? '<button class="tbtn samplebtn" id="useMine" title="Replace every picture with your selected images, or this project’s images">Use my stills</button>' : ''}
       <button class="tbtn" id="addPage" title="A new page after this one">+ Page</button>
       ${mood ? '' : '<button class="tbtn" id="textBtn" title="A text box — or press T, or double-click the page"><b style="font-family:Georgia,serif;font-size:15px;line-height:1">T</b> Text</button>'}
       <button class="tbtn" id="photosBtn" title="Photos, or whole folders of them, from your Mac">+ Photos</button>
@@ -1303,17 +1304,17 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
     return null;
   }
   // One column, no tabs: for words — the words, the box, where it sits; for pictures — the picture, its look, where it sits.
-  function inspector(ctx, p, b, pal, range, pct) {
+  function inspector(ctx, p, b, pal, range, pct, preview = false) {
     const parts = ctx === 'text' ? (b && b.shape ? [['shape', ''], ['arrange', 'Place it']] : [['text', ''], ['style', 'Box'], ['effects', 'Turn and outline'], ['arrange', 'Place it']])
       : doc.mode === 'mood' ? [['pic', ''], ['style', 'Look']] : [['pic', ''], ['style', 'Look'], ['arrange', 'Place it']];
-    return parts.map(([tab, title]) => { const inner = inspectorPart(ctx, tab, p, b, pal, range, pct); return inner ? (title ? `<div class="kdiv"></div><span class="ksec">${title}</span>` : '') + inner : ''; }).join('');
+    return parts.map(([tab, title]) => { const inner = inspectorPart(ctx, tab, p, b, pal, range, pct, preview); return inner ? (title ? `<div class="kdiv"></div><span class="ksec">${title}</span>` : '') + inner : ''; }).join('');
   }
-  function inspectorPart(ctx, tab, p, b, pal, range, pct) {
+  function inspectorPart(ctx, tab, p, b, pal, range, pct, preview = false) {
     const G = geometry(doc), pt = v => Math.round(v * 10) / 10;
     let h = '';
-    const ks = [...sel], one = ctx === 'pic' && ks.length === 1 ? p.pics[ks[0]] : null, free = layoutOf(doc, p) === 'free';
+    const ks = preview ? [] : [...sel], one = ctx === 'pic' && ks.length === 1 ? p.pics[ks[0]] : null, free = layoutOf(doc, p) === 'free';
     if (tab === 'arrange') {
-      const t = arrangeTarget();
+      const t = preview ? { kind: ctx === 'text' ? 'box' : 'pic', o: b || { box: { x: 0, y: 0, w: 0.5, h: 0.5 } }, k: 0 } : (ctx === 'text' ? (b ? { kind: 'box', o: b } : null) : (!bsel ? arrangeTarget() : null));
       if (!t) return ks.length > 1 ? '' : `<div class="psec"><span class="empty">Pictures on this page lay themselves out. To place them by hand, make the page Free.</span>
         <button class="light small" id="makeFree" style="align-self:flex-start">Make this page Free</button></div>
         <div class="hintk"><kbd>←</kbd> <kbd>→</kbd> move it along the row<br><kbd>⌘</kbd><kbd>←</kbd> <kbd>→</kbd> to the page before or after</div>`;
@@ -1395,9 +1396,9 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
     return h + `<div class="psec">
         <div class="hintk"><kbd>↑</kbd> <kbd>↓</kbd> swap it through your stills — <kbd>Return</kbd> keeps it</div>
         ${one && !free ? `<div class="prow"><label>Feature it — the hero of its row</label><span style="flex-grow:1"></span><button class="tog${one.featured ? ' on' : ''}" id="featTog" aria-pressed="${!!one.featured}" title="F"></button></div>` : ''}</div>
-      ${one ? `<div class="psec"><span class="klabel">Frame</span><div style="display:flex;gap:6px">
+      ${one || preview ? `<div class="psec"><span class="klabel">Frame</span><div style="display:flex;gap:6px">
         <button class="light small" id="reframeBtn">${reframe != null ? 'Done reframing' : 'Reframe'}</button>
-        ${one.crop && (one.crop.z !== 1 || one.crop.x !== 50 || one.crop.y !== 50) ? '<button class="light small" id="reframeReset">Centre it</button>' : ''}</div>
+        ${one && one.crop && (one.crop.z !== 1 || one.crop.x !== 50 || one.crop.y !== 50) ? '<button class="light small" id="reframeReset">Centre it</button>' : ''}</div>
         <span class="empty">Or double-click the picture: drag inside it, scroll to zoom.</span></div>` : ''}
       <div class="psec"><div style="display:flex;gap:6px;flex-wrap:wrap">
         ${one && ks[0] > 0 && !free ? '<button class="light small" id="breakBtn" title="This picture and the ones after it go onto a new page">New page from here</button>' : ''}
@@ -1525,7 +1526,7 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
           <div class="prow"><label>This page</label><span style="flex-grow:1"></span><span class="abseg"><button data-tplab="pa" class="${v === 'a' ? 'on' : ''}" title="A — calm grids and splits">A</button><button data-tplab="pb" class="${v === 'b' ? 'on' : ''}" title="B — led by the design">B</button></span></div>
           ${doc.tpl ? `<div class="prow"><label>Every designed page</label><span style="flex-grow:1"></span><span class="abseg"><button data-tplab="da" class="${doc.tpl.v !== 'b' ? 'on' : ''}">A</button><button data-tplab="db" class="${doc.tpl.v === 'b' ? 'on' : ''}">B</button></span></div>` : ''}
           <span class="empty">Your words and pictures come with you when you switch.</span>
-          ${n ? `<button class="light small" data-usemine="1" style="align-self:flex-start">Use my stills · ${n} sample${n === 1 ? '' : 's'} left</button>` : ''}</div>`;
+          ${`<button class="light small" data-usemine="1" style="align-self:flex-start">Use my stills${n ? ` · ${n} samples left` : ''}</button>`}</div>`;
     }
     if (tab === 'layout') {
       h += mood ? `
@@ -1547,9 +1548,12 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
           ${doc.pages.length > 1 ? '<button class="light small" id="delPage">Remove page</button>' : ''}</div></div>`;
     } else if (tab === 'picture') {
       h += picked ? (sel.size > 1 ? scope(`${sel.size} pictures`) : '') + inspector('pic', p, null, pal, range, pct)
-        : `<div class="psec"><span class="empty keep">Click a picture on the page to work on it here — swap it, reframe it, give it a border or a shadow.</span></div>`;
+        : scope('Picture options', 'Select a picture to apply these controls.') + `<fieldset class="idle-inspector" disabled inert>${inspector('pic', p, null, pal, range, pct, true)}</fieldset>`;
     } else if (tab === 'text') {
-      h += b ? scope('This text box') + inspector('text', p, b, pal, range, pct) : textList(p);
+      const previewBox = Object.assign({ x: 0, y: 0, w: 0.5, text: '', opacity: 1 }, typesOf(doc).body);
+      h += b ? scope('This text box') + inspector('text', p, b, pal, range, pct)
+        : scope('Text options', 'Select a text box or add text to apply these controls.') + `<fieldset class="idle-inspector" disabled inert>${inspector('text', p, previewBox, pal, range, pct, true)}</fieldset>`;
+      h += textList(p);
     }
     if (tab === 'layout') {
       h += `<div class="kdiv"></div><span class="ksec">Colour</span>`;
@@ -2091,26 +2095,45 @@ if (/[?&]render=1/.test(location.search)) { document.getElementById('editorCss')
     const room = (b.rot === 'up' || b.rot === 'down' ? (b.h || b.w) : b.w) * G.W;
     b.size = Math.round(clamp(room * 0.97 / Math.max(0.01, wide) / G.u, max * 0.4, max) * 10) / 10;
   }
-  // Every sample picture → the stills in your vault that suit each page's template (this project's first).
+  // Replace every picture slot using the explicit selection, or this project's images.
+  let replacingStills = false;
   async function useMyStills() {
-    if (!doc) return;
-    const all = (await loadVaultStills()).filter(s => s.kind !== 'gif');
-    if (!all.length) return toast('No stills in your vault yet — add some, then try again');
-    if (!sampleCount()) return toast('No sample pictures left — they are all yours');
-    const G = geometry(doc), pickers = {}, taken = new Set(doc.pages.flatMap(p => p.pics.filter(x => !x.sample).map(x => x.id)));
-    let n = 0;
-    change(() => doc.pages.forEach(pg => {
-      const t = pg.tpl ? tplOf(pg.tpl.t, pg.tpl.v) : doc.tpl ? tplOf(doc.tpl.id, doc.tpl.v) : null, key = t ? t.id : '-';
-      const pick = pickers[key] || (pickers[key] = stillPicker(all, t ? t.want : { lum: 0.4 }, taken));
-      pg.pics.forEach((x, k) => {
-        if (!x.sample) return;
-        const b = x.box || { w: 0.4, h: 0.4 }, st = pick((b.w * G.W) / Math.max(1, (b.h || 0.4) * G.H)); if (!st) return;
-        pg.pics[k] = keepFx(picFromRaw(st), x); n++;
-      });
-      refreshSwatches(pg);
-      if (pg.tpl || doc.tpl) paintPage(pg, pg.pal || (doc.tpl && doc.tpl.pal) || {}, doc.bg);
-    }));
-    toast(`${n} sample picture${n === 1 ? '' : 's'} swapped for your stills — ↑ ↓ on one tries the next`);
+    if (!doc || replacingStills) return;
+    const target = doc, targetProject = project, ids = [...trayPick];
+    replacingStills = true;
+    try {
+      let all;
+      if (ids.length) all = ids.map(stillById).filter(Boolean);
+      else {
+        const r = await call('designStills', { scope: 'project' });
+        all = (r && r.stills) || [];
+      }
+      // A project/design may have changed while the app was loading images.
+      if (doc !== target || project !== targetProject) return;
+      all = all.filter(s => !s.sample);
+      if (!all.length) return toast(ids.length ? 'Those images are no longer available — select them again' : 'No images in this project yet — add some, then try again');
+      if (!doc.pages.some(pg => pg.pics.length)) return toast('Add a picture layout first');
+      const G = geometry(doc);
+      // One picker across the entire design avoids repeating images before the pool is used.
+      const pick = stillPicker(all, { lum: 0.4 });
+      let n = 0;
+      change(() => doc.pages.forEach(pg => {
+        pg.pics = pg.pics.map(x => {
+          const b = x.box || { w: 0.4, h: 0.4 };
+          const st = pick((b.w * G.W) / Math.max(1, (b.h || 0.4) * G.H));
+          if (!st) return x;
+          n++;
+          return keepFx(picFromRaw(st), x);
+        });
+        refreshSwatches(pg);
+        if (pg.tpl || doc.tpl) paintPage(pg, pg.pal || (doc.tpl && doc.tpl.pal) || {}, doc.bg);
+      }));
+      toast(`${n} picture${n === 1 ? '' : 's'} replaced with ${ids.length ? 'your selected images' : 'this project’s images'}${n > all.length ? ' — images reused to fill every slot' : ''}`);
+    } catch (e) {
+      toast('Could not load your images — please try again');
+    } finally {
+      replacingStills = false;
+    }
   }
 
   // The chooser: nine templates, A or B, pictured as they open. Nothing is built until you pick one.

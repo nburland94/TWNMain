@@ -260,7 +260,7 @@ main{padding:0 3rem;max-width:1180px}
 
 .strip{display:flex;gap:6px;margin-top:0.6rem;flex-wrap:wrap}
 .tile{position:relative;width:118px;border-radius:5px;overflow:hidden;background:#111;border:1px solid var(--hair);cursor:grab;
-  user-select:none;-webkit-user-select:none}
+  user-select:none;-webkit-user-select:none;touch-action:none}
 .tile img,.tile .ph{display:block;width:100%;aspect-ratio:16/9;object-fit:cover}
 .tile .ph{background:#1d1d1d;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:9px;
   letter-spacing:0.1em;text-transform:uppercase;color:#8a8a86}
@@ -583,8 +583,8 @@ main{padding:0 3rem;max-width:1180px}
              : c.source === 'sidecar' ? '<span class="src" style="background:#6b6b66" title="Time from the camera\'s sidecar file">sidecar</span>' : '';
     const th = thumbs.get(c.id);
     const pic = c.kind === 'audio' ? '<div class="ph">audio</div>'
-      : th && th !== 'none' ? `<img alt="" src="${th}">` : `<div class="ph">${th === 'none' ? esc(c.name.split('.').pop()) : ''}</div>`;
-    return `<div class="tile${picked.has(c.id) ? ' sel' : ''}" draggable="true" data-clip="${c.id}" title="${esc(c.name)} · ${clockSec(c.start)}">
+      : th && th !== 'none' ? `<img alt="" draggable="false" src="${th}">` : `<div class="ph">${th === 'none' ? esc(c.name.split('.').pop()) : ''}</div>`;
+    return `<div class="tile${picked.has(c.id) ? ' sel' : ''}" draggable="false" data-clip="${c.id}" title="${esc(c.name)} · ${clockSec(c.start)}">
       ${pic}${label ? `<span class="tag">${label}</span>` : ''}${src}
       <div class="cap"><span>${esc(c.name)}</span><span>${clock(c.start)}</span></div></div>`;
   }
@@ -630,34 +630,76 @@ main{padding:0 3rem;max-width:1180px}
 
   /* ------------------------------------------------------------ dragging clips between scenes */
 
-  let dragging = [];
-  document.addEventListener('dragstart', e => {
-    const t = e.target.closest && e.target.closest('.tile'); if (!t) return;
-    const id = +t.dataset.clip;
-    if (!picked.has(id)) { picked.clear(); picked.add(id); }
-    dragging = [...picked];
-    e.dataTransfer.effectAllowed = 'move';
-    e.dataTransfer.setData('text/plain', dragging.join(','));
-    requestAnimationFrame(() => $('scenes').querySelectorAll('.tile').forEach(x => x.classList.toggle('dragging', picked.has(+x.dataset.clip))));
+  let dragging = [], clipDrag = null, suppressClipClick = false;
+  const dropTarget = e => e.target && e.target.closest && (e.target.closest('.scene') || e.target.closest('#newScene'));
+  function clearClipDrag() {
+    const d = clipDrag;
+    clipDrag = null; dragging = [];
+    if (d) {
+      cancelAnimationFrame(d.frame);
+      if (d.ghost) d.ghost.remove();
+      if (d.tile.hasPointerCapture(d.pointer)) d.tile.releasePointerCapture(d.pointer);
+    }
+    document.querySelectorAll('.tile.dragging, .over').forEach(x => x.classList.remove('dragging', 'over'));
+  }
+  function paintClipDrag() {
+    const d = clipDrag; if (!d || !d.ghost) return;
+    d.ghost.style.transform = `translate(${d.x + 14}px, ${d.y + 14}px)`;
+    const edge = 70, step = d.y < edge ? -14 : d.y > innerHeight - edge ? 14 : 0;
+    if (step) window.scrollBy(0, step);
+    const target = dropTarget({ target: document.elementFromPoint(d.x, d.y) });
+    document.querySelectorAll('.over').forEach(x => { if (x !== target) x.classList.remove('over'); });
+    if (target) target.classList.add('over');
+    d.frame = requestAnimationFrame(paintClipDrag);
+  }
+  // Keep thumbnail drags inside the page; WebKit's native image drag can take over otherwise.
+  $('scenes').addEventListener('dragstart', e => { if (e.target.closest('.tile')) e.preventDefault(); });
+  $('scenes').addEventListener('pointerdown', e => {
+    const tile = e.target.closest('.tile');
+    if (!tile || e.button !== 0 || e.isPrimary === false || busy) return;
+    clearClipDrag();
+    clipDrag = { tile, pointer: e.pointerId, x0: e.clientX, y0: e.clientY, x: e.clientX, y: e.clientY };
+    tile.setPointerCapture(e.pointerId);
   });
-  document.addEventListener('dragend', () => {
-    dragging = [];
-    document.querySelectorAll('.tile.dragging').forEach(x => x.classList.remove('dragging'));
-    document.querySelectorAll('.over').forEach(x => x.classList.remove('over'));
-  });
-  const dropTarget = e => e.target.closest && (e.target.closest('.scene') || e.target.closest('#newScene'));
-  document.addEventListener('dragover', e => {
-    const t = dropTarget(e); if (!t || !dragging.length) return;
-    e.preventDefault(); e.dataTransfer.dropEffect = 'move';
-    document.querySelectorAll('.over').forEach(x => { if (x !== t) x.classList.remove('over'); });
-    t.classList.add('over');
-  });
-  document.addEventListener('dragleave', e => { const t = dropTarget(e); if (t && !t.contains(e.relatedTarget)) t.classList.remove('over'); });
-  document.addEventListener('drop', e => {
-    const t = dropTarget(e); if (!t || !dragging.length) return;
+  document.addEventListener('pointermove', e => {
+    const d = clipDrag; if (!d || d.pointer !== e.pointerId) return;
+    d.x = e.clientX; d.y = e.clientY;
+    if (!d.ghost && Math.hypot(d.x - d.x0, d.y - d.y0) < 5) return;
     e.preventDefault();
-    moveClips(dragging, t.id === 'newScene' ? null : +t.dataset.scene);
+    if (!d.ghost) {
+      const id = +d.tile.dataset.clip;
+      if (!picked.has(id)) { picked.clear(); picked.add(id); }
+      dragging = [...picked];
+      d.ghost = d.tile.cloneNode(true);
+      d.ghost.removeAttribute('data-clip');
+      d.ghost.classList.remove('sel', 'dragging');
+      d.ghost.style.cssText = 'position:fixed;left:0;top:0;width:118px;z-index:10000;pointer-events:none;opacity:.9';
+      d.ghost.setAttribute('aria-hidden', 'true');
+      if (dragging.length > 1) {
+        const count = document.createElement('span'); count.className = 'tag'; count.textContent = `${dragging.length} clips`;
+        d.ghost.appendChild(count);
+      }
+      document.body.appendChild(d.ghost);
+      $('scenes').querySelectorAll('.tile').forEach(x => x.classList.toggle('dragging', picked.has(+x.dataset.clip)));
+      paintClipDrag();
+    }
   });
+  document.addEventListener('pointerup', e => {
+    const d = clipDrag; if (!d || d.pointer !== e.pointerId) return;
+    const target = d.ghost && dropTarget({ target: document.elementFromPoint(e.clientX, e.clientY) });
+    const ids = [...dragging];
+    suppressClipClick = !!d.ghost;
+    setTimeout(() => { suppressClipClick = false; }, 0);
+    clearClipDrag();
+    if (target && ids.length) moveClips(ids, target.id === 'newScene' ? null : +target.dataset.scene);
+  });
+  document.addEventListener('pointercancel', clearClipDrag);
+  $('scenes').addEventListener('lostpointercapture', clearClipDrag);
+  window.addEventListener('blur', clearClipDrag);
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') clearClipDrag(); });
+  $('scenes').addEventListener('click', e => {
+    if (suppressClipClick) { e.preventDefault(); e.stopImmediatePropagation(); }
+  }, true);
 
   // Move clips into a scene — or into a new one when there's no target.
   function moveClips(ids, sceneId) {
@@ -693,7 +735,7 @@ main{padding:0 3rem;max-width:1180px}
             inFlight.delete(id); running--;
             document.querySelectorAll(`.tile[data-clip="${id}"]`).forEach(t => {
               const th = thumbs.get(id), ph = t.querySelector('.ph, img');
-              if (ph && th && th !== 'none') ph.outerHTML = `<img alt="" src="${th}">`;
+              if (ph && th && th !== 'none') ph.outerHTML = `<img alt="" draggable="false" src="${th}">`;
               else if (ph && th === 'none') ph.textContent = byId.get(id).name.split('.').pop();
             });
             next();

@@ -51,7 +51,20 @@
     // Every other colour (a red number, a green "paid"): the same, a little lighter.
     return [...lerp([r, g, b], [255, 255, 255], 0.22), a];
   }
-  const convert = (value, shadow) => String(value).replace(COLOUR, (...m) => out(night(parse(m), shadow)));
+  // Text needs a separate mapping: merely inverting a middle grey produces
+  // another middle grey, which disappears against the dark interface.
+  function textNight(c) {
+    const [r, g, b, a] = c, hi = Math.max(r, g, b), lo = Math.min(r, g, b);
+    if (a === 0) return c;
+    const L = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+    const neutral = hi === 0 || (hi - lo) / hi < 0.25;
+    if (neutral && L > 0.16 && L <= 0.85) return [212, 223, 237, a === 0 ? 0 : Math.max(0.95, a)];
+    const n = night(c, false);
+    if (neutral && L <= 0.16 && a > 0) n[3] = Math.max(0.85, a);
+    return n;
+  }
+  const convert = (value, shadow, foreground = false) => String(value).replace(COLOUR, (...m) => out(foreground ? textNight(parse(m)) : night(parse(m), shadow)));
+  const TEXT_VARS = { '--mid': '#d3dfed', '--dim': '#c4d2e3' };
 
   /* ---------------------------------------------------------------- the stylesheets */
   let night_ = null;
@@ -66,11 +79,19 @@
       const decl = [];
       for (let i = 0; i < rule.style.length; i++) {
         const p = rule.style[i];
+        if (p === 'opacity' && /button|label|input|select|textarea|fieldset|\.cap\b|\.label\b|\.note\b|\.hint\b|\.muted\b/.test(rule.selectorText)) {
+          const a = Number(rule.style.getPropertyValue(p));
+          if (a > 0 && a < 0.75) decl.push(`opacity:${Math.max(0.65, a)}${rule.style.getPropertyPriority(p) ? ' !important' : ''}`);
+          continue;
+        }
         if (!PROPS.includes(p) && !/-color$/.test(p) && !/^background/.test(p) && !p.startsWith('--')) continue;
         const v = rule.style.getPropertyValue(p);
-        if (!v || !COLOUR.test(v)) { COLOUR.lastIndex = 0; continue; }
+        if (!v) continue;
+        // Keep the complete colour cascade, including var(), inherit and transparent.
+        // Otherwise a generated base rule outranks a selected-state background
+        // that was omitted just because it used a variable.
         COLOUR.lastIndex = 0;
-        decl.push(`${p}:${convert(v, /shadow/.test(p))}${rule.style.getPropertyPriority(p) ? ' !important' : ''}`);
+        decl.push(`${p}:${TEXT_VARS[p] || convert(v, /shadow/.test(p), p === 'color' || p === 'caret-color')}${rule.style.getPropertyPriority(p) ? ' !important' : ''}`);
       }
       if (decl.length) lines.push(rule.selectorText.split(',').map(s => /^\s*(html|:root)\b/.test(s) ? s.replace(/^\s*(html|:root)/, 'html[data-theme=dark]') : `html[data-theme=dark] ${s.trim()}`).join(',') + `{${decl.join(';')}}`);
     }
@@ -90,8 +111,20 @@
       html[data-theme=dark] body{background-color:#0d1521}
       html[data-theme=dark] img[src$="mark.png"]:not(.pg *),html[data-theme=dark] img[src*="/_blob/"]:not(.pg *),html[data-theme=dark] .brand img,html[data-theme=dark] .markrow img{filter:brightness(0) invert(1)}
       html[data-theme=dark] ::selection{background:rgba(240,90,34,0.4)}
-      html[data-theme=dark] input,html[data-theme=dark] textarea,html[data-theme=dark] select{color:#eaf0f7}
-      html[data-theme=dark] ::placeholder{color:rgba(234,240,247,0.38)}`; }
+      html[data-theme=dark] ::placeholder{color:#c4d2e3;opacity:1}
+      /* UI labels share explicit readable tones across the shell and every tool. */
+      html[data-theme=dark],html[data-theme=dark].in-needed-tools{--mid:#d3dfed;--dim:#c4d2e3}
+      html[data-theme=dark] .seg button.on{background:#dce7f4;color:#142033}
+      html[data-theme=dark] .pill.grabgo{background:#f05a22;color:#101821;border-color:#f05a22}
+      html[data-theme=dark] .pill.grabgo.on{background:#dce7f4;color:#142033;border-color:#dce7f4}
+      html[data-theme=dark] .ref .kind{background:rgba(12,14,18,0.92);color:#fff}
+      /* Labels over real imagery need a stable dark backing in both themes. */
+      html[data-theme=dark] .badge,
+      html[data-theme=dark] .thumb .n,
+      html[data-theme=dark] .thumb .del,
+      html[data-theme=dark] .still .gifb,
+      html[data-theme=dark] #pagewrap .pic .sdot{color:#fff;background:rgba(12,14,18,0.85)}
+      html[data-theme=dark] .pagewrap .pic.feat::after{color:#fff;text-shadow:0 1px 3px rgba(0,0,0,0.85)}`; }
     night_.textContent += add;
     if (!night_.isConnected) (document.head || document.documentElement).appendChild(night_);
   }
@@ -107,7 +140,7 @@
       const o = orig.get(el) || {};
       if (o.painted !== st) {
         o.style = st;
-        const next = st.replace(/([a-z-]+)\s*:\s*([^;]+)/gi, (all, p, v) => (PROPS.includes(p.toLowerCase()) || /-color$/i.test(p) || /^background/i.test(p)) ? `${p}:${convert(v, /shadow/i.test(p))}` : all);
+        const next = st.replace(/([a-z-]+)\s*:\s*([^;]+)/gi, (all, p, v) => (PROPS.includes(p.toLowerCase()) || /-color$/i.test(p) || /^background/i.test(p)) ? `${p}:${convert(v, /shadow/i.test(p), p.toLowerCase() === 'color' || p.toLowerCase() === 'caret-color')}` : all);
         o.painted = next; orig.set(el, o);
         if (next !== st) el.setAttribute('style', next);
       }

@@ -277,12 +277,12 @@
           P(X0, sy, sw, (s.frame ? BOT : H) - sy), P(X0 + (sw + g), sy, sw, (s.frame ? BOT : H) - sy), P(X0 + 2 * (sw + g), sy, sw, (s.frame ? BOT : H) - sy), P(X0 + 3 * (sw + g), sy, sw, (s.frame ? BOT : H) - sy)] };
       },
     };
-    const orderB = [['coverB'], ['noteB', 'Director’s note'], ['chapter', 'The idea'], ['film', 'Story'], ['mosaic', 'Look & feel'], ['diptych', 'Cinematography'],
+    const orderB = [['coverB'], ['noteB', 'Director’s note'], ['chapter', 'The idea'], ['mosaic', 'Look & feel'], ['diptych', 'Cinematography'],
       ['stripes', 'Light & colour'], ['triptych', 'Casting'], ['stack', 'Wardrobe & styling'], ['insetFull', 'Locations & design'], ['pull', 'Edit & pace'],
-      ['band', 'Sound & music'], ['refsB', 'References'], ['timeline', 'Production'], ['closeB']];
-    const order = s.b ? orderB : [['cover'], ['note', 'Director’s note'], ['idea', 'The idea'], ['beats', 'Story'], ['look', 'Look & feel'], [s.lay.cine || 'splitL', 'Cinematography'],
+      ['band', 'Sound & music'], ['film', 'Story'], ['refsB', 'References'], ['timeline', 'Production'], ['closeB']];
+    const order = s.b ? orderB : [['cover'], ['note', 'Director’s note'], ['idea', 'The idea'], ['look', 'Look & feel'], [s.lay.cine || 'splitL', 'Cinematography'],
       ['palette', 'Light & colour'], ['cast', 'Casting'], [s.lay.ward || 'splitR', 'Wardrobe & styling'], ['places', 'Locations & design'], ['full', 'Edit & pace'],
-      [s.lay.sound || 'wide', 'Sound & music'], ['refs', 'References'], ['table', 'Production'], ['close']];
+      [s.lay.sound || 'wide', 'Sound & music'], ['beats', 'Story'], ['refs', 'References'], ['table', 'Production'], ['close']];
     return { id: s.id, name: s.name, after: s.after, feel: s.feel, pal: s.pal, dark, want: s.want, order, D,
       runner: { font: s.kick.font, size: s.kick.size, style: s.runStyle || 'pad', inset: M, top: Math.round(s.top / 2 - s.kick.size), upper: true },
       // Its type, by what the words are — so a page from another template can take this one's look.
