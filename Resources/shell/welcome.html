@@ -33,6 +33,20 @@ label input{accent-color:#F05A22;width:15px;height:15px}
 .back{border:1px solid rgba(28,28,28,0.1);background:rgba(255,255,255,0.5);border-radius:100px;padding:12px 24px;font-size:13.5px;color:var(--ink)}
 .next{border:none;background:var(--ink);border-radius:100px;padding:12px 30px;color:#fff;font-size:13.5px}
 html.only label{visibility:hidden}
+/* by night: the card stays glass, and every word is light enough to read on it */
+html[data-theme=dark] body{background:rgba(13,21,33,0.4)}
+html[data-theme=dark] body .card{background:linear-gradient(160deg,rgba(40,58,86,0.66),rgba(22,34,52,0.52) 55%,rgba(28,42,64,0.58));border-color:rgba(255,255,255,0.14);
+  box-shadow:inset 0 1.5px 0 rgba(255,255,255,0.14),0 40px 110px rgba(0,0,0,0.45)}
+html[data-theme=dark] body .sheen{background:radial-gradient(120% 70% at 12% -10%,rgba(255,255,255,0.10),rgba(255,255,255,0) 55%)}
+html[data-theme=dark] body h1,html[data-theme=dark] body li span,html[data-theme=dark] body .close,html[data-theme=dark] body .back{color:#f1f5fa}
+html[data-theme=dark] body .line{color:#d3dfed}
+html[data-theme=dark] body .count,html[data-theme=dark] body label{color:#c4d2e3}
+html[data-theme=dark] body .pill{color:#d3dfed;background:rgba(255,255,255,0.08);border-color:rgba(255,255,255,0.16)}
+html[data-theme=dark] body .pill.on{color:#141414;background:#f1f5fa;border-color:#f1f5fa}
+html[data-theme=dark] body li{background:linear-gradient(160deg,rgba(255,255,255,0.10),rgba(255,255,255,0.04));border-color:rgba(255,255,255,0.12);box-shadow:inset 0 1px 0 rgba(255,255,255,0.10)}
+html[data-theme=dark] body li b{color:#ff7a45}
+html[data-theme=dark] body .close,html[data-theme=dark] body .back{background:rgba(255,255,255,0.08);border-color:rgba(255,255,255,0.16)}
+html[data-theme=dark] body .next{background:#f1f5fa;color:#141414}
 </style></head>
 <body>
 <section class="card" aria-label="Welcome">
