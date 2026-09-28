@@ -74,6 +74,8 @@
     for (const rule of list) {
       if (rule.cssRules && rule.media) { const inner = rulesFrom(rule.cssRules); if (inner.length) lines.push(`@media ${rule.media.mediaText}{${inner.join('')}}`); continue; }
       if (!rule.style || !rule.selectorText) continue;
+      // Rules already written for the night (glass.js) keep their colours as written.
+      if (/data-theme=["']?dark/.test(rule.selectorText)) continue;
       // Designs, swatches — and film players, which stay black.
       if (/\.pg\b|#render|\.swatch|\.sw\b|\.pal\b|\.colours|\.palette|\bvideo\b|\bcanvas\b|\bimg\b|\.itemmedia|\.film\b|\.pvstage/.test(rule.selectorText)) continue;
       const decl = [];

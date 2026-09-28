@@ -54,6 +54,16 @@ enum PhotosInbox {
         if let d = try? JSONSerialization.data(withJSONObject: Array(s)) { try? d.write(to: assetsURL(base), options: .atomic) }
     }
 
+    // Photos items already checked and found not to be phone grabs. A picture's original name never
+    // changes, so each is looked at once — not the whole library every time Photos changes.
+    private static func checkedURL(_ base: URL) -> URL { base.appendingPathComponent(".vault/photos-checked.json") }
+    private static func loadChecked(_ base: URL) -> Set<String> {
+        Set(((try? Data(contentsOf: checkedURL(base))).flatMap { try? JSONSerialization.jsonObject(with: $0) as? [String] }) ?? [])
+    }
+    private static func saveChecked(_ s: Set<String>, _ base: URL) {
+        if let d = try? JSONSerialization.data(withJSONObject: Array(s)) { try? d.write(to: checkedURL(base), options: .atomic) }
+    }
+
     // Phone ids already sorted into a Needed Vault album — a picture synced twice goes in the album once.
     private static func albumedURL(_ base: URL) -> URL { base.appendingPathComponent(".vault/photos-albumed.json") }
     private static func loadAlbumed(_ base: URL) -> Set<String> {
@@ -82,15 +92,21 @@ enum PhotosInbox {
             return [project: [a]]
         }
 
+        var checked = loadChecked(base)
+        let checkedBefore = checked.count
         var found: [(PHAsset, PHAssetResource, PhoneDrops.Parsed)] = []
         assets.enumerateObjects { a, _, _ in
-            if looked.contains(a.localIdentifier) { return }
+            if looked.contains(a.localIdentifier) || checked.contains(a.localIdentifier) { return }
             let rs = PHAssetResource.assetResources(for: a)
             let named = rs.filter { $0.originalFilename.hasPrefix("NV ~ ") }
             guard let r = named.first(where: { $0.type == .photo || $0.type == .video }) ?? named.first,
-                  let p = PhoneDrops.parse(r.originalFilename) else { return }
+                  let p = PhoneDrops.parse(r.originalFilename) else {
+                if !rs.isEmpty { checked.insert(a.localIdentifier) }
+                return
+            }
             found.append((a, r, p))
         }
+        if checked.count != checkedBefore { saveChecked(checked, base) }
 
         var out: [PhoneDrops.Drop] = [], twice = 0, failed = 0
         var sortInto: [String: [PHAsset]] = [:]
@@ -135,14 +151,19 @@ enum PhotosInbox {
     static func hasNew(base: URL) -> Bool {
         guard on, status == "allowed" else { return false }
         let looked = loadAssets(base)
+        var checked = loadChecked(base)
+        let checkedBefore = checked.count
         let opts = PHFetchOptions()
         opts.predicate = NSPredicate(format: "mediaType == %d OR mediaType == %d",
                                      PHAssetMediaType.image.rawValue, PHAssetMediaType.video.rawValue)
         var hit = false
         PHAsset.fetchAssets(with: opts).enumerateObjects { a, _, stop in
-            if looked.contains(a.localIdentifier) { return }
-            if PHAssetResource.assetResources(for: a).contains(where: { $0.originalFilename.hasPrefix("NV ~ ") }) { hit = true; stop.pointee = true }
+            if looked.contains(a.localIdentifier) || checked.contains(a.localIdentifier) { return }
+            let rs = PHAssetResource.assetResources(for: a)
+            if rs.contains(where: { $0.originalFilename.hasPrefix("NV ~ ") }) { hit = true; stop.pointee = true }
+            else if !rs.isEmpty { checked.insert(a.localIdentifier) }
         }
+        if checked.count != checkedBefore { saveChecked(checked, base) }
         return hit
     }
 

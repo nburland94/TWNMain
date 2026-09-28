@@ -984,3 +984,27 @@ ROUND 32 — PHONE GRABS FILE THEMSELVES; PROJECTS REACH THE PHONE ON THEIR OWN
   • The relay needs the site linked to GitHub on Netlify, once — the steps
     are in Website/How to put it online.txt. After that, every push updates
     the site on its own.
+
+ROUND 33 — THE CODEX UPDATE, AND WEBSITE GLASS ACROSS THE APP
+  • Brought in from Codex (see "Dark mode update.txt" and "Direct WiFi Setup.md"):
+    Direct Wi-Fi transfer — the phone sends straight to the Mac from a Safari
+    page (Home › Your phone), with retries that never make a second copy;
+    readable dark mode (secondary words get their own light colours); Design's
+    panel shows its options greyed until you select something; "Use my stills"
+    uses your selected images, else this project's; Story comes later in the
+    template orders; Sort fixes.
+  • Photos: to catch old pictures that iCloud only brings in today, the Mac
+    looks through the whole library — now it remembers every picture it has
+    checked (.vault/photos-checked.json), so each one is only looked at once.
+  • Glass (Resources/shell/glass.js, on every page and tool): the same glass as
+    the website's nav — almost clear, blurred and saturated, a fine white edge,
+    a bright top line and a soft sheen. Bars and pills (the note in the top
+    bar, the loading pill, Design's quick bar) take it exactly; panels and
+    hover notes keep a little more white behind their words.
+  • Every switch with a selected option (Page/Text/Free, Grid/List, All/Stills/
+    GIFs…) has a glass lens that slides to your pick — it stretches on the way,
+    overshoots a touch and settles, about 0.6s. Design redraws its panel on
+    every click; the lens still slides from where it was.
+  • By night the glass stays glass: a dark, see-through version with a light
+    lens and light words — not a solid navy tile. (theme.js now leaves rules
+    written for the night as they are.)

@@ -74,7 +74,8 @@ enum Shared {
         shellDir.flatMap { try? String(contentsOf: $0.appendingPathComponent(name), encoding: .utf8) } ?? ""
     }
     private static let embeddedSource = read("load.js") + "\n" + read("embed.js") + "\n" + read("hints.js")
-    private static let themeSource = read("theme.js")
+    /// glass.js first: the website's liquid glass and the sliding lens on every switch — theme.js then sees its rules too.
+    private static let themeSource = read("glass.js") + "\n" + read("theme.js")
 
     /// Every tool gets the glass hints (Resources/shell/hints.js). Its own
     /// title — NEEDED GRAB and so on — stays, as in the separate apps.
