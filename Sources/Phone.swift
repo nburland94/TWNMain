@@ -123,6 +123,11 @@ final class PhoneServer {
         var s: [String: Any] = ["on": on, "running": running, "url": url, "host": hostName, "port": Int(PhoneServer.port)]
         if let q = PhoneServer.qr(url) { s["qr"] = q }
         if let ip = ipURL { s["ipURL"] = ip; if let q = PhoneServer.qr(ip) { s["ipQR"] = q } }
+        // The whole vault, to browse at home (the page at /), by name and by number.
+        let browse = url.replacingOccurrences(of: "/capture/#", with: "/#")
+        s["browseURL"] = browse
+        if let q = PhoneServer.qr(browse) { s["browseQR"] = q }
+        if let ip = ipURL { let b = ip.replacingOccurrences(of: "/capture/#", with: "/#"); if let q = PhoneServer.qr(b) { s["browseIpQR"] = q } }
         if let p = problem { s["problem"] = p }
         // Round 21: the page on your website — opens anywhere, works offline, sends back by AirDrop.
         var projects = Shared.projects()
