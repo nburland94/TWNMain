@@ -1008,3 +1008,32 @@ ROUND 33 — THE CODEX UPDATE, AND WEBSITE GLASS ACROSS THE APP
   • By night the glass stays glass: a dark, see-through version with a light
     lens and light words — not a solid navy tile. (theme.js now leaves rules
     written for the night as they are.)
+
+ROUND 34 — CODEX'S FIXES KEPT, TEMPLATES C, THE NEW PHONE APP
+  • Kept from Codex: Direct Wi-Fi with confirmed receipts and retries, readable
+    dark mode, the Design panel's greyed-out options, Sort's steadier drag.
+  • Changed: "Use my stills" swaps the sample pictures first; pictures you
+    placed are only replaced after you say yes (⌘Z brings them back). Home ›
+    Your phone shows the website Vault (anywhere) again, and the Wi-Fi part has
+    Send to Mac or Browse the vault, each with its code.
+  • Templates C: in the template picker, C beside A and B. The template's type
+    and colours on treatment pages that arrange their own pictures — the stills
+    slider still works, drag stills on and off. 11 pages: cover, director's
+    note, look & feel, cinematography (the feature runs off the right), light &
+    colour, casting, locations, wardrobe, edit & pace, then the story, then
+    thank you. Any treatment page can use the eight arrangements too — Layout ›
+    Arrangements: Mosaic, Feature, Stagger, Strip, Contact, Hero, Pair, Column.
+  • The running line — your name and the project, the page number — now just
+    touches the top edge of every page, on every template.
+  • The phone app, rebuilt: your project top left, the logo in the middle, +
+    top right for Camera or From Photos. A glass tab bar: Home · Grab & Go ·
+    Projects, with a glass lens that slides between them. Home shows the project
+    you're on, big, then everything you've grabbed. Projects shows big covers.
+    The orange button in the middle is Grab & Go: tap it and every photo goes
+    straight into that project, no questions; tap again to stop.
+  • One app, two doors: from the website it works anywhere and syncs through
+    Photos; from your Mac's Send to Mac code it sends straight over Wi-Fi. The
+    feed keeps everything either way — only what's new is sent.
+  • The files: Website/vault is the source. Resources/mobile/capture is the same
+    files (copy index.html, app.js, jsQR.js, sw.js, mark.png across when you
+    change them). Working with Codex: see HANDOFF-FOR-CODEX.md.
