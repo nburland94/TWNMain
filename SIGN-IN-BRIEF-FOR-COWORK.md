@@ -14,7 +14,7 @@ Nathan signs up and logs in to each site himself. Pause and ask him whenever a p
    - The **anon / public** key. On newer dashboards it's the **publishable** key, starting `sb_publishable_`.
    - Never copy the `service_role` or **secret** key anywhere.
 3. Open **Authentication → URL Configuration**:
-   - **Site URL:** `https://thiswasneeded.com`.
+   - **Site URL:** `https://thiswasneeded.info`.
    - **Redirect URLs:** click **Add URL** and enter exactly `neededtools://auth-callback`. Then save.
 4. Open **Authentication → Sign In / Providers → Google**. Don't turn it on yet. Copy the **Callback URL** shown there; it looks like `https://abcdefgh.supabase.co/auth/v1/callback`. Part 2 needs it.
 
@@ -23,6 +23,7 @@ Nathan signs up and logs in to each site himself. Pause and ask him whenever a p
 1. Go to **console.cloud.google.com**. Create a new project named `Needed Tools` and select it.
 2. Open **APIs & Services → OAuth consent screen**. Newer dashboards call it **Google Auth Platform**, and it may ask you to click **Get started** first.
    - App name: `Needed Tools`. User support email and developer contact: Nathan's email.
+   - App home page: `https://thiswasneeded.info`. Privacy policy: `https://thiswasneeded.info/privacy.html`. Authorised domain: `thiswasneeded.info`.
    - Audience: **External**.
    - Scopes: leave the defaults (email, profile, openid). Don't add any sensitive scopes.
    - Save. Then under **Audience**, click **Publish app** so anyone can sign in, not only listed test users.

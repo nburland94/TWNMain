@@ -16,7 +16,7 @@ Allow about 45 minutes. Do Google first, since it's quicker. You can leave Apple
    - The **anon / public** key. On newer dashboards it's the **publishable** key, starting `sb_publishable_`.
    - Don't copy the `service_role` or **secret** key. Neither of them ever goes in the app.
 3. Open **Authentication → URL Configuration**:
-   - **Site URL**: your website (for example `https://thiswasneeded.com`).
+   - **Site URL**: your website (for example `https://thiswasneeded.info`).
    - **Redirect URLs**: click **Add URL** and enter exactly `neededtools://auth-callback`, then save. This is how the sign-in window hands you back to the app.
 4. Open **Authentication → Sign In / Providers** (older dashboards: **Providers**). You'll turn on Google and Apple here in the next steps. Each provider shows a **Callback URL**, which is `https://<your-ref>.supabase.co/auth/v1/callback`. You'll need it for Google and Apple.
 
@@ -24,7 +24,7 @@ Allow about 45 minutes. Do Google first, since it's quicker. You can leave Apple
 
 1. Go to **console.cloud.google.com** and create a project called `Needed Tools`.
 2. Open **APIs & Services → OAuth consent screen**. Newer dashboards call it **Google Auth Platform**.
-   - **Branding**: app name *Needed Tools*, your support email, and a logo if you like.
+   - **Branding**: app name *Needed Tools*, your support email, and a logo if you like. Home page `https://thiswasneeded.info`, privacy policy `https://thiswasneeded.info/privacy.html`, authorised domain `thiswasneeded.info`.
    - **Audience**: *External*. When you're ready for other people to sign in, click **Publish app**. (While it's in *Testing*, only the test users you list can sign in.)
    - **Data access / scopes**: leave the defaults (`email`, `profile`, `openid`).
 3. Open **APIs & Services → Credentials → Create credentials → OAuth client ID**:
