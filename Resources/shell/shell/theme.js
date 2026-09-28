@@ -1,0 +1,200 @@
+/* Needed Tools — dark mode: a calm blue night, across every page.
+   Rather than a second copy of every page's colours, the colours on screen are
+   turned into their night versions as they appear: light surfaces become deep
+   navy, dark words become light, the apricot glow becomes a blue one; the
+   orange accents stay orange. Your pictures, colour swatches and Design pages
+   keep their true colours. Switching back puts every colour back exactly. */
+(function () {
+  if (window.__neededTheme) return;
+  const DARK = 'dark';
+  // What keeps its true colours: designs, pictures, palettes and swatches.
+  const KEEP = 'video, canvas, .pg, .gart, #render, .sw, .swatch, .swatches, .colours, .pal, .palette, .strip .thumb, [data-true-colour], #play, .moodpage, .mpage';
+  const PROPS = ['color', 'background-color', 'background-image', 'background', 'border-color', 'border-top-color', 'border-right-color', 'border-bottom-color',
+    'border-left-color', 'outline-color', 'box-shadow', 'text-shadow', 'fill', 'stroke', 'caret-color', 'text-decoration-color', 'accent-color', 'border'];
+  const COLOUR = /#([0-9a-f]{8}|[0-9a-f]{6}|[0-9a-f]{3,4})\b|rgba?\(\s*([\d.]+)[\s,]+([\d.]+)[\s,]+([\d.]+)(?:[\s,/]+([\d.]+%?))?\s*\)|\b(white|black)\b/gi;
+
+  const lerp = (a, b, t) => a.map((v, i) => Math.round(v + (b[i] - v) * t));
+  function parse(m) {
+    if (m[6]) return m[6].toLowerCase() === 'white' ? [255, 255, 255, 1] : [0, 0, 0, 1];
+    if (m[1]) {
+      let h = m[1];
+      if (h.length <= 4) h = h.split('').map(c => c + c).join('');
+      const n = parseInt(h.slice(0, 6), 16);
+      return [(n >> 16) & 255, (n >> 8) & 255, n & 255, h.length === 8 ? parseInt(h.slice(6), 16) / 255 : 1];
+    }
+    const a = m[5] == null ? 1 : /%$/.test(m[5]) ? parseFloat(m[5]) / 100 : +m[5];
+    return [+m[2], +m[3], +m[4], a];
+  }
+  const out = ([r, g, b, a]) => a >= 1 ? `rgb(${r}, ${g}, ${b})` : `rgba(${r}, ${g}, ${b}, ${+a.toFixed(3)})`;
+
+  // One colour, by night.
+  function night(c, shadow) {
+    const [r, g, b, a] = c;
+    const mx = Math.max(r, g, b), mn = Math.min(r, g, b), s = mx ? (mx - mn) / mx : 0;
+    const L = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+    if (shadow) return L > 0.7 ? [255, 255, 255, a * 0.07] : [0, 0, 0, Math.min(0.55, a * 2.2)];
+    let hue = 0;
+    if (mx !== mn) { const d = mx - mn; hue = mx === r ? 60 * (((g - b) / d) % 6) : mx === g ? 60 * ((b - r) / d + 2) : 60 * ((r - g) / d + 4); if (hue < 0) hue += 360; }
+    const warm = hue >= 4 && hue <= 42;
+    // The glow and pale tints: the lightest become the deepest navy, the warmest a blue light.
+    if (L > 0.7 && s > 0.1 && warm) return [...lerp([46, 86, 132], [13, 22, 35], Math.min(1, (L - 0.7) / 0.28)), a];
+    // The accents stay the Needed orange — the one colour that's the same by day and by night (a touch brighter for words).
+    if (warm && s >= 0.6) return [...(L < 0.45 ? [255, 122, 69] : [240, 90, 34]), a];
+    // Neutrals: light becomes night, dark becomes light.
+    if (s < 0.6 || L > 0.85) {
+      // Light panels and buttons become a lifted navy tile, not the page's own navy, so their edges show.
+      if (L > 0.85) return [...lerp([30, 44, 66], [22, 33, 50], Math.min(1, (1 - L) / 0.15)), a < 1 ? Math.max(a, 0.72) : a];
+      const t = Math.pow(1 - L, 1.05), c = lerp([13, 21, 33], [234, 240, 247], t);
+      // Fine dark lines and faint tints by day turn into light ones by night — twice as strong, so they stay visible.
+      return [...c, a < 1 && L < 0.5 ? Math.min(1, Math.max(0.16, a * 2.4)) : a];
+    }
+    // Every other colour (a red number, a green "paid"): the same, a little lighter.
+    return [...lerp([r, g, b], [255, 255, 255], 0.22), a];
+  }
+  // Text needs a separate mapping: merely inverting a middle grey produces
+  // another middle grey, which disappears against the dark interface.
+  function textNight(c) {
+    const [r, g, b, a] = c, hi = Math.max(r, g, b), lo = Math.min(r, g, b);
+    if (a === 0) return c;
+    const L = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+    const neutral = hi === 0 || (hi - lo) / hi < 0.25;
+    if (neutral && L > 0.16 && L <= 0.85) return [212, 223, 237, a === 0 ? 0 : Math.max(0.95, a)];
+    const n = night(c, false);
+    if (neutral && L <= 0.16 && a > 0) n[3] = Math.max(0.85, a);
+    return n;
+  }
+  const convert = (value, shadow, foreground = false) => String(value).replace(COLOUR, (...m) => out(foreground ? textNight(parse(m)) : night(parse(m), shadow)));
+  const TEXT_VARS = { '--mid': '#d3dfed', '--dim': '#c4d2e3' };
+
+  /* ---------------------------------------------------------------- the stylesheets */
+  let night_ = null;
+  const done = new WeakSet();
+  function rulesFrom(list, wrap) {
+    const lines = [];
+    for (const rule of list) {
+      if (rule.cssRules && rule.media) { const inner = rulesFrom(rule.cssRules); if (inner.length) lines.push(`@media ${rule.media.mediaText}{${inner.join('')}}`); continue; }
+      if (!rule.style || !rule.selectorText) continue;
+      // Designs, swatches — and film players, which stay black.
+      if (/\.pg\b|#render|\.swatch|\.sw\b|\.pal\b|\.colours|\.palette|\bvideo\b|\bcanvas\b|\bimg\b|\.itemmedia|\.film\b|\.pvstage/.test(rule.selectorText)) continue;
+      const decl = [];
+      for (let i = 0; i < rule.style.length; i++) {
+        const p = rule.style[i];
+        if (p === 'opacity' && /button|label|input|select|textarea|fieldset|\.cap\b|\.label\b|\.note\b|\.hint\b|\.muted\b/.test(rule.selectorText)) {
+          const a = Number(rule.style.getPropertyValue(p));
+          if (a > 0 && a < 0.75) decl.push(`opacity:${Math.max(0.65, a)}${rule.style.getPropertyPriority(p) ? ' !important' : ''}`);
+          continue;
+        }
+        if (!PROPS.includes(p) && !/-color$/.test(p) && !/^background/.test(p) && !p.startsWith('--')) continue;
+        const v = rule.style.getPropertyValue(p);
+        if (!v) continue;
+        // Keep the complete colour cascade, including var(), inherit and transparent.
+        // Otherwise a generated base rule outranks a selected-state background
+        // that was omitted just because it used a variable.
+        COLOUR.lastIndex = 0;
+        decl.push(`${p}:${TEXT_VARS[p] || convert(v, /shadow/.test(p), p === 'color' || p === 'caret-color')}${rule.style.getPropertyPriority(p) ? ' !important' : ''}`);
+      }
+      if (decl.length) lines.push(rule.selectorText.split(',').map(s => /^\s*(html|:root)\b/.test(s) ? s.replace(/^\s*(html|:root)/, 'html[data-theme=dark]') : `html[data-theme=dark] ${s.trim()}`).join(',') + `{${decl.join(';')}}`);
+    }
+    return lines;
+  }
+  function sheets() {
+    if (!night_) { night_ = document.createElement('style'); night_.id = 'neededNight'; }
+    let add = '';
+    for (const sh of Array.from(document.styleSheets)) {
+      if (sh.ownerNode === night_ || done.has(sh)) continue;
+      let rules; try { rules = sh.cssRules; } catch (e) { continue; }
+      done.add(sh);
+      add += rulesFrom(rules).join('\n') + '\n';
+    }
+    // The bits no stylesheet can know about (once).
+    if (!night_.dataset.base) { night_.dataset.base = '1'; add += `html[data-theme=dark]{color-scheme:dark}
+      html[data-theme=dark] body{background-color:#0d1521}
+      html[data-theme=dark] img[src$="mark.png"]:not(.pg *),html[data-theme=dark] img[src*="/_blob/"]:not(.pg *),html[data-theme=dark] .brand img,html[data-theme=dark] .markrow img{filter:brightness(0) invert(1)}
+      html[data-theme=dark] ::selection{background:rgba(240,90,34,0.4)}
+      html[data-theme=dark] ::placeholder{color:#c4d2e3;opacity:1}
+      /* UI labels share explicit readable tones across the shell and every tool. */
+      html[data-theme=dark],html[data-theme=dark].in-needed-tools{--mid:#d3dfed;--dim:#c4d2e3}
+      html[data-theme=dark] .seg button.on{background:#dce7f4;color:#142033}
+      html[data-theme=dark] .pill.grabgo{background:#f05a22;color:#101821;border-color:#f05a22}
+      html[data-theme=dark] .pill.grabgo.on{background:#dce7f4;color:#142033;border-color:#dce7f4}
+      html[data-theme=dark] .ref .kind{background:rgba(12,14,18,0.92);color:#fff}
+      /* Labels over real imagery need a stable dark backing in both themes. */
+      html[data-theme=dark] .badge,
+      html[data-theme=dark] .thumb .n,
+      html[data-theme=dark] .thumb .del,
+      html[data-theme=dark] .still .gifb,
+      html[data-theme=dark] #pagewrap .pic .sdot{color:#fff;background:rgba(12,14,18,0.85)}
+      html[data-theme=dark] .pagewrap .pic.feat::after{color:#fff;text-shadow:0 1px 3px rgba(0,0,0,0.85)}`; }
+    night_.textContent += add;
+    if (!night_.isConnected) (document.head || document.documentElement).appendChild(night_);
+  }
+
+  /* ---------------------------------------------------------------- colours set on the page itself */
+  const orig = new WeakMap();                 // element → its own colours, to put back
+  const keep = el => el.closest && el.closest(KEEP);
+  function paint(el) {
+    if (!(el instanceof Element) || keep(el)) return;
+    const st = el.getAttribute('style');
+    if (st && COLOUR.test(st)) {
+      COLOUR.lastIndex = 0;
+      const o = orig.get(el) || {};
+      if (o.painted !== st) {
+        o.style = st;
+        const next = st.replace(/([a-z-]+)\s*:\s*([^;]+)/gi, (all, p, v) => (PROPS.includes(p.toLowerCase()) || /-color$/i.test(p) || /^background/i.test(p)) ? `${p}:${convert(v, /shadow/i.test(p), p.toLowerCase() === 'color' || p.toLowerCase() === 'caret-color')}` : all);
+        o.painted = next; orig.set(el, o);
+        if (next !== st) el.setAttribute('style', next);
+      }
+    } else COLOUR.lastIndex = 0;
+    for (const a of ['fill', 'stroke']) {
+      const v = el.getAttribute(a);
+      if (v && v !== 'none' && COLOUR.test(v)) {
+        COLOUR.lastIndex = 0;
+        const o = orig.get(el) || {};
+        if (o[a + 'P'] !== v) { o[a] = v; o[a + 'P'] = convert(v); orig.set(el, o); el.setAttribute(a, o[a + 'P']); }
+      } else COLOUR.lastIndex = 0;
+    }
+  }
+  function paintAll(root) {
+    if (root instanceof Element) paint(root);
+    (root.querySelectorAll ? root.querySelectorAll('[style],[fill],[stroke]') : []).forEach(paint);
+  }
+  function unpaintAll() {
+    document.querySelectorAll('[style],[fill],[stroke]').forEach(el => {
+      const o = orig.get(el); if (!o) return;
+      if (o.style != null && el.getAttribute('style') === o.painted) el.setAttribute('style', o.style);
+      for (const a of ['fill', 'stroke']) if (o[a] != null && el.getAttribute(a) === o[a + 'P']) el.setAttribute(a, o[a]);
+      orig.delete(el);
+    });
+  }
+  let watching = null;
+  function watch() {
+    if (watching) return;
+    watching = new MutationObserver(list => {
+      let styles = false;
+      for (const m of list) {
+        if (m.type === 'attributes') { const o = orig.get(m.target); if (!o || m.target.getAttribute(m.attributeName) !== (m.attributeName === 'style' ? o.painted : o[m.attributeName + 'P'])) paint(m.target); }
+        else m.addedNodes.forEach(n => { if (n.nodeName === 'STYLE' || n.nodeName === 'LINK') styles = true; else if (n.nodeType === 1) paintAll(n); });
+      }
+      if (styles) setTimeout(sheets, 0);
+    });
+    watching.observe(document.documentElement, { subtree: true, childList: true, attributes: true, attributeFilter: ['style', 'fill', 'stroke'] });
+  }
+
+  /* ---------------------------------------------------------------- switching */
+  function apply(t) {
+    const dark = t === DARK;
+    if (dark) {
+      sheets(); paintAll(document.documentElement); watch();
+      document.documentElement.setAttribute('data-theme', DARK);
+      document.querySelectorAll('link[rel=stylesheet]').forEach(l => l.addEventListener('load', sheets, { once: true }));
+    } else {
+      if (watching) { watching.disconnect(); watching = null; }
+      document.documentElement.removeAttribute('data-theme');
+      unpaintAll();
+    }
+  }
+  window.__neededTheme = apply;
+  const start = () => apply(window.__neededThemeNow || 'light');
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start); else start();
+  window.addEventListener('load', () => { if (document.documentElement.getAttribute('data-theme') === DARK) sheets(); });
+})();
