@@ -1,5 +1,12 @@
 {
   "provider": "off",
-  "lemonsqueezy": { "product_id": "" },
+  "_help": "provider: off (opens straight in, for you) · test (key NV-TEST-0000-0000) · lemonsqueezy (the subscription). For lemonsqueezy fill in product_id and checkout_url below; tiers is optional — leave it empty and every plan gets every tool.",
+  "lemonsqueezy": {
+    "product_id": "",
+    "checkout_url": "",
+    "manage_url": "https://app.lemonsqueezy.com/my-orders",
+    "discount_code": "",
+    "tiers": {}
+  },
   "gumroad": { "product_id": "" }
 }

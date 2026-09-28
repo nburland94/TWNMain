@@ -410,7 +410,15 @@ extension ShotsHost: WKScriptMessageHandlerWithReply {
         if message.name == "files" { return handleFiles(action, body, replyHandler) }
         switch action {
         case "status":
-            replyHandler(licence.status(), nil)
+            replyHandler(licence.status(tool: "shots"), nil)
+        case "buy":                                       // the checkout (free month, card up front)
+            licence.openCheckout(code: (body["code"] as? String) ?? "")
+            replyHandler(["ok": true], nil)
+        case "manage":                                    // update the card, change plan, cancel
+            licence.openManage()
+            replyHandler(["ok": true], nil)
+        case "recheck":                                   // "I've renewed": ask Lemon Squeezy now
+            licence.validate { _ in replyHandler(self.licence.status(tool: "shots"), nil) }
         case "activate":
             licence.activate((body["key"] as? String) ?? "") { replyHandler($0, nil) }
         case "deactivate":

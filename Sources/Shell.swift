@@ -1193,6 +1193,14 @@ final class Shell: NSObject, NSApplicationDelegate, NSWindowDelegate, WKScriptMe
             showSignIn()
             replyHandler(["ok": true], nil)
 
+        case "manageSubscription":                        // Lemon Squeezy's page: card, plan, cancel
+            accountLicence.openManage()
+            replyHandler(["ok": true], nil)
+
+        case "startSubscription":                         // the checkout: the free month, card up front
+            accountLicence.openCheckout(code: (body["code"] as? String) ?? "")
+            replyHandler(["ok": true], nil)
+
         case "deactivateMac":
             // Frees the licence key for another Mac, then back to the sign-in screen.
             accountLicence.deactivate { r in

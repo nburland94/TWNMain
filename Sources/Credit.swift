@@ -301,7 +301,15 @@ extension CreditHost: WKScriptMessageHandlerWithReply {
         }
         switch action {
         case "status":
-            replyHandler(licence.status(), nil)
+            replyHandler(licence.status(tool: "credit"), nil)
+        case "buy":                                       // the checkout (free month, card up front)
+            licence.openCheckout(code: (body["code"] as? String) ?? "")
+            replyHandler(["ok": true], nil)
+        case "manage":                                    // update the card, change plan, cancel
+            licence.openManage()
+            replyHandler(["ok": true], nil)
+        case "recheck":                                   // "I've renewed": ask Lemon Squeezy now
+            licence.validate { _ in replyHandler(self.licence.status(tool: "credit"), nil) }
         case "activate":
             licence.activate((body["key"] as? String) ?? "") { replyHandler($0, nil) }
         case "deactivate":

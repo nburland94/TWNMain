@@ -46,6 +46,19 @@ Build on **this** version — not an older folder — so nothing gets undone.
 - **The Mac's root page (`Resources/mobile/index.html`) only redirects to `/capture/`** — there is one phone app.
 - **Home:** the colour dots and the quick actions share one line (`.line2`) under the filters.
 - **Start again** (Vault, Grab, Sort) is a small orange pill under the tagline in `.brand`.
+- **Licence = a Lemon Squeezy subscription (round 39, `Sources/Licence.swift`).** The owner builds the sign-in (Google / Apple /
+  Microsoft) with you — keep it separate from the licence: sign-in says who they are, the licence says whether they've paid.
+  - `Licence.status(tool:)` → `licensed`, `reason` ("none" | "expired" | "offline" | "tier"), `canBuy`, `subscription`, `plan`, `renews`.
+    Each tool's gate reads it (`gateSay` in each tool's index.html); Home › account shows plan/renews/Manage.
+  - Buttons call `buy` / `manage` / `recheck` (tools' `licence` handler) or `startSubscription` / `manageSubscription` (shell).
+    `openCheckout` fills `checkout[email]` from the saved profile's `email` — so **when sign-in succeeds, save the signed-in email to
+    `UserDefaults "profile"["email"]`** and the checkout is pre-filled.
+  - The weekly check is `/v1/licenses/validate`; state lives in `licence-state.json` (signed). 14 days' grace offline.
+  - `Resources/licence.json` stays `"provider": "off"` in the owner's own builds. Don't put the Lemon Squeezy **API key** in the app —
+    only the public checkout link and IDs. Linking a signed-in email to a subscription (no key to paste) needs a small server
+    (e.g. a Netlify function) holding the API key; not built yet.
+  - Sign-in page (`Resources/shell/signin.html`, action `signIn` in Shell.swift) is still the placeholder; its key field isn't used —
+    the key is entered on each tool's licence screen. After sign-in, you could show the licence screen if `status().licensed` is false.
 - **iPhone app (round 38, `iPhone/NeededVault`)** is the approved phone design in SwiftUI (iOS 17). It keeps grabs on the phone
   (`Shared/Library.swift`: App Group `Grabs/` + `grabs.json`) and sends them to the Mac over Wi-Fi with the same API as `/capture/`
   (`Shared/MacLink.swift`: `GET /api/state`, `POST /api/upload?p&name&tags&phoneId` with `X-Key`; sent only on `{ok:true}`;

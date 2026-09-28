@@ -1110,3 +1110,39 @@ ROUND 38 — THE IPHONE APP, REBUILT (NEEDED MOBILE VAULT)
     Developer account; double-click Make-Needed-Vault-iPhone.command).
   • The old app's iCloud folder is no longer used by the app; Sync on the Mac
     still reads anything left in it.
+
+ROUND 39 — SUBSCRIPTIONS (LEMON SQUEEZY): FREE MONTH, CODES, PLANS
+  • Needed Tools is a subscription. The free month starts at checkout — the
+    card goes in up front and it rolls on by itself unless they cancel.
+  • Each tool's licence screen: "Start your free month" (opens your checkout,
+    with their email filled in), paste the key from the email, done.
+  • The app checks the key about once a week. Offline it keeps working for 14
+    days after the last good check, then asks to connect for a moment.
+  • Subscription ended → "Your subscription has ended" with Renew, Manage
+    subscription and "I've renewed — check again". Nothing in the vault is
+    touched.
+  • Plans (optional): one product with several options, e.g. Essentials and
+    Everything. licence.json › lemonsqueezy › tiers says which tools each
+    option includes; a tool that isn't included shows "Upgrade".
+  • Home › your account shows the plan, when it renews, and Manage
+    subscription (Lemon Squeezy's page: card, plan, cancel).
+
+  SETTING IT UP IN LEMON SQUEEZY
+    1. Store › Products › New product "Needed Tools", type Subscription.
+       Add options (variants): Monthly, Yearly — and, for plans, Essentials /
+       Everything. On each: Free trial 30 days (card required).
+    2. Turn on "Generate license keys" — activation limit 2, "expires with
+       the subscription".
+    3. Discounts › New: FOUNDERS — 50%, "for 2 months" (duration: repeating,
+       2), limited to e.g. 100 uses, with an end date. STUDENT — 50%, forever;
+       send it to people who email you from a university address.
+    4. Copy the product's Share / Buy link (it looks like
+       https://YOURSTORE.lemonsqueezy.com/buy/…) and the product ID.
+    5. Resources/licence.json: "provider": "lemonsqueezy", product_id,
+       checkout_url. For plans, tiers — the option's variant ID with its tools:
+         "tiers": { "123456": { "name": "Essentials", "tools": ["vault","grab","shots"] } }
+       Tool names: vault, grab, shots, sort, credit, pay. An option not listed
+       gets every tool. "discount_code" (e.g. FOUNDERS) applies to every Buy
+       button in the app while it's set.
+    6. Blog links can carry a code on their own:
+         …/buy/…?checkout[discount_code]=FOUNDERS

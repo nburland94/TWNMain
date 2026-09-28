@@ -272,6 +272,11 @@ select{font-family:var(--mono);font-size:11.5px;padding:0.3rem 0.5rem;border:1px
       <button class="pill solid" id="licBtn">Activate</button>
     </div>
     <p class="note" id="licMsg" style="margin-top:0.9rem"></p>
+    <div class="row" id="licMore" hidden style="margin-top:1rem;gap:10px;flex-wrap:wrap">
+      <button class="pill solid" id="licBuy">Start your free month</button>
+      <button class="pill quiet" id="licManage" hidden>Manage subscription</button>
+      <button class="pill quiet" id="licRecheck" hidden>I've renewed — check again</button>
+    </div>
     <p class="note" id="licTest" hidden style="margin-top:1.4rem">Test mode — use <span class="mono">NG-TEST-0000-0000</span></p>
   </section>
 
@@ -1447,12 +1452,42 @@ select{font-family:var(--mono);font-size:11.5px;padding:0.3rem 0.5rem;border:1px
   if (bridge) document.documentElement.classList.add('in-mac-app');
   const lic = (action, extra) => bridge.postMessage(Object.assign({ action }, extra || {}));
 
+  // Round 39: a subscription. The free month starts at checkout (card up front, then it rolls on);
+  // an ended one asks to renew; a plan without this tool offers the upgrade.
+  const gateH = document.querySelector('#gate .gate-h'), gateP = document.querySelector('#gate .note');
+  const gateH0 = gateH ? gateH.textContent : '', gateP0 = gateP ? gateP.innerHTML : '';
+  const toolName = gateH0.replace(/^Activate\s+/, '');
+  function gateSay(st) {
+    if (!st || st.licensed) return;
+    const why = st.reason || 'none', plan = st.plan ? ' (' + st.plan + ')' : '';
+    const H = { none: gateH0, expired: 'Your subscription has ended', offline: 'Connect to check your subscription', tier: toolName + ' isn’t in your plan' };
+    const P = {
+      none: st.canBuy ? 'Start your free month — your card at checkout, cancel any time before it ends. Your key comes by email: paste it here.' : gateP0,
+      expired: 'Renew and everything is as you left it — your references never left your Mac. Then paste your key, or tap “I’ve renewed”.',
+      offline: 'Needed Tools checks your subscription about once a week. Connect to the internet for a moment and it opens again.',
+      tier: 'Your plan' + plan + ' doesn’t include ' + toolName + '. Upgrade to get every tool.' };
+    if (gateH) gateH.textContent = H[why] || gateH0;
+    if (gateP) gateP.innerHTML = P[why] || gateP0;
+    $('licBuy').textContent = why === 'expired' ? 'Renew' : why === 'tier' ? 'Upgrade' : 'Start your free month';
+    $('licBuy').hidden = !st.canBuy || why === 'offline';
+    $('licManage').hidden = !st.subscription || !(why === 'expired' || why === 'tier');
+    $('licRecheck').hidden = !st.subscription || why === 'none';
+    $('licMore').hidden = $('licBuy').hidden && $('licManage').hidden && $('licRecheck').hidden;
+  }
+  $('licBuy').addEventListener('click', () => { lic('buy').catch(() => {}); });
+  $('licManage').addEventListener('click', () => { lic('manage').catch(() => {}); });
+  $('licRecheck').addEventListener('click', async () => {
+    $('licMsg').className = 'note'; $('licMsg').textContent = 'Checking…';
+    try { await lic('recheck'); } catch (e) {}
+    $('licMsg').textContent = ''; checkLicence();
+  });
   async function checkLicence() {
     if (!bridge) return;
     $('app').hidden = true; $('bar').hidden = true;
     let st = null;
     try { st = await lic('status'); } catch (e) { st = null; }
     const on = !!(st && st.licensed);
+    gateSay(st);
     $('gate').hidden = on; $('app').hidden = !on; $('bar').hidden = !on;
     $('licFoot').hidden = !on || !!(st && st.unlicensed_build);
     if (on) $('licWho').textContent = 'Licensed' + (st.customer ? ' to ' + st.customer : '') + ' · ' + st.key;
