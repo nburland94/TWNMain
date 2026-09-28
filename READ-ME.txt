@@ -1037,3 +1037,23 @@ ROUND 34 — CODEX'S FIXES KEPT, TEMPLATES C, THE NEW PHONE APP
   • The files: Website/vault is the source. Resources/mobile/capture is the same
     files (copy index.html, app.js, jsQR.js, sw.js, mark.png across when you
     change them). Working with Codex: see HANDOFF-FOR-CODEX.md.
+
+ROUND 35 — ORANGE LENS, C LIKE A AND B, ARRANGE, WI-FI ONLY
+  • The sliding lens on every switch is solid orange with white words, by day
+    and by night. It sits inside its pill with an even gap and lands exactly —
+    no spilling over the edge, no doubled lines. The phone's tab bar matches.
+  • Templates: C has the same 15 sections as A and B, in the same order. In a
+    template deck, Layout › This page flips one page between A, B and C, and
+    Every designed page flips them all. Your words and pictures come along;
+    C keeps all your pictures and the slider. The designed-page picker has C.
+  • Arrange, on the quick bar: the eight arrangements for the page you're on —
+    any page, A, B, C or your own. On an A or B page the pictures reflow and
+    the words move into the space for words. ⌘Z undoes it.
+  • Use my stills works on the page you're on, not the whole design. (Export's
+    "use my stills first" still does every page.)
+  • The phone: Wi-Fi direct only. Home › Your phone shows one code — scan it,
+    add the page to your Home Screen, grab, then Send to Mac on your Wi-Fi.
+    It opens while the phone is on the same Wi-Fi as the Mac; grabs wait on
+    the phone until they're sent. From Photos is off unless you turn it on.
+    (A real iPhone app, for grabbing away from home, comes later.)
+  • The welcome and sign-in screens are readable in dark mode.

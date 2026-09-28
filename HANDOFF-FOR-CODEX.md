@@ -1,6 +1,6 @@
 # Needed Tools — handoff for Codex
 
-This is the current state of the project after Claude merged your last update (round 34).
+This is the current state of the project after Claude merged your last update (now round 35).
 Build on **this** version — not an older folder — so nothing gets undone.
 
 ## Where to work, and how to send it back
@@ -32,11 +32,17 @@ Build on **this** version — not an older folder — so nothing gets undone.
   (The website version keeps a 1600px copy a day after Sync and lets the full file go; the Mac-served version keeps originals.)
 - **Direct Wi-Fi counts a grab as sent only when the Mac confirms it saved it** (your receipts — keep them).
 - **Design, "Use my stills": sample pictures first; the user's own pictures only after they confirm.**
-- **Home › Your phone shows both**: the website Vault (anywhere) and Wi-Fi (Send to Mac / Browse the vault).
+- **The phone is Wi-Fi direct only** (round 35). Home › Your phone shows one QR code: the Mac-served page at `/capture/`.
+  The website Vault, Browse and the Photos switches are not offered; From Photos is off by default; the website relay isn't started.
+  The code for them is still there. A native iPhone app (`iPhone/NeededVault`) is the plan for grabbing away from home.
 - **The running line** (name · project, page number) sits 5 units from the top edge on every page (`runner.top`/`inset`).
-- **Templates**: A, B and C. C = `cDoc()` in design.html; the eight arrangements are `C_LAYOUTS` in `layout()`.
-  Story comes after the visual pages. Cinematography uses `feature` (the approved Option A).
-- **Glass** matches the website nav, in light and dark. Every sliding switch gets the lens.
+- **Templates**: A, B and C share 15 sections in one order (`C_SPEC` mirrors the A/B order). Pages are tagged
+  `pg.tpl = {t, v, i}`; `tplSwitch()` flips a page between a/b/c; `cMakePage()` builds a C page. The eight arrangements
+  are `C_LAYOUTS` in `layout()`, and the quick bar's **Arrange** applies them to any page (`arrangePage()`).
+  Cinematography uses `feature` (the approved Option A).
+- **Use my stills is per page** (`useMyStills()`; `useMyStills(true)` only from Export).
+- **Glass** matches the website nav, in light and dark. Every sliding switch (`.seg`, `.seg2`, `.abseg`) gets the lens:
+  **solid orange, white words, inside the pill with a 2px gap, no overshoot** — light and dark. The phone tab bar matches.
 - Plain, friendly wording in the UI. Never mention Keynote. No personal email addresses in the product.
 - Bundled sample pictures (`Resources/shell/samples`) are placeholders from other people's work — to be replaced before selling.
 
