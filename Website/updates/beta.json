@@ -1,0 +1,10 @@
+{
+  "build" : 2,
+  "channel" : "beta",
+  "notes" : "",
+  "published" : "2026-09-29T22:24:04Z",
+  "sha256" : "83efba4ba3d33e8d7329928242aee5e632cf4edd4f96cd24cf618a0cd1e90e92",
+  "signature" : "bEjbbr5wWk8xtoUGqnAoe4WSSVyXmJ8vsnSxNPGPFL7IWX+DCIpobhcbG1KC+C\/7BzAQ5iGk0auJBsItj4tDDQ==",
+  "url" : "Needed-Tools-beta-2.zip",
+  "version" : "1.0.2"
+}
