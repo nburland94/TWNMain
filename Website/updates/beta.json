@@ -1,10 +1,10 @@
 {
-  "build" : 2,
+  "build" : 3,
   "channel" : "beta",
-  "notes" : "",
-  "published" : "2026-09-29T22:24:04Z",
-  "sha256" : "83efba4ba3d33e8d7329928242aee5e632cf4edd4f96cd24cf618a0cd1e90e92",
-  "signature" : "bEjbbr5wWk8xtoUGqnAoe4WSSVyXmJ8vsnSxNPGPFL7IWX+DCIpobhcbG1KC+C\/7BzAQ5iGk0auJBsItj4tDDQ==",
-  "url" : "Needed-Tools-beta-2.zip",
-  "version" : "1.0.2"
+  "notes" : "Grab & Go saves every copied picture",
+  "published" : "2026-09-30T08:03:29Z",
+  "sha256" : "4272d590b2eeadc7462ee7dc0d2808097255dc2bc1a1c61749933ff700d8aac1",
+  "signature" : "bEZ1N2ebPGcHAdwXxAcuWThCS2w9PAJ57LjNqwbq4vSX80nnRa8CZmRW53WMz7TztwhnhH8FeiIvLnxV5reRDQ==",
+  "url" : "Needed-Tools-beta-3.zip",
+  "version" : "1.0.3"
 }
