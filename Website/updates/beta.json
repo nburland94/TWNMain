@@ -1,10 +1,10 @@
 {
-  "build" : 3,
+  "build" : 5,
   "channel" : "beta",
-  "notes" : "Grab & Go saves every copied picture",
-  "published" : "2026-09-30T08:03:29Z",
-  "sha256" : "4272d590b2eeadc7462ee7dc0d2808097255dc2bc1a1c61749933ff700d8aac1",
-  "signature" : "bEZ1N2ebPGcHAdwXxAcuWThCS2w9PAJ57LjNqwbq4vSX80nnRa8CZmRW53WMz7TztwhnhH8FeiIvLnxV5reRDQ==",
-  "url" : "Needed-Tools-beta-3.zip",
-  "version" : "1.0.3"
+  "notes" : "Home: slide the panels away for a full-screen wall, and an Add to vault button. Grab & Go keeps GIFs and animated WebPs moving.",
+  "published" : "2026-09-30T19:39:37Z",
+  "sha256" : "8688e42c4af9772f92a205cffa65dc9493b7018762a3937e6181253ed42fc6aa",
+  "signature" : "4xPvIbfnFSar3WFnfMW3tbuT2MwnM0JxKuFP70Tc1ebflunLydg4sOuN7BvXeg\/ywF926PCa4pkvj8gN7IwcAA==",
+  "url" : "Needed-Tools-beta-5.zip",
+  "version" : "1.0.5"
 }
