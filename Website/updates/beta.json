@@ -1,10 +1,10 @@
 {
-  "build" : 5,
+  "build" : 6,
   "channel" : "beta",
-  "notes" : "Home: slide the panels away for a full-screen wall, and an Add to vault button. Grab & Go keeps GIFs and animated WebPs moving.",
-  "published" : "2026-09-30T19:39:37Z",
-  "sha256" : "8688e42c4af9772f92a205cffa65dc9493b7018762a3937e6181253ed42fc6aa",
-  "signature" : "4xPvIbfnFSar3WFnfMW3tbuT2MwnM0JxKuFP70Tc1ebflunLydg4sOuN7BvXeg\/ywF926PCa4pkvj8gN7IwcAA==",
-  "url" : "Needed-Tools-beta-5.zip",
-  "version" : "1.0.5"
+  "notes" : "Drag and drop from Finder: stills, GIFs, MP4 and MOV onto Home or the Vault. Plus the Home toolbar fits smaller screens.",
+  "published" : "2026-09-30T20:11:47Z",
+  "sha256" : "a1c35ab7860376ef30c97b3569a37e4312b6aecd63ad9239d05c1e975ff6ba45",
+  "signature" : "fuMqDPN8uB3UpV5dDKxf3QycIaf1gyUP\/Msirgq4pgDl9RupbmShOh6j5z75g5vl3xBIs0L15O3svCmfvba4Bg==",
+  "url" : "Needed-Tools-beta-6.zip",
+  "version" : "1.0.6"
 }
