@@ -38,5 +38,7 @@
 	<string>Needed Tools receives photos and clips directly from your phone on your Wi-Fi.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Needed Tools files what you saved from Needed Vault on your phone into its project, and sorts it into a Needed Vault album for each project.</string>
+<key>NSAppleEventsUsageDescription</key>
+<string>Needed Tools can prepare an email draft with your selected documents in Apple Mail when you choose Open in Mail.</string>
 </dict>
 </plist>

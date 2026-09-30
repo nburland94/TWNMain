@@ -1094,6 +1094,7 @@ final class Shell: NSObject, NSApplicationDelegate, NSWindowDelegate, WKScriptMe
     func userContentController(_ controller: WKUserContentController, didReceive message: WKScriptMessage,
                                replyHandler: @escaping (Any?, String?) -> Void) {
         let body = message.body as? [String: Any] ?? [:]
+        if MailConnection.handle((body["action"] as? String) ?? "", body, replyHandler) { return }
         switch (body["action"] as? String) ?? "" {
         case "state":
             reply(replyHandler)

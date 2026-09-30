@@ -5,3 +5,6 @@ Resources/bin/
 Needed Tools.app/
 Needed Tools.zip
 build-errors.txt
+
+# Local email OAuth configuration
+Resources/email-oauth.json

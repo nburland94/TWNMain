@@ -545,7 +545,7 @@ extension PayHost {
                 reply(["ok": false], nil)
             }
 
-        case "loadLedger", "saveLedger", "previewPdf", "exportPdf", "saveCsv", "revealFile", "addressSuggest", "addressResolve", "emailInvoice", "mailPassword", "sendMail":
+        case "loadLedger", "saveLedger", "previewPdf", "exportPdf", "saveCsv", "revealFile", "addressSuggest", "addressResolve", "emailInvoice", "mailPassword", "sendMail", "emailStatus", "emailConnect", "emailDisconnect", "emailCancel":
             handlePay(action, body, reply)
 
         default:
@@ -715,6 +715,7 @@ extension PayHost {
     }
 
     func handlePay(_ action: String, _ body: [String: Any], _ reply: @escaping (Any?, String?) -> Void) {
+        if MailConnection.handle(action, body, reply) { return }
         let fm = FileManager.default
         switch action {
         case "loadLedger":
@@ -857,6 +858,15 @@ extension PayHost {
     /// the email tool built into macOS (curl). The password comes from the Keychain
     /// and reaches curl through a pipe, never on a command line anyone could see.
     func sendMail(_ b: [String: Any], _ reply: @escaping (Any?, String?) -> Void) {
+        guard MailConnection.matches(b) else { return reply(["ok": false, "error": "Your sending account changed. Reopen this message and review the connection before sending."], nil) }
+        if MailConnection.mode != "smtp" {
+            let path = b["path"] as? String ?? ""
+            let files = path.isEmpty ? [] : [URL(fileURLWithPath: path)]
+            MailConnection.send(to: [["email": b["to"] as? String ?? ""]], cc: [], bcc: [],
+                subject: b["subject"] as? String ?? "Invoice", body: b["body"] as? String ?? "", files: files,
+                copy: b["copy"] as? Bool ?? true, keepIn: files.first?.deletingLastPathComponent().appendingPathComponent("Sent")) { reply($0, nil) }
+            return
+        }
         let from = ((b["from"] as? String) ?? "").trimmingCharacters(in: .whitespaces)
         let to = ((b["to"] as? String) ?? "").trimmingCharacters(in: .whitespaces)
         let host = ((b["host"] as? String) ?? "").trimmingCharacters(in: .whitespaces)

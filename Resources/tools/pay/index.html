@@ -578,8 +578,12 @@ html[data-theme=dark] .toggle .sw::after{background:#eaf0f7}
     </div>
     <div class="block">
       <h3>Sending email</h3>
-      <p class="note" style="margin-top:0">Send invoices straight from Needed Pay, from your own address. Use an <b>app password</b> —
-        a special one you make in your email account's security settings (Gmail: Google Account → Security → App passwords). It's kept in your Mac's Keychain.</p>
+      <p class="note">Sign in with Google once to use Needed Tools and send from the same account in Pay and Project. Google asks for sending permission; no app password is needed.</p>
+      <div class="row" style="flex-wrap:wrap;gap:8px"><button class="pill" id="mailGoogle">Sign in with Google</button><button class="pill" id="mailOutlook">Connect Outlook</button><button class="pill" id="mailApple">Use Apple Mail</button><button class="pill quiet" id="mailDisconnect">Disconnect</button><button class="pill quiet" id="mailCancel" hidden>Cancel sign-in</button></div>
+      <p class="note" id="mailConnection" aria-live="polite"></p>
+      <div class="row"><button class="pill quiet" id="mTest">Send me a test</button><span class="note" id="mTestState" aria-live="polite"></span></div>
+      <details><summary>Advanced email setup</summary>
+      <p class="note">For accounts that require an SMTP server and app password. Saving selects advanced sending for both tools.</p>
       <div class="fgrid">
         <div class="f"><span class="label">Email</span>
           <select class="sel" id="mProvider"><option value="gmail">Gmail</option><option value="outlook">Outlook / Microsoft 365</option>
@@ -589,8 +593,9 @@ html[data-theme=dark] .toggle .sw::after{background:#eaf0f7}
         <div class="f" id="mServerWrap" hidden><span class="label">Server</span><input class="in mono" id="mHost" spellcheck="false" placeholder="smtp.example.com"></div>
         <div class="f" id="mPortWrap" hidden><span class="label">Port</span><input class="in mono" id="mPort" spellcheck="false" placeholder="465"></div>
       </div>
-      <div class="row" style="margin-top:0.8rem"><button class="pill" id="mSave">Save</button><button class="pill quiet" id="mTest">Send me a test</button>
+      <div class="row" style="margin-top:0.8rem"><button class="pill" id="mSave">Save</button>
         <span class="note" id="mState" style="margin:0"></span></div>
+      </details>
     </div>
     <div class="block">
       <h3>Tax registration numbers</h3>
@@ -1385,7 +1390,29 @@ html[data-theme=dark] .toggle .sw::after{background:#eaf0f7}
       : /^(outlook|hotmail|live|msn)\.[a-z.]+$/.test(d) ? 'outlook' : 'other';          // your own domain: add its server in Settings
     save();
   }
+  let emailConnection = { mode: 'apple', ready: true };
+  async function refreshConnection() {
+    emailConnection = await call('emailStatus').catch(() => emailConnection) || emailConnection;
+    const c = emailConnection;
+    $('mailGoogle').disabled = !c.gmailAvailable; $('mailOutlook').disabled = !c.outlookAvailable; $('mailOutlook').hidden = !c.outlookAvailable;
+    $('mailDisconnect').disabled = !['gmail', 'outlook'].includes(c.mode);
+    $('mTest').disabled = !c.ready || c.mode === 'apple';
+    $('mailConnection').textContent = (c.mode === 'apple' ? 'Apple Mail selected — review the draft and press Send in Mail.' : c.ready ? 'Connected: ' + (c.from || 'advanced email') : 'Email needs connecting.') + (!c.gmailAvailable ? ' Gmail awaits activation by the app owner.' : '');
+    return c;
+  }
+  async function chooseConnection(provider) {
+    $('mailConnection').textContent = 'Opening connection…'; $('mailCancel').hidden = false;
+    const r = await call('emailConnect', { provider }).catch(() => null);
+    $('mailCancel').hidden = true; await refreshConnection();
+    if (!r || r.error) toast((r && r.error) || 'Could not connect');
+  }
+  $('mailGoogle').addEventListener('click', () => chooseConnection('gmail'));
+  $('mailOutlook').addEventListener('click', () => chooseConnection('outlook'));
+  $('mailApple').addEventListener('click', () => chooseConnection('apple'));
+  $('mailDisconnect').addEventListener('click', async () => { const r = await call('emailDisconnect'); if (r.error) toast(r.error); await refreshConnection(); });
+  $('mailCancel').addEventListener('click', async () => { await call('emailCancel'); $('mailCancel').hidden = true; await refreshConnection(); });
   async function paintMail() {
+    await refreshConnection();
     const m = mail();
     $('mProvider').value = m.provider; $('mFrom').value = m.from || ''; $('mHost').value = m.host || ''; $('mPort').value = m.port || '';
     $('mServerWrap').hidden = $('mPortWrap').hidden = m.provider !== 'other';
@@ -1404,14 +1431,17 @@ html[data-theme=dark] .toggle .sw::after{background:#eaf0f7}
       const r = await call('mailPassword', { email: m.from, password: $('mPass').value.replace(/\s+/g, '') });
       toast(r && r.ok ? 'Saved' : "Couldn't save the password");
     } else toast('Saved');
+    await call('emailConnect', { provider: 'smtp' });
     paintMail();
   });
   $('mTest').addEventListener('click', async () => {
     const m = mail(), [host, port] = server();
-    $('mState').textContent = 'Sending a test…';
-    const r = await call('sendMail', { from: m.from, name: L.me.name, host, port, to: m.from, copy: false,
-      subject: 'Needed Pay — test', body: 'It works. Invoices will send from this address.' }).catch(() => null);
-    $('mState').textContent = r && r.ok ? `Sent — check ${m.from}.` : (r && r.error) || 'That didn\u2019t work.';
+    const c = await refreshConnection(), to = c.mode === 'smtp' ? m.from : c.from;
+    $('mTest').disabled = true; $('mTestState').textContent = 'Sending a test…';
+    const r = await call('sendMail', { emailMode: c.mode, emailFrom: c.from || '', from: m.from, name: L.me.name, host, port, to, copy: false,
+      subject: 'Needed Tools email test', body: 'This is a test email sent from Needed Tools to verify your email connection. No documents are attached.' }).catch(() => null);
+    $('mTest').disabled = false;
+    $('mTestState').textContent = r && r.draft ? 'Draft opened in Apple Mail — press Send there.' : r && r.ok ? `Accepted for sending — check ${to}.` : (r && r.error) || 'That didn\u2019t work.';
   });
 
   // Send: a small glass panel, filled in; one press and it's gone, with a note of when and to whom.
@@ -1419,31 +1449,25 @@ html[data-theme=dark] .toggle .sw::after{background:#eaf0f7}
     if (!cur || busy) return;
     if (!bridge) return toast('Sending happens in the Needed Pay app');
     const m = mail();
+    const connection = await refreshConnection();
+    if (!connection.ready) { toast('Connect your email in Settings first'); showTab('settings'); return; }
+    $('sGo').textContent = connection.mode === 'apple' ? 'Open in Apple Mail' : 'Send';
+    $('sCopy').closest('label').hidden = connection.mode === 'apple';
     if (!cur.pdf || cur.status === 'draft') { await doExport(); if (!cur.pdf) return; }
-    // One press sends it when your email is connected; otherwise it opens in Mail, the PDF attached.
-    const r = m.from ? await call('mailPassword', { email: m.from }).catch(() => null) : null;
-    sendReady = !!(r && r.saved && server() && server()[0]);
-    $('sGo').hidden = $('sCopy').parentNode.hidden = !sendReady;
-    $('sMail').className = sendReady ? 'pill' : 'pill solid';
     const who = (L.me.name || '').trim();
     $('sTitle').textContent = `Send invoice ${cur.number}`;
     $('sTo').value = (cur.client.email || '').trim();
     $('sSubject').value = `Invoice ${cur.number}${cur.job ? ' · ' + cur.job : ''}${who ? ' — ' + who : ''}`;
     $('sBody').value = `Hi${cur.client.contact ? ' ' + cur.client.contact.split(' ')[0] : ''},\n\nPlease find invoice ${cur.number} attached — ${money(total(cur), cur.currency)}, due ${longDate(cur.due, cur.currency)}.\n\nThank you,\n${who}`;
-    $('sState').textContent = cur.emailedTo ? `Sent to ${cur.emailedTo} on ${longDate(cur.emailedAt, cur.currency)}`
-      : sendReady ? `From ${m.from}` : m.from ? `To send from ${m.from} in one press, add its app password in Settings.` : '';
+    $('sState').textContent = cur.emailedTo ? `Sent to ${cur.emailedTo} on ${longDate(cur.emailedAt, cur.currency)}` : connection.from ? `From ${connection.from}` : 'Choose your sending address in Apple Mail.';
     $('sendVeil').hidden = false;
     setTimeout(() => $('sTo').focus(), 30);
   });
-  let sendReady = false;
   const closeSend = () => { $('sendVeil').hidden = true; };
   $('sMail').addEventListener('click', async () => {
-    const to = $('sTo').value.trim();
-    const r = await call('emailInvoice', { to, subject: $('sSubject').value, body: $('sBody').value, path: cur.pdf }).catch(() => null);
-    if (r && r.ok) {
-      if (to && !cur.client.email) { cur.client.email = to; save(); }
-      closeSend(); toast('Opened in Mail — the PDF is attached');
-    } else $('sState').textContent = (r && r.error) || 'Mail didn\u2019t open.';
+    const r = await call('emailInvoice', { to: $('sTo').value.trim(), subject: $('sSubject').value, body: $('sBody').value, path: cur.pdf }).catch(() => null);
+    if (r && r.ok) { closeSend(); toast('Opened in Mail — review and send there'); }
+    else $('sState').textContent = (r && r.error) || 'Mail did not open.';
   });
   $('sCancel').addEventListener('click', closeSend);
   $('sendVeil').addEventListener('mousedown', e => { if (e.target === $('sendVeil')) closeSend(); });
@@ -1451,16 +1475,17 @@ html[data-theme=dark] .toggle .sw::after{background:#eaf0f7}
     const to = $('sTo').value.trim();
     if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(to)) { $('sState').textContent = 'Add who it\u2019s to.'; return; }
     const m = mail(), [host, port] = server();
-    $('sGo').disabled = true; $('sState').textContent = 'Sending…';
-    const r = await call('sendMail', { from: m.from, name: L.me.name, host, port, to, subject: $('sSubject').value, body: $('sBody').value,
+    $('sGo').disabled = true; $('sState').textContent = emailConnection.mode === 'apple' ? 'Opening Mail…' : 'Sending…';
+    const r = await call('sendMail', { emailMode: emailConnection.mode, emailFrom: emailConnection.from || '', from: m.from, name: L.me.name, host, port, to, subject: $('sSubject').value, body: $('sBody').value,
                                        path: cur.pdf, copy: $('sCopy').checked }).catch(() => null);
     $('sGo').disabled = false;
+    if (r && r.ok && r.draft) { closeSend(); toast('Draft opened in Apple Mail — review and press Send there. The invoice is not marked as emailed.'); return; }
     if (r && r.ok) {
       cur.emailedTo = to; cur.emailedAt = today();
       if (r.saved) cur.emailCopy = r.saved;                  // a copy of what was sent, beside the PDF
       if (!cur.client.email) cur.client.email = to;
       save(); closeSend(); renderInvoice();
-      toast(`Invoice ${cur.number} sent to ${to} — a copy is in the project's Invoices › Sent`);
+      toast(`Invoice ${cur.number} accepted for sending to ${to}` + (r.saved ? ' — a copy was saved' : ' — local copy could not be saved'));
     } else $('sState').textContent = (r && r.error) || 'That didn\u2019t send.';
   });
 

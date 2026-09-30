@@ -1033,10 +1033,10 @@ main>*{animation:rise .45s var(--ease-out) both}
     const shown = people();
     openSheet('send', `
       <div class="shead"><div class="grow"><h3>Send</h3>
-        <span class="note">${mail.from ? `From ${esc(mail.from)} — the same account Pay sends invoices from.` : 'Sending uses the email account you set up in Pay.'}</span></div>
+        <span class="note">${mail.mode === 'apple' ? 'Open a draft in Apple Mail, then review and send it there.' : mail.from ? `From ${esc(mail.from)} — also used by Needed Pay.` : 'Choose an email connection below.'}</span></div>
         ${drafts.length ? `<select class="field" id="draftPick" style="padding:8px 10px;font-size:12.5px;align-self:center"><option value="">Drafts · ${drafts.length}</option>${drafts.map(x => `<option value="${esc(x.id)}">${esc(x.subject || 'No subject')}</option>`).join('')}</select>` : ''}
         ${closeBtn}</div>
-      ${mail.ready ? '' : `<div class="warnbox"><span class="grow">${mail.from ? 'Add your app password in Pay › Settings to send from here.' : 'Connect your email in Pay › Settings first — then documents send from the same account.'}</span><button class="btnl" id="toPay" style="padding:9px 15px">Open Pay</button></div>`}
+      ${mail.ready ? '' : `<div class="warnbox"><span class="grow">${mail.mode === 'smtp' ? 'Complete advanced email setup in Pay Settings, or choose Apple Mail below.' : 'Reconnect your email below, or choose Apple Mail.'}</span><button class="btnl" id="toPay" style="padding:9px 15px">Open Pay</button></div>`}
       <div class="sendgrid">
         <div style="display:flex;flex-direction:column;gap:16px;min-width:0">
           <span class="cap">Sending · ${files.length} document${files.length === 1 ? '' : 's'}</span>
@@ -1047,7 +1047,7 @@ main>*{animation:rise .45s var(--ease-out) both}
           <span class="note2">${files.length ? `${size(total)} in all — ${tooBig ? 'too big for email. Send fewer, or share a link from your own storage.' : 'fine for email.'} ` : ''}Films are too big to email; send those as a link from your own storage.</span>
           <label style="display:flex;flex-direction:column;gap:6px"><span class="cap">Subject</span><input class="field" id="subj" value="${esc(S.subject)}" spellcheck="false"></label>
           <label style="display:flex;flex-direction:column;gap:6px"><span class="cap">Message</span><textarea class="field" id="msg" rows="6" style="resize:vertical;font-family:Raleway,serif;line-height:1.5">${esc(S.body)}</textarea></label>
-          <label class="note2" style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="copy" ${S.copy ? 'checked' : ''}> Send me a copy</label>
+          <label class="note2" style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="copy" ${mail.mode === 'apple' ? 'disabled' : ''} ${mail.mode !== 'apple' && S.copy ? 'checked' : ''}> Send me a copy</label>
         </div>
         <div style="display:flex;flex-direction:column;gap:12px;min-width:0">
           ${chipRow('to', 'To')}${chipRow('cc', 'Cc')}${chipRow('bcc', 'Bcc')}
@@ -1064,11 +1064,13 @@ main>*{animation:rise .45s var(--ease-out) both}
           <span class="note2">One contact book: crew from Credit, clients from Pay, and everyone on your projects. No email yet? Add it here and every tool has it.</span>
         </div>
       </div>
-      <div class="foot"><span class="grow">A copy of what you send is kept in ${esc(D.project)} › ${esc(D.project)}_Docs › Sent, and each document notes who it went to.</span>
+      <div class="row" style="display:flex;flex-wrap:wrap;gap:8px;margin:12px 0"><button class="btnl" data-email-provider="gmail" ${mail.gmailAvailable ? '' : 'disabled'}>Sign in with Google</button><button class="btnl" data-email-provider="outlook" ${mail.outlookAvailable ? '' : 'disabled'}>Connect Outlook</button><button class="btnl" data-email-provider="apple">Use Apple Mail</button><button class="txt" data-email-disconnect>Disconnect</button><button class="txt" data-email-cancel>Cancel sign-in</button></div>
+      ${!mail.gmailAvailable ? '<p class="note2">Gmail awaits activation by the app owner.</p>' : ''}${!mail.outlookAvailable ? '<p class="note2">Outlook awaits activation by the app owner.</p>' : ''}
+      <div class="foot"><span class="grow">${mail.mode === 'apple' ? 'Drafts are not recorded as sent here. Choose your sender and any copy-to-self in Mail.' : 'Accepted messages are recorded in this project’s Sent folder when the local copy can be saved.'}</span>
         ${drafts.some(x => x.id === S.id) ? '<button class="txt" id="dropDraft">Delete draft</button>' : ''}
         <button class="btnl" id="saveDraft">Save draft</button>
         <button class="btnl" data-close>Cancel</button>
-        <button class="btnd" id="sendGo" ${ready ? '' : 'disabled'}>${noMail.length ? `${esc(noMail[0].name)} needs an email` : who ? `Send to ${who} ${who === 1 ? 'person' : 'people'}` : 'Pick someone to send to'}</button></div>`);
+        <button class="btnd" id="sendGo" ${ready ? '' : 'disabled'}>${noMail.length ? `${esc(noMail[0].name)} needs an email` : who ? mail.mode === 'apple' ? 'Open in Apple Mail' : `Send to ${who} ${who === 1 ? 'person' : 'people'}` : 'Pick someone to send to'}</button></div>`);
     renderSend.shown = shown;
     const q = $('pq');
     q.addEventListener('input', () => { S.q = q.value; keepTyping(); const pos = q.selectionStart; renderSend(); const n = $('pq'); n.focus(); n.setSelectionRange(pos, pos); });
@@ -1091,6 +1093,15 @@ main>*{animation:rise .45s var(--ease-out) both}
     else S[S.field].push({ id: p.id || '', name: p.name || '', email: p.email || '' });
   }
   async function sendClick(t) {
+    if (t.dataset.emailProvider || t.hasAttribute('data-email-disconnect') || t.hasAttribute('data-email-cancel')) {
+      keepTyping();
+      const action = t.dataset.emailProvider ? 'emailConnect' : t.hasAttribute('data-email-cancel') ? 'emailCancel' : 'emailDisconnect';
+      t.disabled = true;
+      const r = await call(action, { provider: t.dataset.emailProvider }).catch(() => null);
+      D.mail = await call('emailStatus').catch(() => D.mail);
+      if (!r || r.error) toast((r && r.error) || 'Could not update the connection');
+      return renderSend();
+    }
     const d = t.dataset;
     keepTyping();
     if (t.id === 'toPay') { closeSheet(); return call('projectTool', { id: 'pay' }); }
@@ -1117,12 +1128,13 @@ main>*{animation:rise .45s var(--ease-out) both}
       toast('Draft saved with the project'); return renderSend();
     }
     if (t.id === 'sendGo') {
-      t.disabled = true; t.textContent = 'Sending…';
-      const r = await call('projectSend', { files: S.files, to: S.to, cc: S.cc, bcc: S.bcc, subject: S.subject, body: S.body, copy: S.copy, draft: S.id }).catch(() => null);
+      t.disabled = true; t.textContent = (D.mail || {}).mode === 'apple' ? 'Opening Mail…' : 'Sending…';
+      const r = await call('projectSend', { emailMode: (D.mail || {}).mode, emailFrom: (D.mail || {}).from || '', files: S.files, to: S.to, cc: S.cc, bcc: S.bcc, subject: S.subject, body: S.body, copy: S.copy, draft: S.id }).catch(() => null);
       if (!r || !r.ok) { toast((r && r.error) || "Couldn't send — try again"); return renderSend(); }
+      if (r.draft) { toast('Opened in Apple Mail — review and press Send there. Nothing is marked as sent here.'); return renderSend(); }
       if (r.data) D = r.data;
       picked.clear(); closeSheet(); render(); loadCalendar();
-      toast('Sent');
+      toast('Accepted for sending' + (r.saved ? '' : ' — local copy could not be saved'));
     }
   }
 

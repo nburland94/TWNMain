@@ -648,6 +648,10 @@ enum Mailer {
     /// One email to everyone picked: To and CC in the message, BCC only on the envelope.
     static func send(to: [[String: Any]], cc: [[String: Any]], bcc: [[String: Any]], subject: String, body: String,
                      files: [URL], copy: Bool, keepIn: URL?, done: @escaping ([String: Any]) -> Void) {
+        if MailConnection.mode != "smtp" {
+            MailConnection.send(to: to, cc: cc, bcc: bcc, subject: subject, body: body, files: files, copy: copy, keepIn: keepIn, done: done)
+            return
+        }
         guard let acct = account() else { return done(["ok": false, "error": "Connect your email in Pay › Settings first — sending uses the same account.", "setup": true]) }
         guard let pw = PayKeychain.read(acct.from) else { return done(["ok": false, "error": "Add your app password in Pay › Settings.", "setup": true]) }
         let valid = { (p: [String: Any]) -> Bool in ((p["email"] as? String) ?? "").range(of: "^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$", options: .regularExpression) != nil }
@@ -1226,8 +1230,7 @@ extension Shell {
             out["finalFilm"] = film
         } else { out.removeValue(forKey: "finalFilm") }
         out["contacts"] = Contacts.all()
-        if let a = Mailer.account() { out["mail"] = ["from": a.from, "name": a.name, "ready": PayKeychain.has(a.from)] }
-        else { out["mail"] = ["ready": false] }
+        out["mail"] = MailConnection.status()
         out["today"] = BriefReader.day.string(from: Date())
         // Pay's invoices for this project: the timeline ends on Paid.
         let invoices = ((Mailer.ledger()?["invoices"] as? [[String: Any]]) ?? []).filter { ($0["project"] as? String) == project }
@@ -1294,6 +1297,7 @@ extension Shell {
 
     /// Send the picked documents to the picked people; note it on each document.
     func projectSend(_ project: String, _ b: [String: Any], _ reply: @escaping (Any?, String?) -> Void) {
+        guard MailConnection.matches(b) else { return reply(["ok": false, "error": "Your sending account changed. Reopen this message before sending."], nil) }
         guard let base = Shared.vault else { return reply(["ok": false, "error": "Choose your vault first"], nil) }
         let rels = ((b["files"] as? [String]) ?? []).filter { !$0.contains("..") }
         let files = rels.map { base.appendingPathComponent($0) }
@@ -1306,6 +1310,7 @@ extension Shell {
         Mailer.send(to: to, cc: cc, bcc: bcc, subject: (b["subject"] as? String) ?? "", body: (b["body"] as? String) ?? "",
                     files: files, copy: (b["copy"] as? Bool) ?? true, keepIn: sentDir) { r in
             guard (r["ok"] as? Bool) == true else { return reply(r, nil) }
+            if (r["draft"] as? Bool) == true { reply(r, nil); return }
             let names: [String] = (to + cc + bcc).map { (p: [String: Any]) -> String in
                 let n = (p["name"] as? String) ?? ""
                 return n.isEmpty ? ((p["email"] as? String) ?? "") : String(n.split(separator: " ").first ?? "")

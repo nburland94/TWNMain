@@ -7,6 +7,7 @@
 //   Resources/account.json   { "supabaseUrl": "https://xxxx.supabase.co", "supabaseAnonKey": "…", "providers": ["google", "apple"] }
 //   (the anon key is public by design — it's safe inside the app; never put a service or secret key here)
 //
+// Personal builds use one desktop Google consent for identity and Gmail sending. Apple still uses Supabase.
 // Your email becomes the default address Pay sends from — unless Apple hid it ("Hide my email"),
 // or you've set another. Your projects never leave your Mac: sign-in only says who you are.
 // Empty account.json: no sign-in screen (the owner's own builds open straight in).
@@ -33,7 +34,7 @@ final class Account: NSObject, ASWebAuthenticationPresentationContextProviding {
     private var base: String { ((config["supabaseUrl"] as? String) ?? "").trimmingCharacters(in: CharacterSet(charactersIn: " /")) }
     private var anonKey: String { (config["supabaseAnonKey"] as? String) ?? "" }
     var providers: [String] { (config["providers"] as? [String]) ?? ["google", "apple"] }
-    var configured: Bool { base.hasPrefix("https://") && !anonKey.isEmpty }
+    var configured: Bool { (MailConnection.enabled && !MailConnection.client("gmail").isEmpty) || (base.hasPrefix("https://") && !anonKey.isEmpty) }
 
     // MARK: The session, kept on this Mac (readable only by you)
 
@@ -57,7 +58,12 @@ final class Account: NSObject, ASWebAuthenticationPresentationContextProviding {
         }
     }
     var user: [String: Any]? { stored?["user"] as? [String: Any] }
-    var signedIn: Bool { user != nil }
+    var signedIn: Bool {
+        if stored?["directGoogle"] as? Bool == true {
+            return MailConnection.credentials()?["email"] as? String == email
+        }
+        return user != nil
+    }
     var email: String { (user?["email"] as? String) ?? "" }
     /// Apple's "Hide my email" gives a relay address — it can receive mail, but you can't send from it.
     var hiddenEmail: Bool { email.lowercased().hasSuffix("privaterelay.appleid.com") }
@@ -78,6 +84,19 @@ final class Account: NSObject, ASWebAuthenticationPresentationContextProviding {
     }
 
     func signIn(provider raw: String, done: @escaping ([String: Any]) -> Void) {
+        if raw == "google", MailConnection.enabled, !MailConnection.client("gmail").isEmpty {
+            _ = MailConnection.handleRaw("emailConnect", ["provider": "gmail"]) { result, _ in
+                guard let r = result as? [String: Any], r["ready"] as? Bool == true,
+                      let c = MailConnection.credentials(), let email = c["email"] as? String else {
+                    return done((result as? [String: Any]) ?? ["ok": false, "error": "Google sign-in did not finish."])
+                }
+                self.stored = ["directGoogle": true, "user": ["id": c["id"] as? String ?? "", "email": email,
+                    "name": c["name"] as? String ?? "", "provider": "google"]]
+                self.applyProfile()
+                done(["ok": true, "account": self.status()])
+            }
+            return
+        }
         guard configured else { return done(["ok": false, "error": "Sign-in isn't set up in this build yet."]) }
         let provider = raw == "apple" ? "apple" : "google"
         var bytes = [UInt8](repeating: 0, count: 48)
@@ -146,6 +165,7 @@ final class Account: NSObject, ASWebAuthenticationPresentationContextProviding {
 
     /// At launch: keep the session fresh. Offline, you stay signed in; only a refused session signs you out.
     func refresh(done: @escaping (Bool) -> Void = { _ in }) {
+        if stored?["directGoogle"] as? Bool == true { return done(signedIn) }
         guard configured, let s = stored, let rt = s["refresh_token"] as? String else { return done(signedIn) }
         let exp = (s["expires_at"] as? Double) ?? 0
         if Date().timeIntervalSince1970 < exp - 600 { return done(true) }
@@ -157,6 +177,12 @@ final class Account: NSObject, ASWebAuthenticationPresentationContextProviding {
     }
 
     func signOut() {
+        if MailConnection.enabled {
+            MailConnection.generation = UUID()
+            MailConnection.login?.cancel(); MailConnection.login = nil
+            _ = MailConnection.store(nil)
+            UserDefaults.standard.set("apple", forKey: "neededOwnerMailMode")
+        }
         if let t = stored?["access_token"] as? String, configured { post("/auth/v1/logout", [:], bearer: t) { _, _ in } }
         stored = nil
     }
