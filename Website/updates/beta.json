@@ -1,10 +1,10 @@
 {
-  "build" : 6,
+  "build" : 7,
   "channel" : "beta",
-  "notes" : "Drag and drop from Finder: stills, GIFs, MP4 and MOV onto Home or the Vault. Plus the Home toolbar fits smaller screens.",
-  "published" : "2026-09-30T20:11:47Z",
-  "sha256" : "a1c35ab7860376ef30c97b3569a37e4312b6aecd63ad9239d05c1e975ff6ba45",
-  "signature" : "fuMqDPN8uB3UpV5dDKxf3QycIaf1gyUP\/Msirgq4pgDl9RupbmShOh6j5z75g5vl3xBIs0L15O3svCmfvba4Bg==",
-  "url" : "Needed-Tools-beta-6.zip",
-  "version" : "1.0.6"
+  "notes" : "Add, Credit and Sort now show numbered steps in plain words on the left. Sort: choose Move or Copy, so nothing gets duplicated. Add: a bigger player with a clear orange progress line, and GIFs and MP4s of any length. Explore: browse inside Needed Tools, the address always shows the real link, Grab on every picture, sign-ins come back to Explore. Vault opens on your project covers. Night by default.",
+  "published" : "2026-10-01T19:13:09Z",
+  "sha256" : "477ddfb8bfd3c457052ede9bbba90b624bd875faff1e663e414ae2d2a7abe1f5",
+  "signature" : "hXwBruto8X2MbUIukxmEPDYUEfCG0mqyeablcw8hivCZs1pdts4N44IL6b0wRrY6NdySdxmuQrFT9xb9tGH1CA==",
+  "url" : "Needed-Tools-beta-7.zip",
+  "version" : "1.0.7"
 }
