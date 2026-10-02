@@ -856,7 +856,8 @@ extension ShotsHost {
         let layout = (doc["layout"] as? [String: Any]) ?? [:]
         let portrait = (layout["orientation"] as? String) == "portrait"
         let ruled = (layout["lines"] as? Bool) ?? true
-        let k = CGFloat(min(1.5, max(0.7, (layout["scale"] as? NSNumber)?.doubleValue ?? 1)))
+        let pictureScale = CGFloat(min(1.5, max(0.25, (layout["scale"] as? NSNumber)?.doubleValue ?? 1)))
+        let k = max(0.7, pictureScale) // keep text readable when shrinking photographs
 
         // A4 either way: reads on an iPad, prints on A4 or Letter.
         var media = portrait ? CGRect(x: 0, y: 0, width: 595, height: 842) : CGRect(x: 0, y: 0, width: 842, height: 595)
@@ -875,7 +876,7 @@ extension ShotsHost {
         let base: [CGFloat] = portrait ? [0.07, 0.22, 0.11, 0.08, 0.09, 0.15, 0.28]
                                        : [0.06, 0.225, 0.115, 0.08, 0.09, 0.175, 0.255]
         // Scale mostly changes the pictures: take room from the text columns.
-        let pic = min(0.42, max(0.18, base[6] * k))
+        let pic = min(0.42, max(0.07, base[6] * pictureScale))
         let rest = base.prefix(6).reduce(0, +)
         // Scene breakdown: just the number and one free line, the full width.
         let breakdown = (doc["mode"] as? String) == "breakdown"
@@ -902,26 +903,29 @@ extension ShotsHost {
             NSGraphicsContext.saveGraphicsState()
             NSGraphicsContext.current = NSGraphicsContext(cgContext: ctx, flipped: false)
             y = media.height - margin
+            var logoBottom = y
             if let mark = mark, mark.size.width > 0 {
                 let w: CGFloat = page == 1 ? 68 : 40
                 let h = w * mark.size.height / mark.size.width
+                logoBottom = media.height - margin - h + 6
                 mark.draw(in: CGRect(x: media.width - margin - w, y: media.height - margin - h + 6, width: w, height: h),
                           from: .zero, operation: .sourceOver, fraction: 1)
             }
             if page == 1 {
-                draw(title, in: CGRect(x: margin, y: y - 30, width: usable, height: 34),
+                draw(title, in: CGRect(x: margin, y: y - 30, width: usable - 84, height: 34),
                      font: pdfFont("HelveticaNeue-Thin", 26 * k), colour: ink)
                 y -= 36
                 if !subtitle.isEmpty {
-                    draw(subtitle, in: CGRect(x: margin, y: y - 14, width: usable, height: 16),
+                    draw(subtitle, in: CGRect(x: margin, y: y - 14, width: usable - 84, height: 16),
                          font: pdfFont("Menlo", 9 * k), colour: mid, tracking: 1)
                     y -= 20
                 }
             } else {
-                draw(title, in: CGRect(x: margin, y: y - 12, width: usable, height: 14),
+                draw(title, in: CGRect(x: margin, y: y - 12, width: usable - 56, height: 14),
                      font: pdfFont("Menlo", 8), colour: dim, tracking: 1, upper: true)
                 y -= 20
             }
+            y = min(y, logoBottom - 14) // keep headings below the logo at every scale
             // column headings
             for (i, c) in cols.enumerated() where c.1 > 0.001 {
                 draw(c.0, in: CGRect(x: x0[i] + 4, y: y - 11, width: c.1 * usable - 10, height: 12),

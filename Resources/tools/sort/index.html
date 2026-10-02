@@ -358,6 +358,7 @@ main{padding:0 3rem;max-width:1180px}
       <p class="note">Open a scene to see every clip. Drag clips to another scene, or to the bottom for a new one — hold ⌘ or ⇧ to pick several. Click a scene's name to rename its folder.</p>
       <div class="colhead"><span>Scene folder</span><span>When</span><span>Clips</span><span>Break</span><span></span></div>
       <div id="scenes"></div>
+      <p class="note">Scene colours export with a Premiere import script. Run that script in Premiere before adding clips to a timeline; dragging folders alone does not transfer labels.</p>
       <div class="newscene" id="newScene">Drop clips here for a new scene</div>
     </div>
   </section>
@@ -394,7 +395,8 @@ main{padding:0 3rem;max-width:1180px}
 </main>
 
 <div class="bar" id="bar">
-  <button class="pill solid" id="goBtn" disabled>Sort and copy</button>
+  <select id="sortOperation" aria-label="Sort operation"><option value="copy">Copy &amp; Sort</option><option value="move">Move &amp; Sort</option></select>
+  <button class="pill solid" id="goBtn" disabled>Copy &amp; Sort</button>
   <button class="pill stop" id="stopBtn" hidden>Stop</button>
   <button class="pill quiet" id="revealBtn" hidden>Show in Finder</button>
   <button class="pill quiet" id="ejectBtn" hidden title="Safely eject the cards, ready to take them out">⏏ Eject card</button>
@@ -499,7 +501,7 @@ main{padding:0 3rem;max-width:1180px}
       $('scanText').textContent = `Reading recording times… ${Math.round(f * 100)}%${label ? ' · ' + label : ''}`;
     });
     let r; try { r = await call('scan', { sources: cards.map(c => c.path) }); } catch (e) { r = null; }
-    stop(); busy = false; busyWhat = ''; $('scanStatus').hidden = true; renderCards();
+    stop(); busy = false; $('sortOperation').disabled = false; busyWhat = ''; $('scanStatus').hidden = true; renderCards();
     if (!r || !r.ok) { setStatus(r && r.cancelled ? 'Stopped.' : "Couldn't read those cards.", true); return; }
     clips = (r.clips || []).sort((a, b) => a.start - b.start);
     stills = r.stills || []; extras = r.extras || [];
@@ -541,6 +543,7 @@ main{padding:0 3rem;max-width:1180px}
     scenes.sort((a, b) => sceneClips(a)[0].start - sceneClips(b)[0].start);
   }
 
+  const premiereLabels = ['Violet','Iris','Caribbean','Lavender','Cerulean','Forest','Rose','Mango','Purple','Blue','Teal','Magenta','Tan','Green','Brown','Yellow'];
   function render() {
     tidy();
     const manyDays = new Set(clips.map(c => dayOf(c.start))).size > 1;
@@ -560,12 +563,13 @@ main{padding:0 3rem;max-width:1180px}
       return `<div class="scene" data-scene="${s.id}">
         <div class="shead">
           <input type="text" value="${esc(s.name)}" placeholder="${esc(autoName(s, i))}" data-rename="${s.id}" spellcheck="false" title="Rename this scene's folder">
+          <select data-label="${s.id}" aria-label="Premiere scene label"><option value="-1">No colour label</option>${premiereLabels.map((name, index) => `<option value="${index}" ${s.label === index ? 'selected' : ''}>${name}</option>`).join('')}</select>
           <span class="mono">${esc(when)}</span>
           <span class="mono">${list.length}</span>
           <span class="brk">${esc(brk)}</span>
           <button class="pill quiet open" data-open="${s.id}">${isOpen ? 'Close' : 'Open'}</button>
         </div>
-        ${isOpen ? `<div class="grid">${list.map(c => tile(c)).join('')}</div>` : `<div class="strip">${strip(list)}</div>`}
+        ${['video', 'audio'].map(kind => { const group = list.filter(c => c.kind === kind); return group.length ? `<div class="media-group"><div class="mono" style="padding:12px 16px 6px">${kind === 'video' ? 'VIDEO' : 'AUDIO'} · ${group.length}</div>${isOpen ? `<div class="grid">${group.map(c => tile(c)).join('')}</div>` : `<div class="strip">${strip(group)}</div>`}</div>` : ''; }).join('')}
       </div>`;
     }).join('');
     $('scenes').innerHTML = html;
@@ -612,12 +616,18 @@ main{padding:0 3rem;max-width:1180px}
     if (edited && !confirm('Regroup by time? That resets the clips you moved by hand.')) { $('gap').value = gap; return; }
     gap = v; $('gapNum').textContent = gap;
     edited = false;
+    const oldLabels = new Map(scenes.flatMap(s => s.ids.map(id => [id, s.label ?? -1])));
     const names = scenes.map(s => s.name);                 // keep typed names in position where it still makes sense
     regroup();
-    scenes.forEach((s, i) => { if (names[i]) s.name = names[i]; });
+    scenes.forEach((s, i) => { if (names[i]) s.name = names[i]; const labels = new Set(s.ids.map(id => oldLabels.get(id) ?? -1)); s.label = labels.size === 1 ? [...labels][0] : -1; });
     render();
   });
 
+  $('scenes').addEventListener('change', e => {
+    if (!e.target.matches('[data-label]')) return;
+    const scene = scenes.find(s => s.id === +e.target.dataset.label);
+    if (scene) scene.label = +e.target.value;
+  });
   $('scenes').addEventListener('input', e => {
     const id = +e.target.dataset.rename; if (!id) return;
     const s = scenes.find(x => x.id === id); if (!s) return;
@@ -810,17 +820,20 @@ main{padding:0 3rem;max-width:1180px}
     setStatus(`${scenes.length} scene${scenes.length === 1 ? '' : 's'} · ${n} file${n === 1 ? '' : 's'} to copy and check.`);
   }
 
+  $('sortOperation').addEventListener('change', () => { $('goBtn').textContent = $('sortOperation').value === 'move' ? 'Move & Sort' : 'Copy & Sort'; });
   $('goBtn').addEventListener('click', async () => {
     if (busy) return blocked();
     if (!clips.length || !dest) return;
     const scenesOut = scenes.map((s, i) => ({
-      name: folderName(s, i),
+      name: folderName(s, i), label: s.label ?? -1,
       clips: sceneClips(s).map(c => ({ path: c.path, name: c.name, kind: c.kind, card: c.card, start: c.start, dur: c.dur,
                                          source: c.source, family: (c.family || []).map(f => f.path) })),
     }));
     const dupes = scenesOut.map(s => s.name.toLowerCase()).filter((n, i, a) => a.indexOf(n) !== i);
     if (dupes.length) { setStatus(`Two scenes are both called "${dupes[0]}" — rename one first.`, true); return; }
-    busy = true; busyWhat = 'copying and checking your footage';
+    const moving = $('sortOperation').value === 'move';
+    if (moving && !confirm('Move these files? Originals will be removed only after all files have been copied and verified. Keep a separate backup of irreplaceable footage.')) return;
+    busy = true; $('sortOperation').disabled = true; busyWhat = 'sorting and checking your footage';
     $('goBtn').disabled = true; $('stopBtn').hidden = false; $('revealBtn').hidden = true; $('buildProg').hidden = false;
     const bar = $('buildProg').querySelector('i'); bar.style.width = '0%';
     setStatus('Copying and checking…');
@@ -830,20 +843,21 @@ main{padding:0 3rem;max-width:1180px}
     });
     let r;
     try {
-      r = await call('build', { dest, name: $('projName').value.trim(), structure, scenes: scenesOut,
+      r = await call('build', { dest, operation: moving ? 'move' : 'copy', name: $('projName').value.trim(), structure, scenes: scenesOut,
                                  stills: stills.map(s => ({ path: s.path, card: s.card, name: s.name })),
                                  extras: extras.map(x => ({ path: x.path, card: x.card, rel: x.rel, name: x.name })) });
     } catch (e) { r = null; }
-    stop(); busy = false; busyWhat = '';
+    stop(); busy = false; $('sortOperation').disabled = false; busyWhat = '';
     $('stopBtn').hidden = true; $('buildProg').hidden = true; $('goBtn').disabled = false;
     if (!r) { setStatus('Something went wrong while copying.', true); return; }
     $('revealBtn').hidden = !r.copied;
-    if (r.cancelled) { setStatus(`Stopped — ${r.copied} of ${r.total} files copied and checked. The rest weren't copied.`, true); return; }
+    if (r.cancelled) { setStatus(`Stopped — ${r.copied} of ${r.total} files copied and checked.${moving ? ` ${r.removed || 0} verified originals removed; all others retained.` : ''}`, true); return; }
     if (r.failed && r.failed.length) {
-      setStatus(`${r.copied} of ${r.total} copied and checked. ${r.failed.length} didn't match the card and were left out: ${r.failed.slice(0, 3).join(', ')}${r.failed.length > 3 ? '…' : ''}`, true);
+      setStatus(`${r.copied} of ${r.total} copied and checked. ${r.failed.length} need attention: ${r.failed.slice(0, 3).join(', ')}${r.failed.length > 3 ? '…' : ''}`, true);
       return;
     }
-    setStatus(`All ${r.copied} files copied and checked against the cards. Nothing left behind — eject the card when you're ready.`);
+    setStatus(moving ? `All ${r.copied} files verified. ${r.removed} originals removed — move complete.` : `All ${r.copied} files copied and checked. Originals retained.`);
+    if (moving) { clips = []; byId.clear(); $('goBtn').disabled = true; }
     $('ejectBtn').hidden = !cards.some(c => c.removable);
     toast('Done — every file checked');
   });

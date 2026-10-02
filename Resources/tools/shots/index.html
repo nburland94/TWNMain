@@ -337,7 +337,7 @@ One beat per line, or ordinary prose; sentences become shots."></textarea>
           <div class="seg" id="linesSeg"><button data-v="on" class="on">Lines</button><button data-v="off">No lines</button></div></div>
         <div class="opt"><span class="label">Scale</span>
           <div class="row"><button class="pill quiet" id="scaleDown" title="Smaller">−</button>
-            <input type="range" id="scale" min="70" max="150" step="5" value="100">
+            <input type="range" id="scale" min="25" max="150" step="5" value="100">
             <button class="pill quiet" id="scaleUp" title="Bigger">+</button>
             <span class="mono" id="scaleVal">100%</span></div></div>
       </div>
@@ -1029,7 +1029,7 @@ One beat per line, or ordinary prose; sentences become shots."></textarea>
     layout.lines = b.dataset.v === 'on'; dirty = true; showLayout(); schedulePreview();
   });
   const setScale = pct => {
-    layout.scale = clamp(pct, 70, 150) / 100; dirty = true; showLayout(); schedulePreview();
+    layout.scale = clamp(pct, 25, 150) / 100; dirty = true; showLayout(); schedulePreview();
   };
   $('scale').addEventListener('input', () => setScale(+$('scale').value));
   $('scaleDown').addEventListener('click', () => setScale(Math.round(layout.scale * 100) - 10));

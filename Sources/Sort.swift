@@ -14,6 +14,7 @@ import AVFoundation
 import ImageIO
 import CryptoKit
 import QuickLookThumbnailing
+import UniformTypeIdentifiers
 
 let sortScheme = "neededsort"
 let sortPageBackground = NSColor(srgbRed: 0xF4 / 255.0, green: 0xF3 / 255.0,
@@ -403,8 +404,8 @@ extension SortHost: WKScriptMessageHandlerWithReply {
 // MARK: - Sorting
 
 /// What kind of file this is on a card.
-private let VIDEO_EXT: Set<String> = ["mov", "mp4", "mxf", "braw", "r3d", "avi", "mts", "m2ts", "mkv", "crm", "cine", "dng", "ari", "m4v"]
-private let AUDIO_EXT: Set<String> = ["wav", "aif", "aiff", "bwf", "flac", "mp3", "m4a"]
+private let VIDEO_EXT: Set<String> = ["mov", "mp4", "mxf", "braw", "r3d", "avi", "mts", "m2ts", "mkv", "crm", "cine", "dng", "ari", "m4v", "mpg", "mpeg", "m2v", "webm", "wmv", "asf", "vob", "ts", "m2t", "3gp", "3g2", "mjpeg", "mjpg", "dv", "dif", "hevc", "h265", "h264", "av1", "ogv", "gxf"]
+private let AUDIO_EXT: Set<String> = ["wav", "aif", "aiff", "bwf", "flac", "mp3", "m4a", "aac", "ogg", "opus", "wma", "caf", "ac3", "aifc", "ape"]
 private let STILL_EXT: Set<String> = ["jpg", "jpeg", "png", "tif", "tiff", "cr2", "cr3", "arw", "nef", "raf", "heic"]
 private let JUNK: Set<String> = [".ds_store", "thumbs.db", ".spotlight-v100", ".fseventsd", ".trashes", "desktop.ini"]
 
@@ -590,7 +591,7 @@ extension SortHost {
                     guard (try? f.resourceValues(forKeys: [.isRegularFileKey]))?.isRegularFile == true else { continue }
                     if JUNK.contains(f.lastPathComponent.lowercased()) || f.lastPathComponent.hasPrefix("._") { continue }
                     let ext = f.pathExtension.lowercased()
-                    if VIDEO_EXT.contains(ext) || AUDIO_EXT.contains(ext) { media.append((f, src.lastPathComponent, src)) }
+                    if VIDEO_EXT.contains(ext) || AUDIO_EXT.contains(ext) || UTType(filenameExtension: ext)?.conforms(to: .movie) == true || UTType(filenameExtension: ext)?.conforms(to: .audio) == true { media.append((f, src.lastPathComponent, src)) }
                     else { loose.append((f, src.lastPathComponent, src)) }
                 }
             }
@@ -622,7 +623,7 @@ extension SortHost {
                 let (start, dur, how) = self.probe(url, family: fam, ffprobe: ffprobe)
                 let rec: [String: Any] = [
                     "id": i, "path": url.path, "name": url.lastPathComponent, "card": card,
-                    "kind": AUDIO_EXT.contains(url.pathExtension.lowercased()) ? "audio" : "video",
+                    "kind": (AUDIO_EXT.contains(url.pathExtension.lowercased()) || UTType(filenameExtension: url.pathExtension)?.conforms(to: .audio) == true) ? "audio" : "video",
                     "start": start.timeIntervalSince1970 * 1000, "dur": dur, "source": how, "size": self.fileSize(url),
                     "family": fam.map { ["path": $0.path, "name": $0.lastPathComponent, "size": self.fileSize($0)] },
                 ]
@@ -678,44 +679,7 @@ extension SortHost {
     /// Copy one file, hashing as it goes, then read the copy back from disk
     /// (not from memory) and check it matches. Returns true only if it does.
     private func copyVerified(_ src: URL, to dst: URL, progress: (Int) -> Void) -> Bool {
-        guard let input = FileHandle(forReadingAtPath: src.path) else { return false }
-        FileManager.default.createFile(atPath: dst.path, contents: nil)
-        guard let output = FileHandle(forWritingAtPath: dst.path) else { try? input.close(); return false }
-        var hash = SHA256()
-        let chunk = 8 * 1024 * 1024
-        while true {
-            if jobCancel { try? input.close(); try? output.close(); try? FileManager.default.removeItem(at: dst); return false }
-            let data = input.readData(ofLength: chunk)
-            if data.isEmpty { break }
-            output.write(data)
-            hash.update(data: data)
-            progress(data.count)
-        }
-        try? input.close()
-        try? output.synchronize()
-        try? output.close()
-        let want = hash.finalize()
-
-        // Read it back, skipping the cache, so what's checked is what's on the drive.
-        guard let back = FileHandle(forReadingAtPath: dst.path) else { return false }
-        _ = fcntl(back.fileDescriptor, F_NOCACHE, 1)
-        var check = SHA256()
-        while true {
-            if jobCancel { try? back.close(); try? FileManager.default.removeItem(at: dst); return false }
-            let data = back.readData(ofLength: chunk)
-            if data.isEmpty { break }
-            check.update(data: data)
-            progress(data.count)
-        }
-        try? back.close()
-        // keep the card's dates on the copy, as editors expect
-        if let attrs = try? FileManager.default.attributesOfItem(atPath: src.path) {
-            var keep: [FileAttributeKey: Any] = [:]
-            if let m = attrs[.modificationDate] { keep[.modificationDate] = m }
-            if let c = attrs[.creationDate] { keep[.creationDate] = c }
-            try? FileManager.default.setAttributes(keep, ofItemAtPath: dst.path)
-        }
-        return check.finalize() == want
+        SortFileTransfer.copy(src, to: dst, cancelled: { self.jobCancel }, progress: progress)
     }
 
     /// Never overwrite: two cards can hold the same file name.
@@ -739,6 +703,7 @@ extension SortHost {
         guard let destPath = body["dest"] as? String, !destPath.isEmpty else {
             return reply(["ok": false, "error": "Choose where to save it"], nil)
         }
+        let moving = (body["operation"] as? String) == "move"
         let project = clean((body["name"] as? String) ?? "")
         let root = URL(fileURLWithPath: destPath).appendingPathComponent(project.isEmpty ? "Needed Sort" : project, isDirectory: true)
         let st = body["structure"] as? [String: Any] ?? [:]
@@ -769,7 +734,8 @@ extension SortHost {
             let first = firstFolder ?? "01_FOOTAGE"
             try? fm.createDirectory(at: root.appendingPathComponent(first), withIntermediateDirectories: true)
             let FOOTAGE = roleFolder["footage"] ?? first
-            let AUDIO = roleFolder["audio"] ?? FOOTAGE
+            let audioFolder = roleFolder["audio"] ?? "AUDIO"
+            let AUDIO = audioFolder == FOOTAGE ? FOOTAGE + "/AUDIO" : audioFolder
             let STILLS = roleFolder["stills"] ?? FOOTAGE
             let EXTRAS = self.clean((st["extras_folder"] as? String) ?? "") .isEmpty ? "00_CARD_EXTRAS" : self.clean(st["extras_folder"] as! String)
 
@@ -802,10 +768,18 @@ extension SortHost {
             let total = Double(max(1, jobs.reduce(0) { $0 + Int(self.fileSize($1.src)) } * 2))
             var doneBytes = 0.0
             var rows: [[String]] = [], failed: [String] = [], copied = 0
+            var verifiedSources: [URL: URL] = [:]
+            var removed = 0
+            var premiereClips: [String: [[String: Any]]] = [:]
             let stamp = DateFormatter(); stamp.dateFormat = "yyyy-MM-dd HH:mm:ss"
 
             for job in jobs {
                 if self.jobCancel { break }
+                let sourcePath = job.src.resolvingSymlinksInPath().standardizedFileURL.path
+                let outputPath = root.resolvingSymlinksInPath().standardizedFileURL.path
+                guard !sourcePath.hasPrefix(outputPath + "/"), sourcePath != outputPath else {
+                    failed.append(job.src.lastPathComponent + " is already inside the output folder"); continue
+                }
                 try? fm.createDirectory(at: job.dir, withIntermediateDirectories: true)
                 let dst = self.unique(job.dir.appendingPathComponent(job.src.lastPathComponent))
                 self.jobLabel = job.src.lastPathComponent
@@ -813,11 +787,13 @@ extension SortHost {
                     doneBytes += Double(n); self.jobProgress = min(0.999, doneBytes / total)
                 }
                 if !ok && !self.jobCancel {                      // one more go before calling it a failure
-                    try? fm.removeItem(at: dst)
                     ok = self.copyVerified(job.src, to: dst) { _ in }
                 }
                 if self.jobCancel { break }
-                if ok { copied += 1 } else { failed.append(job.src.lastPathComponent); try? fm.removeItem(at: dst) }
+                if ok { copied += 1; verifiedSources[job.src] = dst } else { failed.append(job.src.lastPathComponent) }
+                if ok, let kind = job.rec["kind"] as? String {
+                    premiereClips[job.scene, default: []].append(["path": String(dst.path.dropFirst(root.path.count + 1)), "kind": kind])
+                }
                 let start = (job.rec["start"] as? NSNumber).map { stamp.string(from: Date(timeIntervalSince1970: $0.doubleValue / 1000)) } ?? ""
                 let dur = (job.rec["dur"] as? NSNumber).map { String(format: "%.2f", $0.doubleValue) } ?? ""
                 rows.append([job.scene, start, dur, (job.rec["card"] as? String) ?? "", job.src.path,
@@ -830,13 +806,38 @@ extension SortHost {
             let q: (String) -> String = { $0.contains(",") || $0.contains("\"") ? "\"" + $0.replacingOccurrences(of: "\"", with: "\"\"") + "\"" : $0 }
             let csv = (["scene,recorded,duration_s,card,original,sorted_to,timestamp_source,verified"] + rows.map { $0.map(q).joined(separator: ",") })
                 .joined(separator: "\n") + "\n"
-            try? csv.write(to: root.appendingPathComponent("_MANIFEST.csv"), atomically: true, encoding: .utf8)
+            do { try csv.write(to: root.appendingPathComponent("_MANIFEST.csv"), atomically: true, encoding: .utf8) }
+            catch { failed.append("Could not save the manifest. Originals retained.") }
+
+            if !self.jobCancel && failed.isEmpty {
+                do {
+                    guard let resource = Bundle.main.resourceURL?.appendingPathComponent("premiere/sort-import.jsx") else { throw CocoaError(.fileNoSuchFile) }
+                    let template = try String(contentsOf: resource, encoding: .utf8)
+                    let exportScenes: [[String: Any]] = scenes.map { scene in
+                        let name = self.clean((scene["name"] as? String) ?? "SCENE")
+                        let label = (scene["label"] as? Int) ?? -1
+                        return ["name": name, "label": (-1...15).contains(label) ? label : -1, "clips": premiereClips[name] ?? []]
+                    }
+                    try SortPremiere.write(name: project.isEmpty ? "Needed Sort" : project, scenes: exportScenes, root: root, template: template)
+                } catch { failed.append("Could not save Premiere import files. Originals retained.") }
+            }
+
+            // Only remove sources after the entire batch and manifest have succeeded.
+            // Cancellation or any failed verification leaves every original in place.
+            if moving && !self.jobCancel && failed.isEmpty {
+                self.jobLabel = "Finishing move — removing verified originals"
+                for (source, destination) in verifiedSources {
+                    if self.jobCancel { break }
+                    do { try SortFileTransfer.removeVerifiedOriginal(source, destination: destination, cancelled: { self.jobCancel }); removed += 1 }
+                    catch { failed.append(source.lastPathComponent + " copied, but original could not be removed") }
+                }
+            }
 
             let cancelled = self.jobCancel
             DispatchQueue.main.async {
                 self.jobProgress = 1
                 reply(["ok": !cancelled && failed.isEmpty, "cancelled": cancelled, "copied": copied, "total": jobs.count,
-                       "failed": failed, "root": root.path], nil)
+                       "failed": failed, "removed": removed, "moving": moving, "root": root.path], nil)
             }
         }
     }

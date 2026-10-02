@@ -247,6 +247,8 @@ select{font-family:var(--mono);font-size:11.5px;padding:0.3rem 0.5rem;border:1px
   .crow .dept{display:none}
 }
 
+
+.outcard[hidden],#pvMode{display:none!important}
 </style>
 </head>
 <body>
@@ -389,8 +391,9 @@ select{font-family:var(--mono);font-size:11.5px;padding:0.3rem 0.5rem;border:1px
       </div>
       <p class="rangeinfo" id="rangeInfo" style="margin-top:0.9rem">Set an in point and an out point on the player — I and O — to make a GIF or a clip from that stretch.</p>
       <p class="note warn" id="clipNote" hidden></p>
-      <div class="outs">
-        <div class="outcard">
+      <div class="opt"><span class="label">Export format</span><div class="seg" id="exportFormat" role="group" aria-label="Export format"><button data-v="gif" class="on" aria-pressed="true">GIF</button><button data-v="mp4" aria-pressed="false">MP4</button></div></div>
+      <div class="outs" style="grid-template-columns:1fr">
+        <div class="outcard" id="gifOptions">
           <h3>GIF</h3>
           <p class="note">Loops forever. Smaller width and fewer frames make a lighter file.</p>
           <div class="opt"><span class="label">Width</span>
@@ -405,7 +408,7 @@ select{font-family:var(--mono);font-size:11.5px;padding:0.3rem 0.5rem;border:1px
           <p class="note" id="gifEst"></p>
           <div class="row"><button class="pill" id="gifPreview">▶ Preview GIF</button><button class="pill solid" id="gifBtn" disabled>Save GIF</button></div>
         </div>
-        <div class="outcard">
+        <div class="outcard" id="mp4Options" hidden>
           <h3>MP4</h3>
           <p class="note">A short clip with sound, cut exactly at your in and out. The preview loops so you can watch it round.</p>
           <div class="opt"><span class="label">Size</span>
@@ -1381,6 +1384,17 @@ select{font-family:var(--mono);font-size:11.5px;padding:0.3rem 0.5rem;border:1px
   }
   $('gifBtn').addEventListener('click', () => makeMoving('gif'));
   $('mp4Btn').addEventListener('click', () => makeMoving('mp4'));
+  $('exportFormat').addEventListener('click', e => {
+    const button = e.target.closest('button[data-v]'); if (!button) return;
+    const format = button.dataset.v;
+    for (const kind of ['gif', 'mp4']) {
+      $(kind + 'Options').hidden = kind !== format;
+      const b = $('exportFormat').querySelector('[data-v="' + kind + '"]');
+      b.classList.toggle('on', kind === format); b.setAttribute('aria-pressed', String(kind === format));
+    }
+    $('pvMode').querySelector('[data-v="' + format + '"]').click();
+  });
+
 
   /* ------------------------------------------------------------ status */
 

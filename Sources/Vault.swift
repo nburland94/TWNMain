@@ -1725,6 +1725,8 @@ final class GrabAndGo {
     private(set) var on = false
     private var timer: Timer?
     private var lastChange = NSPasteboard.general.changeCount
+    private var pendingChange = -1
+    private var readAttempts = 0
     private var listener: NWListener?
     static let port: NWEndpoint.Port = 47631
 
@@ -1740,11 +1742,11 @@ final class GrabAndGo {
     private func check() {
         let pb = NSPasteboard.general
         guard pb.changeCount != lastChange else { return }
-        lastChange = pb.changeCount
-        guard !NSApp.isActive else { return }                     // a copy inside the Vault isn't a grab
-        let image = pb.data(forType: .png) ?? pb.data(forType: .tiff)
+        let change = pb.changeCount
+        if pendingChange != change { pendingChange = change; readAttempts = 0 }
+        readAttempts += 1
+        let image = GrabImageCapture.clipboardImage(pb)
         let html = pb.string(forType: .html) ?? ""
-        guard image != nil || html.range(of: "<img", options: .caseInsensitive) != nil else { return }
         // where it came from: Safari leaves a web archive, Chrome a source address
         var page = ""
         if let wa = pb.data(forType: NSPasteboard.PasteboardType("com.apple.webarchive")),
@@ -1752,6 +1754,16 @@ final class GrabAndGo {
            let main = plist["WebMainResource"] as? [String: Any], let u = main["WebResourceURL"] as? String { page = u }
         if page.isEmpty, let s = pb.string(forType: NSPasteboard.PasteboardType("org.chromium.source-url")) { page = s }
         let imageURL = pb.string(forType: .URL) ?? pb.string(forType: NSPasteboard.PasteboardType("public.url")) ?? ""
+        guard pb.changeCount == change else { return }
+        // Returning to Vault just after a browser copy must not discard that copy.
+        if NSApp.isActive && html.isEmpty && imageURL.isEmpty && page.isEmpty { lastChange = change; return }
+        if image == nil && readAttempts < 3 { return }
+        guard image != nil || html.range(of: "<img", options: .caseInsensitive) != nil || GrabImageCapture.imageAddress(imageURL) else {
+            // Browsers can publish a new change count before the promised image data is ready.
+            if readAttempts >= 5 { lastChange = change }
+            return
+        }
+        lastChange = change
         app?.grab(imageData: image, html: html, imageURL: imageURL, page: page, via: "copy")
     }
 
@@ -1813,38 +1825,7 @@ final class GrabAndGo {
 extension VaultHost {
     /// Every address that might hold a bigger version, biggest first.
     func grabCandidates(html: String, imageURL: String, page: String) -> [URL] {
-        var urls: [String] = []
-        let decode = { (s: String) in s.replacingOccurrences(of: "&amp;", with: "&").trimmingCharacters(in: .whitespaces) }
-        if let tag = html.range(of: #"<img[^>]*>"#, options: [.regularExpression, .caseInsensitive]).map({ String(html[$0]) }) {
-            func attr(_ name: String) -> String? {
-                guard let r = tag.range(of: name + #"\s*=\s*"([^"]*)""#, options: [.regularExpression, .caseInsensitive]) else { return nil }
-                let m = String(tag[r]); guard let q = m.firstIndex(of: "\"") else { return nil }
-                return decode(String(m[m.index(after: q)...].dropLast()))
-            }
-            if let set = attr("srcset") {                     // "a.jpg 480w, b.jpg 1080w" or "a.jpg 1x, b.jpg 2x"
-                let ranked = set.split(separator: ",").compactMap { part -> (String, Double)? in
-                    let bits = part.trimmingCharacters(in: .whitespaces).split(separator: " ")
-                    guard let u = bits.first else { return nil }
-                    let size = bits.count > 1 ? Double(bits[1].dropLast()) ?? 1 : 1
-                    return (String(u), size)
-                }.sorted { $0.1 > $1.1 }
-                urls += ranked.map { decode($0.0) }
-            }
-            if let src = attr("src") { urls.append(src) }
-        }
-        if !imageURL.isEmpty { urls.append(imageURL) }
-        let base = URL(string: page) ?? URL(string: imageURL)
-        var out: [URL] = []
-        for s in urls {
-            guard let u = URL(string: s, relativeTo: base)?.absoluteURL, ["http", "https"].contains(u.scheme ?? "") else { continue }
-            // a couple of sites that serve small versions by default
-            var h = u.absoluteString
-            if h.contains("i.pinimg.com/") { h = h.replacingOccurrences(of: #"i\.pinimg\.com/\d+x/"#, with: "i.pinimg.com/originals/", options: .regularExpression) }
-            if h.contains("pbs.twimg.com/"), let r = h.range(of: #"name=[a-z0-9x]+"#, options: .regularExpression) { h.replaceSubrange(r, with: "name=orig") }
-            if let better = URL(string: h), better != u, !out.contains(better) { out.append(better) }
-            if !out.contains(u) { out.append(u) }
-        }
-        return out
+        GrabImageCapture.candidates(html: html, imageURL: imageURL, page: page)
     }
 
     /// What an image file really is, from its bytes: sites often label AVIF or
@@ -1870,8 +1851,7 @@ extension VaultHost {
         return (w, h)
     }
 
-    /// Save one grabbed image into the current project's Stills — the biggest
-    /// version we can get, never smaller than what was copied.
+    /// Save the copied image immediately; fetch remote candidates only for URL-only captures.
     func grab(imageData: Data?, html: String, imageURL: String, page: String, via: String,
               into: String? = nil, origin: String = "reference") {
         guard saveFolder != nil else { return }
@@ -1881,36 +1861,39 @@ extension VaultHost {
         DispatchQueue.global(qos: .userInitiated).async {
             var best: (Data, Int, Int, String)? = nil                   // data, w, h, extension
             if let d = imageData, let wh = have { best = (d, wh.0, wh.1, "clip") }
-            for u in candidates.prefix(4) {
-                var req = URLRequest(url: u, timeoutInterval: 10)
-                if let p = URL(string: page) { req.setValue(p.absoluteString, forHTTPHeaderField: "Referer") }
-                let wait = DispatchSemaphore(value: 0); var got: Data? = nil; var mime = ""
-                URLSession.shared.dataTask(with: req) { d, r, _ in
-                    if let http = r as? HTTPURLResponse, http.statusCode == 200 { got = d; mime = http.mimeType ?? "" }
-                    wait.signal()
-                }.resume()
-                _ = wait.wait(timeout: .now() + 12)
-                guard let d = got, let wh = self.pixelSize(d) else { continue }
-                let (w, h) = wh
-                if best == nil || w * h > best!.1 * best!.2 {
-                    let ext = self.realExtension(d) ?? (mime.contains("png") ? "png" : mime.contains("webp") ? "webp" : mime.contains("gif") ? "gif" : "jpg")
-                    best = (d, w, h, ext)
-                }
-                break                                               // the biggest candidate that answered wins
+            // A browser-supplied bitmap is already the user's selected image: save immediately.
+            // Only URL-only captures need the network, with a short total deadline.
+            let deadline = Date().addingTimeInterval(8)
+            for u in (best == nil ? candidates : []).prefix(3) {
+                let remaining = deadline.timeIntervalSinceNow
+                guard remaining > 0 else { break }
+                guard let d = GrabImageCapture.download(u, page: page, timeout: min(3, remaining)), let wh = self.pixelSize(d),
+                      let ext = self.realExtension(d) else { continue }
+                best = (d, wh.0, wh.1, ext)
+                break
+            }
+            // Image conversion runs off the main thread so large Pinterest copies don't freeze the app.
+            if let found = best, found.3 == "clip" {
+                if let ext = self.realExtension(found.0), ext != "tiff" {
+                    best = (found.0, found.1, found.2, ext)
+                } else if let rep = NSBitmapImageRep(data: found.0), let png = rep.representation(using: .png, properties: [:]) {
+                    best = (png, found.1, found.2, "png")
+                } else { best = nil }
             }
             DispatchQueue.main.async {
                 guard let found = best, let folder = self.outputFolder("Stills", project: project, area: origin == "grab" ? "Grabs" : "References") else {
+                    Shell.post("Image wasn’t saved", "Try Copy Image again, or drag the image into Needed Vault.")
                     return self.webView.evaluateJavaScript("window.__grabbed && window.__grabbed({ok:false})", completionHandler: nil)
                 }
                 let (data, w, h, kind) = found
-                // a copied picture arrives as TIFF or PNG: keep it as a high-quality JPEG
-                var bytes = data, ext = kind
-                if kind == "clip", let rep = NSBitmapImageRep(data: data),
-                   let jpg = rep.representation(using: .jpeg, properties: [.compressionFactor: 0.95]) { bytes = jpg; ext = "jpg" }
+                let bytes = data, ext = kind
                 let host = (URL(string: page)?.host ?? URL(string: imageURL)?.host ?? "web").replacingOccurrences(of: "www.", with: "")
                 let stamp = { () -> String in let f = DateFormatter(); f.dateFormat = "yyyyMMdd-HHmmss"; return f.string(from: Date()) }()
                 let target = self.uniqueURL(in: folder, name: "\(host)_\(stamp).\(ext)")
-                guard (try? bytes.write(to: target, options: .atomic)) != nil else { return }
+                guard (try? bytes.write(to: target, options: .atomic)) != nil else {
+                    Shell.post("Image wasn’t saved", "Check that your vault folder is available and writable.")
+                    return
+                }
                 let src: [String: Any] = ["type": "web", "url": page.isEmpty ? imageURL : page, "title": host]
                 _ = self.register(kind: "still", file: target, meta: ["source": src, "w": w, "h": h, "origin": origin], project: project)
                 Shared.notify()                                   // Home's wall picks it up
