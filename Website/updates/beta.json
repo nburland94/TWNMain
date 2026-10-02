@@ -1,10 +1,10 @@
 {
-  "build" : 7,
+  "build" : 8,
   "channel" : "beta",
   "notes" : "Add, Credit and Sort now show numbered steps in plain words on the left. Sort: choose Move or Copy, so nothing gets duplicated. Add: a bigger player with a clear orange progress line, and GIFs and MP4s of any length. Explore: browse inside Needed Tools, the address always shows the real link, Grab on every picture, sign-ins come back to Explore. Vault opens on your project covers. Night by default.",
-  "published" : "2026-10-01T19:13:09Z",
-  "sha256" : "477ddfb8bfd3c457052ede9bbba90b624bd875faff1e663e414ae2d2a7abe1f5",
-  "signature" : "hXwBruto8X2MbUIukxmEPDYUEfCG0mqyeablcw8hivCZs1pdts4N44IL6b0wRrY6NdySdxmuQrFT9xb9tGH1CA==",
-  "url" : "Needed-Tools-beta-7.zip",
-  "version" : "1.0.7"
+  "published" : "2026-10-02T15:11:26Z",
+  "sha256" : "7506644cc48087b3ef362015e6a7c82ae9bba111b349693117abcb7d172acf87",
+  "signature" : "WlbvvpKZiOSniW+Hns\/F1qlz1EmW\/low8dqOnKi9Phwg62Tm0W8LSTdV0KplwjhvnNainZhD8Z1vVyiYs1XyBQ==",
+  "url" : "Needed-Tools-beta-8.zip",
+  "version" : "1.0.8"
 }
