@@ -1,10 +1,10 @@
 {
-  "build" : 10,
+  "build" : 11,
   "channel" : "beta",
   "notes" : "Recco is now a glass panel on the right of Explore, with readable buttons by day and night. Connect Claude: one button installs Claude Code and signs you in to your own Claude plan — no Terminal — so Recco and auto-tagging can use Claude. Design: your pictures sit in a library on the left — Projects, Reccos and All — and both side panels drag to size or close. By day, accents turn blue against the warm orange glow. Explore keeps the real link in the address bar.",
-  "published" : "2026-10-03T14:23:23Z",
-  "sha256" : "a65575df1bdd6907f2aebf8a52bb0a7252970253db31f0668d0f71bcea6eaaa9",
-  "signature" : "YNO1yecGc115UJpFGyfxuROzmNvKsdhHMAL\/NRqt2MEk5gUZSfe9MnHjSdp5imb+VsWp63chFUDyhwngWtqiCQ==",
-  "url" : "Needed-Tools-beta-10.zip",
-  "version" : "1.0.10"
+  "published" : "2026-10-03T14:38:17Z",
+  "sha256" : "d4c91e135692b1f90c08f9a79e7465362700eb2f161b951758c4b56f1b8ac5fc",
+  "signature" : "nmLY6hljVAHE5+QlXS0a+ToKCWQIwsn3s+msHv8mjpuoU18dLz9kD\/HBOashlmxfTuD+ov63dgA8tNMf21kxDQ==",
+  "url" : "Needed-Tools-beta-11.zip",
+  "version" : "1.0.11"
 }
