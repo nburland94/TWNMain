@@ -1,10 +1,10 @@
 {
-  "build" : 8,
+  "build" : 10,
   "channel" : "beta",
-  "notes" : "Add, Credit and Sort now show numbered steps in plain words on the left. Sort: choose Move or Copy, so nothing gets duplicated. Add: a bigger player with a clear orange progress line, and GIFs and MP4s of any length. Explore: browse inside Needed Tools, the address always shows the real link, Grab on every picture, sign-ins come back to Explore. Vault opens on your project covers. Night by default.",
-  "published" : "2026-10-02T15:11:26Z",
-  "sha256" : "7506644cc48087b3ef362015e6a7c82ae9bba111b349693117abcb7d172acf87",
-  "signature" : "WlbvvpKZiOSniW+Hns\/F1qlz1EmW\/low8dqOnKi9Phwg62Tm0W8LSTdV0KplwjhvnNainZhD8Z1vVyiYs1XyBQ==",
-  "url" : "Needed-Tools-beta-8.zip",
-  "version" : "1.0.8"
+  "notes" : "Recco is now a glass panel on the right of Explore, with readable buttons by day and night. Connect Claude: one button installs Claude Code and signs you in to your own Claude plan — no Terminal — so Recco and auto-tagging can use Claude. Design: your pictures sit in a library on the left — Projects, Reccos and All — and both side panels drag to size or close. By day, accents turn blue against the warm orange glow. Explore keeps the real link in the address bar.",
+  "published" : "2026-10-03T14:23:23Z",
+  "sha256" : "a65575df1bdd6907f2aebf8a52bb0a7252970253db31f0668d0f71bcea6eaaa9",
+  "signature" : "YNO1yecGc115UJpFGyfxuROzmNvKsdhHMAL\/NRqt2MEk5gUZSfe9MnHjSdp5imb+VsWp63chFUDyhwngWtqiCQ==",
+  "url" : "Needed-Tools-beta-10.zip",
+  "version" : "1.0.10"
 }
