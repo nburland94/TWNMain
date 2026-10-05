@@ -1,10 +1,10 @@
 {
-  "build" : 14,
+  "build" : 15,
   "channel" : "beta",
-  "notes" : "The new Needed Tools. A floating glass sidebar for your tools and projects, a quiet top bar with New, and every screen redesigned in light and dark: Explore with mixes, recent grabs and real site logos; Recco as a glass plate (drop a PDF or Word brief); Add and Vault with a library and an inspector; Design with collapsible panels, a FREE toggle, and drop-on-a-picture to replace it (hold Option to add); cleaner Shots, Sort, Credit and Pay; and a new account sheet with your photo, your vault and a cloud backup.",
-  "published" : "2026-10-05T18:54:22Z",
-  "sha256" : "f2512cd6a22511c967f43b9150b407fc1a2223303a8b1855a30f54cfd72c89bf",
-  "signature" : "p5341Nglq0xqa\/pRiOcwFdseHNpXYgfO7aF6btAtGsYOHUd7S7BA7FBhY0i7cHmiVqUEthtq\/hY3WX6uy2sfBQ==",
-  "url" : "Needed-Tools-beta-14.zip",
-  "version" : "1.0.14"
+  "notes" : "Drag from Finder into any tool and it lands in the right place: documents into Credit, folders into Sort, pictures into the project vault. Add opens with one simple line, and Still, GIF or Clip now sits at the top of its options. Design has a new home with three big doors and your designs on a strip, and a new template browser: one template big, its pages underneath, all nine at the side. Shot lists gain Int\/Ext, Location, Day\/Night, Size, Angle, Lens, Frame rate, Kit, Subject, Cast, Sound, Est. time and Done. Plus a new iPhone sheet, cleaner tags in Shots and Vault, a roomier Explore browser and a wider Credit drop area.",
+  "published" : "2026-10-05T20:16:08Z",
+  "sha256" : "5e0827b0f1a40a8603cceb30ace443920be9ddafbb450caaffb9f7bae0019704",
+  "signature" : "EL3L98kzLbCF2qp9um9s+JGTFuocKjC0aJIwQEJKIwaR1iDEKR6pkYlgz3xQpuSnPOYUvd8FOVmgiXVlI\/OHBg==",
+  "url" : "Needed-Tools-beta-15.zip",
+  "version" : "1.0.15"
 }
