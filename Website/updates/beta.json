@@ -1,10 +1,10 @@
 {
-  "build" : 11,
+  "build" : 13,
   "channel" : "beta",
-  "notes" : "Recco is now a glass panel on the right of Explore, with readable buttons by day and night. Connect Claude: one button installs Claude Code and signs you in to your own Claude plan — no Terminal — so Recco and auto-tagging can use Claude. Design: your pictures sit in a library on the left — Projects, Reccos and All — and both side panels drag to size or close. By day, accents turn blue against the warm orange glow. Explore keeps the real link in the address bar.",
-  "published" : "2026-10-03T14:38:17Z",
-  "sha256" : "d4c91e135692b1f90c08f9a79e7465362700eb2f161b951758c4b56f1b8ac5fc",
-  "signature" : "nmLY6hljVAHE5+QlXS0a+ToKCWQIwsn3s+msHv8mjpuoU18dLz9kD\/HBOashlmxfTuD+ov63dgA8tNMf21kxDQ==",
-  "url" : "Needed-Tools-beta-11.zip",
-  "version" : "1.0.11"
+  "notes" : "The new Needed Tools. A floating glass sidebar for your tools and projects, a quiet top bar with New, and every screen redesigned in light and dark: Explore with mixes, recent grabs and real site logos; Recco as a glass plate (drop a PDF or Word brief); Add and Vault with a library and an inspector; Design with collapsible panels, a FREE toggle, and drop-on-a-picture to replace it (hold Option to add); cleaner Shots, Sort, Credit and Pay; and a new account sheet with your photo, your vault and a cloud backup.",
+  "published" : "2026-10-05T18:25:35Z",
+  "sha256" : "861a3fe99f9cef079519243b3847f66d6223e2dcbdde93660e94d5f405a165c1",
+  "signature" : "Vm43YJdyl9oAQ\/bMqymEat2bGqrsj8fsXzQwxXOF2Vvz8tJ94IAfHJPv7pvally+6xxc6MW0JndiKG1Jlu9lAw==",
+  "url" : "Needed-Tools-beta-13.zip",
+  "version" : "1.0.13"
 }
