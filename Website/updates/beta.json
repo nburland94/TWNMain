@@ -1,10 +1,10 @@
 {
-  "build" : 17,
+  "build" : 18,
   "channel" : "beta",
-  "notes" : "Projects, rebuilt. The sidebar has All projects and a search instead of a long list: click the search to scroll every project, type to narrow it, Enter to open. All projects is a board of every job: stage, next date, to-dos, crew and what you are owed, with filters for Active, Pitching, Money owed and Delivered. The project page is redesigned in light and dark, with tiles that jump to its stills, shot lists and invoices. Explore home rebalanced: tabs and Recco share the top line, a full-width search and three mixes.",
-  "published" : "2026-10-05T21:21:03Z",
-  "sha256" : "cbe7d5f4abc1c2fc004ddaa5fd6bafd10f8649205e2c0bc3949474d7a72d92c6",
-  "signature" : "t7PzQgunMG6IhnWf3deDNcNYg9DuUWavSpYJxilSEME8nqLhQmsbHWtJw1HSYPRE0HE8Ni4KrxhXEnJNLZokBQ==",
-  "url" : "Needed-Tools-beta-17.zip",
-  "version" : "1.0.17"
+  "notes" : "Explore fills the window: Explore and Recco on top, a full-width search, your open tabs just under it, and your three most-used sources as the big cards. Add has a clean start screen, white by day and black by night: paste a link or choose a film from your Mac. Plus the Projects board, project search in the sidebar and the redesigned project page.",
+  "published" : "2026-10-05T22:13:08Z",
+  "sha256" : "24b8e8e6e9eb9b9953088f84d78602112a8d34a7d12b064c49662991641968b2",
+  "signature" : "H0n8oR+LX8PkySM4XpYX8tiRPJ9DMSxiVlwDEdZ6yvr5BSM4hCaKI7+YiDO7WxrEaAq5bE4WOhvkDazod8wWDg==",
+  "url" : "Needed-Tools-beta-18.zip",
+  "version" : "1.0.18"
 }
