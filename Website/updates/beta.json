@@ -1,10 +1,10 @@
 {
-  "build" : 18,
+  "build" : 19,
   "channel" : "beta",
   "notes" : "Explore fills the window: Explore and Recco on top, a full-width search, your open tabs just under it, and your three most-used sources as the big cards. Add has a clean start screen, white by day and black by night: paste a link or choose a film from your Mac. Plus the Projects board, project search in the sidebar and the redesigned project page.",
-  "published" : "2026-10-05T22:13:08Z",
-  "sha256" : "24b8e8e6e9eb9b9953088f84d78602112a8d34a7d12b064c49662991641968b2",
-  "signature" : "H0n8oR+LX8PkySM4XpYX8tiRPJ9DMSxiVlwDEdZ6yvr5BSM4hCaKI7+YiDO7WxrEaAq5bE4WOhvkDazod8wWDg==",
-  "url" : "Needed-Tools-beta-18.zip",
-  "version" : "1.0.18"
+  "published" : "2026-10-05T22:18:19Z",
+  "sha256" : "1452e73d5ea5e61ff6949975e5a60f913cb7e88b585bc23d0686be2bb91b854d",
+  "signature" : "ELq6ve6DLXSNwA0NeTwCakBUCktUz3OV\/26Wt5Q4yn2qzupC6RkgOEQ4MN7bX4huQ\/jqLeXEZwxvdSCBRk\/xDw==",
+  "url" : "Needed-Tools-beta-19.zip",
+  "version" : "1.0.19"
 }
