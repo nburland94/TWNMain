@@ -1,10 +1,10 @@
 {
-  "build" : 15,
+  "build" : 16,
   "channel" : "beta",
-  "notes" : "Drag from Finder into any tool and it lands in the right place: documents into Credit, folders into Sort, pictures into the project vault. Add opens with one simple line, and Still, GIF or Clip now sits at the top of its options. Design has a new home with three big doors and your designs on a strip, and a new template browser: one template big, its pages underneath, all nine at the side. Shot lists gain Int\/Ext, Location, Day\/Night, Size, Angle, Lens, Frame rate, Kit, Subject, Cast, Sound, Est. time and Done. Plus a new iPhone sheet, cleaner tags in Shots and Vault, a roomier Explore browser and a wider Credit drop area.",
-  "published" : "2026-10-05T20:16:08Z",
-  "sha256" : "5e0827b0f1a40a8603cceb30ace443920be9ddafbb450caaffb9f7bae0019704",
-  "signature" : "EL3L98kzLbCF2qp9um9s+JGTFuocKjC0aJIwQEJKIwaR1iDEKR6pkYlgz3xQpuSnPOYUvd8FOVmgiXVlI\/OHBg==",
-  "url" : "Needed-Tools-beta-15.zip",
-  "version" : "1.0.15"
+  "notes" : "Far fewer Keychain pop-ups: saved passwords are checked without opening them and read once per launch, and Needed Tools now keeps the same signature from update to update, so Always Allow sticks (you may be asked one last time after this update). Explore home rebalanced: taller mixes showing whole frames, your sources as pills with a + to add one, and a slim strip of recent grabs.",
+  "published" : "2026-10-05T20:42:32Z",
+  "sha256" : "4c02b18d68b0ab9ef1c421a289202da50afb4c19e353d1ba2d02262c36d31764",
+  "signature" : "Tz+h85+JHfUui8zOcGD\/V+eKeszVe+dzh5+B2H0cdKYPU0hd4paHNklmeAvul6h+UV2JLExoWp20KntKmVdHBw==",
+  "url" : "Needed-Tools-beta-16.zip",
+  "version" : "1.0.16"
 }
