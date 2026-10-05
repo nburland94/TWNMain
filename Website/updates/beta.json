@@ -1,10 +1,10 @@
 {
-  "build" : 13,
+  "build" : 14,
   "channel" : "beta",
   "notes" : "The new Needed Tools. A floating glass sidebar for your tools and projects, a quiet top bar with New, and every screen redesigned in light and dark: Explore with mixes, recent grabs and real site logos; Recco as a glass plate (drop a PDF or Word brief); Add and Vault with a library and an inspector; Design with collapsible panels, a FREE toggle, and drop-on-a-picture to replace it (hold Option to add); cleaner Shots, Sort, Credit and Pay; and a new account sheet with your photo, your vault and a cloud backup.",
-  "published" : "2026-10-05T18:25:35Z",
-  "sha256" : "861a3fe99f9cef079519243b3847f66d6223e2dcbdde93660e94d5f405a165c1",
-  "signature" : "Vm43YJdyl9oAQ\/bMqymEat2bGqrsj8fsXzQwxXOF2Vvz8tJ94IAfHJPv7pvally+6xxc6MW0JndiKG1Jlu9lAw==",
-  "url" : "Needed-Tools-beta-13.zip",
-  "version" : "1.0.13"
+  "published" : "2026-10-05T18:54:22Z",
+  "sha256" : "f2512cd6a22511c967f43b9150b407fc1a2223303a8b1855a30f54cfd72c89bf",
+  "signature" : "p5341Nglq0xqa\/pRiOcwFdseHNpXYgfO7aF6btAtGsYOHUd7S7BA7FBhY0i7cHmiVqUEthtq\/hY3WX6uy2sfBQ==",
+  "url" : "Needed-Tools-beta-14.zip",
+  "version" : "1.0.14"
 }
