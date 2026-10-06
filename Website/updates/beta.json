@@ -1,10 +1,10 @@
 {
-  "build" : 21,
+  "build" : 22,
   "channel" : "beta",
-  "notes" : "A new sign-in and beta-key screen: one calm card, light by day and dark at night. Add has a clean start screen with no box: paste a link or choose a film from your Mac. Explore fills the window, with your three most-used sources as the big cards. Plus the Projects board, project search in the sidebar and the redesigned project page.",
-  "published" : "2026-10-05T23:24:38Z",
-  "sha256" : "9740ab58ef224c34ffc688f6de1166288aaee04fb6c72eafe783d2ba8d31bcb6",
-  "signature" : "nOEU3SPBW9rLV2BgFowQsVXRZPcuHKYZgBNdossvhNmlCrNJneKXXfgOySherL6U\/553BKNElmdchsDzVJ8GBg==",
-  "url" : "Needed-Tools-beta-21.zip",
-  "version" : "1.0.21"
+  "notes" : "Shots is now a grid: every detail is its own column you edit in place, with shot, reference and description pinned on the left. Show or hide columns from the Columns button. References show the whole frame, and you can resize them with the slider or a pinch.",
+  "published" : "2026-10-06T12:03:39Z",
+  "sha256" : "e95d5b8cd1871c598fb9f0d5bd73638b9739362b63600a5608fe6b91fc227636",
+  "signature" : "yShG5TJqoXF1wnbXi68XDyPnBV4E4h7jhXgPDjiuUpb+eI1pIW15zO9NZPgRgelCxaC22KjB4UBeqsIcZF01AQ==",
+  "url" : "Needed-Tools-beta-22.zip",
+  "version" : "1.0.22"
 }
