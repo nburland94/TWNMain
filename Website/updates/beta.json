@@ -1,10 +1,10 @@
 {
-  "build" : 22,
+  "build" : 23,
   "channel" : "beta",
-  "notes" : "Shots is now a grid: every detail is its own column you edit in place, with shot, reference and description pinned on the left. Show or hide columns from the Columns button. References show the whole frame, and you can resize them with the slider or a pinch.",
-  "published" : "2026-10-06T12:03:39Z",
-  "sha256" : "e95d5b8cd1871c598fb9f0d5bd73638b9739362b63600a5608fe6b91fc227636",
-  "signature" : "yShG5TJqoXF1wnbXi68XDyPnBV4E4h7jhXgPDjiuUpb+eI1pIW15zO9NZPgRgelCxaC22KjB4UBeqsIcZF01AQ==",
-  "url" : "Needed-Tools-beta-22.zip",
-  "version" : "1.0.22"
+  "notes" : "New in Design: Draft a treatment from your copy. Paste or open your treatment, Claude sorts every paragraph onto the right page (your exact words), you fix labels or drag to reorder, pick a template, and every page is laid out with your stills picked by tag. Plus: a calmer, more Apple-like feel, the side panel no longer shrinks when you click it, and day\/night stays visible when it is collapsed.",
+  "published" : "2026-10-16T01:20:59Z",
+  "sha256" : "d6d09dba381720d9db1c4df04a4b37f4b9432a450e5029eb228683d3261a9d80",
+  "signature" : "6XHpzfdWgK\/wTNm4h+P2DvsZ6c\/7\/eNVymFrwpy9zdmYNB9cBasmLqbSEyuPSNH82nN\/wDtu1ZBwTJ31224HCQ==",
+  "url" : "Needed-Tools-beta-23.zip",
+  "version" : "1.0.23"
 }
