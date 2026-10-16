@@ -1,10 +1,10 @@
 {
-  "build" : 23,
+  "build" : 24,
   "channel" : "beta",
   "notes" : "New in Design: Draft a treatment from your copy. Paste or open your treatment, Claude sorts every paragraph onto the right page (your exact words), you fix labels or drag to reorder, pick a template, and every page is laid out with your stills picked by tag. Plus: a calmer, more Apple-like feel, the side panel no longer shrinks when you click it, and day\/night stays visible when it is collapsed.",
-  "published" : "2026-10-16T01:20:59Z",
-  "sha256" : "d6d09dba381720d9db1c4df04a4b37f4b9432a450e5029eb228683d3261a9d80",
-  "signature" : "6XHpzfdWgK\/wTNm4h+P2DvsZ6c\/7\/eNVymFrwpy9zdmYNB9cBasmLqbSEyuPSNH82nN\/wDtu1ZBwTJ31224HCQ==",
-  "url" : "Needed-Tools-beta-23.zip",
-  "version" : "1.0.23"
+  "published" : "2026-10-16T01:31:41Z",
+  "sha256" : "ef4f3de831992d294f73865466805ceb9b102f2544ff6869453703ffdd2514d5",
+  "signature" : "CbbEPO9XQxnYcAUa3sG1EI6MLSGB9nyN2rUTRldb3+amElWlt548BoqrpB5L54rO0Qgz7VWfgxXVS2lq6jyOAA==",
+  "url" : "Needed-Tools-beta-24.zip",
+  "version" : "1.0.24"
 }
