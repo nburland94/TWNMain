@@ -1,10 +1,10 @@
 {
-  "build" : 24,
+  "build" : 25,
   "channel" : "beta",
-  "notes" : "New in Design: Draft a treatment from your copy. Paste or open your treatment, Claude sorts every paragraph onto the right page (your exact words), you fix labels or drag to reorder, pick a template, and every page is laid out with your stills picked by tag. Plus: a calmer, more Apple-like feel, the side panel no longer shrinks when you click it, and day\/night stays visible when it is collapsed.",
-  "published" : "2026-10-16T01:31:41Z",
-  "sha256" : "ef4f3de831992d294f73865466805ceb9b102f2544ff6869453703ffdd2514d5",
-  "signature" : "CbbEPO9XQxnYcAUa3sG1EI6MLSGB9nyN2rUTRldb3+amElWlt548BoqrpB5L54rO0Qgz7VWfgxXVS2lq6jyOAA==",
-  "url" : "Needed-Tools-beta-24.zip",
-  "version" : "1.0.24"
+  "notes" : "Treatments, neater: long copy now flows onto extra slides evenly (A, B, C, then repeat) with a characters-per-slide limit you can set; copy is justified in a narrower column, with the title the same width and the block centred in the open space; storyboard pages share the copy beat by beat; your assistant (Claude or Codex) now looks at the actual images, not just tags, when matching stills. Also: sidebar order is Explore, Vault, Add; Instagram grabs take the enlarged post, not the feed behind it; in Vault, click outside an image to close it, and Crop is its own step (pick shapes, frame, save). Sync now stays in the sidebar when you collapse it.",
+  "published" : "2026-10-20T09:03:13Z",
+  "sha256" : "6cda22393b9cf5706dd503b7d0a2887811cb6f7bdaf964449048c4acd0b72d87",
+  "signature" : "viXgpBbp2brARGDJP2MStk8kRdMl4h4ChgY146lllfr7mXXOemTxPkecDNaG25QT8xxJHa+1aF7UZdQF5Bd0DA==",
+  "url" : "Needed-Tools-beta-25.zip",
+  "version" : "1.0.25"
 }
