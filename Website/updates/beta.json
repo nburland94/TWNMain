@@ -1,10 +1,10 @@
 {
-  "build" : 25,
+  "build" : 26,
   "channel" : "beta",
-  "notes" : "Treatments, neater: long copy now flows onto extra slides evenly (A, B, C, then repeat) with a characters-per-slide limit you can set; copy is justified in a narrower column, with the title the same width and the block centred in the open space; storyboard pages share the copy beat by beat; your assistant (Claude or Codex) now looks at the actual images, not just tags, when matching stills. Also: sidebar order is Explore, Vault, Add; Instagram grabs take the enlarged post, not the feed behind it; in Vault, click outside an image to close it, and Crop is its own step (pick shapes, frame, save). Sync now stays in the sidebar when you collapse it.",
-  "published" : "2026-10-20T09:03:13Z",
-  "sha256" : "6cda22393b9cf5706dd503b7d0a2887811cb6f7bdaf964449048c4acd0b72d87",
-  "signature" : "viXgpBbp2brARGDJP2MStk8kRdMl4h4ChgY146lllfr7mXXOemTxPkecDNaG25QT8xxJHa+1aF7UZdQF5Bd0DA==",
-  "url" : "Needed-Tools-beta-25.zip",
-  "version" : "1.0.25"
+  "notes" : "New: treatments in your own format. In Draft a treatment, pick From my headings and your copy's own sections become the slides; Claude or Codex picks a layout for each (big statement, text + image, storyboard, image grid, title + image) and you can rename, reorder, add or remove sections and save the structure as a format, like Music video or Commercial, for next time. Photo matching now looks at every photo in the project (not just the top 32), and you can re-run it for one page or every page with Find photos with AI. Template is now picked on the first screen. Also: + Add link on videos is back in Explore, and an open Instagram post never grabs from the feed behind it.",
+  "published" : "2026-10-21T14:10:36Z",
+  "sha256" : "b70cf567538819f225b7f731d45ec7cfbbcaa1de2b4daa58976418741af1f9e2",
+  "signature" : "cVEQiPN5RotYKWVlHDrYukz+tl+73CQxGHr8PEDTHrF6M+Q3wRmkZkNhZsM6OIcH8TbyfHeMerN+BwMtJbFFCg==",
+  "url" : "Needed-Tools-beta-26.zip",
+  "version" : "1.0.26"
 }
