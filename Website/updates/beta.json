@@ -1,10 +1,10 @@
 {
-  "build" : 26,
+  "build" : 28,
   "channel" : "beta",
-  "notes" : "New: treatments in your own format. In Draft a treatment, pick From my headings and your copy's own sections become the slides; Claude or Codex picks a layout for each (big statement, text + image, storyboard, image grid, title + image) and you can rename, reorder, add or remove sections and save the structure as a format, like Music video or Commercial, for next time. Photo matching now looks at every photo in the project (not just the top 32), and you can re-run it for one page or every page with Find photos with AI. Template is now picked on the first screen. Also: + Add link on videos is back in Explore, and an open Instagram post never grabs from the feed behind it.",
-  "published" : "2026-10-21T14:10:36Z",
-  "sha256" : "b70cf567538819f225b7f731d45ec7cfbbcaa1de2b4daa58976418741af1f9e2",
-  "signature" : "cVEQiPN5RotYKWVlHDrYukz+tl+73CQxGHr8PEDTHrF6M+Q3wRmkZkNhZsM6OIcH8TbyfHeMerN+BwMtJbFFCg==",
-  "url" : "Needed-Tools-beta-26.zip",
-  "version" : "1.0.26"
+  "notes" : "Faster and steadier: Needed Tools no longer freezes when your vault or photos are stored in iCloud and not downloaded to this Mac — it asks macOS for them in the background and carries on. Automatic tagging now tags new photos as they arrive and catches anything missed when you press Sync, when the app opens, and once an hour (it used to check every 20 seconds), in bigger batches. Photo matching for treatments uses the small previews, so it is much quicker. Explore has browser shortcuts: Cmd+T new tab, Cmd+W close tab, Cmd+Shift+T reopen it, Ctrl+Tab and Ctrl+Shift+Tab to flick through tabs, Cmd+L address bar, Cmd+R reload, Cmd+[ and Cmd+] back and forward, Cmd+plus and Cmd+minus to zoom. New app icon. Loading is now a thin orange line along the top edge, with the status in the queue row (or the bottom corner), so it never covers what you are looking at. In Add, hover the timeline to see a preview of that frame with its time, like YouTube, and scrubbing updates the picture as you drag.",
+  "published" : "2026-10-22T10:09:53Z",
+  "sha256" : "aa95a3e38b4b716981ddfe0430bd808162869a3c45fd46e3c742a15f4e844126",
+  "signature" : "2gtMx1luU1IJCLSp+ZOgL31jezY29LOfrvSPwIxFUIG7GVnjd6xtoiSttOrtCBXclhWsPIdLFodngGY4JyJVDA==",
+  "url" : "Needed-Tools-beta-28.zip",
+  "version" : "1.0.28"
 }
