@@ -1,10 +1,10 @@
 {
-  "build" : 30,
+  "build" : 31,
   "channel" : "beta",
   "notes" : "Explore is faster: only one copy of Needed Tools runs at a time now (two copies used to fight over the same vault and browser, which made pages crawl), and the + Add link hover is lighter on busy pages. Vault: your newest project is always at the top, even before anything is in it. Appearance now works on the Projects page too: Grid or List, card size S, M or L, Original or 16:9 covers, Fit or Fill, and Show card info for the counts.",
-  "published" : "2026-10-22T15:27:30Z",
-  "sha256" : "68c4796820413f36321cf6303597b9d6deefdc36f29ae51589e2857388d792b9",
-  "signature" : "mV4TshlnchVXqqPKk17lg+zjim7d+kGP\/8HAGUrycR11f6JpxHEv2RInGT2VJ02hIKYaWBVTOpw777eo6LyaAA==",
-  "url" : "Needed-Tools-beta-30.zip",
-  "version" : "1.0.30"
+  "published" : "2026-10-22T16:01:18Z",
+  "sha256" : "f089d74e5630686cbb211eb40aad40ff84c2659598bdebf65788204689958fd4",
+  "signature" : "ltii6Zs3A1qW9KjPDkyeudCkm1b05sLc8lXWYBT7jEa+q8ssiaAhNmbE77UjooeFhWGoR2RiK6TgPYW3FBZFDg==",
+  "url" : "Needed-Tools-beta-31.zip",
+  "version" : "1.0.31"
 }
