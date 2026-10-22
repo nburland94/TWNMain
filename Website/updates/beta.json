@@ -1,10 +1,10 @@
 {
-  "build" : 28,
+  "build" : 29,
   "channel" : "beta",
-  "notes" : "Faster and steadier: Needed Tools no longer freezes when your vault or photos are stored in iCloud and not downloaded to this Mac — it asks macOS for them in the background and carries on. Automatic tagging now tags new photos as they arrive and catches anything missed when you press Sync, when the app opens, and once an hour (it used to check every 20 seconds), in bigger batches. Photo matching for treatments uses the small previews, so it is much quicker. Explore has browser shortcuts: Cmd+T new tab, Cmd+W close tab, Cmd+Shift+T reopen it, Ctrl+Tab and Ctrl+Shift+Tab to flick through tabs, Cmd+L address bar, Cmd+R reload, Cmd+[ and Cmd+] back and forward, Cmd+plus and Cmd+minus to zoom. New app icon. Loading is now a thin orange line along the top edge, with the status in the queue row (or the bottom corner), so it never covers what you are looking at. In Add, hover the timeline to see a preview of that frame with its time, like YouTube, and scrubbing updates the picture as you drag.",
-  "published" : "2026-10-22T10:09:53Z",
-  "sha256" : "aa95a3e38b4b716981ddfe0430bd808162869a3c45fd46e3c742a15f4e844126",
-  "signature" : "2gtMx1luU1IJCLSp+ZOgL31jezY29LOfrvSPwIxFUIG7GVnjd6xtoiSttOrtCBXclhWsPIdLFodngGY4JyJVDA==",
-  "url" : "Needed-Tools-beta-28.zip",
-  "version" : "1.0.28"
+  "notes" : "Explore is faster: only one copy of Needed Tools runs at a time now (two copies used to fight over the same vault and browser, which made pages crawl), and the + Add link hover is lighter on busy pages. Vault: your newest project is always at the top, even before anything is in it. Appearance now works on the Projects page too: Grid or List, card size S, M or L, Original or 16:9 covers, Fit or Fill, and Show card info for the counts.",
+  "published" : "2026-10-22T11:58:10Z",
+  "sha256" : "f25a742bf560b935e53c10abe0a2e89346540a6b6303cb25273708767125e455",
+  "signature" : "w937E7LcaT3qVEAsJa1OdqSUTTmgVAERl62\/FQfBkWboGZ5Vk3CJV5YIGQceYWIkwKSm6\/P\/3pZQJtMUPqzFCQ==",
+  "url" : "Needed-Tools-beta-29.zip",
+  "version" : "1.0.29"
 }
