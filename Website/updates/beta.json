@@ -1,10 +1,10 @@
 {
-  "build" : 34,
+  "build" : 35,
   "channel" : "beta",
-  "notes" : "Explore is faster: only one copy of Needed Tools runs at a time now (two copies used to fight over the same vault and browser, which made pages crawl), and the + Add link hover is lighter on busy pages. Vault: your newest project is always at the top, even before anything is in it. Appearance now works on the Projects page too: Grid or List, card size S, M or L, Original or 16:9 covers, Fit or Fill, and Show card info for the counts.",
-  "published" : "2026-10-23T13:48:12Z",
-  "sha256" : "c4af09e94ad806629991b166f1d12bd28eb9bed8bb000c8da6019178ac0ff70f",
-  "signature" : "Qfaav3p+9ujZg8UtgyyiJlpgmZcjZVrhLy7Dwb8zHgvyw2GhEJBO\/tOKYs6uRA8jKmBYGmWGRU6VA44I27oGCw==",
-  "url" : "Needed-Tools-beta-34.zip",
-  "version" : "1.0.34"
+  "notes" : "Add: the arrow keys always step one frame (even after pasting a link), J K L never gets stuck, in and out points are easy to grab and drag (move the whole stretch with the thin strip above), Preview GIF starts instantly, and the video queue has Clear all. Design: rotate photos, find and replace across a whole treatment (Cmd+F), treatments From scratch with the AI planning every page and no sample pictures or placeholder text, no white outline round photos, safer saving, a check before you export (sample pictures, placeholder words, text that doesn't fit, low-res photos), photos spread across the whole deck, and a one-click share link for treatments (switching on soon). Projects: each project has one Look (colours and fonts) on its page — your first treatment sets it, and treatments, mood boards and the shot list wear it; treatments and mood boards now show on the project page. Shots: a storyboard view, and Design can make a shot list from your treatment's story. Faster library search. Explore: pages show reliably, hidden tabs go quiet, and websites can no longer add anything to your vault. Dropping files no longer freezes the app, no more password pop-ups after updates, new Tile N icon and loader, and the welcome shows once.",
+  "published" : "2026-10-26T19:40:28Z",
+  "sha256" : "3c56db62de84918332e1488db16ea255811e077bec687e7643196e6bf3c75d99",
+  "signature" : "FBK5m+\/WREw+UOVdL+juZDBH1xQumz3GcMLe7plPG4ZUz6v7e4hSjLEO0zFsur+P2O2j\/tzNfq1fPrD0nx7GCA==",
+  "url" : "Needed-Tools-beta-35.zip",
+  "version" : "1.0.35"
 }
