@@ -173,7 +173,7 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      background: radial-gradient(ellipse 48% 52% at 50% 50%, #f9cfb1 0%, #fbdfca 34%, #fcebdf 60%, #ffffff 100%);
+      background: var(--black); /* matches page 1 */
       /* JS drives clip-path (blade wipe) */
       clip-path: inset(100% 0 0 0);
       will-change: clip-path;
@@ -184,8 +184,8 @@
     /* the logo, drawn as a vector: sharp at any size, trimmed to the letters */
     .hero-reveal-img {
       display: block;
-      width: min(26vw, 380px);
-      max-height: 38vh;
+      width: min(10.1vw, 148px); /* was min(26vw, 380px) */
+      max-height: 14.8vh;
       height: auto;
       overflow: visible;
       mix-blend-mode: var(--logo-blend);
@@ -1154,7 +1154,7 @@
     .hr-caption {
       margin-top: 2.2rem;
       font-family: var(--mono);
-      font-size: 0.52rem;
+      font-size: 0.68rem; /* was 0.52rem */
       letter-spacing: 0.26em;
       text-transform: uppercase;
       color: var(--cap);
@@ -1420,6 +1420,92 @@
       .wt::before, .wt::after { transition: none; }
     }
   </style>
+
+  <style id="wk-preview-css">
+    /* ── WORK — Drum × Type Wheel ── */
+    #work.wk { padding: 0 !important; border-top: 1px solid rgba(var(--inkrgb),0.3); }
+    .wk-space { position: relative; height: calc(100vh + 85vh + 12 * 88vh); }
+    .wk-stage { position: sticky; top: 0; height: 100vh; min-height: 560px; overflow: hidden; background: #050505; color: #e9eaeb; isolation: isolate; outline: none; }
+    .wk-stage:focus-visible { box-shadow: inset 0 0 0 1px rgba(240,90,34,.6); }
+    .wk-films { position: absolute; inset: 0; overflow: hidden; z-index: 0; }
+    .wk-shade { z-index: 1; }
+    .wk-wheel, .wk-top, .wk-bottom { z-index: 3; }
+    .wk-hit { position: absolute; inset: 0; z-index: 2; margin: 0; padding: 0; border: 0; background: transparent; cursor: pointer; }
+
+    /* ── play: left negative space, opposite the titles ── */
+    .wk-pb { position: absolute; left: clamp(20px,4vw,64px); top: 50%; transform: translateY(-50%); z-index: 3; margin: 0; padding: 14px 0; border: 0; background: none; color: #f4f5f6; cursor: pointer; text-align: left; }
+    .wk-pb > span { display: none; align-items: center; }
+    .wk-stage[data-pv="a"] .pb-a, .wk-stage[data-pv="b"] .pb-b, .wk-stage[data-pv="c"] .pb-c, .wk-stage[data-pv="d"] .pb-d { display: flex; }
+    .pb-tri { display: block; width: 0; height: 0; border-left: 9px solid var(--orange); border-top: 5.5px solid transparent; border-bottom: 5.5px solid transparent; }
+    /* A — editorial: triangle, thin word, hairline that reaches out */
+    .pb-a { gap: 14px; }
+    .pb-word { font-family: var(--title); font-weight: 200; font-size: clamp(22px, 2vw, 32px); letter-spacing: -0.01em; }
+    .pb-rule { width: 56px; height: 1px; background: rgba(244,245,246,.45); transform-origin: left center; transition: transform .45s var(--ease-out), background-color .3s; }
+    /* B — ring of type, slowly turning */
+    .pb-b { position: relative; width: 104px; height: 104px; justify-content: center; }
+    .pb-ring { position: absolute; inset: 0; width: 100%; height: 100%; fill: rgba(244,245,246,.78); font-family: var(--mono); font-size: 9.5px; letter-spacing: 0; animation: pbSpin 22s linear infinite; }
+    .pb-b .pb-tri { margin-left: 3px; transition: transform .35s var(--ease-out); }
+    @keyframes pbSpin { to { transform: rotate(360deg); } }
+    /* C — timecode: play + running time */
+    .pb-c { gap: 12px; font-family: var(--mono); font-size: 12px; letter-spacing: .2em; text-transform: uppercase; }
+    .pb-dur { color: rgba(244,245,246,.55); letter-spacing: .12em; padding-left: 12px; border-left: 1px solid rgba(244,245,246,.25); }
+    /* D — the blade: an orange line that leads into the word */
+    .pb-d { gap: 16px; }
+    .pb-line { width: 44px; height: 1px; background: var(--orange); box-shadow: 0 0 10px rgba(var(--accrgb),.5); transform-origin: left center; transition: transform .45s var(--ease-out); }
+    .pb-dword { font-family: var(--script); font-size: 11px; font-weight: 700; letter-spacing: .42em; text-transform: uppercase; }
+    .wk-pb:active > span { transform: scale(.97); }
+    @media (hover: hover) and (pointer: fine) {
+      .wk-pb:hover .pb-rule { transform: scaleX(1.7); background: rgba(244,245,246,.8); }
+      .wk-pb:hover .pb-b .pb-tri { transform: scale(1.25); }
+      .wk-pb:hover .pb-line { transform: scaleX(1.8); }
+    }
+    @media (prefers-reduced-motion: reduce) { .pb-ring { animation: none; } }
+    @media (max-width: 760px) { .wk-pb { top: auto; bottom: 96px; transform: none; } }
+
+    .wk-film { position: absolute; inset: 0; visibility: hidden; background: #0b0b0b; overflow: hidden; }
+    .wk-in { position: absolute; inset: -6%; will-change: transform, filter; }
+    .wk-blade { position: absolute; left: 0; right: 0; top: 100%; height: 2px; z-index: 2; pointer-events: none; opacity: 0;
+      background: linear-gradient(90deg, transparent 0%, rgba(var(--accrgb),.95) 18%, rgba(var(--accrgb),.95) 82%, transparent 100%);
+      height: 1px; box-shadow: 0 0 14px rgba(var(--accrgb),.55), 0 0 48px rgba(var(--accrgb),.25); }
+    .wk-film img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+    .wk-vid { position: absolute; inset: 0; opacity: 0; transition: opacity .9s var(--ease-out); pointer-events: none; }
+    .wk-vid.ready { opacity: 1; }
+    .wk-vid iframe { position: absolute; top: 50%; left: 50%; width: max(108vw, 192vh); height: max(60.75vw, 108vh); transform: translate(-50%,-50%); border: 0; }
+    .wk-shade { position: absolute; inset: 0; pointer-events: none;
+      background: linear-gradient(90deg, rgba(5,5,5,.25) 0%, transparent 35%, rgba(5,5,5,.68) 100%),
+                  linear-gradient(180deg, rgba(5,5,5,.35) 0%, transparent 22%, transparent 70%, rgba(5,5,5,.7) 100%); }
+    .wk-wheel { position: absolute; right: clamp(48px,6vw,96px); top: 50%; width: 62vw; height: 0; perspective: 900px; perspective-origin: 70% 50%; }
+    .wk-wheel-in { position: absolute; inset: 0; transform-style: preserve-3d; }
+    .wk-mark { position: absolute; left: calc(100% + 14px); top: -.5px; width: clamp(20px,3vw,40px); height: 1px; background: var(--orange); }
+    .wk-title { position: absolute; right: 0; top: 0; margin: 0; padding: 4px 0; background: none; border: 0; cursor: pointer; text-align: right; color: #e9eaeb;
+      display: flex; flex-direction: column; align-items: flex-end; gap: 8px; backface-visibility: hidden; will-change: transform, opacity, filter; }
+    .wk-t { font-family: var(--title); font-weight: 200; font-size: clamp(26px, 3.4vw, 62px); line-height: 1; letter-spacing: -0.035em; white-space: nowrap; }
+    .wk-t { position: relative; display: block; }
+    .wk-tb { display: block; color: rgba(233,234,235,.62); }
+    .wk-ts { position: absolute; inset: -0.15em 0; padding: 0.15em 0; color: #f4f5f6; -webkit-mask-image: linear-gradient(transparent, transparent); mask-image: linear-gradient(transparent, transparent); }
+    .wk-c { font-family: var(--mono); font-size: 11px; letter-spacing: .08em; color: rgba(233,234,235,.6); white-space: nowrap; transition: color .3s; }
+    .wk-title.on .wk-c { color: var(--orange); }
+    .wk-top { position: absolute; top: clamp(80px, 11vh, 110px); left: clamp(20px,4vw,64px); font-family: var(--mono); font-size: 12px; letter-spacing: .08em; color: rgba(233,234,235,.7); }
+    .wk-bottom { position: absolute; left: clamp(20px,4vw,64px); right: clamp(20px,4vw,64px); bottom: 32px; display: flex; justify-content: space-between; align-items: flex-end; gap: 20px; flex-wrap: wrap; }
+    .wk-meta { display: flex; align-items: baseline; gap: 22px; flex-wrap: wrap; }
+    .wk-idx { font-family: var(--mono); font-size: 13px; color: var(--orange); }
+    .wk-cl { font-family: var(--script); font-size: 11px; letter-spacing: .3em; text-transform: uppercase; }
+    .wk-ctrl { display: flex; align-items: center; gap: 10px; }
+    .wk-hint { font-family: var(--mono); font-size: 11px; letter-spacing: .08em; color: rgba(233,234,235,.5); margin-right: 8px; }
+    .wk-btn { width: 44px; height: 44px; border-radius: 50%; border: 1px solid rgba(233,234,235,.22); background: rgba(233,234,235,.06); color: #e9eaeb; display: flex; align-items: center; justify-content: center; cursor: pointer; backdrop-filter: blur(10px); transition: transform .16s var(--ease-out), background-color .2s; }
+    .wk-watch { height: 44px; padding: 0 20px; border-radius: 22px; border: 1px solid var(--orange); background: rgba(5,5,5,.3); color: #e9eaeb; font-family: var(--mono); font-size: 11px; letter-spacing: .14em; text-transform: uppercase; cursor: pointer; backdrop-filter: blur(10px); transition: transform .16s var(--ease-out), background-color .2s; }
+    .wk-btn:active, .wk-watch:active, .wk-title:active { transform: scale(.97); }
+    @media (hover: hover) and (pointer: fine) {
+      .wk-btn:hover { background: rgba(233,234,235,.16); }
+      .wk-watch:hover { background: rgba(240,90,34,.18); }
+    }
+    @media (max-width: 760px) {
+      .wk-hint { display: none; }
+      .wk-wheel { right: 28px; width: 86vw; }
+      .wk-t { font-size: clamp(24px, 7vw, 44px); }
+      .wk-top { top: 84px; left: 20px; right: auto; }
+    }
+  </style>
 </head>
 <body id="top">
 
@@ -1433,7 +1519,6 @@
     <a href="#about">About</a>
     <a href="#contact">Contact</a>
     <a href="#tools">Tools</a>
-    <a href="#vault">Mobile Vault</a>
   </nav>
 
   <!-- ── HERO ── -->
@@ -1465,155 +1550,54 @@
   <div class="section-rule" aria-hidden="true"></div>
 
   <!-- ── WORK ── -->
-  <section id="work">
-    <div class="work-scroll-space" id="workScrollSpace">
-      <div class="work-stage">
-
-        <div class="dust-field" aria-hidden="true"></div>
-
-        <div class="work-label">— Selected Work / 2020–2025</div>
-
-        <!-- fixed left label — title + client update with active card -->
-        <div class="work-sticky-left" aria-hidden="true">
-          <span class="wsl-index" id="wslIndex">01</span>
-          <span class="wsl-title" id="wslTitle">Calm is a Weapon</span>
-          <span class="wsl-client" id="wslClient">Moses Itauma × Nike</span>
+  <section id="work" class="wk">
+    <div class="wk-space" id="wkSpace">
+      <div class="wk-stage" id="wkStage" data-pv="c" tabindex="0" aria-label="Selected work. Scroll or use the arrow keys to roll the titles.">
+        <div class="wk-films" aria-hidden="true">
+        <div class="wk-film" data-i="0"><div class="wk-in"><img data-vimeo="1176549337" src="" alt="" /><div class="wk-vid"></div></div></div>
+        <div class="wk-film" data-i="1"><div class="wk-in"><img data-vimeo="1177858126" src="" alt="" /><div class="wk-vid"></div></div></div>
+        <div class="wk-film" data-i="2"><div class="wk-in"><img data-vimeo="1218243509" src="" alt="" /><div class="wk-vid"></div></div></div>
+        <div class="wk-film" data-i="3"><div class="wk-in"><img data-vimeo="1080818936" src="" alt="" /><div class="wk-vid"></div></div></div>
+        <div class="wk-film" data-i="4"><div class="wk-in"><img data-vimeo="1204677251" src="" alt="" /><div class="wk-vid"></div></div></div>
+        <div class="wk-film" data-i="5"><div class="wk-in"><img data-vimeo="1174466029" src="" alt="" /><div class="wk-vid"></div></div></div>
+        <div class="wk-film" data-i="6"><div class="wk-in"><img data-vimeo="1136556593" src="" alt="" /><div class="wk-vid"></div></div></div>
+        <div class="wk-film" data-i="7"><div class="wk-in"><img data-vimeo="1025423624" src="" alt="" /><div class="wk-vid"></div></div></div>
+        <div class="wk-film" data-i="8"><div class="wk-in"><img data-vimeo="853541516" src="" alt="" /><div class="wk-vid"></div></div></div>
+        <div class="wk-film" data-i="9"><div class="wk-in"><img data-vimeo="1103442203" src="" alt="" /><div class="wk-vid"></div></div></div>
+        <div class="wk-film" data-i="10"><div class="wk-in"><img data-vimeo="992400999" src="" alt="" /><div class="wk-vid"></div></div></div>
+        <div class="wk-film" data-i="11"><div class="wk-in"><img data-vimeo="878363776" src="" alt="" /><div class="wk-vid"></div></div></div>
         </div>
-
-        <!-- 3D wheel -->
-        <div class="work-wheel-area">
-          <div class="work-wheel-wrap">
-            <div class="work-wheel" id="workWheel">
-
-              <!-- 01 -->
-              <div class="work-item" data-index="0">
-                <div class="work-video">
-                  <img class="work-thumb" data-vimeo="1176549337" src="" alt="Calm is a Weapon" />
-                </div>
-                <div class="work-meta">
-                  <div class="wm-title">Calm is a Weapon</div>
-                  <div class="wm-client">Moses Itauma × Nike</div>
-                </div>
-              </div>
-
-              <div class="work-item" data-index="1">
-                <div class="work-video">
-                  <img class="work-thumb" data-vimeo="1177858126" src="" alt="I See Red" />
-                </div>
-                <div class="work-meta">
-                  <div class="wm-title">I See Red</div>
-                  <div class="wm-client">Daniela Andrade</div>
-                </div>
-              </div>
-
-              <div class="work-item" data-index="2">
-                <div class="work-video">
-                  <img class="work-thumb" data-vimeo="1218243509" src="" alt="Sacred Ecologies" />
-                </div>
-                <div class="work-meta">
-                  <div class="wm-title">Sacred Ecologies</div>
-                  <div class="wm-client">IAMISIGO</div>
-                </div>
-              </div>
-
-              <div class="work-item" data-index="3">
-                <div class="work-video">
-                  <img class="work-thumb" data-vimeo="1080818936" src="" alt="The Journey" />
-                </div>
-                <div class="work-meta">
-                  <div class="wm-title">The Journey</div>
-                  <div class="wm-client">Spencer Badu × Hoka</div>
-                </div>
-              </div>
-
-              <div class="work-item" data-index="4">
-                <div class="work-video">
-                  <img class="work-thumb" data-vimeo="1204677251" src="" alt="How to Grow" />
-                </div>
-                <div class="work-meta">
-                  <div class="wm-title">How to Grow</div>
-                  <div class="wm-client">Haventree Bank</div>
-                </div>
-              </div>
-
-              <div class="work-item" data-index="5">
-                <div class="work-video">
-                  <img class="work-thumb" data-vimeo="1174466029" src="" alt="Details" />
-                </div>
-                <div class="work-meta">
-                  <div class="wm-title">Details</div>
-                  <div class="wm-client">Moses Itauma × Nike</div>
-                </div>
-              </div>
-
-              <div class="work-item" data-index="6">
-                <div class="work-video">
-                  <img class="work-thumb" data-vimeo="1136556593" src="" alt="Interwoven" />
-                </div>
-                <div class="work-meta">
-                  <div class="wm-title">Interwoven</div>
-                  <div class="wm-client">Spencer Badu</div>
-                </div>
-              </div>
-
-              <div class="work-item" data-index="7">
-                <div class="work-video">
-                  <img class="work-thumb" data-vimeo="1025423624" src="" alt="Culture Vanguard" />
-                </div>
-                <div class="work-meta">
-                  <div class="wm-title">Culture Vanguard</div>
-                  <div class="wm-client">Take More Photos</div>
-                </div>
-              </div>
-
-              <div class="work-item" data-index="8">
-                <div class="work-video">
-                  <img class="work-thumb" data-vimeo="853541516" src="" alt="We Feel" />
-                </div>
-                <div class="work-meta">
-                  <div class="wm-title">We Feel</div>
-                  <div class="wm-client">Adidas</div>
-                </div>
-              </div>
-
-              <div class="work-item" data-index="9">
-                <div class="work-video">
-                  <img class="work-thumb" data-vimeo="1103442203" src="" alt="Pay Me" />
-                </div>
-                <div class="work-meta">
-                  <div class="wm-title">Pay Me</div>
-                  <div class="wm-client">Odumodublvck, Stormzy &amp; Zlatan</div>
-                </div>
-              </div>
-
-              <div class="work-item" data-index="10">
-                <div class="work-video">
-                  <img class="work-thumb" data-vimeo="992400999" src="" alt="Double the Fun" />
-                </div>
-                <div class="work-meta">
-                  <div class="wm-title">Double the Fun</div>
-                  <div class="wm-client">Haviah Mighty</div>
-                </div>
-              </div>
-
-              <div class="work-item" data-index="11">
-                <div class="work-video">
-                  <img class="work-thumb" data-vimeo="878363776" src="" alt="Ravage" />
-                </div>
-                <div class="work-meta">
-                  <div class="wm-title">Ravage</div>
-                  <div class="wm-client">Rema</div>
-                </div>
-              </div>
-            </div><!-- /work-wheel -->
-          </div><!-- /work-wheel-wrap -->
-          <div class="wheel-counter" id="wheelCounter"><span class="wc-cur">01</span> / 12</div>
-        </div><!-- /work-wheel-area -->
-
-        <div class="wheel-ticks" id="wheelTicks"></div>
-
-      </div><!-- /work-stage -->
-    </div><!-- /work-scroll-space -->
+        <div class="wk-blade" id="wkBlade" aria-hidden="true"></div>
+        <div class="wk-shade" aria-hidden="true"></div>
+        <button class="wk-hit" id="wkHit" aria-label="Play film"></button>
+        <button class="wk-pb" id="wkPb" aria-label="Play film">
+          <span class="pb-c"><i class="pb-tri"></i><span>Play</span><span class="pb-dur" id="wkDur">—:—</span></span>
+        </button>
+        <div class="wk-wheel"><div class="wk-mark" aria-hidden="true"></div><div class="wk-wheel-in">
+          <button class="wk-title" data-i="0" aria-label="Calm is a Weapon — Moses Itauma × Nike"><span class="wk-t"><span class="wk-tb">Calm is a Weapon</span><span class="wk-ts" aria-hidden="true">Calm is a Weapon</span></span><span class="wk-c">01 · Moses Itauma × Nike</span></button>
+          <button class="wk-title" data-i="1" aria-label="I See Red — Daniela Andrade"><span class="wk-t"><span class="wk-tb">I See Red</span><span class="wk-ts" aria-hidden="true">I See Red</span></span><span class="wk-c">02 · Daniela Andrade</span></button>
+          <button class="wk-title" data-i="2" aria-label="Sacred Ecologies — IAMISIGO"><span class="wk-t"><span class="wk-tb">Sacred Ecologies</span><span class="wk-ts" aria-hidden="true">Sacred Ecologies</span></span><span class="wk-c">03 · IAMISIGO</span></button>
+          <button class="wk-title" data-i="3" aria-label="The Journey — Spencer Badu × Hoka"><span class="wk-t"><span class="wk-tb">The Journey</span><span class="wk-ts" aria-hidden="true">The Journey</span></span><span class="wk-c">04 · Spencer Badu × Hoka</span></button>
+          <button class="wk-title" data-i="4" aria-label="How to Grow — Haventree Bank"><span class="wk-t"><span class="wk-tb">How to Grow</span><span class="wk-ts" aria-hidden="true">How to Grow</span></span><span class="wk-c">05 · Haventree Bank</span></button>
+          <button class="wk-title" data-i="5" aria-label="Details — Moses Itauma × Nike"><span class="wk-t"><span class="wk-tb">Details</span><span class="wk-ts" aria-hidden="true">Details</span></span><span class="wk-c">06 · Moses Itauma × Nike</span></button>
+          <button class="wk-title" data-i="6" aria-label="Interwoven — Spencer Badu"><span class="wk-t"><span class="wk-tb">Interwoven</span><span class="wk-ts" aria-hidden="true">Interwoven</span></span><span class="wk-c">07 · Spencer Badu</span></button>
+          <button class="wk-title" data-i="7" aria-label="Culture Vanguard — Take More Photos"><span class="wk-t"><span class="wk-tb">Culture Vanguard</span><span class="wk-ts" aria-hidden="true">Culture Vanguard</span></span><span class="wk-c">08 · Take More Photos</span></button>
+          <button class="wk-title" data-i="8" aria-label="We Feel — Adidas"><span class="wk-t"><span class="wk-tb">We Feel</span><span class="wk-ts" aria-hidden="true">We Feel</span></span><span class="wk-c">09 · Adidas</span></button>
+          <button class="wk-title" data-i="9" aria-label="Pay Me — Odumodublvck, Stormzy &amp; Zlatan"><span class="wk-t"><span class="wk-tb">Pay Me</span><span class="wk-ts" aria-hidden="true">Pay Me</span></span><span class="wk-c">10 · Odumodublvck, Stormzy &amp; Zlatan</span></button>
+          <button class="wk-title" data-i="10" aria-label="Double the Fun — Haviah Mighty"><span class="wk-t"><span class="wk-tb">Double the Fun</span><span class="wk-ts" aria-hidden="true">Double the Fun</span></span><span class="wk-c">11 · Haviah Mighty</span></button>
+          <button class="wk-title" data-i="11" aria-label="Ravage — Rema"><span class="wk-t"><span class="wk-tb">Ravage</span><span class="wk-ts" aria-hidden="true">Ravage</span></span><span class="wk-c">12 · Rema</span></button>
+        </div></div>
+        <div class="wk-top">— Selected Work / 2020–2025</div>
+        <div class="wk-bottom">
+          <div class="wk-meta"><span class="wk-idx" id="wkIdx">01 — 12</span></div>
+          <div class="wk-ctrl">
+            <span class="wk-hint">Scroll · ↑ ↓</span>
+            <button class="wk-btn" id="wkPrev" aria-label="Previous film"><svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.3" aria-hidden="true"><path d="M3 9l4-4 4 4"/></svg></button>
+            <button class="wk-btn" id="wkNext" aria-label="Next film"><svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.3" aria-hidden="true"><path d="M3 5l4 4 4-4"/></svg></button>
+          </div>
+        </div>
+      </div>
+    </div>
   </section>
 
   <div class="section-rule" aria-hidden="true"></div>
@@ -1768,36 +1752,7 @@
 
 
 
-  <div class="section-rule" aria-hidden="true"></div>
-
-  <!-- ── VAULT ── -->
-  <section id="vault">
-    <div class="vt-left reveal">
-      <div class="about-num">— Needed Mobile Vault / on your phone</div>
-      <h2 class="about-title tl-title">MOBILE<br><span>VAULT</span></h2>
-      <p class="tl-lead">The pocket half of Needed Tools. Catch references wherever you are — photos, screenshots, clips — straight into a project, with tags. Even with no signal.</p>
-      <p class="tl-note">Nothing goes to this website. Your pictures stay on your phone until you tap Sync — then into your own Photos, and iCloud takes them to your Mac, where Sync files each one into its project, once.</p>
-      <a class="tl-buy vt-open" href="vault/">Open Needed Mobile Vault ↗</a>
-      <div class="vt-qr"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAPgAAAD4CAIAAABOs7xcAAAEG0lEQVR42u3dQXLbMAxA0bqjK/j+B8whlEW34YIsYADKe9umiqz84XBoDvW67/sPPN1fjwChg9BB6CB0EDoIHc5cq394v98jPsDX11er+4l6brufa/V7o57P9B6M6Ji6gNBB6CB0EDoIHQ5du/+hat16dx139+ejPlfU+vcUU3owomPqAkIHoYPQQeggdDh0RV2oah921f1n7xff/fnd62Q//249GNExdQGhg9BB6CB0EDocujyCWtnr6xjREToIHYQOQgehg9Dhvzx2Hb1qHbrqnJaqfedGdBA6CB2EDkIHoSN0eLiwdXT7oWOf2/R18W73Y0TH1AWEDkIHoYPQQehwaHsdfcp7MbPPS4n6+V1V9z+9ByM6pi4gdBA6CB2EDkKHQ8t1dPvL/9ldJ45an7a/3IgOQgehI3QQOggdhA4tvO77/vEfur3PMnv/d9Q+7Oz76Xa+e9X+9d3fa0TH1AWEDkIHoYPQQehwaLmOvqtq3X36+nS39e9u3w/sXseIjqkLCB2EDkIHoYPQIdj2OnrVfuIp53BXfW+QvZ8++zpGdBA6CB2EjtBB6CB0aOqKulD2uni382SqrtPtvaFV+8uN6CB0hA5CB6GD0EHo8CHLdfQp55Fnm74O/dR18d0+jeiYuoDQQeggdBA6CB0Ojd+Pnr3eH3X/Uc+z2/k2U74/MaJj6gJCB6GD0EHoIHQ4NP589Oz15inr2VXvQ636PsGIDkJH6CB0EDoIHYQOH1J2rsuU89GrdPu82e8TjerHuS6YuoDQQeggdBA6CB2CLfejV61zTzknJHs/fdXzyVZ1/0Z0TF1A6CB0EDoIHYQOh7bX0avOKX/q/uxu56hkqzqHx4iOqQsIHYQOQgehg9Dh0PZ7Rp/6fs2q/fS715m+Tl+1L9+IjqkLCB2EDkIHoYPQ4dD2Onr2emf2PvhsVfv1o+4nu4fs52xEx9QFhA5CB6GD0EHoEOyKutCUc82r7j/7/axV69lRz825LmDqAkIHoSN0EDoIHZpano8+XbfzZ7rtp8/+vd3OvzeiY+oCQgehg9BB6CB0OLTcjz7lfZar9dcp69ZR18ne51217h51fSM6pi4gdBA6CB2EDkKHQ+nno0epOi88an16+vtBo/7u2c/BiI6pCwgdhA5CB6GD0CFY2fnoK1PeW9lN9vnr2Z1kr68b0TF1AaGD0EHoIHQQOhy6ftsHnrLvPOpz7d5n1fkt2X8XIzqmLiB0EDoIHYQOQodDv24dvepclynnzXe7f+e6gNBB6AgdhA5CB6FDsbB19OnnoqxEreNmP59u1+92nr0RHVMXEDoIHYQOQgehw6HtdfQp+6p311mzzy3Jln1OS7e/u/3oIHSEDkIHoYPQQejwIa/7vj0FjOggdBA6CB2EDkIHocPPvgGTigBWzqSddQAAAABJRU5ErkJggg==" alt="QR code for Needed Mobile Vault"><span>Mobile Vault is for your phone. Point your iPhone’s camera here — then add it to your Home Screen.</span></div>
-    </div>
-    <div class="vt-right">
-      <div class="vt-phone reveal" aria-hidden="true">
-        <div class="vt-screen">
-          <div class="vt-top"><span class="vt-pill">Lexus ▾</span><span class="vt-gg">Grab &amp; Go</span></div>
-          <div class="vt-h">Lexus</div>
-          <div class="vt-wall">
-            <i style="grid-column:span 2;grid-row:span 2;background:linear-gradient(160deg,#3b2a22,#b8461c)" class="w"></i><i style="background:#1e2227"></i><i style="background:linear-gradient(180deg,#262a31,#5a3a24)" class="w"></i><i style="background:#e0a24a"></i><i style="background:#15181c"></i><i style="grid-column:span 2;background:#6d2a18" class="w"></i><i style="background:#402e24"></i>
-          </div>
-          <div class="vt-send"><span>3 not synced yet<br>All for Lexus</span><b>Sync</b></div>
-        </div>
-      </div>
-      <div class="vt-steps">
-        <div class="vt-step tl-glass reveal"><em>1</em><div><b>Catch</b><span>Photos or the camera, into a project and its tags. Grab &amp; Go files them without a question.</span></div></div>
-        <div class="vt-step tl-glass reveal"><em>2</em><div><b>Keep</b><span>Everything waits on your phone — on a plane, on set, anywhere.</span></div></div>
-        <div class="vt-step tl-glass reveal"><em>3</em><div><b>Sync</b><span>Sync on the phone saves to Photos; iCloud brings it to your Mac. Sync in Needed Tools files each into its project’s vault, tagged — and never twice.</span></div></div>
-      </div>
-    </div>
-  </section>
+  
 
   <!-- ── LIGHTBOX ── -->
   <div class="lightbox" id="lightbox" aria-hidden="true">
@@ -1954,333 +1909,7 @@
       awardsIO.observe(awardsSection);
     })();
 
-    // ── 3D WHEEL ──────────────────────────────────────────
-    (function() {
-      const N        = 12;
-      const DEG      = 360 / N;
-      const wheel    = document.getElementById('workWheel');
-      const space    = document.getElementById('workScrollSpace');
-      const counter  = document.getElementById('wheelCounter');
-      const items    = Array.from(wheel.querySelectorAll('.work-item'));
-      const wheelArea = space.querySelector('.work-wheel-area');
-      const wslIndex  = document.getElementById('wslIndex');
-      const dustField = space.querySelector('.dust-field');
-
-      // card dimensions — sized to right column width
-      function cardSize() {
-        const areaW    = wheel.closest('.work-wheel-area').offsetWidth;
-        const isMobile = window.innerWidth <= 700;
-        // mobile: 50% of the original mobile size — active card ×1.25 sits at ~46% of screen
-        // desktop: keep the smaller 20%-reduced size unchanged
-        const mult = isMobile ? 0.37 : 0.2688;
-        const cap  = isMobile ? 145  : 235;
-        const w = Math.round(Math.min(areaW * mult, cap));
-        const h = Math.round(w * 9 / 16);
-        return { w, h };
-      }
-
-      let RADIUS = 360;
-
-      function setup() {
-        const { w, h } = cardSize();
-        // radius: enough that adjacent cards clear each other
-        RADIUS = Math.round(h / (2 * Math.tan(Math.PI / N))) + 40;
-
-        wheel.style.width  = w + 'px';
-        wheel.style.height = h + 'px';
-
-        items.forEach((item, i) => {
-          item.style.width  = w + 'px';
-          item.style.height = h + 'px';
-          item.style.transform =
-            `rotateX(${i * DEG}deg) translateZ(${RADIUS}px)`;
-        });
-      }
-
-      // Dead zone 2.5× viewport: 0–55% = scale+spin entrance, 55–100% = landing pause
-      const DEAD_ZONE_FACTOR = 2.5;
-      const SCALE_END_FACTOR = 0.55;
-      const ENTRY_ROT        = 2 * DEG;  // spin entrance — rotates to card 0 (I See Red)
-
-      // Both start at entry rotation so there's no snap on first frame
-      let targetRot  = ENTRY_ROT;
-      let currentRot = ENTRY_ROT;
-
-      function scrollProgress() {
-        const scrolled    = window.scrollY - space.offsetTop;
-        const total       = space.offsetHeight - window.innerHeight;
-        const deadZone    = window.innerHeight * DEAD_ZONE_FACTOR;
-        const activeStart = Math.max(0, scrolled - deadZone);
-        const activeTotal = total - deadZone;
-        return Math.max(0, Math.min(1, activeStart / activeTotal));
-      }
-
-      // flag: true while the click-triggered entrance animation is playing
-      let clickEntrancePlaying = false;
-
-      // ── decode swap — titles resolve through glyphs, echoing the hero dot-matrix ──
-      const GLYPHS  = '/\\|—=+*<>#10';
-      const REDUCED = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-      function scrambleTo(el, text) {
-        if (!el) return;
-        if (el._scrambleTimer) clearInterval(el._scrambleTimer);
-        if (REDUCED) { el.textContent = text; return; }
-        const len = text.length;
-        let frame = 0;
-        const totalFrames = 8;
-        el._scrambleTimer = setInterval(() => {
-          frame++;
-          const settled = Math.ceil((frame / totalFrames) * len);
-          let out = '';
-          for (let i = 0; i < len; i++) {
-            if (i < settled || text[i] === ' ') { out += text[i]; }
-            else { out += GLYPHS[(Math.random() * GLYPHS.length) | 0]; }
-          }
-          el.textContent = out;
-          if (frame >= totalFrames) {
-            clearInterval(el._scrambleTimer);
-            el._scrambleTimer = null;
-          }
-        }, 36);
-      }
-
-      // ── index ticks — click to jump straight to a film ──
-      const ticksWrap = document.getElementById('wheelTicks');
-      const tickEls = [];
-      if (ticksWrap) {
-        for (let i = 0; i < N; i++) {
-          const b = document.createElement('button');
-          b.type = 'button';
-          b.className = 'wt';
-          b.setAttribute('aria-label', 'View work ' + (i + 1) + ' of ' + N);
-          b.addEventListener('click', function () {
-            const deadZone = window.innerHeight * DEAD_ZONE_FACTOR;
-            const total    = space.offsetHeight - window.innerHeight;
-            const y = space.offsetTop + deadZone + (i / (N - 1)) * (total - deadZone);
-            window.scrollTo({ top: Math.round(y), behavior: REDUCED ? 'auto' : 'smooth' });
-          });
-          ticksWrap.appendChild(b);
-          tickEls.push(b);
-        }
-      }
-
-      // ── cursor tilt — the drum leans gently toward the pointer ──
-      let tiltTarget = 0, tilt = 0;
-      let dustTX = 0, dustTY = 0, dustX = 0, dustY = 0;
-      const FINE = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
-      if (FINE && !REDUCED) {
-        const stageEl = space.querySelector('.work-stage');
-        stageEl.addEventListener('mousemove', function (e) {
-          const r = stageEl.getBoundingClientRect();
-          const nx = (e.clientX - r.left) / r.width - 0.5;
-          const ny = (e.clientY - r.top) / r.height - 0.5;
-          tiltTarget = nx * 9;
-          dustTX = nx * 110;
-          dustTY = ny * 80;
-        }, { passive: true });
-        stageEl.addEventListener('mouseleave', function () { tiltTarget = 0; dustTX = 0; dustTY = 0; });
-      }
-
-      function onScroll() {
-        if (clickEntrancePlaying) return; // entrance is handled by click animation loop
-        const scrolled = window.scrollY - space.offsetTop;
-        const scaleEnd = window.innerHeight * DEAD_ZONE_FACTOR * SCALE_END_FACTOR;
-        const sp       = Math.max(0, Math.min(1, scrolled / scaleEnd));
-        const se       = sp * sp * (3 - 2 * sp);            // smoothstep
-
-        // Scale + fade in together
-        const sc = (0.42 + se * 0.58).toFixed(4);           // 0.42 → 1.0
-        const al = (0.1  + se * 0.9 ).toFixed(3);           // 0.10 → 1.0
-        wheelArea.style.transform = `scale(${sc})`;
-        wheelArea.style.opacity   = al;
-
-        // Rotation: spins from ENTRY_ROT → 0 as it scales in, then scroll navigates cards
-        if (sp < 1) {
-          targetRot = ENTRY_ROT * (1 - se);
-        } else {
-          targetRot = -scrollProgress() * (N - 1) * DEG;
-        }
-      }
-
-      // ── animation loop ──
-      function tick() {
-        currentRot += (targetRot - currentRot) * 0.10;
-
-        tilt += (tiltTarget - tilt) * 0.06;
-        if (dustField) {
-          dustX += (dustTX - dustX) * 0.02;
-          dustY += (dustTY - dustY) * 0.02;
-          dustField.style.transform = 'translate3d(' + dustX.toFixed(1) + 'px,' + dustY.toFixed(1) + 'px,0)';
-        }
-        wheel.style.transform = `rotateY(${tilt.toFixed(3)}deg) rotateX(${currentRot}deg)`;
-
-        // per-card opacity & active state
-        let activeIdx = 0;
-        let minDist   = Infinity;
-
-        items.forEach((item, i) => {
-          // world angle of this card's face
-          const raw  = (i * DEG + currentRot) % 360;
-          const ang  = ((raw % 360) + 360) % 360;
-          // angular distance from front (0°)
-          const dist = ang <= 180 ? ang : 360 - ang;
-
-          if (dist < minDist) { minDist = dist; activeIdx = i; }
-
-          // store dist + index for second pass
-          item._dist = dist;
-          item._idx  = i;
-
-          // opacity: 1 at front, fades toward back
-          const t = dist / 180;
-          item.style.opacity = (1 - t * 0.88).toFixed(3);
-        });
-
-        // update left-column title + client to active card
-        const wslTitle  = document.getElementById('wslTitle');
-        const wslClient = document.getElementById('wslClient');
-        if (wslTitle) {
-          const activeItem   = items[activeIdx];
-          const newTitle     = (activeItem.querySelector('.wm-title')  || {}).textContent || '';
-          const newClient    = (activeItem.querySelector('.wm-client') || {}).textContent || '';
-          if (wslTitle.dataset.target !== newTitle) {
-            wslTitle.dataset.target = newTitle;
-            scrambleTo(wslTitle, newTitle);
-            scrambleTo(wslClient, newClient);
-          }
-        }
-
-        // active card + preload approaching cards
-        const isMob    = window.innerWidth <= 700;
-        const AMAX     = isMob ? 1.25 : 1.786; // peak scale at dead center
-        const STHR     = 12;                    // degrees — tight window, only dead-center card pops
-
-        items.forEach((item) => {
-          const dist     = item._dist;
-          const isActive = item === items[activeIdx];
-
-          // smooth scale baked into the card's own transform (reliable cross-browser)
-          const st        = Math.max(0, Math.min(1, 1 - dist / STHR));
-          const se2       = st * st * (3 - 2 * st); // smoothstep
-          const cardScale = (1 + (AMAX - 1) * se2).toFixed(4);
-          item.style.transform =
-            `rotateX(${item._idx * DEG}deg) translateZ(${RADIUS + se2 * 30}px) scale(${cardScale})`;
-
-          // .in drives thumbnail fade-out + meta reveal
-          if (isActive) { item.classList.add('in'); }
-          else           { item.classList.remove('in'); }
-
-          // PRELOAD: inject iframe for Vimeo only — YouTube stays as thumbnail, plays in lightbox
-          if (dist < 55 && !item._iframeEl && !item.dataset.yt) {
-            const wv     = item.querySelector('.work-video');
-            const iframe = document.createElement('iframe');
-            iframe.className  = 'live-vid';
-            iframe.style.cssText = 'position:absolute;top:-10%;left:-5%;width:110%;height:120%;border:none;pointer-events:none;z-index:1;';
-            iframe.allow      = 'autoplay; accelerometer; encrypted-media; gyroscope; picture-in-picture';
-            iframe.allowFullscreen = true;
-            const vimeoImg = item.querySelector('[data-vimeo]');
-            if (vimeoImg) {
-              const vimeoH = vimeoImg.dataset.vimeoH ? `&h=${vimeoImg.dataset.vimeoH}` : '';
-              iframe.src = `https://player.vimeo.com/video/${vimeoImg.dataset.vimeo}?autoplay=1&muted=1&loop=1&background=1&transparent=0${vimeoH}`;
-            }
-            if (iframe.src) {
-              iframe.addEventListener('load', function () {
-                item._readyTimer = setTimeout(function () { item.classList.add('vid-ready'); }, 450);
-              });
-              wv.appendChild(iframe);
-              item._iframeEl = iframe;
-            }
-          }
-
-          // DESTROY: free resources once card is well out of view
-          if (dist > 85 && item._iframeEl) {
-            item._iframeEl.src = '';
-            item._iframeEl.remove();
-            item._iframeEl = null;
-            item.classList.remove('vid-ready');
-            if (item._readyTimer) { clearTimeout(item._readyTimer); item._readyTimer = null; }
-          }
-        });
-
-        if (counter) {
-          const cur = String(activeIdx + 1).padStart(2, '0');
-          if (counter._cur !== cur) {
-            counter._cur = cur;
-            counter.innerHTML = '<span class="wc-cur">' + cur + '</span> / ' + String(N).padStart(2, '0');
-            counter.classList.remove('tick');
-            void counter.offsetWidth;
-            counter.classList.add('tick');
-            if (wslIndex) {
-              wslIndex.textContent = cur;
-              wslIndex.classList.remove('tick');
-              void wslIndex.offsetWidth;
-              wslIndex.classList.add('tick');
-            }
-          }
-        }
-
-        for (let ti = 0; ti < tickEls.length; ti++) {
-          tickEls[ti].classList.toggle('on', ti === activeIdx);
-        }
-
-        requestAnimationFrame(tick);
-      }
-
-      setup();
-      window.addEventListener('resize', setup, { passive: true });
-      window.addEventListener('scroll', onScroll, { passive: true });
-      onScroll();
-      tick();
-
-      // ── Work nav click: instant jump + standalone entrance animation ──
-      // Instantly sets scroll to the section start (no delay), then plays
-      // the scale/fade/spin entrance via its own rAF loop — independent of scroll.
-      // Lands scroll at entranceEnd so card navigation is ready immediately after.
-      const workNavLink = document.querySelector('a[href="#work"]');
-      if (workNavLink) {
-        workNavLink.addEventListener('click', function(e) {
-          e.preventDefault();
-          const sectionTop  = space.getBoundingClientRect().top + window.scrollY;
-          const scaleEnd    = window.innerHeight * DEAD_ZONE_FACTOR * SCALE_END_FACTOR;
-          const entranceEnd = sectionTop + scaleEnd;
-
-          // Disable smooth scroll for the duration of the entrance so scrollTo
-          // calls are instant and don't fire competing scroll events mid-animation
-          document.documentElement.style.scrollBehavior = 'auto';
-
-          // 1. Instant jump to section start
-          window.scrollTo(0, sectionTop);
-
-          // 2. Play entrance animation via standalone rAF (onScroll is paused during this)
-          clickEntrancePlaying = true;
-          const duration = 1100; // ms
-          let startTime  = null;
-
-          function playEntrance(ts) {
-            if (!startTime) startTime = ts;
-            const progress = Math.min((ts - startTime) / duration, 1);
-            const se = progress * progress * (3 - 2 * progress); // smoothstep
-            const sc = (0.42 + se * 0.58).toFixed(4);
-            const al = (0.1  + se * 0.9 ).toFixed(3);
-            wheelArea.style.transform = `scale(${sc})`;
-            wheelArea.style.opacity   = al;
-            targetRot = ENTRY_ROT * (1 - se);
-            if (progress < 1) {
-              requestAnimationFrame(playEntrance);
-            } else {
-              // 3. Hand off to scroll — instant jump to entranceEnd so cards navigate from here
-              window.scrollTo(0, entranceEnd);
-              clickEntrancePlaying = false;
-              // Restore smooth scroll now that we've handed off
-              requestAnimationFrame(() => {
-                document.documentElement.style.scrollBehavior = '';
-              });
-            }
-          }
-          requestAnimationFrame(playEntrance);
-        });
-      }
-    })();
+    // (old 3D wheel removed in preview)
 
     // ── LIGHTBOX ──────────────────────────────────────────
     (function() {
@@ -2492,5 +2121,235 @@
     })();
   </script>
 
-  </body>
+  
+  <script id="wk-preview-js">
+  // ── WORK — Drum × Type Wheel (scroll-driven, real Vimeo) ──
+  (function () {
+    var space = document.getElementById('wkSpace');
+    var stage = document.getElementById('wkStage');
+    if (!space || !stage) return;
+    var films   = Array.prototype.slice.call(stage.querySelectorAll('.wk-film'));
+    var titles  = Array.prototype.slice.call(stage.querySelectorAll('.wk-title'));
+    var N = titles.length, RAD = Math.PI / 180, STEP = 21, R = 250, ARC = 140, TF = 35, FF = 7;
+    var idxEl = document.getElementById('wkIdx');
+    var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var pos = 0, target = 0, lastAi = -1, settleT = 0, snapT = 0, running = false;
+    function pad(n) { return (n < 10 ? '0' : '') + n; }
+    function hold() { return window.innerHeight * 0.85; }
+    function range() { return Math.max(1, space.offsetHeight - window.innerHeight - hold()); }
+    function top0() { return space.getBoundingClientRect().top + window.scrollY; }
+    function sticky(raw) {
+      var i = Math.floor(raw), f = raw - i;
+      var g = Math.min(1, Math.max(0, (f - 0.14) / 0.72));
+      return i + g * g * (3 - 2 * g);
+    }
+    function progress() { var p = (window.scrollY - top0() - hold()) / range(); return Math.min(1, Math.max(0, p)); }
+    function scrollToIndex(i) {
+      i = Math.max(0, Math.min(N - 1, i));
+      window.scrollTo({ top: top0() + hold() + (i / (N - 1)) * range(), behavior: reduce ? 'auto' : 'smooth' });
+    }
+
+    function loadVideo(i) {
+      films.forEach(function (f, k) {
+        var holder = f.querySelector('.wk-vid');
+        if ((k < i - 1 || k > i + 1) && holder.firstChild) { holder.classList.remove('ready'); holder.innerHTML = ''; }
+      });
+      embed(i);
+      if (i + 1 < N) embed(i + 1);
+      if (i - 1 >= 0) embed(i - 1);
+    }
+    function embed(i) {
+      var holder = films[i].querySelector('.wk-vid');
+      if (holder.firstChild) { return; }
+      var id = films[i].querySelector('img').dataset.vimeo;
+      var ifr = document.createElement('iframe');
+      ifr.allow = 'autoplay; fullscreen; picture-in-picture';
+      ifr.setAttribute('tabindex', '-1');
+      ifr.src = 'https://player.vimeo.com/video/' + id + '?autoplay=1&muted=1&loop=1&background=1&autopause=0&transparent=0';
+      ifr.addEventListener('load', function () { setTimeout(function () { holder.classList.add('ready'); }, 500); });
+      holder.appendChild(ifr);
+    }
+
+    var blade = document.getElementById('wkBlade');
+
+
+    // decode: the same scramble-then-settle as the hero bio
+    var GLYPHS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789·—×/#';
+    function decode(el, text) {
+      if (!el) return;
+      clearInterval(el._dec);
+      if (reduce) { el.textContent = text; return; }
+      var frame = 0, total = 11;
+      el._dec = setInterval(function () {
+        frame++;
+        var settled = Math.ceil((frame / total) * text.length), out = '';
+        for (var i = 0; i < text.length; i++) out += (i < settled || text[i] === ' ') ? text[i] : GLYPHS[(Math.random() * GLYPHS.length) | 0];
+        el.textContent = out;
+        if (frame >= total) { clearInterval(el._dec); el.textContent = text; }
+      }, 34);
+    }
+    titles.forEach(function (t) { var c = t.querySelector('.wk-c'); c.dataset.text = c.textContent; });
+
+    // one-time entrance: the drum rolls up into place the first time Work arrives
+    var intro = reduce ? 1 : 0, introStart = 0;
+    if (!reduce && window.IntersectionObserver) {
+      var io = new IntersectionObserver(function (es) {
+        if (!es[0].isIntersecting || introStart) return;
+        introStart = performance.now(); io.disconnect();
+        (function step(now) {
+          intro = Math.min(1, (now - introStart) / 1500);
+          render();
+          if (intro < 1) requestAnimationFrame(step);
+        })(introStart);
+      }, { threshold: 0.55 });
+      io.observe(stage);
+    } else { intro = 1; }
+    var meta = [document.getElementById('wkPb'), stage.querySelector('.wk-bottom'), stage.querySelector('.wk-top')];
+    function setMask(el, m, composite) {
+      el.style.webkitMaskImage = m; el.style.maskImage = m;
+      el.style.webkitMaskComposite = composite ? 'source-over, source-in' : '';
+      el.style.maskComposite = composite ? 'add, intersect' : '';
+    }
+    function render() {
+      var ai = Math.round(pos), bladeTop = -1;
+      for (var i = 0; i < N; i++) {
+        var d = i - pos, ad = Math.abs(d), near = Math.max(0, 1 - ad);
+        var f = films[i], inner = f.firstElementChild;
+        if (d > -1 && d < 1) {
+          f.style.visibility = 'visible';
+          if (d >= 0) {
+            // incoming (or current): wiped in from the bottom, image rising into place
+            var e = d * d * (3 - 2 * d);
+            f.style.zIndex = 2;
+            if (d <= 0) { setMask(f, 'none'); }
+            else {
+              var hardE = (1 - d) * 100;                       // exactly on the blade
+              var softE = (1 - d) * (100 + 2 * FF) - FF;       // feathered copy
+              var hard = 'linear-gradient(to top, #000 ' + hardE.toFixed(3) + '%, transparent ' + hardE.toFixed(3) + '%)';
+              var band = 'linear-gradient(to right, transparent 0%, #000 26%, #000 74%, transparent 100%)';
+              var soft = 'linear-gradient(to top, #000 ' + (softE - FF).toFixed(2) + '%, transparent ' + (softE + FF).toFixed(2) + '%)';
+              setMask(f, soft + ', ' + hard + ', ' + band, true);
+            }
+            inner.style.transform = 'translateY(' + (e * 14).toFixed(2) + '%) scale(' + (1 + e * 0.08).toFixed(4) + ')';
+            inner.style.filter = 'none';
+            if (d > 0.004 && d < 0.996) { bladeTop = d * 100; }
+          } else {
+            // outgoing: stays underneath, drifts up and dims
+            var o = -d;
+            f.style.zIndex = 1;
+            setMask(f, 'none');
+            inner.style.transform = 'translateY(' + (-o * 9).toFixed(2) + '%) scale(' + (1 + o * 0.04).toFixed(4) + ')';
+            inner.style.filter = 'brightness(' + (1 - o * 0.55).toFixed(3) + ')';
+          }
+        } else {
+          f.style.visibility = 'hidden';
+        }
+        var ang = Math.max(-100, Math.min(100, -d * STEP));
+        var cosA = Math.cos(Math.min(Math.abs(ang), 90) * RAD);
+        var op = Math.pow(Math.max(0, cosA), 1.4) * (0.42 + 0.58 * Math.exp(-ad * ad * 0.9));
+        var t = titles[i];
+        var ii = Math.min(1, Math.max(0, intro * 1.7 - Math.abs(d) * 0.12));
+        var ie = 1 - Math.pow(1 - ii, 3);
+        op *= ie;
+        ang = ang + (1 - ie) * -64;
+        t.style.opacity = op.toFixed(3);
+        t.style.pointerEvents = op > 0.05 ? 'auto' : 'none';
+        // base layer: out of focus; sharp layer: wiped in/out by the same blade as the films
+        t.querySelector('.wk-tb').style.filter = 'blur(' + (1.6 + 6 * (1 - Math.exp(-ad * ad * 0.28))).toFixed(2) + 'px)';
+        var ts = t.querySelector('.wk-ts');
+        var m;
+        if (d >= 0 && d < 1) { var eIn = (1 - d) * (100 + 2 * TF) - TF; m = 'linear-gradient(to top, #000 ' + (eIn - TF).toFixed(1) + '%, transparent ' + (eIn + TF).toFixed(1) + '%)'; }
+        else if (d < 0 && d > -1) { var eOut = -d * (100 + 2 * TF) - TF; m = 'linear-gradient(to top, transparent ' + (eOut - TF).toFixed(1) + '%, #000 ' + (eOut + TF).toFixed(1) + '%)'; }
+        else m = 'linear-gradient(transparent, transparent)';
+        ts.style.webkitMaskImage = m; ts.style.maskImage = m;
+        t.style.transform = 'translateY(-50%) translateX(' + (-(1 - cosA) * ARC).toFixed(1) + 'px) translateZ(-' + R + 'px) rotateX(' + ang.toFixed(2) + 'deg) translateZ(' + R + 'px)';
+        t.classList.toggle('on', i === ai);
+      }
+      var me = 1 - Math.pow(1 - Math.min(1, Math.max(0, (intro - 0.35) / 0.65)), 3);
+      meta.forEach(function (m) { if (m) { m.style.opacity = me.toFixed(3); } });
+      blade.style.opacity = bladeTop >= 0 ? 1 : 0;
+      if (bladeTop >= 0) blade.style.top = bladeTop.toFixed(3) + '%';
+      if (ai !== lastAi) {
+        lastAi = ai;
+        decode(idxEl, pad(ai + 1) + ' — ' + pad(N));
+        var cEl = titles[ai].querySelector('.wk-c'); decode(cEl, cEl.dataset.text);
+        var nm = titles[ai].querySelector('.wk-tb').textContent;
+        document.getElementById('wkHit').setAttribute('aria-label', 'Play ' + nm);
+        document.getElementById('wkPb').setAttribute('aria-label', 'Play ' + nm);
+        var du = document.getElementById('wkDur'); if (du) decode(du, (typeof durs !== 'undefined' && durs[ai]) || '—:—');
+        clearTimeout(settleT);
+        settleT = setTimeout(function () { loadVideo(ai); }, 450);
+      }
+    }
+
+    function loop() {
+      var d = target - pos;
+      pos = (reduce || Math.abs(d) < 0.0005) ? target : pos + d * 0.085;
+      render();
+      if (pos !== target) requestAnimationFrame(loop); else running = false;
+    }
+    function kick() { if (!running) { running = true; requestAnimationFrame(loop); } }
+
+    function onScroll() {
+      target = sticky(progress() * (N - 1));
+      kick();
+      clearTimeout(snapT);
+      snapT = setTimeout(function () {
+        var p = progress();
+        if (p <= 0 || p >= 1) return;
+        var want = top0() + hold() + (Math.round(p * (N - 1)) / (N - 1)) * range();
+        if (Math.abs(window.scrollY - want) > 2) window.scrollTo({ top: want, behavior: reduce ? 'auto' : 'smooth' });
+      }, 200);
+    }
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onScroll, { passive: true });
+
+    function openFilm(i) {
+      var lb = document.getElementById('lightbox'), lbIframe = document.getElementById('lbIframe');
+      if (!lb || !lbIframe) return;
+      var id = films[i].querySelector('img').dataset.vimeo;
+      document.getElementById('lbTitle').textContent = titles[i].querySelector('.wk-tb').textContent;
+      document.getElementById('lbClient').textContent = titles[i].querySelector('.wk-c').dataset.text.replace(/^\d+ · /, '');
+      lbIframe.src = 'https://player.vimeo.com/video/' + id + '?autoplay=1&autopause=0&title=0&byline=0&portrait=0';
+      lb.classList.add('open'); lb.removeAttribute('aria-hidden');
+      document.body.style.overflow = 'hidden';
+    }
+
+    titles.forEach(function (t, i) { t.addEventListener('click', function () { if (i === Math.round(pos)) openFilm(i); else scrollToIndex(i); }); });
+    document.getElementById('wkPrev').addEventListener('click', function () { scrollToIndex(Math.round(pos) - 1); });
+    document.getElementById('wkNext').addEventListener('click', function () { scrollToIndex(Math.round(pos) + 1); });
+    // play button + click-anywhere
+    var hit = document.getElementById('wkHit');
+    hit.addEventListener('click', function () { openFilm(Math.round(pos)); });
+    document.getElementById('wkPb').addEventListener('click', function () { openFilm(Math.round(pos)); });
+    // running times from Vimeo (for style C)
+    var durs = [];
+    films.forEach(function (f, i) {
+      var id = f.querySelector('img').dataset.vimeo;
+      fetch('https://vimeo.com/api/oembed.json?url=https%3A//vimeo.com/' + id).then(function (r) { return r.json(); }).then(function (d) {
+        if (d && d.duration) { var m = Math.floor(d.duration / 60), sec = d.duration % 60; durs[i] = pad(m) + ':' + pad(sec); if (i === Math.round(pos)) document.getElementById('wkDur').textContent = durs[i]; }
+      }).catch(function () {});
+    });
+
+    stage.addEventListener('keydown', function (e) {
+      if (e.key === 'ArrowDown' || e.key === 'ArrowRight') { e.preventDefault(); scrollToIndex(Math.round(pos) + 1); }
+      else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') { e.preventDefault(); scrollToIndex(Math.round(pos) - 1); }
+      else if (e.key === 'Enter') { openFilm(Math.round(pos)); }
+    });
+
+    // when the lightbox closes, nudge the background loop back into play
+    var lbEl = document.getElementById('lightbox');
+    if (lbEl && window.MutationObserver) {
+      new MutationObserver(function () {
+        if (lbEl.classList.contains('open')) return;
+        stage.querySelectorAll('.wk-vid iframe').forEach(function (ifr) {
+          try { ifr.contentWindow.postMessage(JSON.stringify({ method: 'play' }), '*'); } catch (_) {}
+        });
+      }).observe(lbEl, { attributes: true, attributeFilter: ['class'] });
+    }
+
+    onScroll(); pos = target; render();
+  })();
+  </script>
+</body>
 </html>
