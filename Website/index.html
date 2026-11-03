@@ -1409,7 +1409,6 @@
     .wk-stage { position: sticky; top: 0; height: 100vh; min-height: 560px; overflow: hidden; background: #050505; color: #e9eaeb; isolation: isolate; outline: none; }
     .wk-stage:focus-visible { box-shadow: inset 0 0 0 1px rgba(240,90,34,.6); }
     .wk-films { position: absolute; inset: 0; overflow: hidden; z-index: 0; }
-    .wk-shade { z-index: 1; }
     .wk-wheel, .wk-top, .wk-bottom { z-index: 3; }
     .wk-hit { position: absolute; inset: 0; z-index: 2; margin: 0; padding: 0; border: 0; background: transparent; cursor: pointer; }
 
@@ -1452,9 +1451,6 @@
     .wk-vid { position: absolute; inset: 0; opacity: 0; transition: opacity .9s var(--ease-out); pointer-events: none; }
     .wk-vid.ready { opacity: 1; }
     .wk-vid iframe { position: absolute; top: 50%; left: 50%; width: max(108vw, 192vh); height: max(60.75vw, 108vh); transform: translate(-50%,-50%); border: 0; }
-    .wk-shade { position: absolute; inset: 0; pointer-events: none;
-      background: linear-gradient(90deg, rgba(5,5,5,.25) 0%, transparent 35%, rgba(5,5,5,.68) 100%),
-                  linear-gradient(180deg, rgba(5,5,5,.35) 0%, transparent 22%, transparent 70%, rgba(5,5,5,.7) 100%); }
     .wk-wheel { position: absolute; right: clamp(48px,6vw,96px); top: 50%; width: 62vw; height: 0; perspective: 900px; perspective-origin: 70% 50%; }
     .wk-wheel-in { position: absolute; inset: 0; transform-style: preserve-3d; }
     .wk-mark { position: absolute; left: calc(100% + 14px); top: -.5px; width: clamp(20px,3vw,40px); height: 1px; background: var(--orange); }
@@ -1549,7 +1545,6 @@
         <div class="wk-film" data-i="11"><div class="wk-in"><img data-vimeo="878363776" src="" alt="" /><div class="wk-vid"></div></div></div>
         </div>
         <div class="wk-blade" id="wkBlade" aria-hidden="true"></div>
-        <div class="wk-shade" aria-hidden="true"></div>
         <button class="wk-hit" id="wkHit" aria-label="Play film"></button>
         <button class="wk-pb" id="wkPb" aria-label="Play film">
           <span class="pb-c"><i class="pb-tri"></i><span>Play</span><span class="pb-dur" id="wkDur">—:—</span></span>
