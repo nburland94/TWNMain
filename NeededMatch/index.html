@@ -470,7 +470,7 @@ async function loadRemote(){
     if(!r.ok || !(r.headers.get('content-type')||'').includes('json')) return false;
     const j = await r.json(); if(!Array.isArray(j.channels)) return false;
     remote = true; setLocked();
-    if(!document.querySelector('.scrim.show')) applyRemote(j.channels);
+    if(!document.querySelector('.scrim.show')){ applyRemote(j.channels); sweepStale(); }
     return true;
   }catch{ return false; }
 }
@@ -763,6 +763,21 @@ function pickChannel(id){
   commit(); render(); renderFixtures(); openPicker(f.id);
 }
 
+/* ---------- drop links to games that are over ---------- */
+// A link is stale when its game has finished, or it belongs to another day's fixture list.
+function isStale(c){
+  const fid = c.match?.fixtureId; if(!fid || !fixtures.length) return false;
+  const f = fixtures.find(x=>x.id===fid);
+  if(!f) return /^espn-/.test(fid);                       // not in today's list -> old game
+  return /^FT$|Finished|Full Time|^AET|^Pens|Postponed|Canceled|Cancelled/i.test(f.status||'');
+}
+function sweepStale(){
+  let n = 0;
+  channels.forEach(c=>{ if(isStale(c)){ c.match = {}; n++; } });
+  if(n){ if(canEdit() && remote) pushRemote(); save(); render(); renderFixtures(); }
+  return n;
+}
+
 /* ---------- match facts (/api/facts) ---------- */
 let factsT = null, factsFor = null;
 function curFixture(){ const c = channels.find(x=>x.id===current); const fid = c?.match?.fixtureId; return fixtures.find(f=>f.id===fid) || null; }
@@ -961,7 +976,7 @@ async function loadFixtures(){
     }).sort((a,b)=>a.sort-b.sort);
     // refresh badges/scores on linked channels
     channels.forEach(c=>{ const f=fixtures.find(x=>x.id===c.match?.fixtureId); if(f){ c.match.homeBadge=f.homeBadge; c.match.awayBadge=f.awayBadge; } });
-    save(); renderFixtures(); render();
+    save(); renderFixtures(); render(); sweepStale();
   }catch(err){
     fixtures = [];
     $('#fxList').innerHTML = `<div class="empty">Couldn’t reach the fixtures feed. You can still type teams in manually when adding a channel.</div>`;
@@ -982,7 +997,7 @@ function renderFixtures(){
   }).join('') : `<div class="empty">No fixtures listed for today.</div>`;
 }
 $('#fxRefresh').onclick = loadFixtures;
-setInterval(loadFixtures, 5*60*1000);
+setInterval(loadFixtures, 2*60*1000);
 
 /* ---------- keyboard / TV remote ---------- */
 document.addEventListener('keydown', e=>{
