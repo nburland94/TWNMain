@@ -50,6 +50,7 @@ Use null if it is adverts, a studio/pundit shot, a replay of another match, a di
     const m = /\{[\s\S]*\}/.exec(text);
     const out = m ? JSON.parse(m[0]) : {};
     const valid = fixtures.some((f) => f.id === out.fixtureId);
+    console.log(`[identify] ${model} saw="${String(out.seen||"").slice(0,60)}" fixture=${valid ? out.fixtureId : "none"} conf=${out.confidence} options=${fixtures.length}`);
     return Response.json({
       fixtureId: valid ? out.fixtureId : null,
       confidence: Math.max(0, Math.min(1, +out.confidence || 0)),

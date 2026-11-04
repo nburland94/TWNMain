@@ -472,7 +472,7 @@ async function loadRemote(){
     if(!r.ok || !(r.headers.get('content-type')||'').includes('json')) return false;
     const j = await r.json(); if(!Array.isArray(j.channels)) return false;
     remote = true; setLocked();
-    if(!document.querySelector('.scrim.show')){ applyRemote(j.channels); sweepStale(); }
+    if(!document.querySelector('.scrim.show') && !scanning){ applyRemote(j.channels); sweepStale(); }
     return true;
   }catch{ return false; }
 }
@@ -852,7 +852,7 @@ async function scanAll(manual=false){
   if(scanning || !remote || !adminKey) return;
   const live = liveFixtures();
   if(!live.length){ if(manual) toast('No games on right now to match'); return schedule(); }
-  const targets = channels.filter(c=>airOf(c)!=='off');
+  const targets = channels.filter(c=>airOf(c)!=='off').map(c=>({ url:c.url, name:c.name }));
   if(!targets.length){ if(manual) toast('No channels on air'); return schedule(); }
   scanning = true; let changed = 0, n = 0; const why = { frame:0, api:0, nomatch:0, err:'' };
   const list = live.map(f=>({ id:f.id, home:f.home, away:f.away, league:f.league }));
@@ -867,15 +867,21 @@ async function scanAll(manual=false){
       res = await r.json();
     }catch(e){ why.api++; why.err = e.message||'network'; continue; }
     const f = fixtures.find(x=>x.id===res.fixtureId);
-    if(f && res.confidence >= 0.6){ if(c.match?.fixtureId !== f.id){ linkTo(c, f); changed++; } }
-    else why.nomatch++;
+    const live = channels.find(x=>x.url===c.url);          // current object, even if the list was refreshed
+    if(f && res.confidence >= 0.6 && live){
+      if(live.match?.fixtureId !== f.id){ linkTo(live, f); changed++; commit(); render(); renderFixtures(); }
+    } else {
+      why.nomatch++;
+      // the channel shows something else now -> drop an old link that no longer matches what's on screen
+      if(live?.match?.fixtureId && res.fixtureId === null && res.confidence >= 0.6){ live.match = {}; commit(); render(); renderFixtures(); }
+    }
     console.log('[scan]', c.name, res);
   }
   scanning = false; setScanUI();
   const summary = `Scanned ${n}: ${changed} linked` + (why.frame?` · ${why.frame} couldn’t load video`:'') + (why.nomatch?` · ${why.nomatch} no match seen`:'') + (why.api?` · ${why.api} errors (${why.err})`:'');
   $('#scanBtn').title = summary; console.log('[scan]', summary);
   if(why.api && !changed) toast('Scan problem: ' + why.err.slice(0,90));
-  if(changed){ commit(); render(); renderFixtures(); toast(`Scan linked ${changed} channel${changed>1?'s':''}`); }
+  if(changed){ toast(`Scan linked ${changed} channel${changed>1?'s':''}`); }
   else if(manual) toast(summary);
   schedule();
 }
