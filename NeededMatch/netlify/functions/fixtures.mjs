@@ -28,6 +28,7 @@ export default async (req) => {
           strHomeTeamBadge: home.team?.logo || null,
           strAwayTeamBadge: away.team?.logo || null,
           strLeague: league,
+          strLeagueSlug: lg,
           strTimestamp: e.date,
           intHomeScore: started ? home.score ?? null : null,
           intAwayScore: started ? away.score ?? null : null,

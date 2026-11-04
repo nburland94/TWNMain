@@ -24,12 +24,15 @@ Reply with ONLY a JSON object, no other text:
 {"fixtureId": "<id from the list>" or null, "confidence": <0 to 1>, "seen": "<the score/teams text you can read, max 40 chars>"}
 Use null if it is adverts, a studio/pundit shot, a replay of another match, a different sport, or you cannot tell.`;
 
+  const models = [process.env.SCAN_MODEL, "claude-haiku-5-5", "claude-sonnet-5-5"].filter(Boolean);
+  let lastErr = "";
+  for (const model of models) {
   try {
     const r = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
       headers: { "x-api-key": apiKey, "anthropic-version": "2023-06-01", "content-type": "application/json" },
       body: JSON.stringify({
-        model: "claude-haiku-5-5",
+        model,
         max_tokens: 150,
         messages: [{ role: "user", content: [
           { type: "image", source: { type: "base64", media_type: "image/jpeg", data: image } },
@@ -37,7 +40,11 @@ Use null if it is adverts, a studio/pundit shot, a replay of another match, a di
         ] }],
       }),
     });
-    if (!r.ok) return Response.json({ error: `api ${r.status}`, detail: (await r.text()).slice(0, 300) }, { status: 502 });
+    if (!r.ok) {
+      lastErr = `${model}: api ${r.status} ${(await r.text()).slice(0, 200)}`;
+      if (r.status === 404 || r.status === 400) continue;   // unknown model -> try the next one
+      return Response.json({ error: lastErr }, { status: 502 });
+    }
     const j = await r.json();
     const text = j.content?.map((c) => c.text || "").join("") || "";
     const m = /\{[\s\S]*\}/.exec(text);
@@ -47,10 +54,13 @@ Use null if it is adverts, a studio/pundit shot, a replay of another match, a di
       fixtureId: valid ? out.fixtureId : null,
       confidence: Math.max(0, Math.min(1, +out.confidence || 0)),
       seen: String(out.seen || "").slice(0, 60),
+      model,
     });
   } catch (e) {
-    return Response.json({ error: "failed" }, { status: 502 });
+    lastErr = `${model}: ${e.message || "failed"}`;
   }
+  }
+  return Response.json({ error: lastErr || "failed" }, { status: 502 });
 };
 
 export const config = { path: "/api/identify" };

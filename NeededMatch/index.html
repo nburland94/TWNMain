@@ -29,7 +29,7 @@
   --glow1:rgba(70,120,255,.26); --glow2:rgba(255,106,26,.12); --glow3:rgba(80,110,200,.10);
   color-scheme:dark;
 }
-:root[data-theme=dark] .crest{background:rgba(255,255,255,.92)}
+:root[data-theme=dark] .crest{background:rgba(255,255,255,.92);color:#3a3630}
 :root[data-theme=dark] .player{box-shadow:0 0 0 1px rgba(255,255,255,.06),var(--shadow)}
 *{box-sizing:border-box;margin:0;padding:0}
 [hidden]{display:none!important}
@@ -216,6 +216,29 @@ body.locked #addBtn,body.locked #importBtn,body.locked .ch .edit{display:none!im
 .sub.off .sd{background:#B9B3AA}
 .sub .e2{margin-left:auto;opacity:.5;font-size:11px}
 
+#stage{display:flex;flex-direction:column;gap:16px;overflow-y:auto;min-height:0;scrollbar-width:thin}
+#stage .player{flex:none;aspect-ratio:16/9;max-height:calc(100vh - 250px);width:100%}
+#stage .now{flex:none}
+.facts{flex:none;padding:20px 22px;display:grid;grid-template-columns:1fr 1fr;gap:28px}
+.facts h4{font-size:11px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--ink3);margin-bottom:12px;display:flex;justify-content:space-between}
+.tl{display:flex;flex-direction:column;gap:8px}
+.ev{display:grid;grid-template-columns:1fr 44px 1fr;align-items:center;gap:8px;font-size:13px}
+.ev .m{text-align:center;font-variant-numeric:tabular-nums;font-weight:600;font-size:12px;color:var(--ink2);background:var(--fill);border-radius:8px;padding:3px 0}
+.ev .h{text-align:right}.ev .a{text-align:left}
+.ev b{font-weight:600}.ev small{color:var(--ink3);font-size:11px}
+.ev i{font-style:normal;display:inline-block;width:16px;text-align:center}
+.card-y{display:inline-block;width:9px;height:12px;border-radius:2px;background:#F5C518;vertical-align:-1px}
+.card-r{display:inline-block;width:9px;height:12px;border-radius:2px;background:#E0301E;vertical-align:-1px}
+.st{display:flex;flex-direction:column;gap:12px}
+.srow .lbl{display:flex;justify-content:space-between;font-size:13px;font-variant-numeric:tabular-nums;margin-bottom:6px}
+.srow .lbl span:nth-child(2){color:var(--ink2);font-size:12px}
+.srow .lbl b{font-weight:700}
+.bar2{display:flex;gap:3px;height:6px}
+.bar2 i{display:block;border-radius:3px;background:var(--accent)}
+.bar2 i+i{background:var(--ink3)}
+.facts .none{font-size:13px;color:var(--ink2)}
+@media (max-width:860px){ .facts{grid-template-columns:1fr;gap:22px;padding:16px;border-radius:18px} #stage{overflow:visible} #stage .player{max-height:none} }
+
 /* ---------- sheet ---------- */
 .scrim{position:fixed;inset:0;background:var(--scrim);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);z-index:50;display:none;place-items:center;padding:20px}
 .scrim.show{display:grid;animation:fade .25s var(--ease)}
@@ -332,6 +355,7 @@ body.locked #addBtn,body.locked #importBtn,body.locked .ch .edit{display:none!im
       </div>
       <div class="specs" id="specs"></div>
     </div>
+    <div class="facts glass" id="facts" hidden></div>
   </section>
 </main>
 
@@ -549,7 +573,7 @@ function render(){
 function renderNow(){
   const c = channels.find(x=>x.id===current);
   const m = c?.match || {};
-  if(!c){ $('#matchView').innerHTML = `<div class="team"><b style="color:var(--ink3)">Nothing playing</b></div>`; $('#metaView').textContent='Choose a channel to start.'; $('#ctrlTitle').textContent='—'; return; }
+  if(!c){ $('#facts').hidden = true; $('#matchView').innerHTML = `<div class="team"><b style="color:var(--ink3)">Nothing playing</b></div>`; $('#metaView').textContent='Choose a channel to start.'; $('#ctrlTitle').textContent='—'; return; }
   const fx = fixtures.find(f=>f.id===m.fixtureId);
   const score = fx && fx.hs!=null && fx.as!=null ? `${fx.hs} – ${fx.as}` : 'vs';
   $('#matchView').innerHTML = (m.home||m.away)
@@ -558,6 +582,7 @@ function renderNow(){
   $('#metaView').textContent = [c.name, m.league, m.time && 'Kick-off '+m.time, fx?.status && fx.status!=='Not Started' ? fx.status : ''].filter(Boolean).join('  ·  ');
   $('#ctrlTitle').textContent = chTitle(c);
   const fid = c.match?.fixtureId;
+  if(fid !== factsFor) loadFacts();
   const src = sourcesFor(fid);
   $('#srcs').innerHTML = src.length>1 ? src.map((x,i)=>`<button class="src ${x.id===current?'on':''} ${airOf(x)==='off'?'off':''}" data-play="${x.id}"><span class="sd"></span>${i===0?'Main':'Backup '+i} · ${esc(x.name)}</button>`).join('') : '';
   $('#wrongBtn').hidden = !(canEdit() && fixtures.length);
@@ -738,6 +763,42 @@ function pickChannel(id){
   commit(); render(); renderFixtures(); openPicker(f.id);
 }
 
+/* ---------- match facts (/api/facts) ---------- */
+let factsT = null, factsFor = null;
+function curFixture(){ const c = channels.find(x=>x.id===current); const fid = c?.match?.fixtureId; return fixtures.find(f=>f.id===fid) || null; }
+async function loadFacts(){
+  clearTimeout(factsT);
+  const f = curFixture(); const box = $('#facts');
+  if(!f || !/^espn-/.test(f.id) || !f.slug){ box.hidden = true; factsFor = null; return; }
+  if(factsFor !== f.id){ box.hidden = false; box.innerHTML = '<div class="none">Loading match facts…</div>'; factsFor = f.id; }
+  try{
+    const r = await fetch(`/api/facts?id=${encodeURIComponent(f.id)}&lg=${encodeURIComponent(f.slug)}`);
+    if(!r.ok) throw 0;
+    drawFacts(await r.json(), f);
+  }catch{ if(box.innerHTML.includes('Loading')) box.innerHTML = '<div class="none">Match facts aren’t available for this game.</div>'; }
+  factsT = setTimeout(loadFacts, 45000);
+}
+function drawFacts(d, f){
+  const home = d.teams?.find(t=>t.side==='home')||{}, away = d.teams?.find(t=>t.side==='away')||{};
+  const icon = k => k==='goal'?'⚽':k==='og'?'⚽':k==='yellow'?'<span class="card-y"></span>':k==='red'?'<span class="card-r"></span>':'⇄';
+  const ev = (d.events||[]).filter(e=>e.kind!=='sub');
+  const line = e => {
+    const who = esc(e.who[0]||''), extra = e.kind==='og' ? ' <small>(OG)</small>' : e.kind==='goal' && e.who[1] ? ` <small>assist ${esc(e.who[1])}</small>` : '';
+    const cell = `<i>${icon(e.kind)}</i> <b>${who}</b>${extra}`;
+    return `<div class="ev"><div class="h">${e.side==='home'?cell:''}</div><div class="m">${esc(e.min)}</div><div class="a">${e.side==='away'?cell:''}</div></div>`;
+  };
+  const num = v => parseFloat(String(v).replace('%',''))||0;
+  const srow = s => { const h=num(s.home), a=num(s.away), t=(h+a)||1;
+    return `<div class="srow"><div class="lbl"><b>${esc(s.home)}${s.pct&&!String(s.home).includes('%')?'%':''}</b><span>${esc(s.label)}</span><b>${esc(s.away)}${s.pct&&!String(s.away).includes('%')?'%':''}</b></div>
+      <div class="bar2"><i style="flex:${h/t||.0001}"></i><i style="flex:${a/t||.0001}"></i></div></div>`; };
+  $('#facts').innerHTML = `
+    <div><h4><span>Key moments</span><span>${esc(d.status||f.status||'')}</span></h4>
+      <div class="tl">${ev.length ? ev.map(line).join('') : '<div class="none">No goals or cards yet.</div>'}</div></div>
+    <div><h4><span>${esc(home.short||home.name||'Home')}</span><span>Stats</span><span>${esc(away.short||away.name||'Away')}</span></h4>
+      <div class="st">${(d.stats||[]).length ? d.stats.map(srow).join('') : '<div class="none">Stats appear once the game starts.</div>'}</div></div>`;
+  $('#facts').hidden = false;
+}
+
 /* ---------- background scanner (editor only): reads each channel's score graphic via /api/identify ---------- */
 const SCAN_EVERY = 8*60*1000;
 let scanning = false, scanTimer = null, noKeyWarned = false;
@@ -776,24 +837,29 @@ async function scanAll(manual=false){
   if(!live.length){ if(manual) toast('No games on right now to match'); return schedule(); }
   const targets = channels.filter(c=>airOf(c)!=='off');
   if(!targets.length){ if(manual) toast('No channels on air'); return schedule(); }
-  scanning = true; let changed = 0, n = 0;
+  scanning = true; let changed = 0, n = 0; const why = { frame:0, api:0, nomatch:0, err:'' };
   const list = live.map(f=>({ id:f.id, home:f.home, away:f.away, league:f.league }));
   for(const c of targets){
     n++; setScanUI(`Scanning ${n}/${targets.length}`);
-    const img = await grabFrame(c.url); if(!img) continue;
+    const img = await grabFrame(c.url); if(!img){ why.frame++; continue; }
     let res;
     try{
       const r = await fetch('/api/identify', { method:'POST', headers:{'content-type':'application/json','x-admin-key':adminKey}, body: JSON.stringify({ image:img, fixtures:list }) });
       if(r.status===503){ if(!noKeyWarned){ toast('Add ANTHROPIC_API_KEY in Netlify to turn on scanning'); noKeyWarned = true; } break; }
-      if(!r.ok) continue;
+      if(!r.ok){ why.api++; try{ why.err = (await r.json()).error || ('HTTP '+r.status); }catch{ why.err = 'HTTP '+r.status; } continue; }
       res = await r.json();
-    }catch{ continue; }
+    }catch(e){ why.api++; why.err = e.message||'network'; continue; }
     const f = fixtures.find(x=>x.id===res.fixtureId);
-    if(f && res.confidence >= 0.6 && c.match?.fixtureId !== f.id){ linkTo(c, f); changed++; }
+    if(f && res.confidence >= 0.6){ if(c.match?.fixtureId !== f.id){ linkTo(c, f); changed++; } }
+    else why.nomatch++;
+    console.log('[scan]', c.name, res);
   }
   scanning = false; setScanUI();
+  const summary = `Scanned ${n}: ${changed} linked` + (why.frame?` · ${why.frame} couldn’t load video`:'') + (why.nomatch?` · ${why.nomatch} no match seen`:'') + (why.api?` · ${why.api} errors (${why.err})`:'');
+  $('#scanBtn').title = summary; console.log('[scan]', summary);
+  if(why.api && !changed) toast('Scan problem: ' + why.err.slice(0,90));
   if(changed){ commit(); render(); renderFixtures(); toast(`Scan linked ${changed} channel${changed>1?'s':''}`); }
-  else if(manual) toast('Scan done — nothing new');
+  else if(manual) toast(summary);
   schedule();
 }
 function schedule(){ clearTimeout(scanTimer); if(remote && adminKey) scanTimer = setTimeout(()=>scanAll(false), SCAN_EVERY); }
@@ -891,7 +957,7 @@ async function loadFixtures(){
       return { id: ev.idEvent, home: ev.strHomeTeam, away: ev.strAwayTeam, league: ev.strLeague,
         time: ts && !isNaN(ts) ? ts.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit', hour12:false}) : (ev.strTime||'').slice(0,5),
         sort: ts ? +ts : 0, hs: ev.intHomeScore, as: ev.intAwayScore, status: ev.strStatus,
-        homeBadge: ev.strHomeTeamBadge, awayBadge: ev.strAwayTeamBadge };
+        homeBadge: ev.strHomeTeamBadge, awayBadge: ev.strAwayTeamBadge, slug: ev.strLeagueSlug || null };
     }).sort((a,b)=>a.sort-b.sort);
     // refresh badges/scores on linked channels
     channels.forEach(c=>{ const f=fixtures.find(x=>x.id===c.match?.fixtureId); if(f){ c.match.homeBadge=f.homeBadge; c.match.awayBadge=f.awayBadge; } });
