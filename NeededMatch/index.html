@@ -234,11 +234,38 @@ body.locked #addBtn,body.locked #importBtn,body.locked .ch .edit{display:none!im
 @keyframes fade{from{opacity:0}}
 @keyframes rise{from{opacity:0;transform:translateY(14px) scale(.98)}}
 
+#drawerScrim{display:none}
 @media (max-width:860px){
-  main{grid-template-columns:1fr;grid-template-rows:auto 1fr}
-  #rail{max-height:34vh}
-  .now{grid-template-columns:1fr}.specs{justify-content:flex-start}
-  .clock{display:none}
+  .bar{top:10px;left:10px;right:10px;height:56px;padding:0 6px;gap:6px;border-radius:18px}
+  #menuBtn{display:inline-flex!important}
+  .brand{font-size:14px}.brand span,.clock{display:none}
+  .bar .btn{font-size:0;width:42px;height:42px;padding:0;justify-content:center;gap:0}
+  .bar .btn .ico{width:18px;height:18px}
+  .bar .btn span{display:none}
+  main{inset:76px 10px 10px;display:block;overflow-y:auto;-webkit-overflow-scrolling:touch}
+  #stage{display:flex;flex-direction:column;gap:10px}
+  .player{aspect-ratio:16/9;flex:none;border-radius:18px}
+  .player:fullscreen,.player:-webkit-full-screen{aspect-ratio:auto}
+  .ctrls{left:8px;right:8px;bottom:8px;padding:4px;gap:2px;border-radius:14px}
+  .ctrls button{width:36px;height:36px}
+  .ctrls input[type=range],#prevBtn,#nextBtn{display:none}
+  .ctrls .grow{font-size:12px}
+  .ovl-top{top:10px;left:10px;right:10px}
+  .now{grid-template-columns:1fr;gap:12px;padding:16px;border-radius:18px}
+  .match{gap:10px}.team{gap:8px}.team b{font-size:15px}
+  .crest{width:36px;height:36px;border-radius:10px}.crest img{width:28px;height:28px}
+  .score{font-size:17px;padding:5px 10px}
+  .specs{justify-content:flex-start}
+  #rail{position:fixed;top:10px;bottom:10px;left:10px;width:min(340px,86vw);z-index:46;
+    transform:translateX(calc(-100% - 20px));transition:transform .4s var(--ease);background:var(--glass-strong)}
+  body.drawer #rail{transform:none}
+  #drawerScrim{position:fixed;inset:0;z-index:45;background:var(--scrim);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);opacity:0;pointer-events:none;transition:opacity .3s var(--ease);display:block}
+  body.drawer #drawerScrim{opacity:1;pointer-events:auto}
+  body.drawer main{z-index:40}
+  .ch{padding:12px 10px}
+  .fx{padding:12px 10px}
+  .sheet{padding:20px;border-radius:20px}
+  .row{grid-template-columns:1fr}
 }
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
@@ -246,6 +273,8 @@ body.locked #addBtn,body.locked #importBtn,body.locked .ch .edit{display:none!im
 <body data-layout="guide">
 
 <header class="bar glass" id="bar">
+  <button class="btn ghost" id="menuBtn" aria-label="Channels" hidden>
+    <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M4 7h16M4 12h16M4 17h10"/></svg></button>
   <div class="brand"><i>TWN</i>Needed Match <span>· live</span></div>
   <div class="spacer"></div>
   <div class="clock" id="clock"></div>
@@ -262,6 +291,7 @@ body.locked #addBtn,body.locked #importBtn,body.locked .ch .edit{display:none!im
 </header>
 
 <main>
+  <div id="drawerScrim"></div>
   <aside id="rail" class="glass">
     <div class="rail-h"><span class="eyebrow">Channels</span><span class="eyebrow" id="chCount"></span></div>
     <div class="scroll" style="flex:0 1 auto;max-height:45%"><div class="chlist" id="chList"></div></div>
@@ -549,6 +579,7 @@ video.addEventListener('playing', ()=>clearTimeout(stallT));
 function play(id, auto=false){
   const c = channels.find(x=>x.id===id); if(!c) return;
   if(!auto) tried = new Set();
+  closeDrawer();
   if(c.match?.fixtureId) expanded.add(c.match.fixtureId);
   clearTimeout(stallT);
   current = id; render();
@@ -899,6 +930,14 @@ document.addEventListener('keydown', e=>{
   else if(k==='f') $('#fsBtn').click();
   else if(k==='m') $('#muteBtn').click();
 });
+
+/* ---------- mobile side menu ---------- */
+const closeDrawer = ()=>document.body.classList.remove('drawer');
+$('#menuBtn').onclick = ()=>document.body.classList.toggle('drawer');
+$('#drawerScrim').onclick = closeDrawer;
+let tx0 = null;
+$('#rail').addEventListener('touchstart', e=>{ tx0 = e.touches[0].clientX; }, {passive:true});
+$('#rail').addEventListener('touchend', e=>{ if(tx0!=null && tx0 - e.changedTouches[0].clientX > 60) closeDrawer(); tx0 = null; }, {passive:true});
 
 /* ---------- light / dark ---------- */
 const SUN='<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>';
