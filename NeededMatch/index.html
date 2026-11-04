@@ -239,6 +239,8 @@ body.locked #addBtn,body.locked #importBtn,body.locked .ch .edit{display:none!im
 .facts .none{font-size:13px;color:var(--ink2)}
 @media (max-width:860px){ .facts{grid-template-columns:1fr;gap:22px;padding:16px;border-radius:18px} #stage{overflow:visible} #stage .player{max-height:none} }
 
+.fx.done{opacity:.55}
+
 /* ---------- sheet ---------- */
 .scrim{position:fixed;inset:0;background:var(--scrim);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);z-index:50;display:none;place-items:center;padding:20px}
 .scrim.show{display:grid;animation:fade .25s var(--ease)}
@@ -986,18 +988,25 @@ function renderFixtures(){
   const leagues = ['All', ...[...new Set(fixtures.map(f=>f.league))].slice(0,8)];
   $('#fxFilters').innerHTML = fixtures.length ? leagues.map(l=>`<button class="chip ${l===fxFilter?'on':''}" data-chip="${esc(l)}">${esc(l.replace('English ',''))}</button>`).join('') : '';
   const list = fixtures.filter(f=>fxFilter==='All'||f.league===fxFilter);
-  $('#fxList').innerHTML = list.length ? list.map(f=>{
+  const phase = f => /^FT$|Finished|Full Time|^AET|^Pens|Postponed|Cancel/i.test(f.status||'') ? 2 : (!f.status || /Not Started|^NS$|Scheduled/i.test(f.status)) ? 1 : 0;
+  const groups = [[],[],[]]; list.forEach(f=>groups[phase(f)].push(f));
+  groups[0].sort((a,b)=>a.sort-b.sort); groups[1].sort((a,b)=>a.sort-b.sort); groups[2].sort((a,b)=>b.sort-a.sort);
+  const titles = ['<span class="air"></span>Live', 'Up next', 'Finished'];
+  const row = f=>{
     const srcs = sourcesFor(f.id); const linked = srcs[0];
     const live = f.status && !/Not Started|FT|Match Finished|NS/i.test(f.status);
-    return `<button class="fx" data-fx="${f.id}" title="${linked?'Watch on '+esc(linked.name):'Add a channel for this match'}">
+    return `<button class="fx ${phase(f)===2?'done':''}" data-fx="${f.id}" title="${linked?'Watch on '+esc(linked.name):'Add a channel for this match'}">
       <time>${esc(f.time)}</time>
       <span class="vs"><b>${esc(f.home)} ${f.hs!=null&&f.as!=null?`${f.hs}–${f.as}`:'vs'} ${esc(f.away)}</b><small>${esc(f.league)}</small></span>
       ${linked?`<span class="tag">${esc(linked.name)}${srcs.length>1?' +'+(srcs.length-1):''}</span>${canEdit()?`<span class="tag" data-relink="${f.id}" title="Change channel" style="background:var(--fill);color:var(--ink2)">Change</span>`:''}`: live?'<span class="live-dot"></span>':''}
     </button>`;
-  }).join('') : `<div class="empty">No fixtures listed for today.</div>`;
+  };
+  $('#fxList').innerHTML = list.length ? groups.map((g,i)=> g.length ? `<div class="sec">${titles[i]} · ${g.length}</div>` + g.map(row).join('') : '').join('') : `<div class="empty">No fixtures listed for today.</div>`;
+  const anyLive = groups[0].length > 0;
+  clearTimeout(window.__fxT); window.__fxT = setTimeout(loadFixtures, anyLive ? 60*1000 : 3*60*1000);
 }
 $('#fxRefresh').onclick = loadFixtures;
-setInterval(loadFixtures, 2*60*1000);
+
 
 /* ---------- keyboard / TV remote ---------- */
 document.addEventListener('keydown', e=>{
