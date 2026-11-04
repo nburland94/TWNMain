@@ -653,8 +653,9 @@ async function loadFixtures(){
   $('#fxList').innerHTML = `<div class="empty">Loading fixtures…</div>`;
   const d = new Date(); const ymd = d.toISOString().slice(0,10);
   try{
-    const r = await fetch(`https://www.thesportsdb.com/api/v1/json/3/eventsday.php?d=${ymd}&s=Soccer`);
-    const j = await r.json();
+    let j = null;
+    try{ const r = await fetch(`/api/fixtures?d=${ymd}`); if(r.ok && (r.headers.get('content-type')||'').includes('json')) j = await r.json(); }catch{}
+    if(!j){ const r = await fetch(`https://www.thesportsdb.com/api/v1/json/3/eventsday.php?d=${ymd}&s=Soccer`); j = await r.json(); }
     fixtures = (j.events||[]).map(ev=>{
       const ts = ev.strTimestamp ? new Date(ev.strTimestamp.endsWith('Z')?ev.strTimestamp:ev.strTimestamp+'Z') : null;
       return { id: ev.idEvent, home: ev.strHomeTeam, away: ev.strAwayTeam, league: ev.strLeague,
