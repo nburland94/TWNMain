@@ -257,6 +257,7 @@ body.locked #addBtn,body.locked #importBtn,body.locked .ch .edit{display:none!im
       <div>
         <div class="match" id="matchView"></div>
         <div class="meta" id="metaView"></div>
+        <button class="btn ghost" id="wrongBtn" hidden style="height:30px;margin-top:10px;font-size:12px">Wrong match? Change</button>
       </div>
       <div class="specs" id="specs"></div>
     </div>
@@ -310,7 +311,7 @@ body.locked #addBtn,body.locked #importBtn,body.locked .ch .edit{display:none!im
     <h2 id="pkTitle">Which channel?</h2>
     <p class="sub" id="pkSub">Pick the channel showing this match. It'll remember for everyone.</p>
     <div class="chlist" id="pkList"></div>
-    <div class="actions"><div class="spacer"></div><button type="button" class="btn ghost" data-close>Cancel</button></div>
+    <div class="actions"><button type="button" class="btn ghost danger" id="pkUnlink" hidden>Remove link</button><div class="spacer"></div><button type="button" class="btn ghost" data-close>Cancel</button></div>
   </div>
 </div>
 
@@ -462,7 +463,11 @@ function renderNow(){
     : `<div class="team">${crest(c.name)}<b>${esc(c.name)}</b></div>`;
   $('#metaView').textContent = [c.name, m.league, m.time && 'Kick-off '+m.time, fx?.status && fx.status!=='Not Started' ? fx.status : ''].filter(Boolean).join('  ·  ');
   $('#ctrlTitle').textContent = chTitle(c);
+  const fid = c.match?.fixtureId;
+  $('#wrongBtn').hidden = !(canEdit() && fixtures.length);
+  $('#wrongBtn').onclick = ()=> fid && fixtures.some(x=>x.id===fid) ? openPicker(fid) : openFxForChannel(c.id);
 }
+function openFxForChannel(id){ openCh(id); }
 
 /* ---------- playback ---------- */
 function play(id){
@@ -566,6 +571,7 @@ function wake(){
 
 /* ---------- delegated clicks ---------- */
 document.addEventListener('click', e=>{
+  const rl = e.target.closest('[data-relink]'); if(rl){ e.stopPropagation(); openPicker(rl.dataset.relink); return; }
   const pk = e.target.closest('[data-pick]'); if(pk){ pickChannel(pk.dataset.pick); return; }
   const p = e.target.closest('[data-play]'); if(p){ play(p.dataset.play); return; }
   const ed = e.target.closest('[data-edit]'); if(ed){ openCh(ed.dataset.edit); return; }
@@ -595,12 +601,21 @@ function openPicker(fid){
       <span class="num">${i+1}<i class="sd"></i></span>
       <span class="t"><b>${esc(c.name)}</b><small>${a==='off'?'Off air':a==='on'?'On air':''}${matchLine(c.match)?' · now: '+esc(matchLine(c.match)):''}</small></span></button>`;
   }).join('');
+  const linked = channels.find(c=>c.match?.fixtureId===fid);
+  $('#pkUnlink').hidden = !(linked && canEdit());
+  if(linked && canEdit()) $('#pkSub').textContent = `Linked to ${linked.name}. Pick a different channel to move it, or remove the link.`;
   $('#pkSheet').classList.add('show');
 }
+$('#pkUnlink').onclick = ()=>{
+  const c = channels.find(x=>x.match?.fixtureId===pickingFx);
+  if(c){ c.match = {}; commit(); render(); renderFixtures(); }
+  closeSheets();
+};
 function pickChannel(id){
   const f = fixtures.find(x=>x.id===pickingFx), c = channels.find(x=>x.id===id);
   closeSheets(); if(!c) return;
   if(f && canEdit()){
+    channels.forEach(x=>{ if(x!==c && x.match?.fixtureId===f.id) x.match = {}; });
     c.match = { home:f.home, away:f.away, league:f.league, time:f.time, fixtureId:f.id, homeBadge:f.homeBadge, awayBadge:f.awayBadge };
     commit(); renderFixtures();
   }
@@ -719,7 +734,7 @@ function renderFixtures(){
     return `<button class="fx" data-fx="${f.id}" title="${linked?'Watch on '+esc(linked.name):'Add a channel for this match'}">
       <time>${esc(f.time)}</time>
       <span class="vs"><b>${esc(f.home)} ${f.hs!=null&&f.as!=null?`${f.hs}–${f.as}`:'vs'} ${esc(f.away)}</b><small>${esc(f.league)}</small></span>
-      ${linked?`<span class="tag">${esc(linked.name)}</span>`: live?'<span class="live-dot"></span>':''}
+      ${linked?`<span class="tag">${esc(linked.name)}</span>${canEdit()?`<span class="tag" data-relink="${f.id}" title="Change channel" style="background:rgba(23,20,15,.06);color:var(--ink2)">Change</span>`:''}`: live?'<span class="live-dot"></span>':''}
     </button>`;
   }).join('') : `<div class="empty">No fixtures listed for today.</div>`;
 }
