@@ -20,6 +20,9 @@ input{width:100%;height:48px;padding:0 14px;border-radius:12px;border:1px solid 
 input:focus{border-color:#FF6A1A;box-shadow:0 0 0 4px rgba(255,106,26,.14)}
 button{margin-top:12px;width:100%;height:48px;border:0;border-radius:12px;background:#FF6A1A;color:#fff;font:inherit;font-weight:600;font-size:15px;cursor:pointer;box-shadow:0 6px 18px -6px rgba(255,106,26,.7)}
 .e{color:#C2341B;font-size:13px;margin-top:10px;min-height:18px}
+@media (prefers-color-scheme:dark){body{background:#0B0C0E;color:#F2F0EC}body::before{background:radial-gradient(40% 45% at 18% 12%,rgba(70,120,255,.26),transparent 70%),radial-gradient(35% 40% at 88% 92%,rgba(255,106,26,.12),transparent 70%)}
+form{background:rgba(28,30,36,.55);border-color:rgba(255,255,255,.09);box-shadow:0 24px 60px -24px rgba(0,0,0,.7)}p{color:rgba(242,240,236,.6)}
+input{background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.1);color:#F2F0EC}.b i{background:#F2F0EC;color:#0B0C0E}}
 </style></head><body><form method="POST" action="/__login">
 <div class="b"><i>TWN</i>Needed Match</div><h1>Enter password</h1><p>This screen is private.</p>
 <input type="password" name="pw" autofocus required autocomplete="current-password"><button>Watch</button><div class="e">${msg}</div>
