@@ -329,7 +329,7 @@ body.locked #addBtn,body.locked #importBtn,body.locked .ch .edit{display:none!im
 
   <section id="stage">
     <div class="player" id="player">
-      <video id="video" playsinline x-webkit-airplay="allow"></video>
+      <video id="video" playsinline x-webkit-airplay="allow" airplay="allow"></video>
       <div class="idle" id="idle"><div><h2>Pick a channel</h2><p>Add a stream with <b>+ Channel</b>, then press play.</p></div></div>
       <div class="ovl-top">
         <span class="pill live" id="livePill" hidden><span class="live-dot" style="background:#fff;box-shadow:none"></span>LIVE</span>
@@ -603,6 +603,10 @@ function renderNow(){
 function openFxForChannel(id){ openCh(id); }
 
 /* ---------- playback ---------- */
+// Apple devices play HLS natively; that's what AirPlay needs to send video (not just audio).
+const APPLE = /iPhone|iPad|iPod/.test(navigator.userAgent) || (/Macintosh/.test(navigator.userAgent) && navigator.maxTouchPoints > 1)
+  || (/Safari/.test(navigator.userAgent) && !/Chrome|Chromium|CriOS|Edg|Firefox|FxiOS/.test(navigator.userAgent));
+try{ video.disableRemotePlayback = false; }catch{}
 let tried = new Set(), stallT = null;
 function failover(reason){
   const c = channels.find(x=>x.id===current); const fid = c?.match?.fixtureId; if(!fid) return false;
@@ -628,7 +632,7 @@ function play(id, auto=false){
   video.removeAttribute('src'); video.load();
 
   const native = video.canPlayType('application/vnd.apple.mpegurl');
-  if(window.Hls && Hls.isSupported() && !(native && /Safari/.test(navigator.userAgent) && !/Chrome/.test(navigator.userAgent))){
+  if(window.Hls && Hls.isSupported() && !(native && APPLE)){
     hls = new Hls({ lowLatencyMode:true, liveSyncDurationCount:3, enableWorker:true });
     hls.loadSource(c.url); hls.attachMedia(video);
     hls.on(Hls.Events.MANIFEST_PARSED, (e,d)=>{ video.play().catch(()=>setStatus('Tap play')); readLevels(d.levels); });
@@ -707,6 +711,15 @@ if(window.WebKitPlaybackTargetAvailabilityEvent){
   castBtn.title = 'Cast';
   castBtn.onclick = ()=>video.remote.prompt().catch(()=>toast('Casting isn’t available for this stream here'));
 }
+
+video.addEventListener('webkitcurrentplaybacktargetiswirelesschanged', ()=>{
+  const on = video.webkitCurrentPlaybackTargetIsWireless;
+  setStatus(on ? 'Playing on AirPlay' : '');
+  if(on && hls && current){
+    const c = channels.find(x=>x.id===current);
+    hls.destroy(); hls = null; video.src = c.url; video.play().catch(()=>{});
+  }
+});
 
 /* ---------- idle UI ---------- */
 let idleT;
