@@ -190,6 +190,15 @@ body.locked #addBtn,body.locked #importBtn,body.locked .ch .edit{display:none!im
 .ch .tick.y{background:var(--accent);border-color:var(--accent);color:#fff}
 #scanBtn.busy span{color:var(--accent)}
 
+.grp .tog{opacity:1!important;font-size:12px;width:28px}
+.subs{padding:0 0 8px 62px;display:flex;flex-direction:column;gap:4px}
+.sub{display:flex;align-items:center;gap:8px;text-align:left;font-size:12px;font-weight:600;padding:8px 10px;border-radius:10px;color:var(--ink2);width:100%}
+.sub:hover{background:rgba(255,255,255,.55)}
+.sub.on{background:var(--accent);color:#fff}
+.sub .sd{width:7px;height:7px;border-radius:50%;background:#1FB35A;flex:none}
+.sub.off .sd{background:#B9B3AA}
+.sub .e2{margin-left:auto;opacity:.5;font-size:11px}
+
 /* ---------- sheet ---------- */
 .scrim{position:fixed;inset:0;background:rgba(243,240,234,.4);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);z-index:50;display:none;place-items:center;padding:20px}
 .scrim.show{display:grid;animation:fade .25s var(--ease)}
@@ -454,13 +463,36 @@ function chButton(c, i){
     <button class="edit" data-edit="${c.id}" aria-label="Edit ${esc(c.name)}"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20h4L19 9l-4-4L4 16v4z"/></svg></button>
   </div>`;
 }
+const expanded = new Set();
+function groupRow(fid, list){
+  const m = list[0].match || {}, isCur = list.some(c=>c.id===current), open = expanded.has(fid);
+  const live = list.some(c=>airOf(c)!=='off');
+  const fx = fixtures.find(f=>f.id===fid);
+  const score = fx && fx.hs!=null && fx.as!=null ? ` ${fx.hs}–${fx.as} ` : ' vs ';
+  return `<div class="grp">
+    <div class="ch ${isCur?'on':''} ${live?'':'off'}">
+      <button data-gplay="${fid}" style="display:flex;align-items:center;gap:12px;flex:1;min-width:0;text-align:left">
+        <span class="num">${list.length}<i class="sd"></i></span>
+        <span class="t"><b>${esc((m.home||'TBC')+score+(m.away||'TBC'))}</b><small>${esc([m.league, fx?.status && fx.status!=='Not Started' ? fx.status : m.time].filter(Boolean).join(' · '))} · ${list.length} sources</small></span>
+      </button>
+      <button class="edit tog" data-gtoggle="${fid}" aria-label="Show sources">${open?'▾':'▸'}</button>
+    </div>
+    ${open ? `<div class="subs">${list.map((c,k)=>`<button class="sub ${c.id===current?'on':''} ${airOf(c)==='off'?'off':''}" data-play="${c.id}"><span class="sd"></span>${k===0?'Main':'Backup '+k} · ${esc(c.name)}${canEdit()?`<span class="e2" data-edit="${c.id}">Edit</span>`:''}</button>`).join('')}</div>` : ''}
+  </div>`;
+}
 function render(){
   $('#chCount').textContent = channels.length ? channels.length : '';
-  const indexed = channels.map((c,i)=>[c,i]);
-  const onAir = indexed.filter(([c])=>airOf(c)!=='off'), offAir = indexed.filter(([c])=>airOf(c)==='off');
-  $('#chList').innerHTML = !channels.length ? '' : !air ? channels.map(chButton).join('') :
-    (onAir.length ? `<div class="sec"><span class="air"></span>On air · ${onAir.length}</div>` + onAir.map(([c,i])=>chButton(c,i)).join('') : `<div class="sec"><span class="air"></span>On air · 0</div><div class="empty" style="padding:6px 10px 10px">Nothing live right now.</div>`) +
-    (offAir.length ? `<div class="sec"><span class="air off"></span>Off air · ${offAir.length}</div>` + offAir.map(([c,i])=>chButton(c,i)).join('') : '');
+  // one row per game when several channels show it; single channels as before
+  const items = [], seen = new Set();
+  channels.forEach((c,i)=>{
+    const fid = c.match?.fixtureId, src = sourcesFor(fid);
+    if(fid && src.length > 1){ if(!seen.has(fid)){ seen.add(fid); items.push({ live: src.some(x=>airOf(x)!=='off'), html: groupRow(fid, src) }); } }
+    else items.push({ live: airOf(c)!=='off', html: chButton(c,i) });
+  });
+  const onAir = items.filter(x=>x.live), offAir = items.filter(x=>!x.live);
+  $('#chList').innerHTML = !channels.length ? '' : !air ? items.map(x=>x.html).join('') :
+    (onAir.length ? `<div class="sec"><span class="air"></span>On air · ${onAir.length}</div>` + onAir.map(x=>x.html).join('') : `<div class="sec"><span class="air"></span>On air · 0</div><div class="empty" style="padding:6px 10px 10px">Nothing live right now.</div>`) +
+    (offAir.length ? `<div class="sec"><span class="air off"></span>Off air · ${offAir.length}</div>` + offAir.map(x=>x.html).join('') : '');
   if(!channels.length) $('#chList').innerHTML =
     `<div class="empty">No channels yet. Hit <b>+ Channel</b> to paste a stream link, or <b>Import</b> to paste several at once.</div>`;
   renderNow();
@@ -498,6 +530,7 @@ video.addEventListener('playing', ()=>clearTimeout(stallT));
 function play(id, auto=false){
   const c = channels.find(x=>x.id===id); if(!c) return;
   if(!auto) tried = new Set();
+  if(c.match?.fixtureId) expanded.add(c.match.fixtureId);
   clearTimeout(stallT);
   current = id; render();
   document.body.classList.add('open');
@@ -598,10 +631,12 @@ function wake(){
 
 /* ---------- delegated clicks ---------- */
 document.addEventListener('click', e=>{
+  const gt = e.target.closest('[data-gtoggle]'); if(gt){ const f=gt.dataset.gtoggle; expanded.has(f)?expanded.delete(f):expanded.add(f); render(); return; }
+  const gp = e.target.closest('[data-gplay]'); if(gp){ const f=gp.dataset.gplay; expanded.add(f); const src=sourcesFor(f); if(src.length && !src.some(c=>c.id===current)) play(src[0].id); else render(); return; }
   const rl = e.target.closest('[data-relink]'); if(rl){ e.stopPropagation(); openPicker(rl.dataset.relink); return; }
   const pk = e.target.closest('[data-pick]'); if(pk){ pickChannel(pk.dataset.pick); return; }
-  const p = e.target.closest('[data-play]'); if(p){ play(p.dataset.play); return; }
   const ed = e.target.closest('[data-edit]'); if(ed){ openCh(ed.dataset.edit); return; }
+  const p = e.target.closest('[data-play]'); if(p){ play(p.dataset.play); return; }
   if(e.target.closest('[data-close]')) closeSheets();
   const fx = e.target.closest('[data-fx]'); if(fx){
     const src = sourcesFor(fx.dataset.fx);
