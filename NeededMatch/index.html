@@ -180,6 +180,16 @@ body.locked #addBtn,body.locked #importBtn,body.locked .ch .edit{display:none!im
 .ch.off .num .sd{background:#B9B3AA}
 .ch.unk .num .sd{display:none}
 
+.srcs{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+.srcs:empty{display:none}
+.src{font-size:12px;font-weight:600;padding:6px 10px;border-radius:10px;background:rgba(23,20,15,.05);color:var(--ink2);display:inline-flex;align-items:center;gap:6px}
+.src.on{background:var(--accent);color:#fff}
+.src .sd{width:7px;height:7px;border-radius:50%;background:#1FB35A}
+.src.off .sd{background:#B9B3AA}
+.ch .tick{margin-left:auto;width:22px;height:22px;border-radius:50%;border:1.5px solid rgba(23,20,15,.2);display:grid;place-items:center;font-size:12px;flex:none}
+.ch .tick.y{background:var(--accent);border-color:var(--accent);color:#fff}
+#scanBtn.busy span{color:var(--accent)}
+
 /* ---------- sheet ---------- */
 .scrim{position:fixed;inset:0;background:rgba(243,240,234,.4);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);z-index:50;display:none;place-items:center;padding:20px}
 .scrim.show{display:grid;animation:fade .25s var(--ease)}
@@ -213,6 +223,8 @@ body.locked #addBtn,body.locked #importBtn,body.locked .ch .edit{display:none!im
   <div class="brand"><i>TWN</i>Needed Match <span>· live</span></div>
   <div class="spacer"></div>
   <div class="clock" id="clock"></div>
+  <button class="btn ghost" id="scanBtn" hidden title="Find which game is on each channel">
+    <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg><span>Scan</span></button>
   <button class="btn ghost" id="lockBtn" hidden>
     <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 018 0v4"/></svg><span>Edit</span></button>
   <button class="btn ghost" id="importBtn" title="Paste a playlist">
@@ -257,6 +269,7 @@ body.locked #addBtn,body.locked #importBtn,body.locked .ch .edit{display:none!im
       <div>
         <div class="match" id="matchView"></div>
         <div class="meta" id="metaView"></div>
+        <div class="srcs" id="srcs"></div>
         <button class="btn ghost" id="wrongBtn" hidden style="height:30px;margin-top:10px;font-size:12px">Wrong match? Change</button>
       </div>
       <div class="specs" id="specs"></div>
@@ -311,7 +324,7 @@ body.locked #addBtn,body.locked #importBtn,body.locked .ch .edit{display:none!im
     <h2 id="pkTitle">Which channel?</h2>
     <p class="sub" id="pkSub">Pick the channel showing this match. It'll remember for everyone.</p>
     <div class="chlist" id="pkList"></div>
-    <div class="actions"><button type="button" class="btn ghost danger" id="pkUnlink" hidden>Remove link</button><div class="spacer"></div><button type="button" class="btn ghost" data-close>Cancel</button></div>
+    <div class="actions"><button type="button" class="btn ghost danger" id="pkUnlink" hidden>Remove all</button><div class="spacer"></div><button type="button" class="btn primary" id="pkDone">Done</button></div>
   </div>
 </div>
 
@@ -362,7 +375,7 @@ function idFor(url){ let h=0; for(const ch of url) h=(h*31+ch.charCodeAt(0))|0; 
 function readPreset(){ try{ const j=JSON.parse($('#preset').textContent); return Array.isArray(j)?j:j.channels; }catch{ return null; } }
 /* ---------- live site storage (Netlify function at /api/channels) ---------- */
 let remote = false, adminKey = store.get('adminKey', null);
-function setLocked(){ document.body.classList.toggle('locked', remote && !adminKey); const b=$('#lockBtn'); b.hidden=!remote; b.querySelector('span').textContent = adminKey ? 'Lock' : 'Edit'; }
+function setLocked(){ setTimeout(()=>{ setScanUI(); if(remote && adminKey && !scanTimer && !scanning) scanTimer = setTimeout(()=>scanAll(false), 20000); }, 0); document.body.classList.toggle('locked', remote && !adminKey); const b=$('#lockBtn'); b.hidden=!remote; b.querySelector('span').textContent = adminKey ? 'Lock' : 'Edit'; }
 function applyRemote(list){
   channels = list.filter(c=>c && c.url).map(c=>({ id:idFor(c.url), name:c.name||'Channel', url:c.url, match:c.match||{} }));
   // keep crests from today's fixtures
@@ -464,14 +477,28 @@ function renderNow(){
   $('#metaView').textContent = [c.name, m.league, m.time && 'Kick-off '+m.time, fx?.status && fx.status!=='Not Started' ? fx.status : ''].filter(Boolean).join('  ·  ');
   $('#ctrlTitle').textContent = chTitle(c);
   const fid = c.match?.fixtureId;
+  const src = sourcesFor(fid);
+  $('#srcs').innerHTML = src.length>1 ? src.map((x,i)=>`<button class="src ${x.id===current?'on':''} ${airOf(x)==='off'?'off':''}" data-play="${x.id}"><span class="sd"></span>${i===0?'Main':'Backup '+i} · ${esc(x.name)}</button>`).join('') : '';
   $('#wrongBtn').hidden = !(canEdit() && fixtures.length);
   $('#wrongBtn').onclick = ()=> fid && fixtures.some(x=>x.id===fid) ? openPicker(fid) : openFxForChannel(c.id);
 }
 function openFxForChannel(id){ openCh(id); }
 
 /* ---------- playback ---------- */
-function play(id){
+let tried = new Set(), stallT = null;
+function failover(reason){
+  const c = channels.find(x=>x.id===current); const fid = c?.match?.fixtureId; if(!fid) return false;
+  tried.add(current);
+  const next = sourcesFor(fid).find(x=>!tried.has(x.id) && airOf(x)!=='off') || sourcesFor(fid).find(x=>!tried.has(x.id));
+  if(!next) return false;
+  toast(`${reason} — switched to ${next.name}`); play(next.id, true); return true;
+}
+video.addEventListener('waiting', ()=>{ clearTimeout(stallT); stallT = setTimeout(()=>{ if(video.readyState<3) failover('Stream stalled'); }, 12000); });
+video.addEventListener('playing', ()=>clearTimeout(stallT));
+function play(id, auto=false){
   const c = channels.find(x=>x.id===id); if(!c) return;
+  if(!auto) tried = new Set();
+  clearTimeout(stallT);
   current = id; render();
   document.body.classList.add('open');
   $('#idle').style.opacity = 0;
@@ -491,9 +518,9 @@ function play(id){
     hls.on(Hls.Events.ERROR, (e,d)=>{
       if(!d.fatal) return;
       if(d.type===Hls.ErrorTypes.NETWORK_ERROR){ setStatus(d.response?.code===0 || !d.response ? 'Blocked (CORS) — trying native…' : 'Network error — retrying');
-        if(native){ hls.destroy(); hls=null; video.src=c.url; video.play().catch(()=>{}); } else setTimeout(()=>hls&&hls.startLoad(),2000); }
+        if(native){ hls.destroy(); hls=null; video.src=c.url; video.play().catch(()=>{}); } else setTimeout(()=>{ if(!failover('Stream dropped')) hls&&hls.startLoad(); },2000); }
       else if(d.type===Hls.ErrorTypes.MEDIA_ERROR){ setStatus('Recovering…'); hls.recoverMediaError(); }
-      else setStatus('Stream unavailable');
+      else if(!failover('Stream failed')) setStatus('Stream unavailable');
     });
   } else if(native){
     video.src = c.url; video.play().catch(()=>setStatus('Tap play'));
@@ -527,7 +554,7 @@ function setStatus(t){ const p=$('#statusPill'); p.hidden=!t; p.textContent=t||'
 video.addEventListener('playing', ()=>{ setStatus(''); if(!hls){ specs.res = video.videoWidth? `${video.videoWidth}×${video.videoHeight}`:null; drawSpecs(); $('#livePill').hidden = video.duration!==Infinity; } setPlayIcon(); });
 video.addEventListener('waiting', ()=>setStatus('Buffering…'));
 video.addEventListener('pause', setPlayIcon);
-video.addEventListener('error', ()=>setStatus('Stream unavailable'));
+video.addEventListener('error', ()=>{ if(!failover('Stream failed')) setStatus('Stream unavailable'); });
 function setPlayIcon(){ $('#playIco').innerHTML = video.paused ? '<path d="M7 5v14l12-7z"/>' : '<path d="M6 5h4v14H6zM14 5h4v14h-4z"/>'; }
 function step(d){ if(!channels.length) return; let i = channels.findIndex(c=>c.id===current); i = (i+d+channels.length)%channels.length; play(channels[i].id); }
 
@@ -577,8 +604,8 @@ document.addEventListener('click', e=>{
   const ed = e.target.closest('[data-edit]'); if(ed){ openCh(ed.dataset.edit); return; }
   if(e.target.closest('[data-close]')) closeSheets();
   const fx = e.target.closest('[data-fx]'); if(fx){
-    const owner = channels.find(c=>c.match?.fixtureId===fx.dataset.fx);
-    if(owner) play(owner.id); else openPicker(fx.dataset.fx);
+    const src = sourcesFor(fx.dataset.fx);
+    if(src.length) play(src[0].id); else openPicker(fx.dataset.fx);
   }
   const chip = e.target.closest('[data-chip]'); if(chip){ fxFilter = chip.dataset.chip; renderFixtures(); }
 });
@@ -593,34 +620,99 @@ function openPicker(fid){
   if(!channels.length){ if(canEdit()) openCh(null, fid); else toast('No channels yet'); return; }
   pickingFx = fid;
   $('#pkTitle').textContent = `${f.home} vs ${f.away}`;
-  $('#pkSub').textContent = canEdit() ? 'Which channel is showing it? One tap links it and plays — for everyone.' : 'Not linked to a channel yet. Pick one to watch.';
+  $('#pkSub').textContent = canEdit() ? 'Tick every channel showing it — extras become backups. Saved for everyone.' : 'Not linked to a channel yet. Pick one to watch.';
   const list = channels.map((c,i)=>[c,i]).sort((a,b)=>(airOf(a[0])==='off')-(airOf(b[0])==='off'));
   $('#pkList').innerHTML = list.map(([c,i])=>{
     const a = airOf(c);
     return `<button class="ch ${a==='off'?'off':a==='unk'?'unk':''}" data-pick="${c.id}">
       <span class="num">${i+1}<i class="sd"></i></span>
-      <span class="t"><b>${esc(c.name)}</b><small>${a==='off'?'Off air':a==='on'?'On air':''}${matchLine(c.match)?' · now: '+esc(matchLine(c.match)):''}</small></span></button>`;
+      <span class="t"><b>${esc(c.name)}</b><small>${a==='off'?'Off air':a==='on'?'On air':''}${matchLine(c.match)&&c.match.fixtureId!==fid?' · now: '+esc(matchLine(c.match)):''}</small></span>${canEdit()?`<span class="tick ${c.match?.fixtureId===fid?'y':''}">${c.match?.fixtureId===fid?'✓':''}</span>`:''}</button>`;
   }).join('');
-  const linked = channels.find(c=>c.match?.fixtureId===fid);
-  $('#pkUnlink').hidden = !(linked && canEdit());
-  if(linked && canEdit()) $('#pkSub').textContent = `Linked to ${linked.name}. Pick a different channel to move it, or remove the link.`;
+  $('#pkUnlink').hidden = !(sourcesFor(fid).length && canEdit());
+  $('#pkDone').textContent = canEdit() ? 'Done' : 'Cancel';
   $('#pkSheet').classList.add('show');
 }
-$('#pkUnlink').onclick = ()=>{
-  const c = channels.find(x=>x.match?.fixtureId===pickingFx);
-  if(c){ c.match = {}; commit(); render(); renderFixtures(); }
-  closeSheets();
+$('#pkDone').onclick = ()=>{
+  const fid = pickingFx; closeSheets();
+  const src = sourcesFor(fid); const cur = channels.find(c=>c.id===current);
+  if(canEdit() && src.length && cur?.match?.fixtureId!==fid) play(src[0].id);
 };
+$('#pkUnlink').onclick = ()=>{
+  channels.forEach(c=>{ if(c.match?.fixtureId===pickingFx) c.match = {}; });
+  commit(); render(); renderFixtures(); closeSheets();
+};
+function linkTo(c, f){ c.match = { home:f.home, away:f.away, league:f.league, time:f.time, fixtureId:f.id, homeBadge:f.homeBadge, awayBadge:f.awayBadge }; }
+function sourcesFor(fid){
+  return channels.filter(c=>fid && c.match?.fixtureId===fid).sort((a,b)=>(airOf(a)==='off')-(airOf(b)==='off'));
+}
 function pickChannel(id){
   const f = fixtures.find(x=>x.id===pickingFx), c = channels.find(x=>x.id===id);
-  closeSheets(); if(!c) return;
-  if(f && canEdit()){
-    channels.forEach(x=>{ if(x!==c && x.match?.fixtureId===f.id) x.match = {}; });
-    c.match = { home:f.home, away:f.away, league:f.league, time:f.time, fixtureId:f.id, homeBadge:f.homeBadge, awayBadge:f.awayBadge };
-    commit(); renderFixtures();
-  }
-  play(id);
+  if(!c) return;
+  if(!canEdit() || !f){ closeSheets(); play(id); return; }
+  if(c.match?.fixtureId===f.id) c.match = {}; else linkTo(c, f);
+  commit(); render(); renderFixtures(); openPicker(f.id);
 }
+
+/* ---------- background scanner (editor only): reads each channel's score graphic via /api/identify ---------- */
+const SCAN_EVERY = 8*60*1000;
+let scanning = false, scanTimer = null, noKeyWarned = false;
+function liveFixtures(){
+  const now = Date.now();
+  return fixtures.filter(f=>f.sort && now >= f.sort - 20*60e3 && now <= f.sort + 150*60e3 && !/^FT$|Finished/i.test(f.status||''));
+}
+function grabFrame(url){
+  return new Promise(resolve=>{
+    if(!(window.Hls && Hls.isSupported())) return resolve(null);
+    const v = document.createElement('video');
+    v.muted = true; v.playsInline = true;
+    v.style.cssText = 'position:fixed;left:0;top:0;width:160px;height:90px;opacity:0.01;pointer-events:none;z-index:-1';
+    document.body.appendChild(v);
+    const h = new Hls({ maxBufferLength:8, maxMaxBufferLength:10, startLevel:-1 });
+    let done = false;
+    const finish = img=>{ if(done) return; done = true; clearTimeout(to); try{ h.destroy(); }catch{} v.remove(); resolve(img); };
+    const to = setTimeout(()=>finish(null), 25000);
+    h.on(Hls.Events.ERROR, (e,d)=>{ if(d.fatal) finish(null); });
+    h.loadSource(url); h.attachMedia(v);
+    h.on(Hls.Events.MANIFEST_PARSED, ()=>v.play().catch(()=>{}));
+    v.addEventListener('playing', ()=>setTimeout(()=>{
+      try{
+        const c = document.createElement('canvas'); c.width = 1024;
+        c.height = Math.round(1024 * (v.videoHeight||720) / (v.videoWidth||1280));
+        c.getContext('2d').drawImage(v, 0, 0, c.width, c.height);
+        finish(c.toDataURL('image/jpeg', 0.78).split(',')[1]);
+      }catch{ finish(null); }
+    }, 3500), { once:true });
+  });
+}
+function setScanUI(txt){ const b=$('#scanBtn'); b.hidden = !(remote && adminKey); b.classList.toggle('busy', !!scanning); b.querySelector('span').textContent = txt || 'Scan'; }
+async function scanAll(manual=false){
+  if(scanning || !remote || !adminKey) return;
+  const live = liveFixtures();
+  if(!live.length){ if(manual) toast('No games on right now to match'); return schedule(); }
+  const targets = channels.filter(c=>airOf(c)!=='off');
+  if(!targets.length){ if(manual) toast('No channels on air'); return schedule(); }
+  scanning = true; let changed = 0, n = 0;
+  const list = live.map(f=>({ id:f.id, home:f.home, away:f.away, league:f.league }));
+  for(const c of targets){
+    n++; setScanUI(`Scanning ${n}/${targets.length}`);
+    const img = await grabFrame(c.url); if(!img) continue;
+    let res;
+    try{
+      const r = await fetch('/api/identify', { method:'POST', headers:{'content-type':'application/json','x-admin-key':adminKey}, body: JSON.stringify({ image:img, fixtures:list }) });
+      if(r.status===503){ if(!noKeyWarned){ toast('Add ANTHROPIC_API_KEY in Netlify to turn on scanning'); noKeyWarned = true; } break; }
+      if(!r.ok) continue;
+      res = await r.json();
+    }catch{ continue; }
+    const f = fixtures.find(x=>x.id===res.fixtureId);
+    if(f && res.confidence >= 0.6 && c.match?.fixtureId !== f.id){ linkTo(c, f); changed++; }
+  }
+  scanning = false; setScanUI();
+  if(changed){ commit(); render(); renderFixtures(); toast(`Scan linked ${changed} channel${changed>1?'s':''}`); }
+  else if(manual) toast('Scan done — nothing new');
+  schedule();
+}
+function schedule(){ clearTimeout(scanTimer); if(remote && adminKey) scanTimer = setTimeout(()=>scanAll(false), SCAN_EVERY); }
+$('#scanBtn').onclick = ()=>scanAll(true);
 
 /* ---------- channel sheet ---------- */
 function fillFxSelect(sel){
@@ -729,12 +821,12 @@ function renderFixtures(){
   $('#fxFilters').innerHTML = fixtures.length ? leagues.map(l=>`<button class="chip ${l===fxFilter?'on':''}" data-chip="${esc(l)}">${esc(l.replace('English ',''))}</button>`).join('') : '';
   const list = fixtures.filter(f=>fxFilter==='All'||f.league===fxFilter);
   $('#fxList').innerHTML = list.length ? list.map(f=>{
-    const linked = channels.find(c=>c.match?.fixtureId===f.id);
+    const srcs = sourcesFor(f.id); const linked = srcs[0];
     const live = f.status && !/Not Started|FT|Match Finished|NS/i.test(f.status);
     return `<button class="fx" data-fx="${f.id}" title="${linked?'Watch on '+esc(linked.name):'Add a channel for this match'}">
       <time>${esc(f.time)}</time>
       <span class="vs"><b>${esc(f.home)} ${f.hs!=null&&f.as!=null?`${f.hs}–${f.as}`:'vs'} ${esc(f.away)}</b><small>${esc(f.league)}</small></span>
-      ${linked?`<span class="tag">${esc(linked.name)}</span>${canEdit()?`<span class="tag" data-relink="${f.id}" title="Change channel" style="background:rgba(23,20,15,.06);color:var(--ink2)">Change</span>`:''}`: live?'<span class="live-dot"></span>':''}
+      ${linked?`<span class="tag">${esc(linked.name)}${srcs.length>1?' +'+(srcs.length-1):''}</span>${canEdit()?`<span class="tag" data-relink="${f.id}" title="Change channel" style="background:rgba(23,20,15,.06);color:var(--ink2)">Change</span>`:''}`: live?'<span class="live-dot"></span>':''}
     </button>`;
   }).join('') : `<div class="empty">No fixtures listed for today.</div>`;
 }
