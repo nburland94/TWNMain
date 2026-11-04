@@ -171,6 +171,15 @@ body[data-layout=cinema].calm{cursor:none}
 
 body.locked #addBtn,body.locked #importBtn,body.locked .ch .edit{display:none!important}
 
+.sec{display:flex;align-items:center;gap:8px;padding:10px 10px 4px;font-size:11px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--ink3)}
+.sec .air{width:8px;height:8px;border-radius:50%;background:#1FB35A;box-shadow:0 0 0 3px rgba(31,179,90,.18)}
+.sec .air.off{background:rgba(23,20,15,.25);box-shadow:none}
+.ch.off{opacity:.55}
+.ch.off:hover,.ch.off.on{opacity:1}
+.ch .num .sd{position:absolute;right:-2px;top:-2px;width:10px;height:10px;border-radius:50%;border:2px solid #F6F3EE;background:#1FB35A}
+.ch.off .num .sd{background:#B9B3AA}
+.ch.unk .num .sd{display:none}
+
 /* ---------- sheet ---------- */
 .scrim{position:fixed;inset:0;background:rgba(243,240,234,.4);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);z-index:50;display:none;place-items:center;padding:20px}
 .scrim.show{display:grid;animation:fade .25s var(--ease)}
@@ -366,7 +375,7 @@ async function pushRemote(){
     const r = await fetch('/api/channels', { method:'PUT', headers:{'content-type':'application/json','x-admin-key':adminKey||''}, body: exportJSON() });
     if(r.status===401){ adminKey=null; store.set('adminKey',null); setLocked(); toast('Wrong password — not saved'); loadRemote(); return; }
     if(!r.ok) throw 0;
-    toast('Saved to site');
+    toast('Saved to site'); setTimeout(loadStatus, 1500);
   }catch{ toast('Couldn’t save to site — check connection'); }
 }
 function commit(){ save(); pushRemote(); }
@@ -398,11 +407,25 @@ function exportJSON(){
   return JSON.stringify({ channels: channels.map(c=>({ name:c.name, url:c.url, match: Object.fromEntries(Object.entries(c.match||{}).filter(([,v])=>v)) })) }, null, 2);
 }
 
+/* ---------- on air status (/api/status) ---------- */
+let air = null;   // { [url]: {on, why} } or null when the site has no status backend
+async function loadStatus(){
+  try{
+    const r = await fetch('/api/status', {cache:'no-store'});
+    if(!r.ok || !(r.headers.get('content-type')||'').includes('json')) return;
+    air = (await r.json()).status || {};
+    render();
+  }catch{}
+}
+setInterval(loadStatus, 60*1000);
+function airOf(c){ if(!air) return 'unk'; const s = air[c.url]; return !s ? 'unk' : s.on ? 'on' : 'off'; }
+
 /* ---------- render ---------- */
 function chButton(c, i){
-  return `<div class="ch ${c.id===current?'on':''}" data-id="${c.id}">
+  const a = airOf(c);
+  return `<div class="ch ${c.id===current?'on':''} ${a==='off'?'off':a==='unk'?'unk':''}" data-id="${c.id}" title="${a==='on'?'On air':a==='off'?'Off air'+(air[c.url]?.why?' ('+esc(air[c.url].why)+')':''):''}">
     <button class="t-btn" data-play="${c.id}" style="display:flex;align-items:center;gap:12px;flex:1;min-width:0;text-align:left">
-      <span class="num">${i+1}</span>
+      <span class="num">${i+1}<i class="sd"></i></span>
       <span class="t"><b>${esc(chTitle(c))}</b><small>${c.id===current?'<span class="live-dot"></span>&nbsp; ':''}${esc(c.match&&matchLine(c.match)?c.name+' · '+subLine(c):subLine(c))}</small></span>
     </button>
     <button class="edit" data-edit="${c.id}" aria-label="Edit ${esc(c.name)}"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20h4L19 9l-4-4L4 16v4z"/></svg></button>
@@ -410,7 +433,12 @@ function chButton(c, i){
 }
 function render(){
   $('#chCount').textContent = channels.length ? channels.length : '';
-  $('#chList').innerHTML = channels.length ? channels.map(chButton).join('') :
+  const indexed = channels.map((c,i)=>[c,i]);
+  const onAir = indexed.filter(([c])=>airOf(c)!=='off'), offAir = indexed.filter(([c])=>airOf(c)==='off');
+  $('#chList').innerHTML = !channels.length ? '' : !air ? channels.map(chButton).join('') :
+    (onAir.length ? `<div class="sec"><span class="air"></span>On air · ${onAir.length}</div>` + onAir.map(([c,i])=>chButton(c,i)).join('') : `<div class="sec"><span class="air"></span>On air · 0</div><div class="empty" style="padding:6px 10px 10px">Nothing live right now.</div>`) +
+    (offAir.length ? `<div class="sec"><span class="air off"></span>Off air · ${offAir.length}</div>` + offAir.map(([c,i])=>chButton(c,i)).join('') : '');
+  if(!channels.length) $('#chList').innerHTML =
     `<div class="empty">No channels yet. Hit <b>+ Channel</b> to paste a stream link, or <b>Import</b> to paste several at once.</div>`;
   renderNow();
 }
@@ -675,7 +703,7 @@ document.addEventListener('keydown', e=>{
 /* ---------- clock & boot ---------- */
 function tick(){ $('#clock').textContent = new Date().toLocaleString([], {weekday:'short', hour:'2-digit', minute:'2-digit', hour12:false}); }
 tick(); setInterval(tick, 15000);
-render(); loadShared().then(loadFixtures);
+render(); loadShared().then(()=>{ loadStatus(); loadFixtures(); });
 })();
 </script>
 </body>
