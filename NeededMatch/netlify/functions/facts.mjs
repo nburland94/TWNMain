@@ -39,14 +39,31 @@ export default async (req) => {
     const events = (j.keyEvents || []).map((e) => {
       const kind = kindOf(e.type?.text || e.text);
       if (!kind) return null;
-      return {
-        kind, min: e.clock?.displayValue || "", side: sideOf(e.team?.id),
-        who: (e.participants || []).map((p) => p.athlete?.displayName).filter(Boolean),
-      };
+      let who = (e.participants || []).map((p) => p.athlete?.displayName).filter(Boolean);
+      if (kind === "sub") {
+        // "Substitution, Team. A replaces B." -> [on, off]
+        const m = /([^.,]+?)\s+replaces\s+([^.,]+?)(?:\s+because[^.]*)?\.?$/i.exec(e.text || e.shortText || "");
+        if (m) who = [m[1].trim(), m[2].trim()];
+      }
+      return { kind, min: e.clock?.displayValue || "", side: sideOf(e.team?.id), who };
     }).filter(Boolean);
+    const lineups = (j.rosters || []).map((t, i) => {
+      const side = sideOf(t.team?.id) || t.homeAway || (i === 0 ? "home" : "away");
+      const p = (r) => ({
+        n: r.jersey || "", name: r.athlete?.displayName || r.athlete?.shortName || "",
+        pos: r.position?.abbreviation || "", on: !!r.subbedIn, off: !!r.subbedOut,
+        place: +r.formationPlace || 99,
+      });
+      const list = (t.roster || []).map((r) => ({ ...p(r), starter: !!r.starter }));
+      return {
+        side, formation: t.formation || "",
+        starters: list.filter((x) => x.starter).sort((a, b) => a.place - b.place),
+        bench: list.filter((x) => !x.starter),
+      };
+    }).filter((l) => l.starters.length || l.bench.length);
     return Response.json({
       status: comp.status?.type?.shortDetail || "", state: comp.status?.type?.state || "",
-      teams, stats, events,
+      teams, stats, events, lineups,
       venue: j.gameInfo?.venue?.fullName || null,
     }, { headers: { "cache-control": "public, max-age=30" } });
   } catch {

@@ -241,6 +241,20 @@ body.locked #addBtn,body.locked #importBtn,body.locked .ch .edit{display:none!im
 
 .fx.done{opacity:.55}
 
+.lu{grid-column:1/-1;display:grid;grid-template-columns:1fr 1fr;gap:28px;border-top:1px solid var(--hair);padding-top:20px}
+.lu h5{font-size:13px;font-weight:700;margin-bottom:10px;display:flex;justify-content:space-between;align-items:baseline}
+.lu h5 small{font-size:11px;font-weight:600;color:var(--ink3);letter-spacing:.04em}
+.lu .grp-t{font-size:11px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--ink3);margin:14px 0 6px}
+.pl{display:flex;align-items:center;gap:10px;font-size:13px;padding:4px 0}
+.pl .n{width:24px;height:24px;border-radius:7px;background:var(--fill);display:grid;place-items:center;font-size:11px;font-weight:700;font-variant-numeric:tabular-nums;flex:none}
+.pl .p{font-size:10px;font-weight:600;color:var(--ink3);width:28px;flex:none}
+.pl .nm{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pl .in{color:#1FB35A;font-weight:700;font-size:12px}.pl .out{color:#E0301E;font-weight:700;font-size:12px}
+.pl.unused{opacity:.5}
+.ev .subt{color:var(--ink2)}.ev .on{color:#1FB35A}.ev .offp{color:var(--ink3);font-size:11px}
+.subtog{font:inherit;font-size:11px;font-weight:600;color:var(--accent);letter-spacing:.02em;text-transform:none}
+@media (max-width:860px){ .lu{grid-template-columns:1fr;gap:20px} }
+
 /* ---------- sheet ---------- */
 .scrim{position:fixed;inset:0;background:var(--scrim);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);z-index:50;display:none;place-items:center;padding:20px}
 .scrim.show{display:grid;animation:fade .25s var(--ease)}
@@ -731,6 +745,7 @@ function wake(){
 
 /* ---------- delegated clicks ---------- */
 document.addEventListener('click', e=>{
+  const stg = e.target.closest('[data-subtog]'); if(stg){ store.set('subs', !store.get('subs', true)); const lf = window.__lastFacts?.[stg.dataset.subtog]; if(lf) drawFacts(lf[0], lf[1], stg.dataset.subtog); return; }
   const wt = e.target.closest('[data-watch]'); if(wt){ closeSheets(); play(wt.dataset.watch); return; }
   const gt = e.target.closest('[data-gtoggle]'); if(gt){ const f=gt.dataset.gtoggle; expanded.has(f)?expanded.delete(f):expanded.add(f); render(); return; }
   const gp = e.target.closest('[data-gplay]'); if(gp){ const f=gp.dataset.gplay; expanded.add(f); const src=sourcesFor(f); if(src.length && !src.some(c=>c.id===current)) play(src[0].id); else render(); return; }
@@ -818,13 +833,31 @@ async function loadFacts(){
   }catch{ if(box.innerHTML.includes('Loading')) box.innerHTML = '<div class="none">Match facts aren’t available for this game.</div>'; }
   factsT = setTimeout(loadFacts, 45000);
 }
+function lineupsHTML(d, home, away){
+  const L = d.lineups || []; if(!L.length) return `<div class="lu"><div class="none">Line-ups usually appear about an hour before kick-off.</div></div>`;
+  const pl = (x, bench)=>`<div class="pl ${bench && !x.on ? 'unused' : ''}"><span class="n">${esc(x.n)}</span><span class="p">${esc(x.pos)}</span><span class="nm">${esc(x.name)}</span>${x.off?'<span class="out">↓</span>':''}${x.on?'<span class="in">↑</span>':''}</div>`;
+  const col = side=>{
+    const t = L.find(l=>l.side===side); const team = side==='home'?home:away;
+    if(!t) return '<div></div>';
+    const bench = [...t.bench].sort((a,b)=>(b.on-a.on));
+    return `<div><h5><span>${esc(team.name||team.short||'')}</span><small>${esc(t.formation)}</small></h5>
+      ${t.starters.map(x=>pl(x,false)).join('')}
+      ${bench.length?`<div class="grp-t">Bench</div>${bench.map(x=>pl(x,true)).join('')}`:''}</div>`;
+  };
+  return `<div class="lu">${col('home')}${col('away')}</div>`;
+}
 function drawFacts(d, f, sel='#facts'){
   const home = d.teams?.find(t=>t.side==='home')||{}, away = d.teams?.find(t=>t.side==='away')||{};
   const icon = k => k==='goal'?'⚽':k==='og'?'⚽':k==='yellow'?'<span class="card-y"></span>':k==='red'?'<span class="card-r"></span>':'⇄';
-  const ev = (d.events||[]).filter(e=>e.kind!=='sub');
+  const showSubs = store.get('subs', true);
+  const mins = m => { const x = String(m).match(/(\d+)(?:'?\s*\+\s*(\d+))?/); return x ? (+x[1]) + (+(x[2]||0))/100 : 999; };
+  const ev = (d.events||[]).filter(e=>showSubs || e.kind!=='sub').sort((a,b)=>mins(a.min)-mins(b.min));
+  window.__lastFacts = window.__lastFacts || {}; window.__lastFacts[sel] = [d, f];
   const line = e => {
     const who = esc(e.who[0]||''), extra = e.kind==='og' ? ' <small>(OG)</small>' : e.kind==='goal' && e.who[1] ? ` <small>assist ${esc(e.who[1])}</small>` : '';
-    const cell = `<i>${icon(e.kind)}</i> <b>${who}</b>${extra}`;
+    const cell = e.kind==='sub'
+      ? `<i class="on">↑</i> <b>${esc(e.who[0]||'')}</b>${e.who[1]?` <span class="offp">↓ ${esc(e.who[1])}</span>`:''}`
+      : `<i>${icon(e.kind)}</i> <b>${who}</b>${extra}`;
     return `<div class="ev"><div class="h">${e.side==='home'?cell:''}</div><div class="m">${esc(e.min)}</div><div class="a">${e.side==='away'?cell:''}</div></div>`;
   };
   const num = v => parseFloat(String(v).replace('%',''))||0;
@@ -832,10 +865,11 @@ function drawFacts(d, f, sel='#facts'){
     return `<div class="srow"><div class="lbl"><b>${esc(s.home)}${s.pct&&!String(s.home).includes('%')?'%':''}</b><span>${esc(s.label)}</span><b>${esc(s.away)}${s.pct&&!String(s.away).includes('%')?'%':''}</b></div>
       <div class="bar2"><i style="flex:${h/t||.0001}"></i><i style="flex:${a/t||.0001}"></i></div></div>`; };
   $(sel).innerHTML = `
-    <div><h4><span>Key moments</span><span>${esc(d.status||f.status||'')}</span></h4>
+    <div><h4><span>Key moments</span><span><button class="subtog" data-subtog="${sel}">${showSubs?'Hide subs':'Show subs'}</button> · ${esc(d.status||f.status||'')}</span></h4>
       <div class="tl">${ev.length ? ev.map(line).join('') : '<div class="none">No goals or cards yet.</div>'}</div></div>
     <div><h4><span>${esc(home.short||home.name||'Home')}</span><span>Stats</span><span>${esc(away.short||away.name||'Away')}</span></h4>
-      <div class="st">${(d.stats||[]).length ? d.stats.map(srow).join('') : '<div class="none">Stats appear once the game starts.</div>'}</div></div>`;
+      <div class="st">${(d.stats||[]).length ? d.stats.map(srow).join('') : '<div class="none">Stats appear once the game starts.</div>'}</div></div>
+    ${lineupsHTML(d, home, away)}`;
   $(sel).hidden = false;
 }
 
