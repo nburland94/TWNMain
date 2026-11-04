@@ -403,6 +403,16 @@ body.locked #addBtn,body.locked #importBtn,body.locked .ch .edit{display:none!im
   </form>
 </div>
 
+<div class="scrim" id="fxSheet">
+  <div class="sheet glass" style="width:min(720px,100%)">
+    <div class="match" id="fxHead" style="justify-content:center;margin-bottom:6px"></div>
+    <div class="meta" id="fxMeta" style="text-align:center;margin-bottom:16px"></div>
+    <div class="srcs" id="fxSrcs" style="justify-content:center;margin-bottom:18px"></div>
+    <div class="facts" id="fxFacts" style="padding:0;background:none;border:0;box-shadow:none;backdrop-filter:none;-webkit-backdrop-filter:none"></div>
+    <div class="actions"><button type="button" class="btn ghost" id="fxLink" hidden>Choose channels</button><div class="spacer"></div><button type="button" class="btn ghost" data-close>Close</button></div>
+  </div>
+</div>
+
 <div class="scrim" id="pkSheet">
   <div class="sheet glass" style="width:min(440px,100%)">
     <h2 id="pkTitle">Which channel?</h2>
@@ -708,6 +718,7 @@ function wake(){
 
 /* ---------- delegated clicks ---------- */
 document.addEventListener('click', e=>{
+  const wt = e.target.closest('[data-watch]'); if(wt){ closeSheets(); play(wt.dataset.watch); return; }
   const gt = e.target.closest('[data-gtoggle]'); if(gt){ const f=gt.dataset.gtoggle; expanded.has(f)?expanded.delete(f):expanded.add(f); render(); return; }
   const gp = e.target.closest('[data-gplay]'); if(gp){ const f=gp.dataset.gplay; expanded.add(f); const src=sourcesFor(f); if(src.length && !src.some(c=>c.id===current)) play(src[0].id); else render(); return; }
   const rl = e.target.closest('[data-relink]'); if(rl){ e.stopPropagation(); openPicker(rl.dataset.relink); return; }
@@ -716,8 +727,7 @@ document.addEventListener('click', e=>{
   const p = e.target.closest('[data-play]'); if(p){ play(p.dataset.play); return; }
   if(e.target.closest('[data-close]')) closeSheets();
   const fx = e.target.closest('[data-fx]'); if(fx){
-    const src = sourcesFor(fx.dataset.fx);
-    if(src.length) play(src[0].id); else openPicker(fx.dataset.fx);
+    openDetails(fx.dataset.fx);
   }
   const chip = e.target.closest('[data-chip]'); if(chip){ fxFilter = chip.dataset.chip; renderFixtures(); }
 });
@@ -795,7 +805,7 @@ async function loadFacts(){
   }catch{ if(box.innerHTML.includes('Loading')) box.innerHTML = '<div class="none">Match facts aren’t available for this game.</div>'; }
   factsT = setTimeout(loadFacts, 45000);
 }
-function drawFacts(d, f){
+function drawFacts(d, f, sel='#facts'){
   const home = d.teams?.find(t=>t.side==='home')||{}, away = d.teams?.find(t=>t.side==='away')||{};
   const icon = k => k==='goal'?'⚽':k==='og'?'⚽':k==='yellow'?'<span class="card-y"></span>':k==='red'?'<span class="card-r"></span>':'⇄';
   const ev = (d.events||[]).filter(e=>e.kind!=='sub');
@@ -808,13 +818,43 @@ function drawFacts(d, f){
   const srow = s => { const h=num(s.home), a=num(s.away), t=(h+a)||1;
     return `<div class="srow"><div class="lbl"><b>${esc(s.home)}${s.pct&&!String(s.home).includes('%')?'%':''}</b><span>${esc(s.label)}</span><b>${esc(s.away)}${s.pct&&!String(s.away).includes('%')?'%':''}</b></div>
       <div class="bar2"><i style="flex:${h/t||.0001}"></i><i style="flex:${a/t||.0001}"></i></div></div>`; };
-  $('#facts').innerHTML = `
+  $(sel).innerHTML = `
     <div><h4><span>Key moments</span><span>${esc(d.status||f.status||'')}</span></h4>
       <div class="tl">${ev.length ? ev.map(line).join('') : '<div class="none">No goals or cards yet.</div>'}</div></div>
     <div><h4><span>${esc(home.short||home.name||'Home')}</span><span>Stats</span><span>${esc(away.short||away.name||'Away')}</span></h4>
       <div class="st">${(d.stats||[]).length ? d.stats.map(srow).join('') : '<div class="none">Stats appear once the game starts.</div>'}</div></div>`;
-  $('#facts').hidden = false;
+  $(sel).hidden = false;
 }
+
+/* ---------- match details sheet (doesn't touch playback) ---------- */
+let detailFx = null, detailT = null;
+function openDetails(fid){
+  const f = fixtures.find(x=>x.id===fid); if(!f) return;
+  detailFx = fid; closeDrawer();
+  const score = f.hs!=null && f.as!=null ? `${f.hs} – ${f.as}` : 'vs';
+  $('#fxHead').innerHTML = `<div class="team">${crest(f.home,f.homeBadge)}<b>${esc(f.home)}</b></div><div class="score">${esc(score)}</div><div class="team"><b>${esc(f.away)}</b>${crest(f.away,f.awayBadge)}</div>`;
+  $('#fxMeta').textContent = [f.league, f.status && f.status!=='Not Started' ? f.status : 'Kick-off '+f.time].filter(Boolean).join('  ·  ');
+  const src = sourcesFor(fid);
+  $('#fxSrcs').innerHTML = src.length
+    ? src.map((c,i)=>`<button class="src ${c.id===current?'on':''} ${airOf(c)==='off'?'off':''}" data-watch="${c.id}"><span class="sd"></span>${c.id===current?'Watching':'Watch'} · ${esc(c.name)}${src.length>1?(i===0?' (main)':' (backup)'):''}</button>`).join('')
+    : `<span class="src" style="opacity:.7">Not on any channel yet</span>`;
+  $('#fxLink').hidden = !canEdit();
+  $('#fxFacts').innerHTML = '<div class="none">Loading match facts…</div>';
+  $('#fxSheet').classList.add('show');
+  loadDetailFacts();
+}
+async function loadDetailFacts(){
+  clearTimeout(detailT);
+  const f = fixtures.find(x=>x.id===detailFx);
+  if(!f || !$('#fxSheet').classList.contains('show')) return;
+  if(!f.slug){ $('#fxFacts').innerHTML = '<div class="none">Match facts aren’t available for this game.</div>'; return; }
+  try{
+    const r = await fetch(`/api/facts?id=${encodeURIComponent(f.id)}&lg=${encodeURIComponent(f.slug)}`); if(!r.ok) throw 0;
+    drawFacts(await r.json(), f, '#fxFacts');
+  }catch{ $('#fxFacts').innerHTML = '<div class="none">Match facts aren’t available for this game.</div>'; }
+  detailT = setTimeout(loadDetailFacts, 45000);
+}
+$('#fxLink').onclick = ()=>{ const fid = detailFx; closeSheets(); openPicker(fid); };
 
 /* ---------- background scanner (editor only): reads each channel's score graphic via /api/identify ---------- */
 const SCAN_EVERY = 8*60*1000;
