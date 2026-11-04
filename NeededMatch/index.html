@@ -305,6 +305,15 @@ body.locked #addBtn,body.locked #importBtn,body.locked .ch .edit{display:none!im
   </form>
 </div>
 
+<div class="scrim" id="pkSheet">
+  <div class="sheet glass" style="width:min(440px,100%)">
+    <h2 id="pkTitle">Which channel?</h2>
+    <p class="sub" id="pkSub">Pick the channel showing this match. It'll remember for everyone.</p>
+    <div class="chlist" id="pkList"></div>
+    <div class="actions"><div class="spacer"></div><button type="button" class="btn ghost" data-close>Cancel</button></div>
+  </div>
+</div>
+
 <div class="scrim" id="pwSheet">
   <form class="sheet glass" id="pwForm" style="width:min(400px,100%)">
     <h2>Unlock editing</h2>
@@ -557,17 +566,46 @@ function wake(){
 
 /* ---------- delegated clicks ---------- */
 document.addEventListener('click', e=>{
+  const pk = e.target.closest('[data-pick]'); if(pk){ pickChannel(pk.dataset.pick); return; }
   const p = e.target.closest('[data-play]'); if(p){ play(p.dataset.play); return; }
   const ed = e.target.closest('[data-edit]'); if(ed){ openCh(ed.dataset.edit); return; }
   if(e.target.closest('[data-close]')) closeSheets();
   const fx = e.target.closest('[data-fx]'); if(fx){
     const owner = channels.find(c=>c.match?.fixtureId===fx.dataset.fx);
-    if(owner) play(owner.id); else openCh(null, fx.dataset.fx);
+    if(owner) play(owner.id); else openPicker(fx.dataset.fx);
   }
   const chip = e.target.closest('[data-chip]'); if(chip){ fxFilter = chip.dataset.chip; renderFixtures(); }
 });
 document.querySelectorAll('.scrim').forEach(s=>s.addEventListener('click', e=>{ if(e.target===s) closeSheets(); }));
 
+
+/* ---------- fixture -> channel picker ---------- */
+let pickingFx = null;
+const canEdit = ()=> !remote || !!adminKey;
+function openPicker(fid){
+  const f = fixtures.find(x=>x.id===fid); if(!f) return;
+  if(!channels.length){ if(canEdit()) openCh(null, fid); else toast('No channels yet'); return; }
+  pickingFx = fid;
+  $('#pkTitle').textContent = `${f.home} vs ${f.away}`;
+  $('#pkSub').textContent = canEdit() ? 'Which channel is showing it? One tap links it and plays — for everyone.' : 'Not linked to a channel yet. Pick one to watch.';
+  const list = channels.map((c,i)=>[c,i]).sort((a,b)=>(airOf(a[0])==='off')-(airOf(b[0])==='off'));
+  $('#pkList').innerHTML = list.map(([c,i])=>{
+    const a = airOf(c);
+    return `<button class="ch ${a==='off'?'off':a==='unk'?'unk':''}" data-pick="${c.id}">
+      <span class="num">${i+1}<i class="sd"></i></span>
+      <span class="t"><b>${esc(c.name)}</b><small>${a==='off'?'Off air':a==='on'?'On air':''}${matchLine(c.match)?' · now: '+esc(matchLine(c.match)):''}</small></span></button>`;
+  }).join('');
+  $('#pkSheet').classList.add('show');
+}
+function pickChannel(id){
+  const f = fixtures.find(x=>x.id===pickingFx), c = channels.find(x=>x.id===id);
+  closeSheets(); if(!c) return;
+  if(f && canEdit()){
+    c.match = { home:f.home, away:f.away, league:f.league, time:f.time, fixtureId:f.id, homeBadge:f.homeBadge, awayBadge:f.awayBadge };
+    commit(); renderFixtures();
+  }
+  play(id);
+}
 
 /* ---------- channel sheet ---------- */
 function fillFxSelect(sel){
