@@ -1,10 +1,10 @@
 {
-  "build" : 38,
+  "build" : 39,
   "channel" : "beta",
   "notes" : "Add: the arrow keys always step one frame (even after pasting a link), J K L never gets stuck, in and out points are easy to grab and drag (move the whole stretch with the thin strip above), Preview GIF starts instantly, and the video queue has Clear all. Design: rotate photos, find and replace across a whole treatment (Cmd+F), treatments From scratch with the AI planning every page and no sample pictures or placeholder text, no white outline round photos, safer saving, a check before you export (sample pictures, placeholder words, text that doesn't fit, low-res photos), photos spread across the whole deck, and a one-click share link for treatments (switching on soon). Projects: each project has one Look (colours and fonts) on its page — your first treatment sets it, and treatments, mood boards and the shot list wear it; treatments and mood boards now show on the project page. Shots: a storyboard view, and Design can make a shot list from your treatment's story. Faster library search. Explore: pages show reliably, hidden tabs go quiet, and websites can no longer add anything to your vault. Dropping files no longer freezes the app, no more password pop-ups after updates, new Tile N icon and loader, and the welcome shows once.",
-  "published" : "2026-11-04T11:45:16Z",
-  "sha256" : "37e0e4d3e35eb32d0c088f8b3cda264d245bec382db109588028168f0a5487cd",
-  "signature" : "uWMWUlAIFXQq9BoBJ1okjPmJlbtT5D6lqD6DbIG6lQwBR7CEHssoGWm1lntp0oYz8yb8WGVcF87jSaz5H1\/qCQ==",
-  "url" : "Needed-Tools-beta-38.zip",
-  "version" : "1.0.38"
+  "published" : "2026-11-11T12:23:59Z",
+  "sha256" : "06e7430ea70ad9825a86bca5e78a0036b7affd644c528c3d9a56f968884d4eb1",
+  "signature" : "WYxncu7fFjHUp8UYds3oveBghJRsz0116LF2NuYsgDteehxv41JBMIgZnBygThH5lRJzPUHWX2W7kSBMn2FtCQ==",
+  "url" : "Needed-Tools-beta-39.zip",
+  "version" : "1.0.39"
 }
