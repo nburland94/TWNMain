@@ -1515,7 +1515,7 @@
       .wk-space { display: none; }
       .wk-list { position: relative; display: block; background: #050505; overflow: hidden; overflow: clip; }
       .wkl-head { display: none; }
-      .wkl-tile { position: relative; display: block; width: 100%; aspect-ratio: 4 / 3; margin: 0; padding: 0; border: 0; border-bottom: 2px solid #141414;
+      .wkl-tile { position: relative; display: block; width: 100%; aspect-ratio: 16 / 9; margin: 0; padding: 0; border: 0; border-bottom: 2px solid #141414;
         background: #050505; overflow: hidden; overflow: clip; cursor: pointer; text-align: left; color: #f4f5f6; -webkit-tap-highlight-color: transparent;
         transform-origin: 50% 50%; will-change: transform; backface-visibility: hidden; -webkit-backface-visibility: hidden; }
       .wkl-dim { position: absolute; inset: 0; background: #050505; opacity: .42; pointer-events: none; transition: opacity .6s var(--ease-out); }
@@ -1530,7 +1530,7 @@
       .wkl-media img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
       .wkl-vid { position: absolute; inset: 0; opacity: 0; transition: opacity .8s var(--ease-out); pointer-events: none; }
       .wkl-vid.ready { opacity: 1; }
-      .wkl-vid iframe { position: absolute; top: 50%; left: 50%; width: 133.34%; height: 100%; transform: translate(-50%, -50%); border: 0; }
+      .wkl-vid iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
       /* the orange blade rides the wipe, bottom to top */
       .wkl-bladeway { display: none; }
       .wkl-blade { position: absolute; left: 0; right: 0; top: 100%; height: 1px; transition: opacity .25s var(--ease-out);
@@ -1555,16 +1555,12 @@
     }
     @supports (animation-timeline: view()) {
       @media (max-width: 760px) and (prefers-reduced-motion: no-preference) {
-        /* parallax window: the picture moves slower than its frame; captions drift at their own pace */
-        .wkl-media img, .wkl-media .wkl-vid { inset: auto; left: 0; top: -15%; width: 100%; height: 130%;
-          animation: wklPar linear both; animation-timeline: view(); }
-        .wkl-vid iframe { width: 173.4%; }
+        /* full-frame films; captions drift gently; the centre film bright, the rest dimmed */
         .wkl-tile.in .wkl-meta { animation: wklDrift linear both; animation-timeline: view(); }
         .wkl-dim { animation: wklParDim linear both; animation-timeline: view(); }
       }
     }
-    @keyframes wklPar { 0% { transform: translateY(-10%); } 100% { transform: translateY(10%); } }
-    @keyframes wklDrift { 0% { transform: translateY(26px); } 100% { transform: translateY(-26px); } }
+    @keyframes wklDrift { 0% { transform: translateY(12px); } 100% { transform: translateY(-12px); } }
     @keyframes wklParDim { 0%, 22% { opacity: .4; } 50% { opacity: 0; } 78%, 100% { opacity: .4; } }
     @media (max-width: 760px) and (prefers-reduced-motion: reduce) {
       .wkl-media { filter: none !important; transform: none !important; transition: opacity .7s var(--ease-out) !important; }
@@ -2433,7 +2429,8 @@
       fetch('https://vimeo.com/api/oembed.json?url=https%3A//vimeo.com/' + id + '&width=960')
         .then(function (r) { return r.json(); })
         .then(function (d) {
-          if (d.thumbnail_url) b.querySelector('img').src = d.thumbnail_url.replace(/_\d+x\d+(\.\w+)?$/, '_960x720$1');
+          if (d.thumbnail_url) b.querySelector('img').src = d.thumbnail_url.replace(/_\d+x\d+(\.\w+)?$/, '_1280$1');
+          if (d.width && d.height) b.style.aspectRatio = d.width + ' / ' + d.height;
           if (d.duration) { b._dur = pad(Math.floor(d.duration / 60)) + ':' + pad(d.duration % 60); b.querySelector('.wkl-dur').textContent = b._dur; }
         }).catch(function () {});
       b.addEventListener('click', function () {
