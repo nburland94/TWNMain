@@ -1513,12 +1513,16 @@
     .wk-list { display: none; }
     @media (max-width: 760px) {
       .wk-space { display: none; }
-      .wk-list { position: relative; display: block; background: #050505; overflow: hidden; overflow: clip; perspective: 1100px; }
+      .wk-list { position: relative; display: block; background: #050505; overflow: hidden; overflow: clip; }
       .wkl-head { display: none; }
       .wkl-tile { position: relative; display: block; width: 100%; aspect-ratio: 4 / 3; margin: 0; padding: 0; border: 0; border-bottom: 2px solid #141414;
         background: #050505; overflow: hidden; overflow: clip; cursor: pointer; text-align: left; color: #f4f5f6; -webkit-tap-highlight-color: transparent;
         transform-origin: 50% 50%; will-change: transform; backface-visibility: hidden; -webkit-backface-visibility: hidden; }
-      .wkl-dim { position: absolute; inset: 0; background: #050505; opacity: 0; pointer-events: none; will-change: opacity; }
+      .wkl-dim { position: absolute; inset: 0; background: #050505; opacity: .42; pointer-events: none; transition: opacity .6s var(--ease-out); }
+      .wkl-tile.on .wkl-dim { opacity: 0; }
+      html { scroll-snap-type: y proximity; }
+      .wkl-tile { scroll-snap-align: center; }
+      .wkl-media img, .wkl-media .wkl-vid { transform: scaleY(var(--wkl-s, 1)); transform-origin: 50% var(--wkl-o, 50%); }
       .wkl-media { position: absolute; inset: 0; background: #0b0b0b; opacity: 0; filter: blur(14px); transform: scale(1.04);
         transition: opacity 1s var(--ease-out), filter 1.1s var(--ease-out), transform 1.4s var(--ease-out); }
       .wkl-tile.in .wkl-media { opacity: 1; filter: blur(0); transform: none; }
@@ -1548,34 +1552,6 @@
       .wkl-play { opacity: .62; transition: opacity .5s var(--ease-out); }
       .wkl-tile.on .wkl-play { opacity: 1; }
       .wkl-tile:active .wkl-media { opacity: .9; }
-    }
-    @supports (animation-timeline: view()) {
-      @media (max-width: 760px) and (prefers-reduced-motion: no-preference) {
-        .wk-list { animation: wklOrigin linear both; animation-timeline: view(); }
-        .wkl-tile { animation: wklDrum linear both; animation-timeline: view(); }
-        .wkl-dim { animation: wklDim linear both; animation-timeline: view(); }
-        .wkl-meta .wkl-text, .wkl-meta .wkl-play { animation: wklSoft linear both; animation-timeline: view(); }
-        .wkl-media img, .wkl-media .wkl-vid { will-change: auto; }
-      }
-    }
-    @keyframes wklOrigin {
-      0%   { perspective-origin: 50% calc(var(--wkl-vh, 844px) * -0.5); }
-      100% { perspective-origin: 50% calc(var(--wkl-H, 8000px) + var(--wkl-vh, 844px) * 0.5); }
-    }
-    @keyframes wklDrum {
-      0%   { transform: translate3d(0, calc(var(--wkl-d0, 600px) * -1), calc(var(--wkl-R, 520px) * -1)) rotateX(calc(var(--wkl-p0, 66deg) * -1)) translateZ(var(--wkl-R, 520px)); }
-      50%  { transform: translate3d(0, 0px, calc(var(--wkl-R, 520px) * -1)) rotateX(0deg) translateZ(var(--wkl-R, 520px)); }
-      100% { transform: translate3d(0, var(--wkl-d0, 600px), calc(var(--wkl-R, 520px) * -1)) rotateX(var(--wkl-p0, 66deg)) translateZ(var(--wkl-R, 520px)); }
-    }
-    @keyframes wklDim {
-      0%, 100% { opacity: var(--wkl-dim0, .55); }
-      25%, 75% { opacity: var(--wkl-dim1, .14); }
-      50%      { opacity: 0; }
-    }
-    @keyframes wklSoft {
-      0%, 100% { filter: blur(var(--wkl-bl0, 3px)); }
-      25%, 75% { filter: blur(var(--wkl-bl1, 1.6px)); }
-      42%, 58% { filter: blur(0px); }
     }
     @media (max-width: 760px) and (prefers-reduced-motion: reduce) {
       .wkl-media { filter: none !important; transform: none !important; transition: opacity .7s var(--ease-out) !important; }
@@ -2496,7 +2472,7 @@
       var vh = window.innerHeight, mid = vh / 2, best = null, bd = 1e9;
       var lr = list.getBoundingClientRect();
       var R = Math.max(380, vh * 0.62), lim = Math.PI / 2 * 0.94;
-      var drive = !reduce && !SDA;   // fallback for phones without scroll-driven animations: lighter, no film blur
+      var drive = false;   // fallback for phones without scroll-driven animations: lighter, no film blur
       if (drive) list.style.perspectiveOrigin = '50% ' + (mid - lr.top).toFixed(1) + 'px';
       tiles.forEach(function (b) {
         var c = lr.top + b.offsetTop + b.offsetHeight / 2, d = c - mid;
@@ -2534,6 +2510,44 @@
       es.forEach(function (e) { if (e.intersectionRatio >= 0.6) start(e.target); else if (e.intersectionRatio < 0.15) stop(e.target); });
     }, { threshold: [0, 0.15, 0.6] });
     tiles.forEach(function (b) { io.observe(b); });
+  })();
+  </script>
+
+  <script id="wkl-stretch">
+  // velocity stretch: films stretch inside their frames with the flick and spring back; firm snap on release
+  (function () {
+    var list = document.getElementById('wkList'); if (!list) return;
+    var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var mq = window.matchMedia('(max-width: 760px)');
+    var lastY = window.scrollY, lastT = performance.now(), cur = 0, dir = 1, running = false, snapT = 0, snapping = false;
+    function frame(now) {
+      var y = window.scrollY, dt = Math.max(8, now - lastT), v = (y - lastY) / dt;   // px per ms
+      lastY = y; lastT = now;
+      if (Math.abs(v) > 0.02) dir = v > 0 ? 1 : -1;
+      var target = Math.min(0.26, Math.abs(v) * 0.09);
+      cur += (target - cur) * (target > cur ? 0.4 : 0.1);                             // quick to stretch, slow to settle
+      list.style.setProperty('--wkl-s', (1 + cur).toFixed(4));
+      list.style.setProperty('--wkl-o', dir > 0 ? '100%' : '0%');                     // the film trails behind the direction of travel
+      if (cur > 0.0008 || Math.abs(v) > 0.01) requestAnimationFrame(frame);
+      else { running = false; list.style.setProperty('--wkl-s', '1'); }
+    }
+    function snap() {
+      // when you stop inside Work, glide the nearest film to the centre
+      var vh = window.innerHeight, lr = list.getBoundingClientRect();
+      if (lr.top > vh * 0.3 || lr.bottom < vh * 0.7) return;
+      var tiles = list.querySelectorAll('.wkl-tile'), best = null, bd = 1e9;
+      tiles.forEach(function (b) { var r = b.getBoundingClientRect(), d = r.top + r.height / 2 - vh / 2; if (Math.abs(d) < Math.abs(bd)) { bd = d; best = b; } });
+      if (!best || Math.abs(bd) < 3) return;
+      snapping = true;
+      window.scrollTo({ top: window.scrollY + bd, behavior: reduce ? 'auto' : 'smooth' });
+      setTimeout(function () { snapping = false; }, 700);
+    }
+    window.addEventListener('scroll', function () {
+      if (!mq.matches) return;
+      if (!snapping) { clearTimeout(snapT); snapT = setTimeout(snap, 160); }
+      if (reduce || running) return;
+      running = true; lastY = window.scrollY; lastT = performance.now(); requestAnimationFrame(frame);
+    }, { passive: true });
   })();
   </script>
 </body>
