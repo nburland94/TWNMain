@@ -1530,7 +1530,7 @@
       .wkl-media img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
       .wkl-vid { position: absolute; inset: 0; opacity: 0; transition: opacity .8s var(--ease-out); pointer-events: none; }
       .wkl-vid.ready { opacity: 1; }
-      .wkl-vid iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+      .wkl-vid iframe { position: absolute; top: 50%; left: 50%; width: 100%; height: 100%; min-width: 177.78vw; transform: translate(-50%, -50%); border: 0; }
       /* the orange blade rides the wipe, bottom to top */
       .wkl-bladeway { display: none; }
       .wkl-blade { position: absolute; left: 0; right: 0; top: 100%; height: 1px; transition: opacity .25s var(--ease-out);
@@ -1556,7 +1556,6 @@
     @supports (animation-timeline: view()) {
       @media (max-width: 760px) and (prefers-reduced-motion: no-preference) {
         /* full-frame films; captions drift gently; the centre film bright, the rest dimmed */
-        .wkl-tile.in .wkl-meta { animation: wklDrift linear both; animation-timeline: view(); }
         .wkl-dim { animation: wklParDim linear both; animation-timeline: view(); }
       }
     }
@@ -2430,7 +2429,6 @@
         .then(function (r) { return r.json(); })
         .then(function (d) {
           if (d.thumbnail_url) b.querySelector('img').src = d.thumbnail_url.replace(/_\d+x\d+(\.\w+)?$/, '_1280$1');
-          if (d.width && d.height) b.style.aspectRatio = d.width + ' / ' + d.height;
           if (d.duration) { b._dur = pad(Math.floor(d.duration / 60)) + ':' + pad(d.duration % 60); b.querySelector('.wkl-dur').textContent = b._dur; }
         }).catch(function () {});
       b.addEventListener('click', function () {
