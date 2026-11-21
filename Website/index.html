@@ -1513,10 +1513,10 @@
     .wk-list { display: none; }
     @media (max-width: 760px) {
       .wk-space { display: none; }
-      .wk-list { position: relative; display: block; background: #050505; overflow: hidden; perspective: 1100px; }
+      .wk-list { position: relative; display: block; background: #050505; overflow: hidden; overflow: clip; perspective: 1100px; }
       .wkl-head { display: none; }
       .wkl-tile { position: relative; display: block; width: 100%; aspect-ratio: 4 / 3; margin: 0; padding: 0; border: 0; border-bottom: 2px solid #141414;
-        background: #050505; overflow: hidden; cursor: pointer; text-align: left; color: #f4f5f6; -webkit-tap-highlight-color: transparent;
+        background: #050505; overflow: hidden; overflow: clip; cursor: pointer; text-align: left; color: #f4f5f6; -webkit-tap-highlight-color: transparent;
         transform-origin: 50% 50%; will-change: transform; backface-visibility: hidden; -webkit-backface-visibility: hidden; }
       .wkl-dim { position: absolute; inset: 0; background: #050505; opacity: 0; pointer-events: none; will-change: opacity; }
       .wkl-media { position: absolute; inset: 0; background: #0b0b0b; opacity: 0; filter: blur(14px); transform: scale(1.04);
@@ -1548,6 +1548,34 @@
       .wkl-play { opacity: .62; transition: opacity .5s var(--ease-out); }
       .wkl-tile.on .wkl-play { opacity: 1; }
       .wkl-tile:active .wkl-media { opacity: .9; }
+    }
+    @supports (animation-timeline: view()) {
+      @media (max-width: 760px) and (prefers-reduced-motion: no-preference) {
+        .wk-list { animation: wklOrigin linear both; animation-timeline: view(); }
+        .wkl-tile { animation: wklDrum linear both; animation-timeline: view(); }
+        .wkl-dim { animation: wklDim linear both; animation-timeline: view(); }
+        .wkl-meta .wkl-text, .wkl-meta .wkl-play { animation: wklSoft linear both; animation-timeline: view(); }
+        .wkl-media img, .wkl-media .wkl-vid { will-change: auto; }
+      }
+    }
+    @keyframes wklOrigin {
+      0%   { perspective-origin: 50% calc(var(--wkl-vh, 844px) * -0.5); }
+      100% { perspective-origin: 50% calc(var(--wkl-H, 8000px) + var(--wkl-vh, 844px) * 0.5); }
+    }
+    @keyframes wklDrum {
+      0%   { transform: translate3d(0, calc(var(--wkl-d0, 600px) * -1), calc(var(--wkl-R, 520px) * -1)) rotateX(calc(var(--wkl-p0, 66deg) * -1)) translateZ(var(--wkl-R, 520px)); }
+      50%  { transform: translate3d(0, 0px, calc(var(--wkl-R, 520px) * -1)) rotateX(0deg) translateZ(var(--wkl-R, 520px)); }
+      100% { transform: translate3d(0, var(--wkl-d0, 600px), calc(var(--wkl-R, 520px) * -1)) rotateX(var(--wkl-p0, 66deg)) translateZ(var(--wkl-R, 520px)); }
+    }
+    @keyframes wklDim {
+      0%, 100% { opacity: var(--wkl-dim0, .55); }
+      25%, 75% { opacity: var(--wkl-dim1, .14); }
+      50%      { opacity: 0; }
+    }
+    @keyframes wklSoft {
+      0%, 100% { filter: blur(var(--wkl-bl0, 3px)); }
+      25%, 75% { filter: blur(var(--wkl-bl1, 1.6px)); }
+      42%, 58% { filter: blur(0px); }
     }
     @media (max-width: 760px) and (prefers-reduced-motion: reduce) {
       .wkl-media { filter: none !important; transform: none !important; transition: opacity .7s var(--ease-out) !important; }
@@ -2446,30 +2474,39 @@
 
     // focus: the tile nearest the middle of the screen is lit
     var onT = null, raf = 0;
+    var SDA = window.CSS && CSS.supports && CSS.supports('animation-timeline: view()');
+    function drumVars() {
+      var vh = window.innerHeight, R = Math.max(380, vh * 0.62);
+      var h = tiles[0] ? tiles[0].offsetHeight : vh * 0.35, d0 = (vh + h) / 2, p0 = d0 / R;
+      function dimAt(p) { return 0.62 * Math.pow(1 - Math.cos(Math.min(p, Math.PI / 2)), 0.8); }
+      function blAt(p) { return 2.8 * (1 - Math.exp(-p * p * 7)); }
+      var st = list.style;
+      st.setProperty('--wkl-vh', vh + 'px'); st.setProperty('--wkl-H', list.offsetHeight + 'px');
+      st.setProperty('--wkl-R', R.toFixed(1) + 'px'); st.setProperty('--wkl-d0', d0.toFixed(1) + 'px');
+      st.setProperty('--wkl-p0', (p0 * 180 / Math.PI).toFixed(3) + 'deg');
+      st.setProperty('--wkl-dim0', dimAt(p0).toFixed(3)); st.setProperty('--wkl-dim1', dimAt(p0 / 2).toFixed(3));
+      st.setProperty('--wkl-bl0', blAt(p0).toFixed(2) + 'px'); st.setProperty('--wkl-bl1', blAt(p0 / 2).toFixed(2) + 'px');
+    }
+    drumVars();
+    window.addEventListener('resize', drumVars, { passive: true });
+    window.addEventListener('load', drumVars);
+
     function focus() {
       raf = 0; if (!phone()) return;
       var vh = window.innerHeight, mid = vh / 2, best = null, bd = 1e9;
       var lr = list.getBoundingClientRect();
-      // the drum: one axis behind the middle of the screen; scroll distance = arc length
       var R = Math.max(380, vh * 0.62), lim = Math.PI / 2 * 0.94;
-      if (!reduce) list.style.perspectiveOrigin = '50% ' + (mid - lr.top).toFixed(1) + 'px';
+      var drive = !reduce && !SDA;   // fallback for phones without scroll-driven animations: lighter, no film blur
+      if (drive) list.style.perspectiveOrigin = '50% ' + (mid - lr.top).toFixed(1) + 'px';
       tiles.forEach(function (b) {
-        var r = b.getBoundingClientRect();
-        // layout position (ignores the current transform): offsetTop inside the list
         var c = lr.top + b.offsetTop + b.offsetHeight / 2, d = c - mid;
         if (Math.abs(d) < bd) { bd = Math.abs(d); best = b; }
-        if (reduce) return;
+        if (!drive) return;
         var phi = d / R;
         if (Math.abs(phi) > lim) { b.style.visibility = 'hidden'; return; }
         b.style.visibility = '';
-        var deg = phi * 180 / Math.PI, cs = Math.cos(phi);
-        b.style.transform = 'translate3d(0,' + (-d).toFixed(1) + 'px,' + (-R).toFixed(1) + 'px) rotateX(' + (-deg).toFixed(3) + 'deg) translateZ(' + R.toFixed(1) + 'px)';
-        var dof = 1 - Math.exp(-phi * phi * 7);                    // 0 at the centre, eases toward 1 at the edges
-        b.querySelector('.wkl-dim').style.opacity = (0.62 * Math.pow(1 - cs, 0.8)).toFixed(3);
-        var mb = (2.6 * dof).toFixed(2) + 'px';
-        b.querySelector('.wkl-media img').style.filter = dof < 0.02 ? 'none' : 'blur(' + mb + ')';
-        var vf = b.querySelector('.wkl-vid'); vf.style.filter = dof < 0.02 ? 'none' : 'blur(' + mb + ')';
-        b.querySelector('.wkl-meta').style.filter = 'blur(' + (2.8 * dof).toFixed(2) + 'px)';
+        b.style.transform = 'translate3d(0,' + (-d).toFixed(1) + 'px,' + (-R).toFixed(1) + 'px) rotateX(' + (-phi * 180 / Math.PI).toFixed(3) + 'deg) translateZ(' + R.toFixed(1) + 'px)';
+        b.querySelector('.wkl-dim').style.opacity = (0.62 * Math.pow(1 - Math.cos(phi), 0.8)).toFixed(3);
       });
       if (best !== onT) { if (onT) onT.classList.remove('on'); onT = best; if (best) best.classList.add('on'); }
     }
