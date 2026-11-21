@@ -1553,19 +1553,20 @@
       .wkl-tile.on .wkl-play { opacity: 1; }
       .wkl-tile:active .wkl-media { opacity: .9; }
     }
+    .wkl-big { display: none; }
     @supports (animation-timeline: view()) {
       @media (max-width: 760px) and (prefers-reduced-motion: no-preference) {
-        /* parallax window: the picture moves slower than its frame; captions drift at their own pace */
-        .wkl-media img, .wkl-media .wkl-vid { inset: auto; left: 0; top: -15%; width: 100%; height: 130%;
-          animation: wklPar linear both; animation-timeline: view(); }
-        .wkl-vid iframe { width: 173.4%; }
-        .wkl-tile.in .wkl-meta { animation: wklDrift linear both; animation-timeline: view(); }
-        .wkl-dim { animation: wklParDim linear both; animation-timeline: view(); }
+        /* kinetic type: a huge thin title slides across its film as you scroll, inverting against the picture */
+        .wkl-big { display: block; position: absolute; left: 0; top: 50%; margin-top: -0.62em; z-index: 3; pointer-events: none; white-space: nowrap;
+          font-family: var(--title); font-weight: 200; font-size: 86px; line-height: 1.1; letter-spacing: -0.04em; color: #e9eaeb; mix-blend-mode: difference;
+          animation: wklSlide linear both; animation-timeline: view(); }
+        .wkl-title { display: none; }
+        .wkl-meta { bottom: 18px; gap: 10px; }
+        .wkl-dim { animation: wklKinDim linear both; animation-timeline: view(); }
       }
     }
-    @keyframes wklPar { 0% { transform: translateY(-10%); } 100% { transform: translateY(10%); } }
-    @keyframes wklDrift { 0% { transform: translateY(26px); } 100% { transform: translateY(-26px); } }
-    @keyframes wklParDim { 0%, 22% { opacity: .4; } 50% { opacity: 0; } 78%, 100% { opacity: .4; } }
+    @keyframes wklSlide { 0% { transform: translateX(-420px); } 100% { transform: translateX(440px); } }
+    @keyframes wklKinDim { 0%, 22% { opacity: .35; } 50% { opacity: 0; } 78%, 100% { opacity: .35; } }
     @media (max-width: 760px) and (prefers-reduced-motion: reduce) {
       .wkl-media { filter: none !important; transform: none !important; transition: opacity .7s var(--ease-out) !important; }
       .wkl-tile .wkl-meta { transform: none !important; }
@@ -2422,12 +2423,13 @@
       var b = document.createElement('button');
       b.className = 'wkl-tile'; b.setAttribute('aria-label', 'Play ' + name + ' — ' + client);
       b.innerHTML = '<div class="wkl-media"><img alt="" loading="lazy"><div class="wkl-vid"></div></div>' +
-        '<div class="wkl-bladeway" aria-hidden="true"><div class="wkl-blade"></div></div><div class="wkl-dim" aria-hidden="true"></div>' +
+        '<div class="wkl-bladeway" aria-hidden="true"><div class="wkl-blade"></div></div><div class="wkl-dim" aria-hidden="true"></div><span class="wkl-big" aria-hidden="true"></span>' +
         '<div class="wkl-meta"><div class="wkl-text"><span class="wkl-client"></span><span class="wkl-title"></span></div>' +
         '<span class="wkl-play" aria-hidden="true"><i></i><span>Play</span><span class="wkl-dur">—:—</span></span></div>';
       b._client = pad(i + 1) + ' · ' + client; b._name = name;
       b.querySelector('.wkl-client').textContent = b._client;
       b.querySelector('.wkl-title').textContent = name;
+      b.querySelector('.wkl-big').textContent = name;
       b.dataset.vimeo = id;
       list.appendChild(b); tiles.push(b);
       fetch('https://vimeo.com/api/oembed.json?url=https%3A//vimeo.com/' + id + '&width=960')
