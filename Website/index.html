@@ -2525,7 +2525,7 @@
       var y = window.scrollY, dt = Math.max(8, now - lastT), v = (y - lastY) / dt;   // px per ms
       lastY = y; lastT = now;
       if (Math.abs(v) > 0.02) dir = v > 0 ? 1 : -1;
-      var target = Math.min(0.2, Math.abs(v) * 0.07);
+      var target = Math.min(0.34, Math.abs(v) * 0.13);
       cur += (target - cur) * (target > cur ? 0.35 : 0.11);                           // quick to stretch, slow to settle
       // the whole reel stretches like elastic from the middle of the screen; captions counter-scale to stay crisp
       var lr = list.getBoundingClientRect();
