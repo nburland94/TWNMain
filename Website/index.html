@@ -1484,6 +1484,73 @@
       .wk-top { top: 84px; left: 20px; right: auto; }
     }
   </style>
+
+  <style id="mobile-polish">
+    /* ── phones: awards as compact two-line rows ── */
+    @media (max-width: 700px) {
+      .aw-row { grid-template-columns: 56px 1fr auto; grid-template-rows: auto auto; align-items: center; gap: 0.3rem 0.9rem; padding: 1rem 0; }
+      .aw-logo { grid-column: 1; grid-row: 1 / span 2; height: auto; justify-content: flex-start; }
+      .aw-logo img, .aw-logo svg { max-width: 52px; max-height: 22px; }
+      .aw-logo img.badge { max-width: 28px; max-height: 28px; }
+      .aw-title { grid-column: 2; grid-row: 1; font-size: 0.74rem; letter-spacing: 0.1em; line-height: 1.3; }
+      .aw-org { grid-column: 2; grid-row: 2; justify-self: start; text-align: left; font-size: 0.5rem; }
+      .aw-status { grid-column: 3; grid-row: 1 / span 2; align-self: center; justify-self: end; font-size: 0.44rem; padding: 0.24rem 0.6rem; }
+      .aw-wordmark { font-size: 0.5rem; letter-spacing: 0.12em; white-space: normal; line-height: 1.3; display: block; width: 52px; }
+    }
+  </style>
+
+  <style id="mobile-nav">
+    /* ── small phones: a little more room in the nav ── */
+    @media (max-width: 430px) {
+      nav { padding-left: 0.85rem !important; padding-right: 1.1rem !important; }
+      nav a { font-size: 0.58rem; letter-spacing: 0.12em; }
+      nav .nav-logo img { height: 18px; }
+    }
+  </style>
+
+  <style id="work-mobile-list">
+    /* ── phones: a scrolling stack of film tiles, same finish as the desktop drum ── */
+    .wk-list { display: none; }
+    @media (max-width: 760px) {
+      .wk-space { display: none; }
+      .wk-list { display: block; background: #050505; overflow: hidden; }
+      .wkl-head { padding: 6.5rem 20px 1.1rem; font-family: var(--mono); font-size: 11px; letter-spacing: .08em; color: rgba(233,234,235,.6); }
+      .wkl-tile { position: relative; display: block; width: 100%; aspect-ratio: 4 / 3; margin: 0; padding: 0; border: 0; border-bottom: 2px solid #141414;
+        background: #050505; overflow: hidden; cursor: pointer; text-align: left; color: #f4f5f6; -webkit-tap-highlight-color: transparent;
+        transform-origin: 50% 50%; will-change: transform; backface-visibility: hidden; }
+      .wkl-media { position: absolute; inset: 0; background: #0b0b0b; clip-path: inset(100% 0 0 0); }
+      .wkl-media img { position: absolute; inset: -4%; width: 108%; height: 108%; object-fit: cover; transform: translateY(6%) scale(1.06); transition: transform 1.3s var(--ease-out); }
+      .wkl-tile.in .wkl-media img { transform: none; }
+      .wkl-vid { position: absolute; inset: 0; opacity: 0; transition: opacity .8s var(--ease-out); pointer-events: none; }
+      .wkl-vid.ready { opacity: 1; }
+      .wkl-vid iframe { position: absolute; top: 50%; left: 50%; width: 133.34%; height: 100%; transform: translate(-50%, -50%); border: 0; }
+      /* the orange blade rides the wipe, bottom to top */
+      .wkl-bladeway { position: absolute; inset: 0; pointer-events: none; }
+      .wkl-blade { position: absolute; left: 0; right: 0; top: 100%; height: 1px; transition: opacity .25s var(--ease-out);
+        background: linear-gradient(90deg, transparent 0%, rgba(var(--accrgb),.95) 18%, rgba(var(--accrgb),.95) 82%, transparent 100%);
+        box-shadow: 0 0 14px rgba(var(--accrgb),.55), 0 0 48px rgba(var(--accrgb),.25); }
+      /* text */
+      .wkl-meta { position: absolute; left: 20px; right: 20px; bottom: 20px; display: flex; flex-direction: column; align-items: flex-start; gap: 12px; pointer-events: none;
+        text-shadow: 0 1px 18px rgba(0,0,0,.55), 0 0 2px rgba(0,0,0,.35); }
+      .wkl-text { display: flex; flex-direction: column; gap: 8px; min-width: 0; opacity: .62; transition: opacity .5s var(--ease-out); will-change: filter; }
+      .wkl-tile.on .wkl-text { opacity: 1; }
+      .wkl-client { font-family: var(--mono); font-size: 11px; letter-spacing: .08em; color: rgba(244,245,246,.8); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; transition: color .4s; }
+      .wkl-tile.on .wkl-client { color: var(--orange); }
+      .wkl-title { font-family: var(--title); font-weight: 200; font-size: 31px; line-height: 1.02; letter-spacing: -0.025em; }
+      .wkl-play { display: flex; align-items: center; gap: 10px; flex-shrink: 0; font-family: var(--mono); font-size: 10.5px; letter-spacing: .2em; text-transform: uppercase; color: #f4f5f6; }
+      .wkl-play i { display: block; width: 0; height: 0; border-left: 8px solid var(--orange); border-top: 5px solid transparent; border-bottom: 5px solid transparent; }
+      .wkl-dur { color: rgba(244,245,246,.6); letter-spacing: .12em; padding-left: 10px; border-left: 1px solid rgba(244,245,246,.3); }
+      .wkl-tile .wkl-meta { opacity: 0; transform: translateY(8px); transition: opacity .6s var(--ease-out) .55s, transform .6s var(--ease-out) .55s; }
+      .wkl-tile.in .wkl-meta { opacity: 1; transform: none; }
+      .wkl-play { opacity: .62; transition: opacity .5s var(--ease-out); }
+      .wkl-tile.on .wkl-play { opacity: 1; }
+      .wkl-tile:active .wkl-media { opacity: .9; }
+    }
+    @media (max-width: 760px) and (prefers-reduced-motion: reduce) {
+      .wkl-media img, .wkl-tile .wkl-meta { transition: none !important; transform: none !important; opacity: 1 !important; }
+      .wkl-bladeway { display: none; }
+    }
+  </style>
 </head>
 <body id="top">
 
@@ -1529,6 +1596,7 @@
 
   <!-- ── WORK ── -->
   <section id="work" class="wk">
+    <div class="wk-list" id="wkList" aria-label="Selected work"><div class="wkl-head">— Selected Work / 2020–2025</div></div>
     <div class="wk-space" id="wkSpace">
       <div class="wk-stage" id="wkStage" data-pv="c" tabindex="0" aria-label="Selected work. Scroll or use the arrow keys to roll the titles.">
         <div class="wk-films" aria-hidden="true">
@@ -2109,6 +2177,7 @@
     }
 
     function loadVideo(i) {
+      if (window.matchMedia('(max-width: 760px)').matches) return;
       films.forEach(function (f, k) {
         var holder = f.querySelector('.wk-vid');
         if ((k < i - 1 || k > i + 1) && holder.firstChild) { holder.classList.remove('ready'); holder.innerHTML = ''; }
@@ -2308,6 +2377,132 @@
     }
 
     onScroll(); pos = target; render();
+  })();
+  </script>
+
+  <script id="work-mobile-js">
+  (function () {
+    var list = document.getElementById('wkList'); if (!list) return;
+    var titles = document.querySelectorAll('#wkStage .wk-title');
+    var films = document.querySelectorAll('#wkStage .wk-film img');
+    var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var GL = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789·—×/#';
+    function decode(el, text) {
+      clearInterval(el._dec);
+      if (reduce) { el.textContent = text; return; }
+      var f = 0, n = 12;
+      el._dec = setInterval(function () {
+        f++; var k = Math.ceil(f / n * text.length), o = '';
+        for (var i = 0; i < text.length; i++) o += (i < k || text[i] === ' ') ? text[i] : GL[(Math.random() * GL.length) | 0];
+        el.textContent = o; if (f >= n) { clearInterval(el._dec); el.textContent = text; }
+      }, 34);
+    }
+    function pad(n) { return (n < 10 ? '0' : '') + n; }
+    var tiles = [];
+    titles.forEach(function (t, i) {
+      var id = films[i].dataset.vimeo;
+      var name = t.querySelector('.wk-tb').textContent;
+      var cEl = t.querySelector('.wk-c');
+      var client = (cEl.dataset.text || cEl.textContent).replace(/^\d+ · /, '');
+      var b = document.createElement('button');
+      b.className = 'wkl-tile'; b.setAttribute('aria-label', 'Play ' + name + ' — ' + client);
+      b.innerHTML = '<div class="wkl-media"><img alt="" loading="lazy"><div class="wkl-vid"></div></div>' +
+        '<div class="wkl-bladeway" aria-hidden="true"><div class="wkl-blade"></div></div>' +
+        '<div class="wkl-meta"><div class="wkl-text"><span class="wkl-client"></span><span class="wkl-title"></span></div>' +
+        '<span class="wkl-play" aria-hidden="true"><i></i><span>Play</span><span class="wkl-dur">—:—</span></span></div>';
+      b._client = pad(i + 1) + ' · ' + client; b._name = name;
+      b.querySelector('.wkl-client').textContent = b._client;
+      b.querySelector('.wkl-title').textContent = name;
+      b.dataset.vimeo = id;
+      list.appendChild(b); tiles.push(b);
+      fetch('https://vimeo.com/api/oembed.json?url=https%3A//vimeo.com/' + id + '&width=960')
+        .then(function (r) { return r.json(); })
+        .then(function (d) {
+          if (d.thumbnail_url) b.querySelector('img').src = d.thumbnail_url.replace(/_\d+x\d+(\.\w+)?$/, '_960x720$1');
+          if (d.duration) { b._dur = pad(Math.floor(d.duration / 60)) + ':' + pad(d.duration % 60); b.querySelector('.wkl-dur').textContent = b._dur; }
+        }).catch(function () {});
+      b.addEventListener('click', function () {
+        var lb = document.getElementById('lightbox'), f = document.getElementById('lbIframe'); if (!lb || !f) return;
+        document.getElementById('lbTitle').textContent = name;
+        document.getElementById('lbClient').textContent = client;
+        f.src = 'https://player.vimeo.com/video/' + id + '?autoplay=1&autopause=0&title=0&byline=0&portrait=0';
+        lb.classList.add('open'); lb.removeAttribute('aria-hidden'); document.body.style.overflow = 'hidden';
+      });
+    });
+    if (!('IntersectionObserver' in window)) { tiles.forEach(function (b) { b.classList.add('in', 'on'); b.querySelector('.wkl-media').style.clipPath = 'none'; b.querySelector('.wkl-blade').style.opacity = 0; }); return; }
+    function phone() { return window.matchMedia('(max-width: 760px)').matches; }
+
+    // the wipe: one clock drives the reveal edge and the blade together
+    function ease(t) { return t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2; }
+    function wipe(b) {
+      var m = b.querySelector('.wkl-media'), bl = b.querySelector('.wkl-blade');
+      if (reduce) { m.style.clipPath = 'none'; bl.style.opacity = 0; return; }
+      var t0 = performance.now(), D = 1000;
+      (function step(now) {
+        var p = Math.min(1, (now - t0) / D), e = ease(p), top = (1 - e) * 100;
+        m.style.clipPath = 'inset(' + top.toFixed(3) + '% 0 0 0)';
+        bl.style.top = top.toFixed(3) + '%';
+        if (p < 1) requestAnimationFrame(step); else { m.style.clipPath = 'none'; bl.style.opacity = 0; }
+      })(t0);
+    }
+
+    // arrival: blade wipe + decode, once per tile
+    var arrive = new IntersectionObserver(function (es) {
+      es.forEach(function (e) {
+        if (!e.isIntersecting || e.target.classList.contains('in')) return;
+        var b = e.target; b.classList.add('in'); arrive.unobserve(b);
+        wipe(b);
+        setTimeout(function () {
+          decode(b.querySelector('.wkl-client'), b._client);
+          decode(b.querySelector('.wkl-title'), b._name);
+          if (b._dur) decode(b.querySelector('.wkl-dur'), b._dur);
+        }, reduce ? 0 : 520);
+      });
+    }, { threshold: 0.3 });
+    tiles.forEach(function (b) { arrive.observe(b); });
+
+    // focus: the tile nearest the middle of the screen is lit
+    var onT = null, raf = 0;
+    function focus() {
+      raf = 0; if (!phone()) return;
+      var vh = window.innerHeight, mid = vh / 2, best = null, bd = 1e9;
+      tiles.forEach(function (b) {
+        var r = b.getBoundingClientRect(), c = r.top + r.height / 2, d = Math.abs(c - mid);
+        if (d < bd) { bd = d; best = b; }
+        // the wheel: tip back and recede away from the middle, sharpen at the centre
+        var k = Math.max(-1.4, Math.min(1.4, (c - mid) / vh)), a = Math.abs(k);
+        if (!reduce && r.bottom > -vh * 0.5 && r.top < vh * 1.5) {
+          b.style.transform = 'perspective(1000px) rotateX(' + (-k * 30).toFixed(2) + 'deg) scale(' + (1 - a * 0.08).toFixed(4) + ')';
+          b.querySelector('.wkl-text').style.filter = 'blur(' + (3.2 * (1 - Math.exp(-a * a * 2.4))).toFixed(2) + 'px)';
+        }
+      });
+      if (best !== onT) { if (onT) onT.classList.remove('on'); onT = best; if (best) best.classList.add('on'); }
+    }
+    window.addEventListener('scroll', function () { if (!raf) raf = requestAnimationFrame(focus); }, { passive: true });
+    window.addEventListener('resize', function () { if (!raf) raf = requestAnimationFrame(focus); }, { passive: true });
+    focus();
+
+    // loops: only tiles on screen play, at most two at once
+    if (reduce) return;
+    var live = [];
+    function start(b) {
+      var h = b.querySelector('.wkl-vid'); if (h.firstChild) return;
+      var ifr = document.createElement('iframe');
+      ifr.allow = 'autoplay; fullscreen; picture-in-picture'; ifr.setAttribute('tabindex', '-1');
+      ifr.src = 'https://player.vimeo.com/video/' + b.dataset.vimeo + '?autoplay=1&muted=1&loop=1&background=1&autopause=0&playsinline=1';
+      ifr.addEventListener('load', function () { setTimeout(function () { h.classList.add('ready'); }, 500); });
+      h.appendChild(ifr); live.push(b);
+      while (live.length > 2) stop(live[0]);
+    }
+    function stop(b) {
+      var h = b.querySelector('.wkl-vid'); h.classList.remove('ready'); h.innerHTML = '';
+      live = live.filter(function (x) { return x !== b; });
+    }
+    var io = new IntersectionObserver(function (es) {
+      if (!phone()) return;
+      es.forEach(function (e) { if (e.intersectionRatio >= 0.6) start(e.target); else if (e.intersectionRatio < 0.15) stop(e.target); });
+    }, { threshold: [0, 0.15, 0.6] });
+    tiles.forEach(function (b) { io.observe(b); });
   })();
   </script>
 </body>
